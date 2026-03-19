@@ -228,28 +228,42 @@ body {
 }
 
 @media (max-width: 600px) {
+    body {
+        justify-content: flex-start; /* Start from top to avoid center-pushing out of bottom */
+        padding-top: 60px;
+    }
     #gameCanvas {
-        width: 320px;
-        height: 320px;
+        width: 280px;
+        height: 280px;
     }
     .title {
         font-size: 1.8rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.2rem;
     }
     .header {
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
     }
     .score-container {
-        gap: 1rem;
+        gap: 0.8rem;
+        margin-bottom: 0.5rem;
     }
     .score-box {
-        padding: 0.5rem 1rem;
-        min-width: 100px;
+        padding: 0.4rem 0.8rem;
+        min-width: 90px;
     }
     .home-btn {
         top: 10px;
         left: 10px;
         padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+    }
+    .mobile-controls {
+        margin-top: 1rem;
+        gap: 5px;
+    }
+    .control-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 1.2rem;
     }
 }
