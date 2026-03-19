@@ -11,9 +11,9 @@ const startBtn = document.getElementById('startBtn');
 const GRAVITY = 0.8;
 const JUMP_FORCE = -15;
 const GROUND_Y = 230; // Dino feet position
-const INITIAL_SPEED = 7;
-const SPEED_INCREMENT = 0.002; // Faster speed increase
-const MIN_OBSTACLE_DISTANCE = 350; 
+const INITIAL_SPEED = 8;
+const SPEED_INCREMENT = 0.002;
+const MIN_OBSTACLE_DISTANCE = 300; 
 const HITBOX_BUFFER = 10;
 
 // Game State
@@ -29,6 +29,7 @@ let dino = {
 };
 
 let obstacles = [];
+let clouds = [];
 let frameCount = 0;
 let score = 0;
 let highScore = localStorage.getItem('dinoHighScore') || 0;
@@ -72,7 +73,9 @@ function startGame() {
     dino.y = GROUND_Y;
     dino.dy = 0;
     dino.isJumping = false;
+    dino.canDoubleJump = false;
     obstacles = [];
+    clouds = [];
     score = 0;
     gameSpeed = INITIAL_SPEED;
     frameCount = 0;
@@ -121,13 +124,18 @@ function update() {
     }
     
     // Spawning Obstacles
-    if (frameCount % 60 === 0) {
+    if (frameCount % 40 === 0) { // Check more frequently
         const lastObstacle = obstacles[obstacles.length - 1];
         if (!lastObstacle || (canvas.width - lastObstacle.x) > MIN_OBSTACLE_DISTANCE) {
-            if (Math.random() > 0.5) {
+            if (Math.random() > 0.4) {
                 spawnObstacle();
             }
         }
+    }
+
+    // Spawning Clouds
+    if (frameCount % 120 === 0 && Math.random() > 0.6) {
+        spawnCloud();
     }
     
     // Updating Obstacles
@@ -149,10 +157,27 @@ function update() {
             obstacles.splice(i, 1);
         }
     }
+
+    // Updating Clouds
+    for (let i = clouds.length - 1; i >= 0; i--) {
+        clouds[i].x -= gameSpeed * 0.3; // Parallax effect
+        if (clouds[i].x + clouds[i].width < 0) {
+            clouds.splice(i, 1);
+        }
+    }
+}
+
+function spawnCloud() {
+    clouds.push({
+        x: canvas.width,
+        y: 20 + Math.random() * 80,
+        width: 60 + Math.random() * 40,
+        height: 20 + Math.random() * 20
+    });
 }
 
 function spawnObstacle() {
-    const isBird = score > 100 && Math.random() > 0.7; // Birds start after score 100
+    const isBird = score > 50 && Math.random() > 0.7; // Birds start earlier (score 50)
     
     if (isBird) {
         // Flying bird
@@ -191,6 +216,12 @@ function draw() {
     ctx.moveTo(0, GROUND_Y + 60);
     ctx.lineTo(canvas.width, GROUND_Y + 60);
     ctx.stroke();
+
+    // Draw Clouds
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    clouds.forEach(cloud => {
+        drawRoundedRect(ctx, cloud.x, cloud.y, cloud.width, cloud.height, 10);
+    });
 
     // Draw Dino
     ctx.shadowBlur = 15;
