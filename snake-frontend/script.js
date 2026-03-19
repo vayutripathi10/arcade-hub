@@ -35,6 +35,18 @@ function init() {
         startGame();
     });
     window.addEventListener('keydown', handleKeyPress);
+    
+    // Mobile controls
+    document.getElementById('upBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowup'); });
+    document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowdown'); });
+    document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowleft'); });
+    document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowright'); });
+    
+    // Also support clicks for testing on desktop
+    document.getElementById('upBtn').addEventListener('click', () => handleDirection('arrowup'));
+    document.getElementById('downBtn').addEventListener('click', () => handleDirection('arrowdown'));
+    document.getElementById('leftBtn').addEventListener('click', () => handleDirection('arrowleft'));
+    document.getElementById('rightBtn').addEventListener('click', () => handleDirection('arrowright'));
 }
 
 function startGame() {
@@ -73,6 +85,12 @@ function handleKeyPress(e) {
         return;
     }
     
+    handleDirection(key);
+}
+
+function handleDirection(key) {
+    if (!gameRunning) return;
+
     if ((key === 'arrowup' || key === 'w') && dy === 0) {
         nextDx = 0;
         nextDy = -1;

@@ -177,6 +177,53 @@ body {
     font-size: 0.9rem;
 }
 
+.mobile-controls {
+    display: none; /* Hidden on desktop */
+    margin-top: 2rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-row {
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.control-btn:active {
+    background: var(--accent-color);
+    color: #000;
+}
+
+@media (max-width: 800px) {
+    .mobile-controls {
+        display: flex;
+    }
+    .controls-info {
+        display: none;
+    }
+    .title {
+        font-size: 2.2rem;
+    }
+}
+
 @media (max-width: 600px) {
     #gameCanvas {
         width: 300px;
