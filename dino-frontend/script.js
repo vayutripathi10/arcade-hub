@@ -24,6 +24,7 @@ let dino = {
     height: 60,
     dy: 0,
     isJumping: false,
+    canDoubleJump: false,
     color: '#8a2be2'
 };
 
@@ -87,6 +88,10 @@ function jump() {
     if (!dino.isJumping) {
         dino.dy = JUMP_FORCE;
         dino.isJumping = true;
+        dino.canDoubleJump = true; // Enable double jump after first jump
+    } else if (dino.canDoubleJump) {
+        dino.dy = JUMP_FORCE * 0.8; // Second jump is slightly less powerful
+        dino.canDoubleJump = false; // Disable double jump until next landing
     }
 }
 
