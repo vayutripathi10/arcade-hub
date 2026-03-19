@@ -22,7 +22,9 @@ let score = 0;
 let highScore = localStorage.getItem('snakeHighScore') || 0;
 let gameRunning = false;
 let gameLoopInterval;
-let speed = 100;
+let speed = 150; // Slower initial speed
+let survivalTimer = 0;
+const minSpeed = 50;
 
 highScoreElement.textContent = highScore;
 
@@ -46,6 +48,8 @@ function startGame() {
     nextDx = 1;
     nextDy = 0;
     score = 0;
+    speed = 150; // Reset to slow
+    survivalTimer = 0;
     scoreElement.textContent = score;
     gameRunning = true;
     overlay.classList.add('hidden');
@@ -126,14 +130,26 @@ function update() {
             localStorage.setItem('snakeHighScore', highScore);
         }
         generateFood();
-        // Slightly increase speed
-        if (speed > 50) {
-            clearInterval(gameLoopInterval);
-            speed -= 1;
-            gameLoopInterval = setInterval(gameLoop, speed);
-        }
+        
+        // Noticeable speed increase per food
+        increaseSpeed(5);
     } else {
         snake.pop();
+    }
+
+    // Survival speed increase (every 100 frames ~ 10-15 seconds)
+    survivalTimer++;
+    if (survivalTimer % 100 === 0) {
+        increaseSpeed(2);
+    }
+}
+
+function increaseSpeed(amount) {
+    if (speed > minSpeed) {
+        clearInterval(gameLoopInterval);
+        speed -= amount;
+        if (speed < minSpeed) speed = minSpeed;
+        gameLoopInterval = setInterval(gameLoop, speed);
     }
 }
 
