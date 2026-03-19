@@ -131,6 +131,28 @@ body::before {
     text-shadow: 0 0 20px rgba(255,51,102,0.5);
 }
 
+.snake-icon {
+    background: linear-gradient(135deg, #00ffcc 0%, #008877 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.snake-body {
+    display: flex;
+    gap: 4px;
+    transform: rotate(-15deg);
+}
+
+.snake-body .dot {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
 .mystery-icon {
     background: rgba(0,0,0,0.2);
 }
