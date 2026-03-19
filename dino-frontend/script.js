@@ -12,9 +12,9 @@ const GRAVITY = 0.8;
 const JUMP_FORCE = -15;
 const GROUND_Y = 230; // Dino feet position
 const INITIAL_SPEED = 7;
-const SPEED_INCREMENT = 0.001;
-const MIN_OBSTACLE_DISTANCE = 350; // Minimum distance between obstacles
-const HITBOX_BUFFER = 10; // Forgiving collision detection
+const SPEED_INCREMENT = 0.002; // Faster speed increase
+const MIN_OBSTACLE_DISTANCE = 350; 
+const HITBOX_BUFFER = 10;
 
 // Game State
 let dino = {
@@ -152,15 +152,32 @@ function update() {
 }
 
 function spawnObstacle() {
-    const height = 40 + Math.random() * 40;
-    const width = 30 + Math.random() * 30;
-    obstacles.push({
-        x: canvas.width,
-        y: GROUND_Y + 60 - height, // Correctly align bottom to ground
-        width: width,
-        height: height,
-        color: '#00ffcc'
-    });
+    const isBird = score > 100 && Math.random() > 0.7; // Birds start after score 100
+    
+    if (isBird) {
+        // Flying bird
+        const birdY = Math.random() > 0.5 ? GROUND_Y - 40 : GROUND_Y + 10; // High or Low bird
+        obstacles.push({
+            x: canvas.width,
+            y: birdY,
+            width: 40,
+            height: 30,
+            color: '#ff4d4d', // Red for danger
+            type: 'bird'
+        });
+    } else {
+        // Ground cactus
+        const height = 40 + Math.random() * 40;
+        const width = 30 + Math.random() * 30;
+        obstacles.push({
+            x: canvas.width,
+            y: GROUND_Y + 60 - height,
+            width: width,
+            height: height,
+            color: '#00ffcc',
+            type: 'cactus'
+        });
+    }
 }
 
 function draw() {
@@ -191,7 +208,17 @@ function draw() {
         ctx.shadowBlur = 15;
         ctx.shadowColor = obs.color;
         ctx.fillStyle = obs.color;
-        drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
+        
+        if (obs.type === 'bird') {
+            // Draw a triangle for the bird
+            ctx.beginPath();
+            ctx.moveTo(obs.x, obs.y + obs.height);
+            ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2);
+            ctx.lineTo(obs.x, obs.y);
+            ctx.fill();
+        } else {
+            drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
+        }
     });
     
     ctx.shadowBlur = 0;
