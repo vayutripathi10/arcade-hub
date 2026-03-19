@@ -23,11 +23,13 @@ body {
         radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.05) 0%, transparent 40%);
     color: var(--text-primary);
     min-height: 100vh;
+    min-height: 100dvh; /* Dynamic Viewport Height for mobile */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .home-btn {
@@ -179,10 +181,11 @@ body {
 
 .mobile-controls {
     display: none; /* Hidden on desktop */
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom)); /* Extra space for iPhone toolbar */
 }
 
 .control-row {
@@ -226,15 +229,27 @@ body {
 
 @media (max-width: 600px) {
     #gameCanvas {
-        width: 300px;
-        height: 300px;
+        width: 320px;
+        height: 320px;
     }
     .title {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    .header {
+        margin-bottom: 1rem;
+    }
+    .score-container {
+        gap: 1rem;
+    }
+    .score-box {
+        padding: 0.5rem 1rem;
+        min-width: 100px;
     }
     .home-btn {
-        top: 1rem;
-        left: 1rem;
-        padding: 0.5rem 0.8rem;
+        top: 10px;
+        left: 10px;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
     }
 }
