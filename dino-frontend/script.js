@@ -13,6 +13,8 @@ const JUMP_FORCE = -15;
 const GROUND_Y = 230; // Dino feet position
 const INITIAL_SPEED = 7;
 const SPEED_INCREMENT = 0.001;
+const MIN_OBSTACLE_DISTANCE = 350; // Minimum distance between obstacles
+const HITBOX_BUFFER = 10; // Forgiving collision detection
 
 // Game State
 let dino = {
@@ -114,20 +116,25 @@ function update() {
     }
     
     // Spawning Obstacles
-    if (frameCount % 100 === 0 || (frameCount % 75 === 0 && Math.random() > 0.7)) {
-        spawnObstacle();
+    if (frameCount % 60 === 0) {
+        const lastObstacle = obstacles[obstacles.length - 1];
+        if (!lastObstacle || (canvas.width - lastObstacle.x) > MIN_OBSTACLE_DISTANCE) {
+            if (Math.random() > 0.5) {
+                spawnObstacle();
+            }
+        }
     }
     
     // Updating Obstacles
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         
-        // Collision Detection
+        // Collision Detection with Forgiving Hitbox
         if (
-            dino.x < obstacles[i].x + obstacles[i].width &&
-            dino.x + dino.width > obstacles[i].x &&
-            dino.y < obstacles[i].y + obstacles[i].height &&
-            dino.y + dino.height > obstacles[i].y
+            dino.x + HITBOX_BUFFER < obstacles[i].x + obstacles[i].width - HITBOX_BUFFER &&
+            dino.x + dino.width - HITBOX_BUFFER > obstacles[i].x + HITBOX_BUFFER &&
+            dino.y + HITBOX_BUFFER < obstacles[i].y + obstacles[i].height - HITBOX_BUFFER &&
+            dino.y + dino.height - HITBOX_BUFFER > obstacles[i].y + HITBOX_BUFFER
         ) {
             gameOver();
         }
