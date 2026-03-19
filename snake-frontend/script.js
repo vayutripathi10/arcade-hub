@@ -28,7 +28,10 @@ highScoreElement.textContent = highScore;
 
 // Initialize
 function init() {
-    startBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startGame();
+    });
     window.addEventListener('keydown', handleKeyPress);
 }
 
@@ -36,7 +39,7 @@ function startGame() {
     if (gameRunning) return;
     
     // Reset state
-    snake = [{ x: 10, y: 10 }];
+    snake = [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }]; // Start with 3 segments
     generateFood();
     dx = 1;
     dy = 0;
@@ -52,12 +55,19 @@ function startGame() {
 }
 
 function handleKeyPress(e) {
-    if (!gameRunning && e.key !== 'Escape') {
-        startGame();
-        return;
+    const key = e.key.toLowerCase();
+    const gameKeys = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', ' '];
+    
+    if (gameKeys.includes(key)) {
+        e.preventDefault(); // Prevent scrolling
     }
 
-    const key = e.key.toLowerCase();
+    if (!gameRunning) {
+        if (key === ' ' || key === 'enter' || gameKeys.includes(key)) {
+            startGame();
+        }
+        return;
+    }
     
     if ((key === 'arrowup' || key === 'w') && dy === 0) {
         nextDx = 0;
@@ -86,17 +96,21 @@ function update() {
 
     const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-    // Wall collision
+    // Wall collision check
     if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        console.log("Wall collision", head);
         gameOver();
         return;
     }
 
-    // Self collision
-    for (let i = 0; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-            gameOver();
-            return;
+    // Self collision check (only if moving)
+    if (dx !== 0 || dy !== 0) {
+        for (let i = 0; i < snake.length; i++) {
+            if (head.x === snake[i].x && head.y === snake[i].y) {
+                console.log("Self collision", head, snake[i]);
+                gameOver();
+                return;
+            }
         }
     }
 
