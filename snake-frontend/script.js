@@ -178,18 +178,23 @@ function draw() {
     snake.forEach((part, index) => {
         const isHead = index === 0;
         const opacity = 1 - (index / snake.length) * 0.6;
-        ctx.fillStyle = `rgba(0, 255, 204, ${opacity})`;
+        ctx.fillStyle = isHead ? '#00ffcc' : `rgba(0, 255, 204, ${opacity})`;
         
         const size = isHead ? gridSize - 2 : gridSize - 4;
         const offset = (gridSize - size) / 2;
         
-        ctx.roundRect(
-            part.x * gridSize + offset,
-            part.y * gridSize + offset,
-            size,
-            size,
-            isHead ? 6 : 4
-        ).fill();
+        const x = part.x * gridSize + offset;
+        const y = part.y * gridSize + offset;
+        const radius = isHead ? 8 : 4;
+
+        if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(x, y, size, size, radius);
+            ctx.fill();
+        } else {
+            // Fallback for very old browsers
+            ctx.fillRect(x, y, size, size);
+        }
     });
     
     ctx.shadowBlur = 0;
