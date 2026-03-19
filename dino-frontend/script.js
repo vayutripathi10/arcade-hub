@@ -8,18 +8,18 @@ const overlayMessage = document.getElementById('overlayMessage');
 const startBtn = document.getElementById('startBtn');
 
 // Game Constants
-const GRAVITY = 0.6;
-const JUMP_FORCE = -12;
-const GROUND_Y = 180;
-const INITIAL_SPEED = 6;
+const GRAVITY = 0.8;
+const JUMP_FORCE = -15;
+const GROUND_Y = 230; // Dino feet position
+const INITIAL_SPEED = 7;
 const SPEED_INCREMENT = 0.001;
 
 // Game State
 let dino = {
     x: 50,
     y: GROUND_Y,
-    width: 40,
-    height: 40,
+    width: 60,
+    height: 60,
     dy: 0,
     isJumping: false,
     color: '#8a2be2'
@@ -140,11 +140,11 @@ function update() {
 }
 
 function spawnObstacle() {
-    const height = 20 + Math.random() * 30;
-    const width = 15 + Math.random() * 20;
+    const height = 40 + Math.random() * 40;
+    const width = 30 + Math.random() * 30;
     obstacles.push({
         x: canvas.width,
-        y: GROUND_Y + 40 - height, // Align to bottom
+        y: GROUND_Y + 60 - height, // Correctly align bottom to ground
         width: width,
         height: height,
         color: '#00ffcc'
@@ -156,23 +156,23 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Draw Ground Line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y + 40);
-    ctx.lineTo(canvas.width, GROUND_Y + 40);
+    ctx.moveTo(0, GROUND_Y + 60);
+    ctx.lineTo(canvas.width, GROUND_Y + 60);
     ctx.stroke();
 
     // Draw Dino
     ctx.shadowBlur = 15;
     ctx.shadowColor = dino.color;
     ctx.fillStyle = dino.color;
-    drawRoundedRect(ctx, dino.x, dino.y, dino.width, dino.height, 10);
+    drawRoundedRect(ctx, dino.x, dino.y, dino.width, dino.height, 12);
     
-    // Draw Eyes (to make it look like a dino/cube)
+    // Draw Eyes
     ctx.shadowBlur = 0;
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(dino.x + 25, dino.y + 10, 5, 5);
+    ctx.fillRect(dino.x + 40, dino.y + 15, 8, 8);
 
     // Draw Obstacles
     obstacles.forEach(obs => {
