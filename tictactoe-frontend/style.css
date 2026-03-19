@@ -1,0 +1,339 @@
+        :root {
+            --primary: #8a2be2;
+            --secondary: #4a00e0;
+            --background: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --x-color: #00ffcc;
+            --o-color: #ff3366;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background) 0%, #1e1b4b 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+            padding: 2vh 0;
+            color: var(--text);
+            overflow: hidden; /* Hide scrollbars as requested */
+        }
+
+        /* Ambient background glow */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(138,43,226,0.2) 0%, rgba(0,0,0,0) 70%);
+            top: -100px;
+            left: -100px;
+            border-radius: 50%;
+            z-index: -1;
+            animation: pulseGlow 10s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0.8; }
+        }
+
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: clamp(0.9rem, 3vmin, 1.1rem);
+            font-weight: 500;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            transition: all 0.3s;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .home-btn { /* Adjust position on small screens if necessary */
+                top: 10px;
+                left: 10px;
+                padding: 6px 12px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: min(2vh, 1rem); /* Dynamic margin */
+            animation: fadeInDown 1s ease-out;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .title {
+            font-size: clamp(2rem, 6vmin, 3.5rem); /* Dynamic font size */
+            font-weight: 700;
+            background: linear-gradient(45deg, #00ffcc, #8a2be2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
+            margin-bottom: 0.2rem;
+        }
+
+        .status {
+            font-size: clamp(1rem, 4vmin, 1.5rem);
+            font-weight: 500;
+            height: clamp(1.5rem, 5vmin, 2rem);
+            transition: color 0.3s;
+        }
+
+        .status.x-turn { color: var(--x-color); }
+        .status.o-turn { color: var(--o-color); }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 400px;
+            margin: 0 auto min(2vh, 1rem) auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: min(2vmin, 1rem);
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .player-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            width: 40%;
+        }
+
+        .player-name-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(0.9rem, 3vmin, 1.1rem);
+            font-weight: 700;
+            padding: 0.3rem;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .player-name-input:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .player-name-input.x-name {
+            color: var(--x-color);
+            border-color: rgba(0, 255, 204, 0.3);
+        }
+
+        .player-name-input.o-name {
+            color: var(--o-color);
+            border-color: rgba(255, 51, 102, 0.3);
+        }
+
+        .player-name-input:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .score {
+            font-size: clamp(1.5rem, 5vmin, 2rem);
+            font-weight: 700;
+        }
+
+        .score.x-score { color: var(--x-color); }
+        .score.o-score { color: var(--o-color); }
+
+        .score-divider {
+            font-size: clamp(1rem, 4vmin, 1.5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .game-container {
+            position: relative;
+            padding: min(3vmin, 1.2rem);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255,255,255,0.02);
+            animation: fadeIn 1s ease-out;
+            width: 90%;
+            max-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: min(2vmin, 10px);
+            margin-bottom: min(2vmin, 1rem);
+            width: 100%;
+            max-width: min(280px, 40vh); /* Shrinks board heavily if screen is short */
+            aspect-ratio: 1 / 1; /* Keep it perfectly square */
+        }
+
+        .cell {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(2.5rem, 8vmin, 4rem);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .cell:hover:not(.occupied) {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,255,0.1);
+        }
+
+        .cell.x {
+            color: var(--x-color);
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .cell.o {
+            color: var(--o-color);
+            text-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .cell.winning-cell {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 30px rgba(255,255,255,0.2);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .controls {
+            display: flex;
+            gap: min(2vmin, 1rem);
+            width: 100%;
+            margin-top: 0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: clamp(0.5rem, 2vmin, 1rem);
+            font-size: clamp(0.8rem, 3vmin, 1.1rem);
+            font-weight: 700;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            border: none;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(45deg, #9b4dff, #5c1aff);
+            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.6);
+        }
+
+        .btn.active-mode {
+            background: rgba(0, 255, 204, 0.2);
+            border-color: var(--x-color);
+            color: var(--x-color);
+            box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.2);
+        }
+
+        .difficulty-container {
+            width: 100%;
+            margin-top: min(2vmin, 1rem);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: clamp(0.4rem, 2vmin, 0.8rem) clamp(0.5rem, 2vmin, 1rem);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+
+        .difficulty-container.hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            margin-top: 0;
+        }
+
+        .difficulty-label {
+            font-size: clamp(0.8rem, 3vmin, 1.1rem);
+            font-weight: 500;
+            color: var(--text);
+            white-space: nowrap;
+        }
+
+        .difficulty-select {
+            flex: 1;
+            padding: clamp(0.2rem, 1vmin, 0.5rem);
+            font-size: clamp(0.8rem, 3vmin, 1.1rem);
+            font-weight: 500;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 5px;
+            cursor: pointer;
+            outline: none;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        .difficulty-select option {
+            background-color: var(--background);
+            color: white;
+        }

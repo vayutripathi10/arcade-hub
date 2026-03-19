@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+</head>
+<body>
+    <div class="header-container">
+        <h1 class="main-title">Arcade Hub</h1>
+        <p class="subtitle">Select a game to play!</p>
+    </div>
+
+    <div class="games-grid">
+        <!-- Tic Tac Toe Card -->
+        <a href="tictactoe-frontend/index.html" class="game-card">
+            <div class="card-icon ttt-icon">
+                <div class="x">X</div>
+                <div class="o">O</div>
+            </div>
+            <div class="card-content">
+                <h2 class="game-title">Tic Tac Toe</h2>
+                <p class="game-desc">A premium classic with an unbeatable Minimax AI, custom names, and a live scoreboard.</p>
+                <span class="play-btn">Play Now</span>
+            </div>
+        </a>
+
+        <!-- Coming Soon Placeholder -->
+        <div class="game-card disabled">
+            <div class="card-icon mystery-icon">
+                <div class="qmark">?</div>
+            </div>
+            <div class="card-content">
+                <h2 class="game-title">Mystery Game</h2>
+                <p class="game-desc">More awesome games are under development. Check back soon!</p>
+                <span class="play-btn locked">Coming Soon</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
