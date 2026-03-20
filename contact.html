@@ -52,8 +52,8 @@
                 <p>Have a game idea, found a bug, or just want to say hi? We'd love to hear from you!</p>
             </div>
 
-            <!-- Direct Email Link flow -->
-            <form id="contactForm">
+            <!-- Formspree Integration -->
+            <form action="https://formspree.io/f/mvzwyoev" method="POST">
                 <div class="form-group">
                     <label for="name">Name</label>
                     <input type="text" id="name" name="name" placeholder="Your Name" required>
@@ -70,28 +70,10 @@
                     <label for="message">Message</label>
                     <textarea id="message" name="message" rows="5" placeholder="Your Message" required></textarea>
                 </div>
-                <button type="submit" class="submit-btn" id="sendBtn">Open Email App</button>
+                <button type="submit" class="submit-btn" id="sendBtn">Send Message</button>
             </form>
         </div>
     </main>
-
-    <script>
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const userEmail = document.getElementById('email').value;
-            const subject = document.getElementById('subject').value || 'Message from Arcade Hub';
-            const message = document.getElementById('message').value;
-            
-            const emailTo = "javacodepathshala@gmail.com";
-            const emailBody = `Sender Name: ${name}%0D%0ASender Email: ${userEmail}%0D%0A%0D%0AMessage:%0D%0A${message}`;
-            
-            const mailtoLink = `mailto:${emailTo}?subject=${encodeURIComponent(subject)}&body=${emailBody}`;
-            
-            window.location.href = mailtoLink;
-        });
-    </script>
 
     <footer class="site-footer">
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="contact.html">Contact Us</a></p>
