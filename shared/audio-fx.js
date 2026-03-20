@@ -5,6 +5,8 @@
 class AudioFX {
     constructor() {
         this.ctx = null;
+        this.masterGain = null;
+        this.compressor = null;
         this.enabled = true;
     }
 
@@ -14,7 +16,24 @@ class AudioFX {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
             if (AudioCtx) {
                 this.ctx = new AudioCtx();
-                console.log('AudioFX: Context created. State:', this.ctx.state);
+                
+                // Create master chain: Compressor -> Master Gain -> Destination
+                this.compressor = this.ctx.createDynamicsCompressor();
+                this.masterGain = this.ctx.createGain();
+                
+                // Typical "loudness" compression settings
+                this.compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
+                this.compressor.knee.setValueAtTime(30, this.ctx.currentTime);
+                this.compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
+                this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
+                this.compressor.release.setValueAtTime(0.25, this.ctx.currentTime);
+                
+                this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime); // Boost overall volume
+                
+                this.compressor.connect(this.masterGain);
+                this.masterGain.connect(this.ctx.destination);
+                
+                console.log('AudioFX: Context and master chain created. State:', this.ctx.state);
             } else {
                 console.warn('AudioFX: Web Audio API not supported');
                 this.enabled = false;
@@ -34,11 +53,11 @@ class AudioFX {
         const gain = this.ctx.createGain();
         osc.type = type;
         
-        // Use direct value setting for immediate start
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
         
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        // Connect to compressor instead of destination
+        gain.connect(this.compressor);
         return { osc, gain };
     }
 
@@ -51,13 +70,13 @@ class AudioFX {
         const { osc, gain } = this.createOscillator(150, 'triangle');
         const now = this.ctx.currentTime;
         
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        gain.gain.setValueAtTime(0.5, now); // Increased level
+        gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2); // Slower decay
         
         osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
         
         osc.start(now);
-        osc.stop(now + 0.2);
+        osc.stop(now + 0.25);
     }
 
     playEat() {
@@ -69,11 +88,11 @@ class AudioFX {
         const { osc, gain } = this.createOscillator(523.25, 'square'); // C5
         const now = this.ctx.currentTime;
         
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        gain.gain.setValueAtTime(0.4, now); // Increased level
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2); // Slower decay
         
         osc.start(now);
-        osc.stop(now + 0.15);
+        osc.stop(now + 0.2);
     }
 
     playGameOver() {
@@ -104,10 +123,10 @@ class AudioFX {
         const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
         notes.forEach((freq, i) => {
             const { osc, gain } = this.createOscillator(freq, 'sine');
-            gain.gain.setValueAtTime(0.15, now + i * 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
+            gain.gain.setValueAtTime(0.3, now + i * 0.1); // Increased level
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4); // Slower decay
             osc.start(now + i * 0.1);
-            osc.stop(now + i * 0.1 + 0.3);
+            osc.stop(now + i * 0.1 + 0.4);
         });
     }
 
