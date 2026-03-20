@@ -229,12 +229,19 @@ body {
 
 @media (max-width: 600px) {
     body {
-        justify-content: flex-start; /* Start from top to avoid center-pushing out of bottom */
+        justify-content: flex-start;
+        padding: 10px;
         padding-top: 60px;
+        overflow-y: auto;
+    }
+    .game-wrapper {
+        width: 100%;
+        max-width: 400px;
+        padding: 5px;
     }
     #gameCanvas {
-        width: 280px;
-        height: 280px;
+        width: 100%;
+        height: auto;
     }
     .title {
         font-size: 1.8rem;

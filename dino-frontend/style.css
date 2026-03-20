@@ -186,7 +186,76 @@ body {
 }
 
 @media (max-width: 600px) {
-    .title { font-size: 2.22rem; }
-    .home-btn { top: 10px; left: 10px; padding: 0.4rem 0.6rem; font-size: 0.8rem; }
-    .header { margin-bottom: 1rem; }
+    body {
+        padding: 10px;
+        justify-content: flex-start;
+        overflow-y: auto;
+    }
+
+    .home-btn {
+        top: 10px;
+        left: 10px;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .header {
+        margin-top: 3.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .title {
+        font-size: 1.8rem;
+        letter-spacing: 0.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .score-container {
+        gap: 0.8rem;
+    }
+
+    .score-box {
+        padding: 0.5rem 1rem;
+        min-width: 100px;
+        border-radius: 12px;
+    }
+
+    #score, #highScore {
+        font-size: 1.2rem;
+    }
+
+    .game-wrapper {
+        padding: 5px;
+        border-radius: 15px;
+    }
+
+    .overlay-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .overlay-content p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .controls-info {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    body {
+        flex-direction: row;
+        gap: 20px;
+        padding: 10px;
+    }
+    .header { margin-bottom: 0; }
+    .title { font-size: 1.5rem; }
 }
