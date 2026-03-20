@@ -69,6 +69,9 @@ function init() {
 function startGame() {
     if (gameRunning) return;
     
+    // Initialize AudioFX on user gesture
+    if (window.audioFX) window.audioFX.init();
+    
     // Reset state
     dino.y = GROUND_Y;
     dino.dy = 0;
@@ -121,9 +124,11 @@ function update() {
         scoreElement.textContent = score;
         
         // Achievement Checks
-        if (score === 100) achievements.unlock('dino', 'rookie', 'Dino Rookie');
-        if (score === 500) achievements.unlock('dino', 'runner', 'Dino Runner');
-        if (score === 1000) achievements.unlock('dino', 'pro', 'Dino Pro');
+        if (window.achievements) {
+            if (score === 100) window.achievements.unlock('dino', 'rookie', 'Dino Rookie');
+            if (score === 500) window.achievements.unlock('dino', 'runner', 'Dino Runner');
+            if (score === 1000) window.achievements.unlock('dino', 'pro', 'Dino Pro');
+        }
 
         if (score > highScore) {
             highScore = score;

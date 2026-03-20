@@ -9,8 +9,13 @@ class AchievementSystem {
     }
 
     load() {
-        const saved = localStorage.getItem(this.storageKey);
-        return saved ? JSON.parse(saved) : {};
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            console.warn('LocalStorage not accessible:', e);
+            return {};
+        }
     }
 
     save() {
@@ -88,7 +93,13 @@ class AchievementSystem {
     }
 
     notify(title) {
-        const container = document.getElementById('achievement-container');
+        let container = document.getElementById('achievement-container');
+        if (!container) {
+            this.createContainer();
+            container = document.getElementById('achievement-container');
+        }
+        if (!container) return;
+        
         const popup = document.createElement('div');
         popup.className = 'achievement-popup';
         popup.innerHTML = `

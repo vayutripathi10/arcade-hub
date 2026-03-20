@@ -52,6 +52,9 @@ function init() {
 function startGame() {
     if (gameRunning) return;
     
+    // Initialize AudioFX on user gesture
+    if (window.audioFX) window.audioFX.init();
+    
     // Reset state
     snake = [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }]; // Start with 3 segments
     generateFood();
@@ -144,9 +147,11 @@ function update() {
         scoreElement.textContent = score;
 
         // Achievement Checks
-        if (score === 10) achievements.unlock('snake', 'nibbler', 'Nibbler');
-        if (score === 100) achievements.unlock('snake', 'long', 'Long Slinky');
-        if (score === 200) achievements.unlock('snake', 'master', 'Snake Master');
+        if (window.achievements) {
+            if (score === 10) window.achievements.unlock('snake', 'nibbler', 'Nibbler');
+            if (score === 100) window.achievements.unlock('snake', 'long', 'Long Slinky');
+            if (score === 200) window.achievements.unlock('snake', 'master', 'Snake Master');
+        }
 
         if (window.audioFX) window.audioFX.playEat();
         if (navigator.vibrate) navigator.vibrate(20);
