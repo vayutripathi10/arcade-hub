@@ -212,13 +212,192 @@ body::before {
     .game-grid {
         grid-template-columns: 1fr;
     }
+/* About Section Styles */
+.about-section {
+    margin-top: 6rem;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid var(--border-color);
+    border-radius: 40px;
 }
 
-.card-content {
-    padding: 1.8rem;
+.about-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+}
+
+.about-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.about-intro {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.game-list-horizontal {
     display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 4rem;
+}
+
+.game-tag {
+    padding: 0.5rem 1.2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.game-tag.coming-soon {
+    border-color: var(--accent-light);
+    color: var(--accent-light);
+    opacity: 0.8;
+}
+
+.mission-section {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 5rem;
+}
+
+.mission-section h3 {
+    font-size: 1.5rem;
+    color: var(--accent-light);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.mission-section p {
+    font-size: 1.4rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+    margin-bottom: 5rem;
+}
+
+.feature-card {
+    background: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.feature-card h4 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.feature-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.stats-bar {
+    display: flex;
+    justify-content: space-around;
+    background: var(--card-bg);
+    padding: 3rem;
+    border-radius: 30px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 5rem;
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent-light);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+}
+
+.about-footer {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-footer p {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+.about-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.about-link {
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.about-link.primary {
+    background: var(--accent-light);
+    color: #000;
+}
+
+.about-link.secondary {
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.about-link:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .about-section { padding: 3rem 1.5rem; margin-top: 4rem; }
+    .about-title { font-size: 2rem; }
+    .mission-section p { font-size: 1.2rem; }
+    .stats-bar { flex-direction: column; gap: 3rem; }
+    .about-links { flex-direction: column; }
 }
 
 .game-title {
