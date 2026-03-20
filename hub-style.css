@@ -199,37 +199,6 @@ body::before {
     text-shadow: 0 0 10px rgba(255,255,255,0.1);
 }
 
-.support-section {
-    margin-top: 4rem;
-    display: flex;
-    justify-content: center;
-    padding-bottom: 2rem;
-}
-
-.support-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: linear-gradient(135deg, #ffdd00 0%, #f7c300 100%);
-    color: #000;
-    text-decoration: none;
-    padding: 1rem 2rem;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    box-shadow: 0 10px 20px rgba(247, 195, 0, 0.3);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.support-btn:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 30px rgba(247, 195, 0, 0.4);
-}
-
-.coffee-icon {
-    font-size: 1.5rem;
-}
-
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
@@ -242,11 +211,6 @@ body::before {
     }
     .game-grid {
         grid-template-columns: 1fr;
-    }
-    .support-btn {
-        width: 100%;
-        justify-content: center;
-        max-width: 300px;
     }
 }
 
