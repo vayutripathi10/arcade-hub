@@ -17,132 +17,70 @@
 </head>
 <body>
     <div class="header-container">
+        <div class="nav-links">
+            <a href="about.html" class="nav-link">About Us</a>
+        </div>
         <h1 class="main-title">Arcade Hub</h1>
-        <p class="subtitle">Select a game to play!</p>
+        <p class="subtitle">Where Classic Games Meet Modern Fun</p>
     </div>
 
-    <div class="games-grid">
-        <!-- Tic Tac Toe Card -->
-        <a href="tictactoe-frontend/index.html" class="game-card">
-            <div class="card-icon ttt-icon">
-                <div class="x">X</div>
-                <div class="o">O</div>
-            </div>
-            <div class="card-content">
-                <h2 class="game-title">Tic Tac Toe</h2>
-                <p class="game-desc">A premium classic with an unbeatable Minimax AI, custom names, and a live scoreboard.</p>
-                <span class="play-btn">Play Now</span>
-            </div>
-        </a>
+    <main class="container">
+        <div class="games-grid">
+            <!-- Dino Runner Card -->
+            <a href="dino-frontend/index.html" class="game-card">
+                <div class="card-icon dino-icon">
+                    <div class="dino-head"></div>
+                    <div class="dino-ground"></div>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Zen Dino</h3>
+                    <p class="game-desc">A peaceful but challenging neon Dino runner with double jump!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
 
-        <!-- Snake Card -->
-        <a href="snake-frontend/index.html" class="game-card">
-            <div class="card-icon snake-icon">
-                <div class="snake-body">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+            <!-- Snake Game Card -->
+            <a href="snake-frontend/index.html" class="game-card">
+                <div class="card-icon snake-icon">
+                    <div class="snake-body">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot" style="opacity: 0.8"></div>
+                        <div class="dot" style="opacity: 0.6"></div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Zen Snake</h3>
+                    <p class="game-desc">Classic neon snake with smooth acceleration and fluid controls.</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Tic Tac Toe Card -->
+            <a href="tic-tac-toe/index.html" class="game-card">
+                <div class="card-icon ttt-icon">
+                    <span class="x">X</span>
+                    <span class="o">O</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Classic Tic Tac Toe</h3>
+                    <p class="game-desc">The ultimate classic strategy game. Play against a friend locally.</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Mystery Game / Placeholder -->
+            <div class="game-card disabled">
+                <div class="card-icon mystery-icon">
+                    <span class="qmark">?</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">More Coming Soon</h3>
+                    <p class="game-desc">We are working on new exciting games. Stay tuned for updates!</p>
+                    <span class="play-btn locked">Locked</span>
                 </div>
             </div>
-            <div class="card-content">
-                <h2 class="game-title">Zen Snake</h2>
-                <p class="game-desc">A minimalist, smooth arcade classic. Navigate the neon glow and master your focus.</p>
-                <span class="play-btn">Play Now</span>
-            </div>
-        </a>
-
-        <!-- Dino Card -->
-        <a href="dino-frontend/index.html" class="game-card">
-            <div class="card-icon dino-icon">
-                <div class="dino-head"></div>
-                <div class="dino-ground"></div>
-            </div>
-            <div class="card-content">
-                <h2 class="game-title">Zen Dino</h2>
-                <p class="game-desc">The infinite runner you love, reimagined with a neon soul. Jump your way to high scores.</p>
-                <span class="play-btn">Play Now</span>
-            </div>
-        </a>
-
-        <!-- Coming Soon Placeholder -->
-        <div class="game-card disabled">
-            <div class="card-icon mystery-icon">
-                <div class="qmark">?</div>
-            </div>
-            <div class="card-content">
-                <h2 class="game-title">Mystery Game</h2>
-                <p class="game-desc">More awesome games are under development. Check back soon!</p>
-                <span class="play-btn locked">Coming Soon</span>
-            </div>
         </div>
-    </div>
-
-    <!-- About Us Section -->
-    <section id="about" class="about-section">
-        <div class="about-header">
-            <h2 class="about-title">Where Classic Games Meet Modern Fun</h2>
-            <p class="about-intro">Arcade Hub is a free-to-play browser gaming platform built for everyone — no downloads, no sign-ups, no waiting. Just open your browser and start playing instantly.</p>
-        </div>
-
-        <div class="game-list-horizontal">
-            <span class="game-tag">Dino Runner</span>
-            <span class="game-tag">Snake</span>
-            <span class="game-tag">Tic Tac Toe</span>
-            <span class="game-tag coming-soon">More coming soon...</span>
-        </div>
-
-        <div class="mission-section">
-            <h3>Our Mission</h3>
-            <p>To bring back the joy of simple, addictive games — no paywalls, no ads, no distractions. Just pure gameplay that works on any device, anywhere in the world.</p>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h4>Instant play</h4>
-                <p>No downloads, no installs. Open your browser and play in seconds — on any device.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎁</div>
-                <h4>Always free</h4>
-                <p>Every game on Arcade Hub is completely free. No hidden charges, ever.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🚀</div>
-                <h4>Growing library</h4>
-                <p>New games added regularly. From classics to originals — there's always something new to try.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">👨‍👩‍👧‍👦</div>
-                <h4>Built for everyone</h4>
-                <p>Simple controls, clean design. Perfect for kids, adults, and everyone in between.</p>
-            </div>
-        </div>
-
-        <div class="stats-bar">
-            <div class="stat-item">
-                <span class="stat-value">3+</span>
-                <span class="stat-label">Games available</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value">0</span>
-                <span class="stat-label">Downloads needed</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-value">100%</span>
-                <span class="stat-label">Free forever</span>
-            </div>
-        </div>
-
-        <div class="about-footer">
-            <p>Arcade Hub was built by a developer who believes that great games don't need to be complicated — or expensive. This project is open source and continuously growing. Have a game idea or want to contribute? We'd love to hear from you.</p>
-            <div class="about-links">
-                <a href="https://github.com/vayutripathi10/arcade-hub" target="_blank" class="about-link primary">Contribute a game ↗</a>
-                <a href="https://github.com/vayutripathi10/arcade-hub" target="_blank" class="about-link secondary">View on GitHub</a>
-            </div>
-        </div>
-    </section>
-
     </main>
 </body>
 </html>
