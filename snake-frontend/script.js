@@ -142,6 +142,15 @@ function update() {
     if (head.x === food.x && head.y === food.y) {
         score += 10;
         scoreElement.textContent = score;
+
+        // Achievement Checks
+        if (score === 10) achievements.unlock('snake', 'nibbler', 'Nibbler');
+        if (score === 100) achievements.unlock('snake', 'long', 'Long Slinky');
+        if (score === 200) achievements.unlock('snake', 'master', 'Snake Master');
+
+        if (window.audioFX) window.audioFX.playEat();
+        if (navigator.vibrate) navigator.vibrate(20);
+
         if (score > highScore) {
             highScore = score;
             highScoreElement.textContent = highScore;
@@ -267,6 +276,10 @@ function generateFood() {
 function gameOver() {
     gameRunning = false;
     clearInterval(gameLoopInterval);
+    
+    if (window.audioFX) window.audioFX.playGameOver();
+    if (navigator.vibrate) navigator.vibrate(50);
+
     overlayTitle.textContent = "Game Over";
     overlayMessage.textContent = `Final Score: ${score}`;
     startBtn.textContent = "Try Again";

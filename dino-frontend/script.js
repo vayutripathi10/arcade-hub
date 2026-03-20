@@ -89,12 +89,15 @@ function startGame() {
 
 function jump() {
     if (!dino.isJumping) {
+        if (window.audioFX) window.audioFX.playJump();
         dino.dy = JUMP_FORCE;
         dino.isJumping = true;
         dino.canDoubleJump = true; // Enable double jump after first jump
     } else if (dino.canDoubleJump) {
+        if (window.audioFX) window.audioFX.playJump();
         dino.dy = JUMP_FORCE * 0.8; // Second jump is slightly less powerful
         dino.canDoubleJump = false; // Disable double jump until next landing
+        if (window.achievements) window.achievements.unlock('dino', 'double_jump', 'Acrobat');
     }
 }
 
@@ -116,6 +119,12 @@ function update() {
     if (frameCount % 10 === 0) {
         score++;
         scoreElement.textContent = score;
+        
+        // Achievement Checks
+        if (score === 100) achievements.unlock('dino', 'rookie', 'Dino Rookie');
+        if (score === 500) achievements.unlock('dino', 'runner', 'Dino Runner');
+        if (score === 1000) achievements.unlock('dino', 'pro', 'Dino Pro');
+
         if (score > highScore) {
             highScore = score;
             highScoreElement.textContent = highScore;
@@ -276,6 +285,10 @@ function animate() {
 function gameOver() {
     gameRunning = false;
     cancelAnimationFrame(animationFrameId);
+    
+    if (window.audioFX) window.audioFX.playGameOver();
+    if (navigator.vibrate) navigator.vibrate(50);
+
     overlayTitle.textContent = "Game Over";
     overlayMessage.textContent = `Final Score: ${score}`;
     startBtn.textContent = "Restart Game";
