@@ -212,6 +212,8 @@ body::before {
     .game-grid {
         grid-template-columns: 1fr;
     }
+}
+
 /* About Section Styles */
 .about-section {
     margin-top: 6rem;
