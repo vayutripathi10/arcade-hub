@@ -11,6 +11,12 @@
       gtag('js', new Date());
       gtag('config', 'G-B8XQ759LPH');
     </script>
+    <script>
+      // Redirect to main domain
+      if (window.location.hostname !== 'arcadehubplay.com' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+        window.location.replace('https://arcadehubplay.com' + window.location.pathname);
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Arcade Hub - Play classic games like Zen Dino, Zen Snake, and Tic Tac Toe instantly in your browser. No downloads, no sign-ups, just pure fun.">
     <!-- Open Graph Metadata -->

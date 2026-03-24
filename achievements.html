@@ -16,6 +16,11 @@
       gtag('js', new Date());
       gtag('config', 'G-B8XQ759LPH');
     </script>
+    <script>
+      if (window.location.hostname !== 'arcadehubplay.com' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+        window.location.replace('https://arcadehubplay.com' + window.location.pathname);
+      }
+    </script>
     <style>
         .achievements-grid {
             display: grid;
