@@ -276,7 +276,8 @@ body::before {
     }
 }
 
-/* About Sectio.news-section {
+/* News Section Styles */
+.news-section {
     margin-top: 4rem;
     padding: 0 10px;
 }
