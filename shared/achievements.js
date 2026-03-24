@@ -5,7 +5,29 @@ class AchievementSystem {
     constructor() {
         this.storageKey = 'arcade_hub_achievements';
         this.achievements = this.load();
+        this.migrate(); // Handle legacy IDs
         this.createContainer();
+    }
+
+    migrate() {
+        const mappings = {
+            'dino_rookie': 'dino_100',
+            'dino_runner': 'dino_500',
+            'dino_pro': 'dino_1000',
+            'snake_nibbler': 'snake_10',
+            'snake_long': 'snake_25', // Score 100
+            'snake_master': 'snake_50' // Score 200
+        };
+
+        let changed = false;
+        for (const [oldKey, newKey] of Object.entries(mappings)) {
+            if (this.achievements[oldKey] && !this.achievements[newKey]) {
+                this.achievements[newKey] = this.achievements[oldKey];
+                delete this.achievements[oldKey];
+                changed = true;
+            }
+        }
+        if (changed) this.save();
     }
 
     load() {
@@ -133,7 +155,7 @@ class AchievementSystem {
             { id: 'snake_10', game: 'snake', title: 'Hungry Snake', desc: 'Eat 10 neon bits', icon: '🐍' },
             { id: 'snake_25', game: 'snake', title: 'Neon Predator', desc: 'Eat 25 neon bits', icon: '🔥' },
             { id: 'snake_50', game: 'snake', title: 'Zen Dragon', desc: 'Eat 50 neon bits', icon: '🐉' },
-            { id: 'ttt_win', game: 'tictactoe', title: 'Tactician', desc: 'Win a game of Tic Tac Toe', icon: '❌' }
+            { id: 'tictactoe_win', game: 'tictactoe', title: 'Tactician', desc: 'Win a game of Tic Tac Toe', icon: '❌' }
         ];
     }
 
@@ -141,7 +163,7 @@ class AchievementSystem {
         const definitions = this.getDefinitions();
         return definitions.map(def => ({
             ...def,
-            unlocked: !!this.achievements[`${def.game}_${def.id.split('_').slice(1).join('_')}`] || !!this.achievements[`${def.game}_${def.id}`]
+            unlocked: !!this.achievements[def.id]
         }));
     }
 }

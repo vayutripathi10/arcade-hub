@@ -125,9 +125,9 @@ function update() {
         
         // Achievement Checks
         if (window.achievements) {
-            if (score === 100) window.achievements.unlock('dino', 'rookie', 'Dino Rookie');
-            if (score === 500) window.achievements.unlock('dino', 'runner', 'Dino Runner');
-            if (score === 1000) window.achievements.unlock('dino', 'pro', 'Dino Pro');
+            if (score === 100) window.achievements.unlock('dino', '100', 'Survivor I');
+            if (score === 500) window.achievements.unlock('dino', '500', 'Survivor II');
+            if (score === 1000) window.achievements.unlock('dino', '1000', 'Jurassic Master');
         }
 
         if (score > highScore) {

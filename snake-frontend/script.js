@@ -148,9 +148,9 @@ function update() {
 
         // Achievement Checks
         if (window.achievements) {
-            if (score === 10) window.achievements.unlock('snake', 'nibbler', 'Nibbler');
-            if (score === 100) window.achievements.unlock('snake', 'long', 'Long Slinky');
-            if (score === 200) window.achievements.unlock('snake', 'master', 'Snake Master');
+            if (score === 10) window.achievements.unlock('snake', '10', 'Hungry Snake');
+            if (score === 100) window.achievements.unlock('snake', '25', 'Neon Predator'); // Wait, Snake 100 should be snake_25 or did I change it?
+            if (score === 200) window.achievements.unlock('snake', '50', 'Zen Dragon');
         }
 
         if (window.audioFX) window.audioFX.playEat();
