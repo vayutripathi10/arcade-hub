@@ -276,6 +276,50 @@ body::before {
     }
 }
 
+/* About Sectio.news-section {
+    margin-top: 4rem;
+    padding: 0 10px;
+}
+.news-feed {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+}
+.news-item {
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.news-item:last-child {
+    border-bottom: none;
+}
+.news-date {
+    font-size: 0.8rem;
+    color: var(--primary);
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 5px;
+}
+.news-item h3 {
+    margin: 5px 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+.news-item p {
+    margin: 5px 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.view-all {
+    font-size: 0.9rem;
+    text-decoration: underline;
+}
 /* About Section Styles */
 .about-section {
     margin-top: 6rem;

@@ -98,17 +98,87 @@
                 <div class="card-icon mystery-icon">
                     <span class="qmark">?</span>
                 </div>
-                <div class="card-content">
-                    <h3 class="game-title">More Coming Soon</h3>
-                    <p class="game-desc">We are working on new exciting games. Stay tuned for updates!</p>
-                    <span class="play-btn locked">Locked</span>
+        <section>
+            <div class="games-grid">
+                <!-- Dino Runner Card -->
+                <a href="dino-frontend/index.html" class="game-card">
+                    <div class="card-icon dino-icon">
+                        <div class="dino-head"></div>
+                        <div class="dino-ground"></div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="game-title">Zen Dino</h3>
+                        <p class="game-desc">A peaceful but challenging neon Dino runner with double jump!</p>
+                        <span class="play-btn">Play Now</span>
+                    </div>
+                </a>
+
+                <!-- Snake Game Card -->
+                <a href="snake-frontend/index.html" class="game-card">
+                    <div class="card-icon snake-icon">
+                        <div class="snake-body">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot" style="opacity: 0.8"></div>
+                            <div class="dot" style="opacity: 0.6"></div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="game-title">Zen Snake</h3>
+                        <p class="game-desc">Classic neon snake with smooth acceleration and fluid controls.</p>
+                        <span class="play-btn">Play Now</span>
+                    </div>
+                </a>
+
+                <!-- Tic Tac Toe Card -->
+                <a href="tictactoe-frontend/index.html" class="game-card">
+                    <div class="card-icon ttt-icon">
+                        <span class="x">X</span>
+                        <span class="o">O</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="game-title">Classic Tic Tac Toe</h3>
+                        <p class="game-desc">The ultimate classic strategy game. Play against a friend locally.</p>
+                        <span class="play-btn">Play Now</span>
+                    </div>
+                </a>
+
+                <!-- Mystery Game / Placeholder -->
+                <div class="game-card disabled">
+                    <div class="card-icon mystery-icon">
+                        <span class="qmark">?</span>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="game-title">More Coming Soon</h3>
+                        <p class="game-desc">We are working on new exciting games. Stay tuned for updates!</p>
+                        <span class="play-btn locked">Locked</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <section class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Latest Updates</h2>
+                <a href="updates.html" class="nav-link view-all">View All News</a>
+            </div>
+            <div class="news-feed">
+                <div class="news-item">
+                    <span class="news-date">March 24, 2026</span>
+                    <h3>The Hub is officially live!</h3>
+                    <p>We've launched at arcadehubplay.com. Explore our high-score tracking and brand new achievement system!</p>
+                </div>
+                <div class="news-item">
+                    <span class="news-date">March 23, 2026</span>
+                    <h3>Achievement System Released</h3>
+                    <p>Unlock badges and track your trophies in our new Trophy Room across Zen Dino and Zen Snake.</p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="site-footer">
-        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="contact.html">Contact Us</a></p>
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="contact.html">Contact Us</a> | <a href="updates.html">News</a></p>
     </footer>
     <script src="shared/achievements.js"></script>
     <script>
