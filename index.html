@@ -18,6 +18,7 @@
 <body>
     <div class="header-container">
         <div class="nav-links">
+            <a href="achievements.html" class="nav-link">Trophy Room</a>
             <a href="about.html" class="nav-link">About Us</a>
             <a href="contact.html" class="nav-link">Contact Us</a>
         </div>
@@ -26,6 +27,21 @@
     </div>
 
     <main class="container">
+        <div class="stats-overview">
+            <div class="stat-pill">
+                <span class="pill-label">Dino Best</span>
+                <span class="pill-value" id="dino-high">0</span>
+            </div>
+            <div class="stat-pill">
+                <span class="pill-label">Snake Best</span>
+                <span class="pill-value" id="snake-high">0</span>
+            </div>
+            <div class="stat-pill">
+                <span class="pill-label">Badges</span>
+                <span class="pill-value" id="badge-count">0/7</span>
+            </div>
+        </div>
+
         <div class="games-grid">
             <!-- Dino Runner Card -->
             <a href="dino-frontend/index.html" class="game-card">
@@ -87,5 +103,20 @@
     <footer class="site-footer">
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="contact.html">Contact Us</a></p>
     </footer>
+    <script src="shared/achievements.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load Scores
+            document.getElementById('dino-high').textContent = localStorage.getItem('dinoHighScore') || 0;
+            document.getElementById('snake-high').textContent = localStorage.getItem('snakeHighScore') || 0;
+            
+            // Load Badge Count
+            if (window.achievements) {
+                const data = window.achievements.getAllWithStatus();
+                const unlocked = data.filter(a => a.unlocked).length;
+                document.getElementById('badge-count').textContent = `${unlocked}/${data.length}`;
+            }
+        });
+    </script>
 </body>
 </html>

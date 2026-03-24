@@ -215,6 +215,11 @@
                     p2Score++;
                 }
                 updateScoreDisplay();
+
+                // Unlock Achievement
+                if (window.achievements) {
+                    window.achievements.unlock('tictactoe', 'win', 'Tactician');
+                }
                 
                 // Highlight winning cells
                 winningCells.forEach(index => {
@@ -362,6 +367,7 @@
             }
         }
     </script>
+    <script src="../shared/achievements.js"></script>
 </body>
 </html>
 

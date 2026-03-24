@@ -123,6 +123,27 @@ class AchievementSystem {
             setTimeout(() => container.removeChild(popup), 1000);
         }, 4000);
     }
+
+    // New: Definitions for the gallery
+    getDefinitions() {
+        return [
+            { id: 'dino_100', game: 'dino', title: 'Survivor I', desc: 'Score 100 points in Zen Dino', icon: '🦖' },
+            { id: 'dino_500', game: 'dino', title: 'Survivor II', desc: 'Score 500 points in Zen Dino', icon: '🏃' },
+            { id: 'dino_1000', game: 'dino', title: 'Jurassic Master', desc: 'Score 1000 points in Zen Dino', icon: '🌌' },
+            { id: 'snake_10', game: 'snake', title: 'Hungry Snake', desc: 'Eat 10 neon bits', icon: '🐍' },
+            { id: 'snake_25', game: 'snake', title: 'Neon Predator', desc: 'Eat 25 neon bits', icon: '🔥' },
+            { id: 'snake_50', game: 'snake', title: 'Zen Dragon', desc: 'Eat 50 neon bits', icon: '🐉' },
+            { id: 'ttt_win', game: 'tictactoe', title: 'Tactician', desc: 'Win a game of Tic Tac Toe', icon: '❌' }
+        ];
+    }
+
+    getAllWithStatus() {
+        const definitions = this.getDefinitions();
+        return definitions.map(def => ({
+            ...def,
+            unlocked: !!this.achievements[`${def.game}_${def.id.split('_').slice(1).join('_')}`] || !!this.achievements[`${def.game}_${def.id}`]
+        }));
+    }
 }
 
 const achievements = new AchievementSystem();

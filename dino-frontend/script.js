@@ -296,9 +296,30 @@ function gameOver() {
 
     overlayTitle.textContent = "Game Over";
     overlayMessage.textContent = `Final Score: ${score}`;
+    
+    // Show sharing options
+    const shareContainer = document.getElementById('shareContainer');
+    if (shareContainer) shareContainer.classList.remove('hidden');
+    
     startBtn.textContent = "Restart Game";
     overlay.classList.remove('hidden');
 }
+
+// Share Logic
+function shareScore(platform) {
+    const text = `I just scored ${score} points in Zen Dino 🦖 at Arcade Hub! Can you beat me?`;
+    const url = 'https://arcadehubs.netlify.app'; // Placeholder URL
+    
+    if (platform === 'twitter') {
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    } else if (platform === 'whatsapp') {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+    }
+}
+
+// Add share listeners
+document.getElementById('tweetBtn')?.addEventListener('click', () => shareScore('twitter'));
+document.getElementById('waBtn')?.addEventListener('click', () => shareScore('whatsapp'));
 
 init();
 // Initial draw when page loads
