@@ -12,9 +12,11 @@
       gtag('config', 'G-B8XQ759LPH');
     </script>
     <script>
-      // Redirect to main domain
+      // Redirect to main domain and strip legacy subfolders
       if (window.location.hostname !== 'arcadehubplay.com' && window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
-        window.location.replace('https://arcadehubplay.com' + window.location.pathname);
+        let path = window.location.pathname;
+        if (path.includes('/arcade-hub/')) path = path.replace('/arcade-hub/', '/');
+        window.location.replace('https://arcadehubplay.com' + path);
       }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
