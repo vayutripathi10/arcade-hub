@@ -1,0 +1,292 @@
+:root {
+    --bg-color: #0c0e14;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #00ffcc;
+    --accent-glow: rgba(0, 255, 204, 0.3);
+    --pipe-color: #00ffcc;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(circle at 20% 20%, rgba(0, 255, 204, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.06) 0%, transparent 40%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 80px 20px 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.home-btn {
+    position: fixed;
+    top: 1.5rem;
+    left: 1.5rem;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 0.7rem 1.1rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    z-index: 200;
+}
+
+.home-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-5px);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.title {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    letter-spacing: 0.2rem;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+.score-container {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.score-box {
+    background: var(--card-bg);
+    padding: 0.8rem 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    min-width: 110px;
+    backdrop-filter: blur(5px);
+}
+
+.score-label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 0.2rem;
+}
+
+#score, #highScore {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.game-wrapper {
+    position: relative;
+    padding: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0,255,204,0.08);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 400px;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #0a0a1a 0%, #0d1a1a 100%);
+}
+
+/* Overlay */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(12, 14, 20, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    z-index: 10;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    overflow-y: auto;
+    padding: 10px 0;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-content {
+    text-align: center;
+    padding: 0 15px;
+}
+
+.overlay-content h2 {
+    font-size: 2.2rem;
+    margin-bottom: 0.4rem;
+    background: linear-gradient(135deg, #fff, var(--accent-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.overlay-content p {
+    color: var(--text-secondary);
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    font-family: 'Outfit', sans-serif;
+}
+
+.btn.primary {
+    background: linear-gradient(45deg, var(--accent-color), #00b386);
+    color: #000;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.share-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.share-container.hidden { display: none; }
+
+.share-btn {
+    padding: 0.7rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    transition: all 0.3s ease;
+}
+
+.share-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+.share-btn.twitter { background: #1DA1F2; }
+.share-btn.whatsapp { background: #25D366; }
+
+/* Controls hint */
+.controls-info {
+    margin-top: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Footer */
+.site-footer {
+    width: 100%;
+    text-align: center;
+    padding: 1.5rem 1rem;
+    margin-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+.site-footer a { color: var(--accent-color); text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+
+/* Mobile */
+@media (max-width: 600px) {
+    body {
+        padding: 70px 10px 20px;
+    }
+
+    .home-btn {
+        top: 10px;
+        left: 10px;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .title {
+        font-size: 1.8rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .score-container { gap: 0.8rem; }
+
+    .score-box {
+        padding: 0.5rem 1rem;
+        min-width: 95px;
+    }
+
+    #score, #highScore { font-size: 1.2rem; }
+
+    .overlay-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .overlay-content p {
+        font-size: 0.85rem;
+        margin-bottom: 0.7rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .share-btn {
+        padding: 0.6rem 0.9rem;
+        font-size: 0.78rem;
+    }
+
+    .controls-info { font-size: 0.82rem; }
+}

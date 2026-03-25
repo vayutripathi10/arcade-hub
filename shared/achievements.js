@@ -155,7 +155,10 @@ class AchievementSystem {
             { id: 'snake_10', game: 'snake', title: 'Hungry Snake', desc: 'Eat 10 neon bits', icon: '🐍' },
             { id: 'snake_25', game: 'snake', title: 'Neon Predator', desc: 'Eat 25 neon bits', icon: '🔥' },
             { id: 'snake_50', game: 'snake', title: 'Zen Dragon', desc: 'Eat 50 neon bits', icon: '🐉' },
-            { id: 'tictactoe_win', game: 'tictactoe', title: 'Tactician', desc: 'Win a game of Tic Tac Toe', icon: '❌' }
+            { id: 'tictactoe_win', game: 'tictactoe', title: 'Tactician', desc: 'Win a game of Tic Tac Toe', icon: '❌' },
+            { id: 'flappy_5',  game: 'flappy', title: 'First Flight',  desc: 'Pass 5 pipes in Neon Flappy',  icon: '🐦' },
+            { id: 'flappy_10', game: 'flappy', title: 'Sky Surfer',    desc: 'Pass 10 pipes in Neon Flappy', icon: '🌤️' },
+            { id: 'flappy_25', game: 'flappy', title: 'Neon Aviator',  desc: 'Pass 25 pipes in Neon Flappy', icon: '✈️' }
         ];
     }
 

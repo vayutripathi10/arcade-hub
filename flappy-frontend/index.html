@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Play Neon Flappy - a synthwave Flappy Bird clone at Arcade Hub. Tap to flap, dodge glowing pipes, and beat your high score!">
+    <title>Neon Flappy | Arcade Hub</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+
+    <div class="header">
+        <h1 class="title">NEON FLAPPY</h1>
+        <div class="score-container">
+            <div class="score-box">
+                <span class="score-label">Score</span>
+                <span id="score">0</span>
+            </div>
+            <div class="score-box">
+                <span class="score-label">Best</span>
+                <span id="highScore">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-wrapper">
+        <canvas id="gameCanvas"></canvas>
+        <div id="overlay" class="overlay">
+            <div class="overlay-content">
+                <h2 id="overlayTitle">Neon Flappy</h2>
+                <p id="overlayMessage">Tap or press Space to flap your wings!</p>
+                <div class="share-container hidden" id="shareContainer">
+                    <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
+                    <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
+                </div>
+                <button id="startBtn" class="btn primary">Start Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-info">
+        <p>Tap or press <b>SPACE</b> to flap. Dodge the neon pipes!</p>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy.html">Privacy Policy</a> | <a href="../contact.html">Contact Us</a> | <a href="../updates.html">News</a></p>
+    </footer>
+
+    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
