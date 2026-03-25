@@ -308,7 +308,7 @@ function gameOver() {
 // Share Logic
 function shareScore(platform) {
     const text = `I just scored ${score} points in Zen Dino 🦖 at Arcade Hub! Can you beat me?`;
-    const url = 'https://arcadehubs.netlify.app'; // Placeholder URL
+    const url = 'https://arcadehubplay.com';
     
     if (platform === 'twitter') {
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
