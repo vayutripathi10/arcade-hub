@@ -36,6 +36,7 @@ let highScore = localStorage.getItem('dinoHighScore') || 0;
 let gameRunning = false;
 let gameSpeed = INITIAL_SPEED;
 let animationFrameId;
+let dayPhase = 0; // 0 to Math.PI * 2 for day/night interpolation
 
 highScoreElement.textContent = highScore;
 
@@ -156,13 +157,39 @@ function update() {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         obstacles[i].x -= gameSpeed;
         
-        // Collision Detection with Forgiving Hitbox
-        if (
-            dino.x + HITBOX_BUFFER < obstacles[i].x + obstacles[i].width - HITBOX_BUFFER &&
-            dino.x + dino.width - HITBOX_BUFFER > obstacles[i].x + HITBOX_BUFFER &&
-            dino.y + HITBOX_BUFFER < obstacles[i].y + obstacles[i].height - HITBOX_BUFFER &&
-            dino.y + dino.height - HITBOX_BUFFER > obstacles[i].y + HITBOX_BUFFER
-        ) {
+        // Perfect Collision Detection (Circle vs Rect)
+        // Dino hit circle
+        const dinoCx = dino.x + dino.width / 2;
+        const dinoCy = dino.y + dino.height / 2;
+        const dinoR = 20; // Forgiving radius
+
+        let collision = false;
+        
+        if (obstacles[i].type === 'bird') {
+            // Circle vs Circle for bird
+            const birdCx = obstacles[i].x + obstacles[i].width / 2;
+            const birdCy = obstacles[i].y + obstacles[i].height / 2;
+            const birdR = 12;
+            const dx = dinoCx - birdCx;
+            const dy = dinoCy - birdCy;
+            collision = Math.sqrt(dx*dx + dy*dy) < (dinoR + birdR);
+        } else {
+            // Circle vs Rect for cacti
+            let testX = dinoCx;
+            let testY = dinoCy;
+            
+            if (dinoCx < obstacles[i].x) testX = obstacles[i].x;
+            else if (dinoCx > obstacles[i].x + obstacles[i].width) testX = obstacles[i].x + obstacles[i].width;
+            
+            if (dinoCy < obstacles[i].y) testY = obstacles[i].y;
+            else if (dinoCy > obstacles[i].y + obstacles[i].height) testY = obstacles[i].y + obstacles[i].height;
+            
+            const dx = dinoCx - testX;
+            const dy = dinoCy - testY;
+            collision = Math.sqrt(dx*dx + dy*dy) <= dinoR;
+        }
+
+        if (collision) {
             gameOver();
         }
         
@@ -195,7 +222,7 @@ function spawnObstacle() {
     
     if (isBird) {
         // Flying bird
-        const birdY = Math.random() > 0.5 ? GROUND_Y - 40 : GROUND_Y + 10; // High or Low bird
+        const birdY = Math.random() > 0.5 ? GROUND_Y - 40 : GROUND_Y + 10;
         obstacles.push({
             x: canvas.width,
             y: birdY,
@@ -205,23 +232,33 @@ function spawnObstacle() {
             type: 'bird'
         });
     } else {
-        // Ground cactus
-        const height = 40 + Math.random() * 40;
-        const width = 30 + Math.random() * 30;
-        obstacles.push({
-            x: canvas.width,
-            y: GROUND_Y + 60 - height,
-            width: width,
-            height: height,
-            color: '#00ffcc',
-            type: 'cactus'
-        });
+        // Ground cactus variations
+        const rand = Math.random();
+        if (rand > 0.6) {
+            // Tall cactus
+            obstacles.push({ x: canvas.width, y: GROUND_Y, width: 25, height: 60, color: '#00ffcc', type: 'cactus_tall' });
+        } else if (rand > 0.3) {
+            // Wide cluster
+            obstacles.push({ x: canvas.width, y: GROUND_Y + 20, width: 50, height: 40, color: '#00ffcc', type: 'cactus_wide' });
+        } else {
+            // Small stub
+            obstacles.push({ x: canvas.width, y: GROUND_Y + 30, width: 35, height: 30, color: '#00ffcc', type: 'cactus_small' });
+        }
     }
 }
 
 function draw() {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Day/Night Cycle Background
+    dayPhase += 0.001;
+    const cycle = (Math.sin(dayPhase) + 1) / 2; // 0 to 1
+    
+    // Interpolate from deep dark (#0c0e14) to twilight purple (#2d1b4e)
+    const r = Math.floor(12 + (45 - 12) * cycle);
+    const g = Math.floor(14 + (27 - 14) * cycle);
+    const b = Math.floor(20 + (78 - 20) * cycle);
+    
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Draw Ground Line
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
@@ -262,7 +299,16 @@ function draw() {
             ctx.lineTo(obs.x, obs.y);
             ctx.fill();
         } else {
+            // Draw matching cactus shape
             drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
+            // Draw arms if tall or wide
+            if (obs.type === 'cactus_tall') {
+                drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); // Left arm
+                drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); // Right arm
+            } else if (obs.type === 'cactus_wide') {
+                drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); // Top branch
+                drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); // Top branch 2
+            }
         }
     });
     
