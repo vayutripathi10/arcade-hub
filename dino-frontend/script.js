@@ -10,7 +10,7 @@ const startBtn = document.getElementById('startBtn');
 // Game Constants
 const GRAVITY = 0.8;
 const JUMP_FORCE = -15;
-const GROUND_Y = 230; // Dino feet position
+let GROUND_Y = 230; // Dino feet position
 const INITIAL_SPEED = 8;
 const SPEED_INCREMENT = 0.002;
 const MIN_OBSTACLE_DISTANCE = 300; 
@@ -40,8 +40,33 @@ let dayPhase = 0; // 0 to Math.PI * 2 for day/night interpolation
 
 highScoreElement.textContent = highScore;
 
+function resizeCanvas() {
+    const isMobileLandscape = window.innerHeight <= 600 && window.innerWidth > window.innerHeight;
+    
+    if (isMobileLandscape) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        GROUND_Y = canvas.height - 70; // 70px from bottom
+    } else {
+        canvas.width = 800;
+        canvas.height = 300;
+        GROUND_Y = 230;
+    }
+    
+    if (!dino.isJumping) {
+        dino.y = GROUND_Y;
+    }
+    
+    if (!gameRunning) {
+        draw();
+    }
+}
+
+window.addEventListener('resize', resizeCanvas);
+
 // Initialize
 function init() {
+    resizeCanvas();
     startBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         startGame();
