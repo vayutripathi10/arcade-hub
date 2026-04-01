@@ -401,21 +401,36 @@ function roundRect(ctx, x, y, w, h, radii = {}) {
 }
 
 // ─── Game Loop ────────────────────────────────────────────────────────────────
-function loop(now = 0) {
-    update(now);
-    draw();
+let lastTime = 0;
+const fpsInterval = 1000 / 60;
+
+function loop(timestamp = 0) {
     if (gameState !== 'dead') {
         frameId = requestAnimationFrame(loop);
+        if (!lastTime) lastTime = timestamp;
+        const elapsed = timestamp - lastTime;
+        if (elapsed > fpsInterval) {
+            lastTime = timestamp - (elapsed % fpsInterval);
+            update(timestamp);
+            draw();
+        }
     } else {
         // Keep drawing particles until they die
-        const deadLoop = () => {
-            draw();
+        const deadLoop = (ts) => {
             if (particlePool.length > 0) {
-                particlePool.forEach(pt => {
-                    pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.15; pt.life -= 0.05;
-                });
-                particlePool = particlePool.filter(p => p.life > 0);
                 requestAnimationFrame(deadLoop);
+                if (!lastTime) lastTime = ts;
+                const elapsed = ts - lastTime;
+                if (elapsed > fpsInterval) {
+                    lastTime = ts - (elapsed % fpsInterval);
+                    draw();
+                    particlePool.forEach(pt => {
+                        pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.15; pt.life -= 0.05;
+                    });
+                    particlePool = particlePool.filter(p => p.life > 0);
+                }
+            } else {
+                draw(); // final steady draw
             }
         };
         requestAnimationFrame(deadLoop);

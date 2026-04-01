@@ -22,7 +22,7 @@ let score = 0;
 let highScore = localStorage.getItem('snakeHighScore') || 0;
 let gameRunning = false;
 let gameLoopInterval;
-let speed = 150; // Slower initial speed
+let speed = 200; // Slower initial speed
 let survivalTimer = 0;
 const minSpeed = 50;
 
@@ -63,7 +63,7 @@ function startGame() {
     nextDx = 1;
     nextDy = 0;
     score = 0;
-    speed = 150; // Reset to slow
+    speed = 200; // Reset to slow
     survivalTimer = 0;
     scoreElement.textContent = score;
     gameRunning = true;

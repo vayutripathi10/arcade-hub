@@ -351,11 +351,21 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.fill();
 }
 
-function animate() {
+let lastTime = 0;
+const fpsInterval = 1000 / 60;
+
+function animate(timestamp) {
     if (!gameRunning) return;
-    update();
-    draw();
     animationFrameId = requestAnimationFrame(animate);
+    
+    if (!lastTime) lastTime = timestamp;
+    const elapsed = timestamp - lastTime;
+    
+    if (elapsed > fpsInterval) {
+        lastTime = timestamp - (elapsed % fpsInterval);
+        update();
+        draw();
+    }
 }
 
 function gameOver() {
