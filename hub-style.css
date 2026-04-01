@@ -769,3 +769,21 @@ body::before {
     20%, 40% { transform: scale(1.1) translateX(2px); }
     60% { transform: scale(1); }
 }
+
+/* Runner Icon */
+.runner-icon {
+    background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    animation: runPulse 2s ease-in-out infinite;
+}
+.runner-icon .runner-emoji {
+    display: inline-block;
+    filter: drop-shadow(0 0 15px rgba(0,255,204,0.8));
+}
+@keyframes runPulse {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.05) translateY(-5px); }
+}
