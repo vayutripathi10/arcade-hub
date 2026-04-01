@@ -211,31 +211,64 @@ function draw() {
     ctx.fillStyle = 'rgba(0, 255, 204, 0.03)';
     ctx.fillRect(player.x - HIT_RANGE, player.y - 40, HIT_RANGE*2, 60);
 
+    const pColor = player.state === 'dead' ? '#555' : '#00ffcc';
     ctx.shadowBlur = 15;
-    ctx.shadowColor = player.state === 'dead' ? '#555' : '#00ffcc';
-    ctx.fillStyle = player.state === 'dead' ? '#555' : '#00ffcc';
+    ctx.shadowColor = pColor;
+    ctx.strokeStyle = pColor;
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
     
-    let drawX = player.x;
-    if (player.state === 'attackLeft') drawX -= 15;
-    if (player.state === 'attackRight') drawX += 15;
+    let px = player.x;
+    let py = player.y;
     
-    ctx.fillRect(drawX - 10, player.y - 30, 20, 50); 
+    if (player.state === 'attackLeft') px -= 15;
+    if (player.state === 'attackRight') px += 15;
+    
+    ctx.beginPath();
+    ctx.arc(px, py - 40, 10, 0, Math.PI * 2); // Head
+    ctx.moveTo(px, py - 30); ctx.lineTo(px, py - 10); // Spine
+    ctx.moveTo(px, py - 10); ctx.lineTo(px - 15, py + 15); // L Leg
+    ctx.moveTo(px, py - 10); ctx.lineTo(px + 15, py + 15); // R Leg
     
     if (player.state === 'attackLeft') {
-        ctx.fillRect(drawX - 35, player.y - 15, 25, 10); 
+        ctx.moveTo(px, py - 20); ctx.lineTo(px - 35, py - 20); // punch L
+        ctx.moveTo(px, py - 20); ctx.lineTo(px + 15, py - 5);  // off arm
     } else if (player.state === 'attackRight') {
-        ctx.fillRect(drawX + 10, player.y - 15, 25, 10); 
+        ctx.moveTo(px, py - 20); ctx.lineTo(px + 35, py - 20); // punch R
+        ctx.moveTo(px, py - 20); ctx.lineTo(px - 15, py - 5);  // off arm
+    } else {
+        ctx.moveTo(px, py - 20); ctx.lineTo(px - 20, py - 10); // idle arm L
+        ctx.moveTo(px, py - 20); ctx.lineTo(px + 20, py - 10); // idle arm R
     }
+    ctx.stroke();
     
     for (let e of enemies) {
         ctx.shadowBlur = e.dead ? 0 : 15;
         ctx.shadowColor = e.dead ? 'transparent' : '#ff3366';
-        ctx.fillStyle = e.dead ? '#333' : '#ff3366';
+        ctx.strokeStyle = e.dead ? '#333' : '#ff3366';
         
         ctx.save();
         ctx.translate(e.x, e.y - 10);
         if (e.dead) ctx.rotate(e.vx * 0.1); 
-        ctx.fillRect(-10, -25, 20, 45);
+        
+        let time = performance.now() / 100;
+        let stride = e.dead ? 5 : Math.sin(time + e.x) * 15;
+        let armSwing = e.dead ? -5 : Math.sin(time + e.x + Math.PI) * 15;
+        
+        ctx.beginPath();
+        ctx.arc(0, -30, 9, 0, Math.PI * 2); // Head
+        ctx.moveTo(0, -21); ctx.lineTo(0, 0); // Spine
+        ctx.moveTo(0, 0); ctx.lineTo(-stride, 25); // Leg 1
+        ctx.moveTo(0, 0); ctx.lineTo(stride, 25); // Leg 2
+        
+        if (e.dead) {
+            ctx.moveTo(0, -10); ctx.lineTo(-20, -20);
+            ctx.moveTo(0, -10); ctx.lineTo(20, -20);
+        } else {
+            ctx.moveTo(0, -10); ctx.lineTo(-armSwing - 10, 0); // Arm L
+            ctx.moveTo(0, -10); ctx.lineTo(armSwing + 10, 0); // Arm R
+        }
+        ctx.stroke();
         ctx.restore();
     }
     
