@@ -1,0 +1,146 @@
+:root {
+    --bg-color: #0c0e14;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #ff3366; 
+    --accent-glow: rgba(255, 51, 102, 0.3);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.header {
+    width: 100%;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+}
+
+.home-btn {
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+}
+
+.score-container {
+    display: flex;
+    gap: 15px;
+}
+
+.score-box {
+    background: var(--card-bg);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.score-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+#score, #highScore {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.game-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    max-height: 800px;
+    max-width: 1200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.touch-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    z-index: 10;
+}
+.touch-zone.left { left: 0; }
+.touch-zone.right { right: 0; }
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(12, 14, 20, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    transition: opacity 0.3s ease;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-content { text-align: center; }
+.overlay-content h2 { font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--accent-color); text-shadow: 0 0 15px var(--accent-glow); }
+.overlay-content p { color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5; }
+
+.btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    z-index: 30;
+    position: relative;
+}
+
+.btn.primary {
+    background: var(--accent-color);
+    color: white;
+    box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.share-container { display: flex; gap: 10px; margin-bottom: 1.5rem; justify-content: center; }
+.share-container.hidden { display: none; }
+.share-btn { padding: 0.8rem 1.2rem; font-size: 0.85rem; color: white; display: flex; align-items: center; gap: 8px; border: none; border-radius: 8px; cursor: pointer; }
+.share-btn.twitter { background: #1DA1F2; }
+.share-btn.whatsapp { background: #25D366; }

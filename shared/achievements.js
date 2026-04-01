@@ -158,7 +158,10 @@ class AchievementSystem {
             { id: 'tictactoe_win', game: 'tictactoe', title: 'Tactician', desc: 'Win a game of Tic Tac Toe', icon: '❌' },
             { id: 'flappy_5',  game: 'flappy', title: 'First Flight',  desc: 'Pass 5 pipes in Neon Flappy',  icon: '🐦' },
             { id: 'flappy_10', game: 'flappy', title: 'Sky Surfer',    desc: 'Pass 10 pipes in Neon Flappy', icon: '🌤️' },
-            { id: 'flappy_25', game: 'flappy', title: 'Neon Aviator',  desc: 'Pass 25 pipes in Neon Flappy', icon: '✈️' }
+            { id: 'flappy_25', game: 'flappy', title: 'Neon Aviator',  desc: 'Pass 25 pipes in Neon Flappy', icon: '✈️' },
+            { id: 'brawler_10', game: 'brawler', title: 'Street Fighter', desc: 'Reach a streak of 10 in Neon Brawler', icon: '🥊' },
+            { id: 'brawler_50', game: 'brawler', title: 'Combo Master', desc: 'Reach a streak of 50 in Neon Brawler', icon: '🔥' },
+            { id: 'brawler_100', game: 'brawler', title: 'Neon Ninja', desc: 'Reach a streak of 100 in Neon Brawler', icon: '🥷' }
         ];
     }
 
