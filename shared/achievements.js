@@ -161,7 +161,12 @@ class AchievementSystem {
             { id: 'flappy_25', game: 'flappy', title: 'Neon Aviator',  desc: 'Pass 25 pipes in Neon Flappy', icon: '✈️' },
             { id: 'brawler_10', game: 'brawler', title: 'Street Fighter', desc: 'Reach a streak of 10 in Neon Brawler', icon: '🥊' },
             { id: 'brawler_50', game: 'brawler', title: 'Combo Master', desc: 'Reach a streak of 50 in Neon Brawler', icon: '🔥' },
-            { id: 'brawler_100', game: 'brawler', title: 'Neon Ninja', desc: 'Reach a streak of 100 in Neon Brawler', icon: '🥷' }
+            { id: 'brawler_100', game: 'brawler', title: 'Neon Ninja', desc: 'Reach a streak of 100 in Neon Brawler', icon: '🥷' },
+            { id: 'runner_neon_runner_first_run', game: 'runner', title: 'First Run', desc: 'Complete your first run in Neon Runner', icon: '👟' },
+            { id: 'runner_neon_runner_score_100', game: 'runner', title: 'Speedster', desc: 'Score 100 points in Neon Runner', icon: '⚡' },
+            { id: 'runner_neon_runner_score_500', game: 'runner', title: 'Street Racer', desc: 'Score 500 points in Neon Runner', icon: '🏎️' },
+            { id: 'runner_neon_runner_score_1000', game: 'runner', title: 'Neon Legend', desc: 'Score 1000 points in Neon Runner', icon: '👑' },
+            { id: 'runner_neon_runner_collect_50_coins', game: 'runner', title: 'Coin Hoarder', desc: 'Collect 50 total coins in Neon Runner', icon: '💰' }
         ];
     }
 
