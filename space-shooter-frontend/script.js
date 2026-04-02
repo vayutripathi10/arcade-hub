@@ -148,7 +148,7 @@ class Player {
         }
 
         ctx.restore();
-        this.drawLives();
+        // Lives are drawn by draw() outside shake transform
     }
 
     drawLives() {
@@ -855,12 +855,14 @@ function handleCollision(entity, index, type) {
 }
 
 function draw() {
+    // Always clear the full canvas at true coords before any transform
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     ctx.save();
     if (screenShake > 1) {
         ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
     particles.forEach(p => p.draw());
     bullets.forEach(b => b.draw());
@@ -877,6 +879,9 @@ function draw() {
         drawBossWarning();
     }
     ctx.restore();
+
+    // Draw lives outside shake so hearts are always at fixed position
+    player.drawLives();
 }
 
 function drawBossWarning() {
