@@ -68,6 +68,10 @@
                 <span class="pill-value" id="space-high">0</span>
             </div>
             <div class="stat-pill">
+                <span class="pill-label">Bridge Best</span>
+                <span class="pill-value" id="bridge-high">0</span>
+            </div>
+            <div class="stat-pill">
                 <span class="pill-label">Badges</span>
                 <span class="pill-value" id="badge-count">0/24</span>
             </div>
@@ -164,6 +168,18 @@
                     <span class="play-btn">Play Now</span>
                 </div>
             </a>
+
+            <!-- Neon Draw Bridge Card -->
+            <a href="neon-drawbridge-frontend/index.html" class="game-card">
+                <div class="card-icon bridge-icon">
+                    <span class="bridge-emoji">🌉</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Draw Bridge</h3>
+                    <p class="game-desc">Draw bridges and ramps to guide a glowing neon ball to the portal.<br><br><b>How to play:</b> Use your mouse or finger to draw lines. Press Space or Tap the Play button to start the physics simulation!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="news-section">
@@ -172,6 +188,11 @@
                 <a href="updates.html" class="nav-link view-all">View All News</a>
             </div>
             <div class="news-feed">
+                <div class="news-item">
+                    <span class="news-date">April 03, 2026</span>
+                    <h3>🌉 Neon Draw Bridge is Live!</h3>
+                    <p>Put your engineering skills to the test! Draw bridges, ramps, and paths to guide our glowing ball safely through 8 challenging physics-based levels.</p>
+                </div>
                 <div class="news-item">
                     <span class="news-date">April 02, 2026</span>
                     <h3>🚀 Neon Space Shooter Discovered!</h3>
@@ -226,6 +247,12 @@
             if (runnerEl) runnerEl.textContent = localStorage.getItem('neonRunnerBest') || 0;
             let spaceEl = document.getElementById('space-high');
             if (spaceEl) spaceEl.textContent = localStorage.getItem('spaceShooterBest') || 0;
+            let bridgeEl = document.getElementById('bridge-high');
+            if (bridgeEl) {
+                const prog = JSON.parse(localStorage.getItem('ndbProg') || '{}');
+                const totalStars = Object.values(prog).reduce((a, b) => a + b, 0);
+                bridgeEl.textContent = totalStars;
+            }
             
             // Load Badge Count
             if (window.achievements) {

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Play Neon Draw Bridge - draw bridges, ramps and paths to guide a glowing ball to the portal in this free physics puzzle game at Arcade Hub!">
+    <meta name="keywords" content="neon draw bridge, physics puzzle game, draw game, bridge game, arcade hub, browser game">
+    <link rel="canonical" href="https://arcadehubplay.com/neon-drawbridge-frontend/index.html">
+    <meta property="og:title" content="Neon Draw Bridge | Arcade Hub">
+    <meta property="og:description" content="Draw bridges and ramps to guide a glowing neon ball to the portal. Physics-based puzzle fun!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-drawbridge-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Neon Draw Bridge | Arcade Hub">
+    <meta name="twitter:description" content="Draw bridges and ramps to guide a glowing neon ball to the portal!">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    <title>Neon Draw Bridge | Arcade Hub</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ── Level Select Screen ───────────────────── -->
+<div id="screenMenu" class="screen active">
+    <a href="../index.html" class="home-btn">&larr; Arcade Hub</a>
+    <h1 class="game-title">NEON DRAW<br><span>BRIDGE</span></h1>
+    <p class="subtitle">Draw bridges. Defy gravity. Reach the portal.</p>
+    <div id="levelGrid" class="level-grid"></div>
+    <p class="tip">💡 Draw lines with mouse or finger, then press Play to launch the ball!</p>
+</div>
+
+<!-- ── Game Screen ───────────────────────────── -->
+<div id="screenGame" class="screen">
+    <div class="game-hud">
+        <a href="../index.html" class="home-btn-small">&larr;</a>
+        <span id="levelName" class="level-name">Level 1</span>
+        <div class="ink-container">
+            <span class="ink-label">INK</span>
+            <div class="ink-bar-bg">
+                <div id="inkBar" class="ink-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-wrapper">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="controls-bar">
+        <button id="btnDraw" class="ctrl-btn active" title="Draw Mode">✏️ Draw</button>
+        <button id="btnPlay" class="ctrl-btn" title="Launch Ball (Space)">▶ Play</button>
+        <button id="btnUndo" class="ctrl-btn" title="Undo last line">↩ Undo</button>
+        <button id="btnRestart" class="ctrl-btn" title="Restart level (R)">🔄 Reset</button>
+        <button id="btnHint" class="ctrl-btn hint-btn" title="Show hint">💡</button>
+    </div>
+
+    <!-- Dead Overlay -->
+    <div id="overlayDead" class="overlay hidden">
+        <div class="overlay-box">
+            <div class="overlay-icon">💥</div>
+            <h2>Oops!</h2>
+            <p>The ball didn't make it...</p>
+            <button id="btnRetry" class="btn primary">Try Again</button>
+            <button id="btnMenuFromDead" class="btn secondary">Level Select</button>
+        </div>
+    </div>
+
+    <!-- Win Overlay -->
+    <div id="overlayWin" class="overlay hidden">
+        <div class="overlay-box win-box">
+            <div class="overlay-icon">🎉</div>
+            <h2>Level Complete!</h2>
+            <div id="winStars" class="win-stars"></div>
+            <div class="win-stats">
+                <span id="winTime"></span>
+                <span id="winInk"></span>
+            </div>
+            <button id="btnNext" class="btn primary">Next Level ▶</button>
+            <button id="btnMenuFromWin" class="btn secondary">Level Select</button>
+        </div>
+    </div>
+
+    <!-- Hint Overlay -->
+    <div id="overlayHint" class="overlay hint-overlay hidden">
+        <div class="hint-box">
+            <p id="hintText"></p>
+            <button id="btnCloseHint" class="btn secondary">Got it!</button>
+        </div>
+    </div>
+</div>
+
+<script src="../shared/audio-fx.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
