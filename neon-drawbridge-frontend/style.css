@@ -95,6 +95,7 @@ html, body {
 .level-card .lc-num { font-size: 1.4rem; font-weight: 700; color: var(--cyan); }
 .level-card .lc-name { font-size: 0.65rem; color: var(--subtext); max-width: 60px; line-height: 1.2; }
 .level-card .lc-stars { font-size: 0.75rem; letter-spacing: 1px; }
+
 .level-card.locked {
     opacity: 0.45;
     cursor: default;

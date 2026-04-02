@@ -28,15 +28,7 @@ const savedProgress = (() => {
 })();
 
 // ─── Level Definitions ───────────────────────────────────────
-// segs:      [{x1,y1,x2,y2}]           — static geometry
-// spikes:    [{x,y,w}]                  — row of spikes (kill)
-// platforms: [{x,y,w,h,axis,min,max,speed}] — moving
-// fans:      [{x,y,w,h,angle,force}]    — wind zones
-// hammers:   [{cx,cy,len,speed,angle}]  — rotating bar
-// keys:      [{x,y,id,r,collected}]
-// gates:     [{x1,y1,x2,y2,keyId,open}]
 const LEVELS = [
-// ── 1: The First Gap ─────────────────────────────────────────
 {
     name:'The First Gap', inkBudget:340,
     hint:'Draw a bridge across the gap to guide the ball to the portal.',
@@ -50,7 +42,6 @@ const LEVELS = [
     ],
     spikes:[],platforms:[],fans:[],hammers:[],keys:[],gates:[]
 },
-// ── 2: Spike Valley ──────────────────────────────────────────
 {
     name:'Spike Valley', inkBudget:290,
     hint:'Draw a ramp that launches the ball OVER the spike bed.',
@@ -64,7 +55,6 @@ const LEVELS = [
     spikes:[{x:210,y:400,w:380}],
     platforms:[],fans:[],hammers:[],keys:[],gates:[]
 },
-// ── 3: The Staircase ─────────────────────────────────────────
 {
     name:'The Staircase', inkBudget:580,
     hint:'Connect the steps with short ramps to climb upward.',
@@ -82,7 +72,6 @@ const LEVELS = [
     spikes:[{x:160,y:420,w:70},{x:380,y:320,w:70}],
     platforms:[],fans:[],hammers:[],keys:[],gates:[]
 },
-// ── 4: Moving Platform ───────────────────────────────────────
 {
     name:'Moving Platform', inkBudget:200,
     hint:'The platform moves. Draw a short ramp onto it and let it carry you.',
@@ -99,7 +88,6 @@ const LEVELS = [
     platforms:[{x:205,y:375,w:150,h:20,axis:'x',min:200,max:460,speed:2.2,_dir:1}],
     fans:[],hammers:[],keys:[],gates:[]
 },
-// ── 5: Fan Force ─────────────────────────────────────────────
 {
     name:'Fan Force', inkBudget:260,
     hint:'The fan blows upward. Draw a funnel to redirect the ball to the shelf.',
@@ -116,7 +104,6 @@ const LEVELS = [
     fans:[{x:380,y:200,w:60,h:230,angle:-Math.PI/2,force:0.55}],
     hammers:[],keys:[],gates:[]
 },
-// ── 6: Key Hunt ──────────────────────────────────────────────
 {
     name:'Key Hunt', inkBudget:420,
     hint:'Collect the golden key to open the gate, then reach the portal.',
@@ -133,7 +120,6 @@ const LEVELS = [
     keys:[{x:200,y:220,id:'k1',r:14,collected:false}],
     gates:[{x1:310,y1:260,x2:310,y2:410,keyId:'k1',open:false}]
 },
-// ── 7: Hammer Zone ───────────────────────────────────────────
 {
     name:'Hammer Zone', inkBudget:310,
     hint:'The hammer swings. Draw your path and wait for the right moment.',
@@ -150,7 +136,6 @@ const LEVELS = [
     hammers:[{cx:400,cy:230,len:130,speed:0.032,angle:0}],
     keys:[],gates:[]
 },
-// ── 8: The Gauntlet ──────────────────────────────────────────
 {
     name:'The Gauntlet', inkBudget:450,
     hint:'Everything you learned comes together. Stay calm and draw wisely.',
@@ -201,13 +186,11 @@ function circleSegCollide(bx, by, vx, vy, x1, y1, x2, y2, rest) {
 
 function doPhysicsStep(lvl) {
     ball.vy += GRAVITY / SUBSTEPS;
-    // Speed cap
     const spd = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
     if (spd > MAX_SPEED) { ball.vx *= MAX_SPEED/spd; ball.vy *= MAX_SPEED/spd; }
     ball.x += ball.vx / SUBSTEPS;
     ball.y += ball.vy / SUBSTEPS;
 
-    // Build collision list
     const segs = [];
     for (const s of lvl.segs)    segs.push({...s, rest:0.42, kill:false});
     for (const s of userSegs)    segs.push({x1:s.x1,y1:s.y1,x2:s.x2,y2:s.y2,rest:0.45,kill:false});
@@ -228,7 +211,6 @@ function doPhysicsStep(lvl) {
     for (const g of lvl.gates) {
         if (!g.open) segs.push({x1:g.x1,y1:g.y1,x2:g.x2,y2:g.y2,rest:0.3,kill:false});
     }
-
     for (const seg of segs) {
         const res = circleSegCollide(ball.x,ball.y,ball.vx,ball.vy,
             seg.x1,seg.y1,seg.x2,seg.y2,seg.rest);
@@ -239,7 +221,6 @@ function doPhysicsStep(lvl) {
     }
 }
 
-// --- Ball & Particles ----------------------------------------
 function initBall(lvl) {
     ball = { x:lvl.ball.x, y:lvl.ball.y, vx:0, vy:0, trail:[], alive:true };
 }
@@ -434,23 +415,13 @@ function update() {
 function render() {
     ctx.clearRect(0,0,800,480);
     ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,800,480);
-    
-    // DEBUG: Red square at top-left
-    ctx.fillStyle='red'; ctx.fillRect(0,0,10,10);
-    // Grid
-    ctx.strokeStyle='rgba(0,255,204,0.035)'; ctx.lineWidth=1;
-    for(var gx=0;gx<800;gx+=50){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,480);ctx.stroke();}
-    for(var gy=0;gy<480;gy+=50){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(800,gy);ctx.stroke();}
 
     var lvl = LEVELS[levelIdx];
-
-    // Static geometry
     ctx.lineWidth=3; ctx.lineCap='round';
     ctx.strokeStyle='#3366ff'; ctx.shadowBlur=8; ctx.shadowColor='#3366ff';
     lvl.segs.forEach(function(s){ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke();});
     ctx.shadowBlur=0;
 
-    // Spikes
     ctx.fillStyle='#ff2244'; ctx.shadowBlur=10; ctx.shadowColor='#ff2244';
     lvl.spikes.forEach(function(sp){
         var sw=18,sh=22;
@@ -460,12 +431,10 @@ function render() {
     });
     ctx.shadowBlur=0;
 
-    // Moving platforms
     ctx.fillStyle='#bc13fe'; ctx.shadowBlur=14; ctx.shadowColor='#bc13fe';
     lvl.platforms.forEach(function(p){ctx.fillRect(p.x,p.y,p.w,p.h);});
     ctx.shadowBlur=0;
 
-    // Hammers
     ctx.lineWidth=8; ctx.lineCap='round';
     ctx.strokeStyle='#ff6600'; ctx.shadowBlur=14; ctx.shadowColor='#ff6600';
     lvl.hammers.forEach(function(h){
@@ -477,7 +446,6 @@ function render() {
     });
     ctx.shadowBlur=0;
 
-    // Fans
     ctx.lineWidth=2;
     lvl.fans.forEach(function(f){
         ctx.fillStyle='rgba(0,200,255,0.1)';ctx.fillRect(f.x,f.y,f.w,f.h);
@@ -490,17 +458,14 @@ function render() {
         ctx.shadowBlur=0;
     });
 
-    // Keys
     lvl.keys.forEach(function(k){
         if(k.collected) return;
         ctx.fillStyle='#ffd700';ctx.shadowBlur=16;ctx.shadowColor='#ffd700';
         ctx.beginPath();ctx.arc(k.x,k.y,k.r,0,Math.PI*2);ctx.fill();
-        ctx.shadowBlur=0;
-        ctx.font='bold 14px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.shadowBlur=0; ctx.font='bold 14px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
         ctx.fillStyle='#000';ctx.fillText('K',k.x,k.y);
     });
 
-    // Gates
     ctx.lineWidth=5;ctx.setLineDash([10,6]);
     lvl.gates.forEach(function(g){
         if(g.open) return;
@@ -519,7 +484,6 @@ function render() {
     }
     ctx.shadowBlur=0;
 
-    // Goal portal
     var gp=lvl.goal, pulse=22+Math.sin(Date.now()/400)*5;
     ctx.strokeStyle='#00ffcc';ctx.lineWidth=3;ctx.shadowBlur=22;ctx.shadowColor='#00ffcc';
     ctx.beginPath();ctx.arc(gp.x,gp.y,pulse,0,Math.PI*2);ctx.stroke();
@@ -527,7 +491,6 @@ function render() {
     ctx.beginPath();ctx.arc(gp.x,gp.y,pulse-5,0,Math.PI*2);ctx.fill();
     ctx.shadowBlur=0;
 
-    // Ball ghost (draw mode)
     if(mode==='draw'){
         ctx.strokeStyle='rgba(0,255,204,0.3)';ctx.lineWidth=2;ctx.setLineDash([5,5]);
         ctx.beginPath();ctx.arc(lvl.ball.x,lvl.ball.y,R,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
@@ -547,7 +510,6 @@ function render() {
         ctx.beginPath();ctx.arc(ball.x,ball.y,R,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     }
 
-    // Particles
     particles.forEach(function(p){
         ctx.globalAlpha=p.life;ctx.fillStyle=p.color;
         ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();
@@ -570,17 +532,14 @@ function resizeCanvas() {
     var wrapper = document.querySelector('.canvas-wrapper');
     if(!wrapper) return;
     var wr = wrapper.clientWidth, wh = wrapper.clientHeight;
-    
-    // Fallback if container is 0x0
     if (wr === 0 || wh === 0) {
         wr = window.innerWidth;
-        wh = window.innerHeight * 0.7; // Guestimate
+        wh = window.innerHeight * 0.7;
     }
-
     canvas.width=800; canvas.height=480;
     var scale = Math.min(wr/800, wh/480);
-    canvas.style.width  = Math.max(200, Math.round(800*scale))+'px';
-    canvas.style.height = Math.max(120, Math.round(480*scale))+'px';
+    canvas.style.width  = Math.round(800*scale)+'px';
+    canvas.style.height = Math.round(480*scale)+'px';
 }
 window.addEventListener('resize', resizeCanvas);
 
@@ -599,10 +558,8 @@ function buildMenu(){
     LEVELS.forEach(function(lvl,i){
         var stars=savedProgress[i]||0;
         var unlocked = (i === 0) || (savedProgress[i-1] !== undefined && savedProgress[i-1] > 0);
-        
         var card=document.createElement('div');
         card.className='level-card' + (unlocked ? '' : ' locked');
-        
         if (unlocked) {
             card.innerHTML='<div class="lc-num">'+(i+1)+'</div>'
                 +'<div class="lc-name">'+lvl.name+'</div>'
