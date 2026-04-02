@@ -146,6 +146,8 @@ html, body {
     justify-content: center;
     overflow: hidden;
     position: relative;
+    min-height: 400px;
+    background: #000;
 }
 
 #gameCanvas {

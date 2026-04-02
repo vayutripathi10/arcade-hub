@@ -434,6 +434,9 @@ function update() {
 function render() {
     ctx.clearRect(0,0,800,480);
     ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,800,480);
+    
+    // DEBUG: Red square at top-left
+    ctx.fillStyle='red'; ctx.fillRect(0,0,10,10);
     // Grid
     ctx.strokeStyle='rgba(0,255,204,0.035)'; ctx.lineWidth=1;
     for(var gx=0;gx<800;gx+=50){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,480);ctx.stroke();}
@@ -553,20 +556,31 @@ function render() {
 }
 
 var rafId;
-function loop(){ update(); render(); rafId=requestAnimationFrame(loop); }
+function loop(){
+    try {
+        update();
+        render();
+    } catch(e) {
+        console.error("NDB Loop Error:", e);
+    }
+    rafId=requestAnimationFrame(loop);
+}
 
 function resizeCanvas() {
     var wrapper = document.querySelector('.canvas-wrapper');
     if(!wrapper) return;
     var wr = wrapper.clientWidth, wh = wrapper.clientHeight;
-    canvas.width=800; canvas.height=480;
+    
+    // Fallback if container is 0x0
     if (wr === 0 || wh === 0) {
-        requestAnimationFrame(resizeCanvas);
-        return;
+        wr = window.innerWidth;
+        wh = window.innerHeight * 0.7; // Guestimate
     }
+
+    canvas.width=800; canvas.height=480;
     var scale = Math.min(wr/800, wh/480);
-    canvas.style.width  = Math.round(800*scale)+'px';
-    canvas.style.height = Math.round(480*scale)+'px';
+    canvas.style.width  = Math.max(200, Math.round(800*scale))+'px';
+    canvas.style.height = Math.max(120, Math.round(480*scale))+'px';
 }
 window.addEventListener('resize', resizeCanvas);
 
