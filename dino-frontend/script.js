@@ -415,12 +415,12 @@ function drawMoon(opacity) {
     ctx.shadowColor = '#fff';
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(canvas.width - 100, 60, 30, 0.5, Math.PI * 2);
+    ctx.arc(150, 60, 30, 0.5, Math.PI * 2);
     ctx.fill();
     // Inner cutout for crescent
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(canvas.width - 115, 50, 30, 0, Math.PI * 2);
+    ctx.arc(135, 50, 30, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 }
@@ -433,7 +433,7 @@ function drawSun(opacity) {
     ctx.shadowColor = '#ffcc00';
     ctx.fillStyle = '#ffcc00';
     ctx.beginPath();
-    ctx.arc(canvas.width - 100, 60, 35, 0, Math.PI * 2);
+    ctx.arc(150, 60, 35, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 }
@@ -511,9 +511,13 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
 let lastTime = 0;
 
 function animate(timestamp) {
-    if (!gameRunning || isPaused) return;
+    if (!gameRunning || isPaused) {
+        lastTime = 0; // Reset lastTime so next frame doesn't jump
+        return;
+    }
     animationFrameId = requestAnimationFrame(animate);
     
+    if (!lastTime) lastTime = timestamp; // Initialize properly
     const deltaTime = Math.min((timestamp - lastTime) / 16.67, 3);
     lastTime = timestamp;
     
