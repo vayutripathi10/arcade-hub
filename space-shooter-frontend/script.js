@@ -119,11 +119,20 @@ class Player {
     }
 
     drawLives() {
+        ctx.save();
+        ctx.font = '700 20px Outfit, sans-serif';
         ctx.fillStyle = '#ff4444';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff4444';
+        
+        const isMobile = window.innerWidth <= 600;
+        const startX = isMobile ? 20 : 20;
+        const startY = isMobile ? 40 : 40;
+
         for (let i = 0; i < this.lives; i++) {
-            ctx.font = '20px Arial';
-            ctx.fillText('❤️', 20 + (i * 30), 40);
+            ctx.fillText('❤️', startX + (i * 30), startY);
         }
+        ctx.restore();
     }
 }
 
@@ -498,6 +507,27 @@ function draw() {
     asteroids.forEach(a => a.draw());
     powerups.forEach(p => p.draw());
     player.draw();
+    drawScore();
+}
+
+function drawScore() {
+    ctx.save();
+    ctx.font = '700 24px Outfit, sans-serif';
+    ctx.fillStyle = '#00ffcc';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#00ffcc';
+    ctx.textAlign = 'right';
+    
+    const isMobile = window.innerWidth <= 600;
+    const margin = 20;
+    
+    ctx.fillText(`${score}`, canvas.width - margin, isMobile ? 40 : 40);
+    
+    ctx.font = '500 14px Outfit, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.shadowBlur = 0;
+    ctx.fillText(`BEST: ${highScore}`, canvas.width - margin, isMobile ? 60 : 60);
+    ctx.restore();
 }
 
 function checkAchievements() {
@@ -563,17 +593,23 @@ function gameOver() {
 // --- Initialization ---
 
 function resizeCanvas() {
-    const wrapper = canvas.parentElement;
-    const isLandscape = window.innerHeight < 600 && window.innerWidth > window.innerHeight;
+    const isMobile = window.innerWidth <= 600;
     
-    if (isLandscape) {
+    if (isMobile) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
     } else {
         canvas.width = 800; // Fixed inner resolution for logic
         canvas.height = 500;
     }
-    if (player) player.reset();
+    
+    // Update background stars for new size
+    initStars();
+    
+    if (player) {
+        player.x = Math.min(player.x, canvas.width - player.width);
+        player.y = Math.min(player.y, canvas.height - player.height);
+    }
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -588,28 +624,39 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-// Touch support - relative movement
-let touchStartX = 0;
-let touchStartY = 0;
+// Touch support - 1:1 position following
 canvas.addEventListener('touchstart', (e) => {
     if (!gameRunning) startGame();
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-});
+    updatePlayerPositionFromTouch(e);
+}, { passive: false });
+
 canvas.addEventListener('touchmove', (e) => {
     if (!gameRunning || !player) return;
-    const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
-    const dx = touchX - touchStartX;
-    const dy = touchY - touchStartY;
-    
-    player.x += dx;
-    player.y += dy;
-    
-    touchStartX = touchX;
-    touchStartY = touchY;
+    updatePlayerPositionFromTouch(e);
     e.preventDefault();
 }, { passive: false });
+
+function updatePlayerPositionFromTouch(e) {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    
+    // Calculate position relative to canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const touchX = (touch.clientX - rect.left) * scaleX;
+    const touchY = (touch.clientY - rect.top) * scaleY;
+    
+    // Smoothly follow but snap for instant response in a shooter
+    player.x = touchX - player.width / 2;
+    player.y = touchY - player.height - 20; // Offset slightly above finger so visible
+    
+    // Bounds check
+    if (player.x < 0) player.x = 0;
+    if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+    if (player.y < 0) player.y = 0;
+    if (player.y > canvas.height - player.height) player.y = canvas.height - player.height;
+}
 
 // Share Logic
 function share(platform) {
