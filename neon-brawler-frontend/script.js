@@ -62,7 +62,6 @@ function initGame() {
     bossActive = false;
     boss = null;
     warningTimer = 0;
-    warningTimer = 0;
     if (window.audioFX) window.audioFX.init();
     gameRunning = true;
     overlay.classList.add('hidden');
@@ -428,6 +427,7 @@ function draw() {
     ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     
+    let px = player.x;
     let py = player.y;
     
     if (player.invulnerable && frameCount % 10 < 5) {
