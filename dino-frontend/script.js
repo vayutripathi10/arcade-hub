@@ -327,8 +327,10 @@ function lerp(a, b, t) {
 }
 
 function getStageConfigs(score) {
-    if (score < 400) {
-        // Stage 1: Day (Full Light) - Score 0 to 400
+    const cycleScore = score % 600; // Loop every 600 points (4 stages * 150)
+    
+    if (cycleScore < 150) {
+        // Stage 1: Day (Full Light) - 0 to 150
         return {
             bg: '#ffffff',
             stars: 0,
@@ -339,9 +341,9 @@ function getStageConfigs(score) {
             dinoColor: '#1a1a1a',
             obstacleColor: '#2d5a27'
         };
-    } else if (score < 800) {
-        // Stage 2: Dusk Transition - Score 400 to 800
-        const t = (score - 400) / 400;
+    } else if (cycleScore < 300) {
+        // Stage 2: Dusk Transition - 150 to 300
+        const t = (cycleScore - 150) / 150;
         return {
             bg: interpolateColors('#ffffff', '#050508', t),
             stars: lerp(0, 1, t),
@@ -352,8 +354,8 @@ function getStageConfigs(score) {
             dinoColor: interpolateColors('#1a1a1a', '#bc13fe', t),
             obstacleColor: interpolateColors('#2d5a27', '#00ffcc', t)
         };
-    } else if (score < 1200) {
-        // Stage 3: Night (Full Dark) - Score 800 to 1200
+    } else if (cycleScore < 450) {
+        // Stage 3: Night (Full Dark) - 300 to 450
         return {
             bg: '#050508',
             stars: 1,
@@ -365,8 +367,8 @@ function getStageConfigs(score) {
             obstacleColor: '#00ffcc'
         };
     } else {
-        // Stage 4: Dawn Transition - Score 1200+
-        const t = Math.min(1, (score - 1200) / 400);
+        // Stage 4: Dawn Transition - 450 to 600
+        const t = (cycleScore - 450) / 150;
         return {
             bg: interpolateColors('#050508', '#ffffff', t),
             stars: lerp(1, 0, t),
