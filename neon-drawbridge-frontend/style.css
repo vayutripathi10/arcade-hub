@@ -95,6 +95,14 @@ html, body {
 .level-card .lc-num { font-size: 1.4rem; font-weight: 700; color: var(--cyan); }
 .level-card .lc-name { font-size: 0.65rem; color: var(--subtext); max-width: 60px; line-height: 1.2; }
 .level-card .lc-stars { font-size: 0.75rem; letter-spacing: 1px; }
+.level-card.locked {
+    opacity: 0.45;
+    cursor: default;
+    border-color: rgba(255,255,255,0.05);
+    filter: grayscale(1);
+    pointer-events: none;
+}
+.level-card.locked .lc-num { color: var(--subtext); }
 
 .tip { color: var(--subtext); font-size: 0.78rem; text-align: center; max-width: 360px; }
 

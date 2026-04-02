@@ -20,7 +20,7 @@ let levelIdx  = 0;
 let retries   = 0;
 let inkUsed   = 0;
 let playTime  = 0;
-let ball, particles, userSegs, curSeg, undoGroups;
+let ball = null, particles = [], userSegs = [], curSeg = null, undoGroups = [];
 
 const savedProgress = (() => {
     try { return JSON.parse(localStorage.getItem('ndbProg') || '{}'); }
@@ -538,7 +538,7 @@ function render() {
     ctx.globalAlpha=1;
 
     // Ball
-    if(ball.alive){
+    if(ball && ball.alive){
         ctx.fillStyle='#00ffcc';ctx.shadowBlur=22;ctx.shadowColor='#00ffcc';
         ctx.beginPath();ctx.arc(ball.x,ball.y,R,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
     }
@@ -575,12 +575,21 @@ function buildMenu(){
     grid.innerHTML='';
     LEVELS.forEach(function(lvl,i){
         var stars=savedProgress[i]||0;
+        var unlocked = (i === 0) || (savedProgress[i-1] !== undefined && savedProgress[i-1] > 0);
+        
         var card=document.createElement('div');
-        card.className='level-card';
-        card.innerHTML='<div class="lc-num">'+(i+1)+'</div>'
-            +'<div class="lc-name">'+lvl.name+'</div>'
-            +'<div class="lc-stars">'+'⭐'.repeat(stars)+'☆'.repeat(3-stars)+'</div>';
-        card.addEventListener('click',function(){loadLevel(i);});
+        card.className='level-card' + (unlocked ? '' : ' locked');
+        
+        if (unlocked) {
+            card.innerHTML='<div class="lc-num">'+(i+1)+'</div>'
+                +'<div class="lc-name">'+lvl.name+'</div>'
+                +'<div class="lc-stars">'+'⭐'.repeat(stars)+'☆'.repeat(3-stars)+'</div>';
+            card.addEventListener('click',function(){loadLevel(i);});
+        } else {
+            card.innerHTML='<div class="lc-num">🔒</div>'
+                +'<div class="lc-name">Locked</div>'
+                +'<div class="lc-stars">☆☆☆</div>';
+        }
         grid.appendChild(card);
     });
 }
