@@ -326,55 +326,55 @@ function lerp(a, b, t) {
 }
 
 function getStageConfigs(score) {
-    if (score < 300) {
-        // Stage 1: Night (Deep Dark)
-        return { 
-            bg: '#050508', 
-            stars: 1, 
-            celestial: 'moon', 
+    if (score < 400) {
+        // Stage 1: Day (Full Light) - Score 0 to 400
+        return {
+            bg: '#ffffff',
+            stars: 0,
+            celestial: 'sun',
+            celestialOpacity: 1,
+            ground: '#e0e0e0',
+            cloudOpacity: 0.5,
+            dinoColor: '#1a1a1a',
+            obstacleColor: '#2d5a27'
+        };
+    } else if (score < 800) {
+        // Stage 2: Dusk Transition - Score 400 to 800
+        const t = (score - 400) / 400;
+        return {
+            bg: interpolateColors('#ffffff', '#050508', t),
+            stars: lerp(0, 1, t),
+            celestial: 'sun',
+            celestialOpacity: lerp(1, 0, t),
+            ground: interpolateColors('#e0e0e0', 'rgba(138, 43, 226, 0.3)', t),
+            cloudOpacity: lerp(0.5, 0.1, t),
+            dinoColor: interpolateColors('#1a1a1a', '#bc13fe', t),
+            obstacleColor: interpolateColors('#2d5a27', '#00ffcc', t)
+        };
+    } else if (score < 1200) {
+        // Stage 3: Night (Full Dark) - Score 800 to 1200
+        return {
+            bg: '#050508',
+            stars: 1,
+            celestial: 'moon',
             celestialOpacity: 1,
             ground: 'rgba(138, 43, 226, 0.3)',
             cloudOpacity: 0.1,
             dinoColor: '#bc13fe',
             obstacleColor: '#00ffcc'
         };
-    } else if (score < 600) {
-        // Stage 2: Dawn Transition
-        const t = (score - 300) / 300;
+    } else {
+        // Stage 4: Dawn Transition - Score 1200+
+        const t = Math.min(1, (score - 1200) / 400);
         return {
-            bg: interpolateColors('#050508', '#f0f0f0', t),
+            bg: interpolateColors('#050508', '#ffffff', t),
             stars: lerp(1, 0, t),
             celestial: 'moon',
-            celestialOpacity: lerp(1, 0, t * 2),
-            ground: interpolateColors('rgba(138, 43, 226, 0.3)', '#cccccc', t),
-            cloudOpacity: lerp(0.1, 0.4, t),
-            dinoColor: interpolateColors('#bc13fe', '#4a0080', t),
-            obstacleColor: interpolateColors('#00ffcc', '#2d5a27', t)
-        };
-    } else if (score < 900) {
-        // Stage 3: Day (Full Light)
-        return {
-            bg: '#f0f0f0',
-            stars: 0,
-            celestial: 'sun',
-            celestialOpacity: 1,
-            ground: '#cccccc',
-            cloudOpacity: 0.6,
-            dinoColor: '#4a0080',
-            obstacleColor: '#2d5a27'
-        };
-    } else {
-        // Stage 4: Dusk Loop
-        const t = Math.min(1, (score - 900) / 300);
-        return {
-            bg: interpolateColors('#f0f0f0', '#050508', t),
-            stars: t,
-            celestial: 'sun',
             celestialOpacity: lerp(1, 0, t),
-            ground: interpolateColors('#cccccc', 'rgba(138, 43, 226, 0.3)', t),
-            cloudOpacity: lerp(0.6, 0.1, t),
-            dinoColor: interpolateColors('#4a0080', '#bc13fe', t),
-            obstacleColor: interpolateColors('#2d5a27', '#00ffcc', t)
+            ground: interpolateColors('rgba(138, 43, 226, 0.3)', '#e0e0e0', t),
+            cloudOpacity: lerp(0.1, 0.5, t),
+            dinoColor: interpolateColors('#bc13fe', '#1a1a1a', t),
+            obstacleColor: interpolateColors('#00ffcc', '#2d5a27', t)
         };
     }
 }
