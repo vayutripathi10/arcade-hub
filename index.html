@@ -64,8 +64,12 @@
                 <span class="pill-value" id="runner-high">0</span>
             </div>
             <div class="stat-pill">
+                <span class="pill-label">Space Best</span>
+                <span class="pill-value" id="space-high">0</span>
+            </div>
+            <div class="stat-pill">
                 <span class="pill-label">Badges</span>
-                <span class="pill-value" id="badge-count">0/10</span>
+                <span class="pill-value" id="badge-count">0/24</span>
             </div>
         </div>
 
@@ -148,6 +152,18 @@
                     <span class="play-btn">Play Now</span>
                 </div>
             </a>
+
+            <!-- Neon Space Shooter Card -->
+            <a href="space-shooter-frontend/index.html" class="game-card">
+                <div class="card-icon space-icon">
+                    <span class="space-emoji">🚀</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Space Shooter</h3>
+                    <p class="game-desc">Destroy alien swarms and dodge asteroids in deep space!<br><br><b>How to play:</b> Use Arrows/WASD to move. Your ship auto-shoots. Collect power-ups from heavy Tank Aliens to boost your firepower or shields!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="news-section">
@@ -156,6 +172,11 @@
                 <a href="updates.html" class="nav-link view-all">View All News</a>
             </div>
             <div class="news-feed">
+                <div class="news-item">
+                    <span class="news-date">April 02, 2026</span>
+                    <h3>🚀 Neon Space Shooter Discovered!</h3>
+                    <p>Take to the stars! Our latest arcade addition brings high-octane 2D shooting to the hub. Battle three types of alien ships and survive the asteroid fields.</p>
+                </div>
                 <div class="news-item">
                     <span class="news-date">April 02, 2026</span>
                     <h3>🏃‍♂️ Neon Runner Released!</h3>
@@ -203,6 +224,8 @@
             if (brawlerEl) brawlerEl.textContent = localStorage.getItem('brawlerHighScore') || 0;
             let runnerEl = document.getElementById('runner-high');
             if (runnerEl) runnerEl.textContent = localStorage.getItem('neonRunnerBest') || 0;
+            let spaceEl = document.getElementById('space-high');
+            if (spaceEl) spaceEl.textContent = localStorage.getItem('spaceShooterBest') || 0;
             
             // Load Badge Count
             if (window.achievements) {

@@ -166,7 +166,12 @@ class AchievementSystem {
             { id: 'runner_neon_runner_score_100', game: 'runner', title: 'Speedster', desc: 'Score 100 points in Neon Runner', icon: '⚡' },
             { id: 'runner_neon_runner_score_500', game: 'runner', title: 'Street Racer', desc: 'Score 500 points in Neon Runner', icon: '🏎️' },
             { id: 'runner_neon_runner_score_1000', game: 'runner', title: 'Neon Legend', desc: 'Score 1000 points in Neon Runner', icon: '👑' },
-            { id: 'runner_neon_runner_collect_50_coins', game: 'runner', title: 'Coin Hoarder', desc: 'Collect 50 total coins in Neon Runner', icon: '💰' }
+            { id: 'runner_neon_runner_collect_50_coins', game: 'runner', title: 'Coin Hoarder', desc: 'Collect 50 total coins in Neon Runner', icon: '💰' },
+            { id: 'space_first_kill', game: 'space', title: 'First Blood', desc: 'Destroy your first alien ship', icon: '🚀' },
+            { id: 'space_score_100', game: 'space', title: 'Cadet', desc: 'Score 100 points in Space Shooter', icon: '🏅' },
+            { id: 'space_score_500', game: 'space', title: 'Ace Pilot', desc: 'Score 500 points in Space Shooter', icon: '🎖️' },
+            { id: 'space_score_1000', game: 'space', title: 'Galaxy Legend', desc: 'Score 1000 points in Space Shooter', icon: '🌌' },
+            { id: 'space_kill_tank', game: 'space', title: 'Tank Buster', desc: 'Destroy a heavy Tank Alien', icon: '💥' }
         ];
     }
 
