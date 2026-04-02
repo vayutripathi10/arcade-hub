@@ -41,7 +41,11 @@ class AchievementSystem {
     }
 
     save() {
-        localStorage.setItem(this.storageKey, JSON.stringify(this.achievements));
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(this.achievements));
+        } catch (e) {
+            console.warn('Achievement save failed (Storage full or blocked):', e);
+        }
     }
 
     unlock(game, id, title) {

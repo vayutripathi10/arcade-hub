@@ -8,8 +8,19 @@ const overlayMessage = document.getElementById('overlayMessage');
 const startBtn = document.getElementById('startBtn');
 
 // Game State
+const SafeStorage = {
+    getItem: (key) => {
+        try { return localStorage.getItem(key); }
+        catch (e) { return null; }
+    },
+    setItem: (key, val) => {
+        try { localStorage.setItem(key, val); }
+        catch (e) { console.warn('Storage blocked'); }
+    }
+};
+
 let score = 0;
-let highScore = localStorage.getItem('spaceShooterBest') || 0;
+let highScore = SafeStorage.getItem('spaceShooterBest') || 0;
 let gameRunning = false;
 let frameCount = 0;
 let lastTime = 0;
@@ -580,7 +591,7 @@ function gameOver() {
     if (score > highScore) {
         highScore = score;
         highScoreElement.textContent = highScore;
-        localStorage.setItem('spaceShooterBest', highScore);
+        SafeStorage.setItem('spaceShooterBest', highScore);
     }
 
     overlayTitle.textContent = "Mission Failed";
@@ -612,8 +623,10 @@ function resizeCanvas() {
     }
 }
 
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+window.addEventListener('resize', () => {
+    try { resizeCanvas(); } catch(e) {}
+});
+try { resizeCanvas(); } catch(e) {}
 
 startBtn.addEventListener('click', startGame);
 
