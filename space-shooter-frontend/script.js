@@ -68,6 +68,8 @@ class Player {
         this.shield = false;
         this.speedBoost = false;
         this.speedBoostTimer = 0;
+        this.invulnerable = false;
+        this.invulnTimer = 0;
     }
 
     reset() {
@@ -104,6 +106,12 @@ class Player {
             this.speedBoostTimer--;
             if (this.speedBoostTimer <= 0) this.speedBoost = false;
         }
+
+        // Invulnerability Timer
+        if (this.invulnerable) {
+            this.invulnTimer--;
+            if (this.invulnTimer <= 0) this.invulnerable = false;
+        }
     }
 
     shoot() {
@@ -119,12 +127,16 @@ class Player {
         
         // Draw spaceship polygon
         ctx.beginPath();
+        if (this.invulnerable && frameCount % 10 < 5) {
+            ctx.globalAlpha = 0.5; // Flicker
+        }
         ctx.moveTo(this.x + this.width / 2, this.y);
         ctx.lineTo(this.x + this.width, this.y + this.height);
         ctx.lineTo(this.x + this.width / 2, this.y + this.height - 10);
         ctx.lineTo(this.x, this.y + this.height);
         ctx.closePath();
         ctx.fill();
+        ctx.globalAlpha = 1.0;
 
         // Draw shield ring
         if (this.shield) {
@@ -417,10 +429,9 @@ class Boss {
     }
 
     drawHealthBar() {
-        const barWidth = canvas.width * 0.8;
-        const x = (canvas.width - barWidth) / 2;
         const h = 10;
-        const y = 30;
+        const isMobile = window.innerWidth <= 600;
+        const y = isMobile ? canvas.height - 60 : 30; // Move to bottom on mobile
 
         // Bg
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
@@ -814,16 +825,21 @@ function update() {
 }
 
 function handleCollision(entity, index, type) {
+    if (player.invulnerable) return; // Ignore collisions if invulnerable
+
     if (player.shield) {
         player.shield = false;
+        player.invulnerable = true;
+        player.invulnTimer = 60;
         createExplosion(player.x + 20, player.y + 20, '#00ffff');
         if (type === 'enemy') enemies.splice(index, 1);
         else if (type === 'asteroid') asteroids.splice(index, 1);
-        // Note: shield doesn't destroy the boss or laser, just protects the player
         return;
     }
 
     player.lives--;
+    player.invulnerable = true;
+    player.invulnTimer = 90; // 1.5s of safety after hit
     createExplosion(player.x + 20, player.y + 20, '#ff0000');
     if (navigator.vibrate) navigator.vibrate(100);
     
@@ -835,7 +851,6 @@ function handleCollision(entity, index, type) {
         gameOver();
     } else {
         player.reset();
-        // Brief invulnerability could go here if needed
     }
 }
 
