@@ -322,6 +322,7 @@ function loadLevel(idx) {
     levelIdx = idx; retries = 0; inkUsed = 0; mode = 'draw';
     userSegs = []; undoGroups = []; particles = []; curSeg = null;
     var lvl  = LEVELS[idx];
+    resizeCanvas();
     lvl.keys.forEach(function(k) { k.collected = false; });
     lvl.gates.forEach(function(g) { g.open = false; });
     lvl.platforms.forEach(function(p) { if(p._dir===undefined) p._dir=1; });
@@ -567,7 +568,10 @@ window.addEventListener('resize', resizeCanvas);
 function showScreen(id){
     document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
     var el=document.getElementById('screen'+id.charAt(0).toUpperCase()+id.slice(1));
-    if(el) el.classList.add('active');
+    if(el) {
+        el.classList.add('active');
+        resizeCanvas();
+    }
 }
 
 function buildMenu(){
