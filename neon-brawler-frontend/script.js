@@ -510,8 +510,8 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
-    drawLives();
-    ctx.restore();
+    ctx.restore(); // end screen shake block
+    drawLives();  // always draw hearts at fixed position, outside shake
 }
 
 function drawLives() {
