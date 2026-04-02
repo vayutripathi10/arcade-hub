@@ -152,7 +152,8 @@ function startGame() {
     frameCount = 0;
     distanceSinceLastObstacle = 0;
     scoreElement.textContent = score;
-    if (isPaused) togglePause(false); // Ensure unpaused on start
+    gameRunning = true;
+    isPaused = false;
     overlay.classList.add('hidden');
     pauseBtn?.classList.remove('hidden');
     
