@@ -536,7 +536,7 @@ function gameOver() {
     if (navigator.vibrate) navigator.vibrate(50);
 
     overlayTitle.textContent = "Game Over";
-    overlayMessage.textContent = `Final Score: ${score}`;
+    overlayMessage.textContent = `Final Score: ${Math.floor(score)}`;
     
     // Show sharing options
     const shareContainer = document.getElementById('shareContainer');
