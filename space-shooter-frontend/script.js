@@ -32,7 +32,7 @@ let bossActive = false;
 let boss = null;
 let bossWarningTimer = 0;
 let screenShake = 0;
-let bossSpawnScore = 1500; // First boss at 1500, then repeats
+let bossSpawnScore = 800; // First boss at 800 points
 let bossDefeatedCount = 0;
 
 // Entities
@@ -148,7 +148,7 @@ class Player {
         
         const isMobile = window.innerWidth <= 600;
         const startX = isMobile ? 20 : 20;
-        const startY = isMobile ? 40 : 40;
+        const startY = isMobile ? 70 : 40; // Lower on mobile to avoid home button overlap
 
         for (let i = 0; i < this.lives; i++) {
             ctx.fillText('❤️', startX + (i * 30), startY);
@@ -933,7 +933,7 @@ function startGame() {
     particles = [];
     bossActive = false;
     boss = null;
-    bossSpawnScore = 1500;
+    bossSpawnScore = 800;
     bossDefeatedCount = 0;
     player = new Player();
     initStars();
