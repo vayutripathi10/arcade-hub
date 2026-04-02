@@ -6,6 +6,8 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlayMessage = document.getElementById('overlayMessage');
 const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 
 // Game Constants
 const GRAVITY = 0.8;
@@ -34,6 +36,7 @@ let frameCount = 0;
 let score = 0;
 let highScore = localStorage.getItem('dinoHighScore') || 0;
 let gameRunning = false;
+let isPaused = false;
 let gameSpeed = INITIAL_SPEED;
 let animationFrameId;
 let dayPhase = 0;
@@ -101,9 +104,34 @@ function init() {
         e.preventDefault();
         touchHandled = true;
         if (!gameRunning) startGame();
-        else jump();
+        else if (!isPaused) jump();
         setTimeout(() => touchHandled = false, 300);
     }, { passive: false });
+
+    pauseBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePause();
+    });
+
+    // Lifecycle stability
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && gameRunning && !isPaused) {
+            togglePause(true);
+        }
+    });
+
+    window.addEventListener('blur', () => {
+        if (gameRunning && !isPaused) {
+            togglePause(true);
+        }
+    });
+
+    window.addEventListener('focus', () => {
+        if (gameRunning && isPaused) {
+            // Keep it paused but ensure UI is clear
+            draw();
+        }
+    });
 }
 
 function startGame() {
@@ -124,15 +152,35 @@ function startGame() {
     frameCount = 0;
     distanceSinceLastObstacle = 0;
     scoreElement.textContent = score;
-    gameRunning = true;
+    if (isPaused) togglePause(false); // Ensure unpaused on start
     overlay.classList.add('hidden');
+    pauseBtn?.classList.remove('hidden');
     
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     lastTime = performance.now();
     animate(lastTime);
 }
 
+function togglePause(forcePause) {
+    if (!gameRunning) return;
+    
+    isPaused = forcePause !== undefined ? forcePause : !isPaused;
+    
+    if (isPaused) {
+        overlayTitle.textContent = "Paused";
+        overlayMessage.textContent = "Game is paused. Click Play or Resume to continue.";
+        overlay.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else {
+        overlay.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        lastTime = performance.now(); // Reset time to prevent jump
+        animate(lastTime);
+    }
+}
+
 function jump() {
+    if (isPaused) return;
     if (!dino.isJumping) {
         if (window.audioFX) window.audioFX.playJump();
         dino.dy = JUMP_FORCE;
@@ -278,47 +326,55 @@ function lerp(a, b, t) {
 }
 
 function getStageConfigs(score) {
-    if (score < 200) {
-        // Stage 1: Night
+    if (score < 300) {
+        // Stage 1: Night (Deep Dark)
         return { 
             bg: '#050508', 
             stars: 1, 
             celestial: 'moon', 
+            celestialOpacity: 1,
             ground: 'rgba(138, 43, 226, 0.3)',
-            cloudOpacity: 0.02
-        };
-    } else if (score < 400) {
-        // Stage 2: Dawn
-        const t = (score - 200) / 200;
-        return {
-            bg: interpolateColors('#050508', '#2d1420', t),
-            stars: lerp(1, 0, t),
-            celestial: 'moon',
-            celestialOpacity: lerp(1, 0, t),
-            ground: interpolateColors('rgba(138, 43, 226, 0.3)', 'rgba(255, 100, 100, 0.4)', t),
-            cloudOpacity: lerp(0.02, 0.1, t)
+            cloudOpacity: 0.1,
+            dinoColor: '#bc13fe',
+            obstacleColor: '#00ffcc'
         };
     } else if (score < 600) {
-        // Stage 3: Day
-        const t = (score - 400) / 200;
+        // Stage 2: Dawn Transition
+        const t = (score - 300) / 300;
         return {
-            bg: interpolateColors('#1a2a4a', '#0a1628', t),
+            bg: interpolateColors('#050508', '#f0f0f0', t),
+            stars: lerp(1, 0, t),
+            celestial: 'moon',
+            celestialOpacity: lerp(1, 0, t * 2),
+            ground: interpolateColors('rgba(138, 43, 226, 0.3)', '#cccccc', t),
+            cloudOpacity: lerp(0.1, 0.4, t),
+            dinoColor: interpolateColors('#bc13fe', '#4a0080', t),
+            obstacleColor: interpolateColors('#00ffcc', '#2d5a27', t)
+        };
+    } else if (score < 900) {
+        // Stage 3: Day (Full Light)
+        return {
+            bg: '#f0f0f0',
             stars: 0,
             celestial: 'sun',
-            celestialOpacity: t,
-            ground: 'rgba(0, 255, 204, 0.5)',
-            cloudOpacity: 0.2
+            celestialOpacity: 1,
+            ground: '#cccccc',
+            cloudOpacity: 0.6,
+            dinoColor: '#4a0080',
+            obstacleColor: '#2d5a27'
         };
     } else {
-        // Stage 4: Dusk loop
-        const t = Math.min(1, (score - 600) / 200);
+        // Stage 4: Dusk Loop
+        const t = Math.min(1, (score - 900) / 300);
         return {
-            bg: interpolateColors('#0a1628', '#1a0a05', t),
+            bg: interpolateColors('#f0f0f0', '#050508', t),
             stars: t,
             celestial: 'sun',
             celestialOpacity: lerp(1, 0, t),
-            ground: interpolateColors('rgba(0, 255, 204, 0.5)', 'rgba(138, 43, 226, 0.3)', t),
-            cloudOpacity: lerp(0.2, 0.02, t)
+            ground: interpolateColors('#cccccc', 'rgba(138, 43, 226, 0.3)', t),
+            cloudOpacity: lerp(0.6, 0.1, t),
+            dinoColor: interpolateColors('#4a0080', '#bc13fe', t),
+            obstacleColor: interpolateColors('#2d5a27', '#00ffcc', t)
         };
     }
 }
@@ -374,8 +430,8 @@ function drawSun(opacity) {
     ctx.save();
     ctx.globalAlpha = opacity;
     ctx.shadowBlur = 40;
-    ctx.shadowColor = '#fff600';
-    ctx.fillStyle = '#fff600';
+    ctx.shadowColor = '#ffcc00';
+    ctx.fillStyle = '#ffcc00';
     ctx.beginPath();
     ctx.arc(canvas.width - 100, 60, 35, 0, Math.PI * 2);
     ctx.fill();
@@ -407,21 +463,20 @@ function draw() {
     });
 
     // Draw Dino
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = dino.color;
-    ctx.fillStyle = dino.color;
+    ctx.shadowBlur = config.bg === '#050508' ? 15 : 0;
+    ctx.shadowColor = config.dinoColor;
+    ctx.fillStyle = config.dinoColor;
     drawRoundedRect(ctx, dino.x, dino.y, dino.width, dino.height, 12);
     
     // Draw Eyes
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillStyle = config.bg === '#050508' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.8)';
     ctx.fillRect(dino.x + 40, dino.y + 15, 8, 8);
 
     // Draw Obstacles
     obstacles.forEach(obs => {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = obs.color;
-        ctx.fillStyle = obs.color;
+        ctx.shadowBlur = config.bg === '#050508' ? 15 : 0;
+        ctx.shadowColor = config.obstacleColor;
+        ctx.fillStyle = config.obstacleColor;
         if (obs.type === 'bird') {
             ctx.beginPath();
             ctx.moveTo(obs.x, obs.y + obs.height);
@@ -456,7 +511,7 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
 let lastTime = 0;
 
 function animate(timestamp) {
-    if (!gameRunning) return;
+    if (!gameRunning || isPaused) return;
     animationFrameId = requestAnimationFrame(animate);
     
     const deltaTime = Math.min((timestamp - lastTime) / 16.67, 3);
@@ -468,6 +523,8 @@ function animate(timestamp) {
 
 function gameOver() {
     gameRunning = false;
+    isPaused = false;
+    pauseBtn?.classList.add('hidden');
     cancelAnimationFrame(animationFrameId);
     
     if (window.audioFX) window.audioFX.playGameOver();

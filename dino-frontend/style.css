@@ -132,11 +132,53 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 20px;
-    z-index: 10;
+    z-index: 20;
     opacity: 1;
     transition: opacity 0.3s ease;
     overflow-y: auto;
     padding: 10px 0;
+}
+
+.overlay-content h2, .overlay-content p {
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(12, 14, 20, 0.4);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.pause-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: scale(1.1);
+}
+
+.pause-btn.hidden {
+    display: none;
+}
+
+.pause-icon {
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: -2px;
+    margin-right: -2px;
 }
 
 .overlay.hidden {
@@ -466,5 +508,12 @@ body {
     .overlay {
         border-radius: 0;
         background: rgba(12, 14, 20, 0.85);
+    }
+
+    .pause-btn {
+        top: 15px;
+        right: 15px;
+        width: 38px;
+        height: 38px;
     }
 }
