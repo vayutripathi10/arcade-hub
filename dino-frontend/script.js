@@ -13,7 +13,7 @@ const JUMP_FORCE = -15;
 let GROUND_Y = 230; // Dino feet position
 const INITIAL_SPEED = 8;
 const SPEED_INCREMENT = 0.002;
-const MIN_OBSTACLE_DISTANCE = 300; 
+let distanceSinceLastObstacle = 0;
 const HITBOX_BUFFER = 10;
 
 // Game State
@@ -36,7 +36,17 @@ let highScore = localStorage.getItem('dinoHighScore') || 0;
 let gameRunning = false;
 let gameSpeed = INITIAL_SPEED;
 let animationFrameId;
-let dayPhase = 0; // 0 to Math.PI * 2 for day/night interpolation
+let dayPhase = 0;
+
+// Stars generation
+const stars = Array.from({length: 35}, () => ({
+    x: Math.random() * 800, // Fixed width for star positions
+    y: Math.random() * 150,
+    size: Math.random() * 2 + 0.5,
+    twinkleSpeed: Math.random() * 0.05 + 0.02,
+    twinkleOffset: Math.random() * Math.PI * 2,
+    opacity: Math.random() * 0.5 + 0.5
+}));
 
 highScoreElement.textContent = highScore;
 
@@ -65,6 +75,7 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 
 // Initialize
+let touchHandled = false;
 function init() {
     resizeCanvas();
     startBtn.addEventListener('click', (e) => {
@@ -81,15 +92,18 @@ function init() {
     });
 
     canvas.addEventListener('mousedown', () => {
+        if (touchHandled) return;
         if (!gameRunning) startGame();
         else jump();
     });
 
     canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        touchHandled = true;
         if (!gameRunning) startGame();
         else jump();
-    });
+        setTimeout(() => touchHandled = false, 300);
+    }, { passive: false });
 }
 
 function startGame() {
@@ -108,12 +122,14 @@ function startGame() {
     score = 0;
     gameSpeed = INITIAL_SPEED;
     frameCount = 0;
+    distanceSinceLastObstacle = 0;
     scoreElement.textContent = score;
     gameRunning = true;
     overlay.classList.add('hidden');
     
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    animate();
+    lastTime = performance.now();
+    animate(lastTime);
 }
 
 function jump() {
@@ -130,13 +146,13 @@ function jump() {
     }
 }
 
-function update() {
+function update(deltaTime) {
     frameCount++;
-    gameSpeed += SPEED_INCREMENT;
+    gameSpeed = Math.min(gameSpeed + SPEED_INCREMENT * deltaTime, 25);
     
     // Dino Physics
-    dino.dy += GRAVITY;
-    dino.y += dino.dy;
+    dino.dy += GRAVITY * deltaTime;
+    dino.y += dino.dy * deltaTime;
     
     if (dino.y > GROUND_Y) {
         dino.y = GROUND_Y;
@@ -144,33 +160,32 @@ function update() {
         dino.isJumping = false;
     }
     
-    // Score
-    if (frameCount % 10 === 0) {
-        score++;
-        scoreElement.textContent = score;
+    // Distance-based Score
+    if (gameRunning) {
+        score += (gameSpeed * deltaTime) / 50;
+        const roundedScore = Math.floor(score);
+        scoreElement.textContent = roundedScore;
         
         // Achievement Checks
         if (window.achievements) {
-            if (score === 100) window.achievements.unlock('dino', '100', 'Survivor I');
-            if (score === 500) window.achievements.unlock('dino', '500', 'Survivor II');
-            if (score === 1000) window.achievements.unlock('dino', '1000', 'Jurassic Master');
+            if (roundedScore === 100) window.achievements.unlock('dino', '100', 'Survivor I');
+            if (roundedScore === 500) window.achievements.unlock('dino', '500', 'Survivor II');
+            if (roundedScore === 1000) window.achievements.unlock('dino', '1000', 'Jurassic Master');
         }
 
-        if (score > highScore) {
-            highScore = score;
+        if (roundedScore > highScore) {
+            highScore = roundedScore;
             highScoreElement.textContent = highScore;
             localStorage.setItem('dinoHighScore', highScore);
         }
     }
     
-    // Spawning Obstacles
-    if (frameCount % 40 === 0) { // Check more frequently
-        const lastObstacle = obstacles[obstacles.length - 1];
-        if (!lastObstacle || (canvas.width - lastObstacle.x) > MIN_OBSTACLE_DISTANCE) {
-            if (Math.random() > 0.4) {
-                spawnObstacle();
-            }
-        }
+    // Spawning Obstacles based on distance
+    distanceSinceLastObstacle += gameSpeed * deltaTime;
+    const spawnThreshold = Math.max(250, 450 - score * 0.1);
+    if (distanceSinceLastObstacle > spawnThreshold) {
+        spawnObstacle();
+        distanceSinceLastObstacle = 0;
     }
 
     // Spawning Clouds
@@ -180,18 +195,16 @@ function update() {
     
     // Updating Obstacles
     for (let i = obstacles.length - 1; i >= 0; i--) {
-        obstacles[i].x -= gameSpeed;
+        obstacles[i].x -= gameSpeed * deltaTime;
         
         // Perfect Collision Detection (Circle vs Rect)
-        // Dino hit circle
         const dinoCx = dino.x + dino.width / 2;
         const dinoCy = dino.y + dino.height / 2;
-        const dinoR = 20; // Forgiving radius
+        const dinoR = 20;
 
         let collision = false;
         
         if (obstacles[i].type === 'bird') {
-            // Circle vs Circle for bird
             const birdCx = obstacles[i].x + obstacles[i].width / 2;
             const birdCy = obstacles[i].y + obstacles[i].height / 2;
             const birdR = 12;
@@ -199,37 +212,25 @@ function update() {
             const dy = dinoCy - birdCy;
             collision = Math.sqrt(dx*dx + dy*dy) < (dinoR + birdR);
         } else {
-            // Circle vs Rect for cacti
             let testX = dinoCx;
             let testY = dinoCy;
-            
             if (dinoCx < obstacles[i].x) testX = obstacles[i].x;
             else if (dinoCx > obstacles[i].x + obstacles[i].width) testX = obstacles[i].x + obstacles[i].width;
-            
             if (dinoCy < obstacles[i].y) testY = obstacles[i].y;
             else if (dinoCy > obstacles[i].y + obstacles[i].height) testY = obstacles[i].y + obstacles[i].height;
-            
             const dx = dinoCx - testX;
             const dy = dinoCy - testY;
             collision = Math.sqrt(dx*dx + dy*dy) <= dinoR;
         }
 
-        if (collision) {
-            gameOver();
-        }
-        
-        // Remove off-screen obstacles
-        if (obstacles[i].x + obstacles[i].width < 0) {
-            obstacles.splice(i, 1);
-        }
+        if (collision) gameOver();
+        if (obstacles[i].x + obstacles[i].width < -100) obstacles.splice(i, 1);
     }
 
     // Updating Clouds
     for (let i = clouds.length - 1; i >= 0; i--) {
-        clouds[i].x -= gameSpeed * 0.3; // Parallax effect
-        if (clouds[i].x + clouds[i].width < 0) {
-            clouds.splice(i, 1);
-        }
+        clouds[i].x -= gameSpeed * 0.3 * deltaTime;
+        if (clouds[i].x + clouds[i].width < -100) clouds.splice(i, 1);
     }
 }
 
@@ -272,21 +273,127 @@ function spawnObstacle() {
     }
 }
 
+function lerp(a, b, t) {
+    return a + (b - a) * Math.max(0, Math.min(1, t));
+}
+
+function getStageConfigs(score) {
+    if (score < 200) {
+        // Stage 1: Night
+        return { 
+            bg: '#050508', 
+            stars: 1, 
+            celestial: 'moon', 
+            ground: 'rgba(138, 43, 226, 0.3)',
+            cloudOpacity: 0.02
+        };
+    } else if (score < 400) {
+        // Stage 2: Dawn
+        const t = (score - 200) / 200;
+        return {
+            bg: interpolateColors('#050508', '#2d1420', t),
+            stars: lerp(1, 0, t),
+            celestial: 'moon',
+            celestialOpacity: lerp(1, 0, t),
+            ground: interpolateColors('rgba(138, 43, 226, 0.3)', 'rgba(255, 100, 100, 0.4)', t),
+            cloudOpacity: lerp(0.02, 0.1, t)
+        };
+    } else if (score < 600) {
+        // Stage 3: Day
+        const t = (score - 400) / 200;
+        return {
+            bg: interpolateColors('#1a2a4a', '#0a1628', t),
+            stars: 0,
+            celestial: 'sun',
+            celestialOpacity: t,
+            ground: 'rgba(0, 255, 204, 0.5)',
+            cloudOpacity: 0.2
+        };
+    } else {
+        // Stage 4: Dusk loop
+        const t = Math.min(1, (score - 600) / 200);
+        return {
+            bg: interpolateColors('#0a1628', '#1a0a05', t),
+            stars: t,
+            celestial: 'sun',
+            celestialOpacity: lerp(1, 0, t),
+            ground: interpolateColors('rgba(0, 255, 204, 0.5)', 'rgba(138, 43, 226, 0.3)', t),
+            cloudOpacity: lerp(0.2, 0.02, t)
+        };
+    }
+}
+
+function interpolateColors(c1, c2, t) {
+    const r1 = parseInt(c1.slice(1, 3), 16);
+    const g1 = parseInt(c1.slice(3, 5), 16);
+    const b1 = parseInt(c1.slice(5, 7), 16);
+    const r2 = parseInt(c2.slice(1, 3), 16);
+    const g2 = parseInt(c2.slice(3, 5), 16);
+    const b2 = parseInt(c2.slice(5, 7), 16);
+    const r = Math.floor(lerp(r1, r2, t));
+    const g = Math.floor(lerp(g1, g2, t));
+    const b = Math.floor(lerp(b1, b2, t));
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function drawStars(alpha) {
+    if (alpha <= 0) return;
+    stars.forEach(star => {
+        star.twinkleOffset += star.twinkleSpeed;
+        const twinkle = (Math.sin(star.twinkleOffset) + 1) / 2;
+        ctx.globalAlpha = alpha * (0.5 + twinkle * 0.5) * star.opacity;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        const xScale = canvas.width / 800;
+        ctx.arc(star.x * xScale, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+}
+
+function drawMoon(opacity) {
+    if (opacity <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#fff';
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 60, 30, 0.5, Math.PI * 2);
+    ctx.fill();
+    // Inner cutout for crescent
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 115, 50, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawSun(opacity) {
+    if (opacity <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = '#fff600';
+    ctx.fillStyle = '#fff600';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 60, 35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
 function draw() {
-    // Day/Night Cycle Background
-    dayPhase += 0.001;
-    const cycle = (Math.sin(dayPhase) + 1) / 2; // 0 to 1
+    const config = getStageConfigs(score);
     
-    // Interpolate from deep dark (#0c0e14) to twilight purple (#2d1b4e)
-    const r = Math.floor(12 + (45 - 12) * cycle);
-    const g = Math.floor(14 + (27 - 14) * cycle);
-    const b = Math.floor(20 + (78 - 20) * cycle);
-    
-    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.fillStyle = config.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
+    drawStars(config.stars);
+    if (config.celestial === 'moon') drawMoon(config.celestialOpacity || 1);
+    else drawSun(config.celestialOpacity || 1);
+    
     // Draw Ground Line
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.strokeStyle = config.ground;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, GROUND_Y + 60);
@@ -294,7 +401,7 @@ function draw() {
     ctx.stroke();
 
     // Draw Clouds
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.fillStyle = `rgba(255, 255, 255, ${config.cloudOpacity})`;
     clouds.forEach(cloud => {
         drawRoundedRect(ctx, cloud.x, cloud.y, cloud.width, cloud.height, 10);
     });
@@ -315,28 +422,23 @@ function draw() {
         ctx.shadowBlur = 15;
         ctx.shadowColor = obs.color;
         ctx.fillStyle = obs.color;
-        
         if (obs.type === 'bird') {
-            // Draw a triangle for the bird
             ctx.beginPath();
             ctx.moveTo(obs.x, obs.y + obs.height);
             ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2);
             ctx.lineTo(obs.x, obs.y);
             ctx.fill();
         } else {
-            // Draw matching cactus shape
             drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
-            // Draw arms if tall or wide
             if (obs.type === 'cactus_tall') {
-                drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); // Left arm
-                drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); // Right arm
+                drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3);
+                drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3);
             } else if (obs.type === 'cactus_wide') {
-                drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); // Top branch
-                drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); // Top branch 2
+                drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3);
+                drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3);
             }
         }
     });
-    
     ctx.shadowBlur = 0;
 }
 
@@ -352,20 +454,16 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
 }
 
 let lastTime = 0;
-const fpsInterval = 1000 / 60;
 
 function animate(timestamp) {
     if (!gameRunning) return;
     animationFrameId = requestAnimationFrame(animate);
     
-    if (!lastTime) lastTime = timestamp;
-    const elapsed = timestamp - lastTime;
+    const deltaTime = Math.min((timestamp - lastTime) / 16.67, 3);
+    lastTime = timestamp;
     
-    if (elapsed > fpsInterval) {
-        lastTime = timestamp - (elapsed % fpsInterval);
-        update();
-        draw();
-    }
+    update(deltaTime);
+    draw();
 }
 
 function gameOver() {
