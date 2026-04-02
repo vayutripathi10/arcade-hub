@@ -25,10 +25,20 @@ let gameRunning = false;
 let frameCount = 0;
 let lastTime = 0;
 let animationFrameId;
+let dayPhase = 0;
+
+// Boss State
+let bossActive = false;
+let boss = null;
+let bossWarningTimer = 0;
+let screenShake = 0;
+let bossSpawnScore = 1500; // First boss at 1500, then repeats
+let bossDefeatedCount = 0;
 
 // Entities
 let player;
 let bullets = [];
+let bossBullets = [];
 let enemies = [];
 let asteroids = [];
 let powerups = [];
@@ -167,6 +177,270 @@ class Bullet {
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.shadowBlur = 0;
+    }
+}
+
+class BossBullet {
+    constructor(x, y, vx, vy, color = '#ff00ff') {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.radius = 6;
+        this.color = color;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Boss {
+    constructor() {
+        this.width = 120;
+        this.height = 80;
+        this.x = canvas.width / 2;
+        this.y = -200; // Start off-screen
+        this.maxHealth = 100 + (bossDefeatedCount * 50);
+        this.health = this.maxHealth;
+        this.phase = 1;
+        this.color = '#ff00ff';
+        this.speed = 2;
+        this.targetX = canvas.width / 2;
+        this.lastShot = 0;
+        this.lastSpawn = 0;
+        this.entryFinished = false;
+        this.floatOffset = 0;
+        this.segments = []; // For dragon body
+        for (let i = 0; i < 5; i++) {
+            this.segments.push({ x: this.x, y: this.y - (i * 30), size: 40 - i * 5 });
+        }
+        
+        // Laser state
+        this.laserCharging = false;
+        this.laserActive = false;
+        this.laserTimer = 0;
+    }
+
+    update() {
+        // Entry
+        if (!this.entryFinished) {
+            this.y += 2;
+            if (this.y >= 100) this.entryFinished = true;
+        } else {
+            // Hover movement
+            this.floatOffset += 0.05;
+            this.y = 100 + Math.sin(this.floatOffset) * 20;
+            
+            if (Math.abs(this.x - this.targetX) < 5) {
+                this.targetX = 200 + Math.random() * (canvas.width - 400);
+            }
+            this.x += (this.targetX - this.x) * 0.02;
+        }
+
+        // Update dragon segments (snake following logic)
+        this.segments[0].x = this.x;
+        this.segments[0].y = this.y;
+        for (let i = this.segments.length - 1; i > 0; i--) {
+            this.segments[i].x += (this.segments[i - 1].x - this.segments[i].x) * 0.15;
+            this.segments[i].y += (this.segments[i - 1].y - this.segments[i].y) * 0.15;
+        }
+
+        // Phase Check
+        const hpPerc = this.health / this.maxHealth;
+        if (hpPerc < 0.33) this.phase = 3;
+        else if (hpPerc < 0.66) this.phase = 2;
+
+        // Attack Patterns
+        if (gameRunning && this.entryFinished) {
+            if (this.laserActive || this.laserCharging) {
+                this.updateLaser();
+            } else {
+                this.shoot();
+                if (this.phase === 3) this.spawnMinions();
+            }
+        }
+    }
+
+    updateLaser() {
+        this.laserTimer--;
+        if (this.laserCharging) {
+            if (this.laserTimer <= 0) {
+                this.laserCharging = false;
+                this.laserActive = true;
+                this.laserTimer = 120; // Fire for 2 seconds
+                screenShake = 15;
+            }
+        } else if (this.laserActive) {
+            // Collision with player
+            const playerCx = player.x + 20;
+            if (Math.abs(playerCx - this.x) < 40 && player.y > this.y) {
+                handleCollision(this, 0, 'laser');
+            }
+            if (this.laserTimer <= 0) {
+                this.laserActive = false;
+                this.lastShot = Date.now(); // Reset cooldown
+            }
+        }
+    }
+
+    shoot() {
+        const now = Date.now();
+        let cooldown = 1500 - (this.phase * 300);
+        if (now - this.lastShot > cooldown) {
+            this.lastShot = now;
+            
+            if (this.phase === 1) {
+                // Single aimed shot
+                this.fireAtPlayer(5);
+            } else if (this.phase === 2) {
+                // Spread 3
+                for (let angle = -0.5; angle <= 0.5; angle += 0.5) {
+                    bossBullets.push(new BossBullet(this.x, this.y + 40, Math.sin(angle) * 5, 5));
+                }
+            } else if (this.phase === 3) {
+                // Chance to start laser or rapid spread
+                if (Math.random() > 0.5) {
+                    this.laserCharging = true;
+                    this.laserTimer = 90; // 1.5s charge
+                } else {
+                    for (let angle = -1; angle <= 1; angle += 0.5) {
+                        bossBullets.push(new BossBullet(this.x, this.y + 40, Math.sin(angle) * 7, 7, '#ff8c00'));
+                    }
+                }
+            }
+        }
+    }
+
+    fireAtPlayer(speed) {
+        const dx = player.x + 20 - this.x;
+        const dy = player.y + 20 - this.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        bossBullets.push(new BossBullet(this.x, this.y + 40, (dx/dist) * speed, (dy/dist) * speed));
+    }
+
+    spawnMinions() {
+        const now = Date.now();
+        if (now - this.lastSpawn > 4000) {
+            this.lastSpawn = now;
+            enemies.push(new Enemy('basic'));
+        }
+    }
+
+    takeDamage(amount) {
+        this.health -= amount;
+        screenShake = 10;
+        if (this.health <= 0) this.defeat();
+    }
+
+    defeat() {
+        bossActive = false;
+        bossDefeatedCount++;
+        score += 2000;
+        createExplosion(this.x, this.y, this.color);
+        for (let i = 0; i < 50; i++) {
+            particles.push(new Particle(this.x + (Math.random()-0.5)*100, this.y + (Math.random()-0.5)*100, this.color));
+        }
+        bossSpawnScore += 3000;
+        if(window.achievements) window.achievements.unlock('space', 'boss_slayer', 'Dragon Slayer');
+    }
+
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = this.color;
+        ctx.fillStyle = this.color;
+
+        // Draw segments
+        for (let i = this.segments.length - 1; i >= 0; i--) {
+            const seg = this.segments[i];
+            ctx.globalAlpha = 1 - (i * 0.15);
+            ctx.beginPath();
+            ctx.arc(seg.x, seg.y, seg.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Neon glow ring
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Draw Eyes/Head Detail
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(this.x - 15, this.y - 5, 8, 0, Math.PI * 2);
+        ctx.arc(this.x + 15, this.y - 5, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Laser
+        if (this.laserCharging) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00ffff';
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y + 40);
+            ctx.lineTo(this.x, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        } else if (this.laserActive) {
+            const grad = ctx.createLinearGradient(this.x - 30, 0, this.x + 30, 0);
+            grad.addColorStop(0, 'rgba(0, 255, 255, 0)');
+            grad.addColorStop(0.5, 'rgba(0, 255, 255, 1)');
+            grad.addColorStop(1, 'rgba(0, 255, 255, 0)');
+            
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = '#00ffff';
+            ctx.fillStyle = grad;
+            ctx.fillRect(this.x - 30, this.y + 40, 60, canvas.height - this.y);
+            
+            // Core beam
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(this.x - 5, this.y + 40, 10, canvas.height - this.y);
+        }
+
+        ctx.restore();
+        this.drawHealthBar();
+    }
+
+    drawHealthBar() {
+        const barWidth = canvas.width * 0.8;
+        const x = (canvas.width - barWidth) / 2;
+        const h = 10;
+        const y = 30;
+
+        // Bg
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(x, y, barWidth, h);
+
+        // Fill
+        const ratio = this.health / this.maxHealth;
+        const gradient = ctx.createLinearGradient(x, y, x + barWidth, y);
+        gradient.addColorStop(0, '#ff00ff');
+        gradient.addColorStop(1, '#00ffff');
+        
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ffff';
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, barWidth * ratio, h);
+        
+        ctx.font = '700 14px Outfit, sans-serif';
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText('MECHANICAL DRAGON', canvas.width / 2, y - 10);
     }
 }
 
@@ -388,6 +662,15 @@ function createExplosion(x, y, color) {
 }
 
 function spawnEntity() {
+    if (bossActive) return; // Don't spawn normal stuff during boss
+
+    if (score >= bossSpawnScore) {
+        bossActive = true;
+        boss = new Boss();
+        bossWarningTimer = 180; // 3 seconds at 60fps
+        return;
+    }
+
     if (frameCount % 60 === 0) {
         const rand = Math.random();
         if (rand > 0.8) enemies.push(new Enemy('tank'));
@@ -408,10 +691,54 @@ function update() {
     updateStars();
     player.update();
 
+    if (screenShake > 0) screenShake *= 0.9;
+
     bullets.forEach((b, i) => {
         b.update();
-        if (b.y < -20) bullets.splice(i, 1);
+        if (b.y < -20) {
+            bullets.splice(i, 1);
+            return;
+        }
+
+        // Bullet hit boss
+        if (bossActive && boss && boss.entryFinished) {
+            const dx = b.x - boss.x;
+            const dy = b.y - boss.y;
+            if (Math.abs(dx) < 60 && Math.abs(dy) < 40) {
+                boss.takeDamage(1);
+                bullets.splice(i, 1);
+                return;
+            }
+        }
     });
+
+    bossBullets.forEach((b, i) => {
+        b.update();
+        if (b.y > canvas.height + 20 || b.x < -20 || b.x > canvas.width + 20) {
+            bossBullets.splice(i, 1);
+            return;
+        }
+
+        // Boss bullet hit player
+        const dx = b.x - (player.x + 20);
+        const dy = b.y - (player.y + 20);
+        if (Math.sqrt(dx*dx + dy*dy) < 20) {
+            bossBullets.splice(i, 1);
+            handleCollision(b, i, 'bullet');
+        }
+    });
+
+    if (bossActive && boss) {
+        boss.update();
+        // Collision dragon body with player
+        boss.segments.forEach(seg => {
+            const dx = seg.x - (player.x + 20);
+            const dy = seg.y - (player.y + 20);
+            if (Math.sqrt(dx*dx + dy*dy) < 35) {
+                handleCollision(seg, 0, 'boss');
+            }
+        });
+    }
 
     enemies.forEach((e, i) => {
         e.update();
@@ -489,9 +816,10 @@ function update() {
 function handleCollision(entity, index, type) {
     if (player.shield) {
         player.shield = false;
-        createExplosion(entity.x || entity.x, entity.y || entity.y, '#00ffff');
+        createExplosion(player.x + 20, player.y + 20, '#00ffff');
         if (type === 'enemy') enemies.splice(index, 1);
-        else asteroids.splice(index, 1);
+        else if (type === 'asteroid') asteroids.splice(index, 1);
+        // Note: shield doesn't destroy the boss or laser, just protects the player
         return;
     }
 
@@ -500,25 +828,51 @@ function handleCollision(entity, index, type) {
     if (navigator.vibrate) navigator.vibrate(100);
     
     if (type === 'enemy') enemies.splice(index, 1);
-    else asteroids.splice(index, 1);
+    else if (type === 'asteroid') asteroids.splice(index, 1);
+    else if (type === 'bullet') bossBullets.splice(index, 1);
 
     if (player.lives <= 0) {
         gameOver();
     } else {
         player.reset();
+        // Brief invulnerability could go here if needed
     }
 }
 
 function draw() {
+    ctx.save();
+    if (screenShake > 1) {
+        ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
     particles.forEach(p => p.draw());
     bullets.forEach(b => b.draw());
+    bossBullets.forEach(b => b.draw());
     enemies.forEach(e => e.draw());
     asteroids.forEach(a => a.draw());
     powerups.forEach(p => p.draw());
+    if (bossActive && boss) boss.draw();
     player.draw();
     drawScore();
+
+    if (bossWarningTimer > 0) {
+        bossWarningTimer--;
+        drawBossWarning();
+    }
+    ctx.restore();
+}
+
+function drawBossWarning() {
+    ctx.save();
+    ctx.fillStyle = bossWarningTimer % 20 < 10 ? '#ff0000' : '#fff';
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#ff0000';
+    ctx.font = '700 40px Outfit, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('WARNING: BOSS INCOMING', canvas.width / 2, canvas.height / 2);
+    ctx.restore();
 }
 
 function drawScore() {
@@ -572,10 +926,15 @@ function startGame() {
     currentSpeedMultiplier = 1;
     frameCount = 0;
     bullets = [];
+    bossBullets = [];
     enemies = [];
     asteroids = [];
     powerups = [];
     particles = [];
+    bossActive = false;
+    boss = null;
+    bossSpawnScore = 1500;
+    bossDefeatedCount = 0;
     player = new Player();
     initStars();
     
