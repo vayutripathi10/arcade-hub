@@ -558,8 +558,13 @@ function loop(){ update(); render(); rafId=requestAnimationFrame(loop); }
 function resizeCanvas() {
     var wrapper = document.querySelector('.canvas-wrapper');
     if(!wrapper) return;
-    var scale = Math.min(wrapper.clientWidth/800, wrapper.clientHeight/480);
+    var wr = wrapper.clientWidth, wh = wrapper.clientHeight;
     canvas.width=800; canvas.height=480;
+    if (wr === 0 || wh === 0) {
+        requestAnimationFrame(resizeCanvas);
+        return;
+    }
+    var scale = Math.min(wr/800, wh/480);
     canvas.style.width  = Math.round(800*scale)+'px';
     canvas.style.height = Math.round(480*scale)+'px';
 }

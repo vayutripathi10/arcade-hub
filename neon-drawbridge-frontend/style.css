@@ -108,7 +108,7 @@ html, body {
 
 /* ── Game Screen ──────────────────────────── */
 #screenGame { padding: 0; display: none; flex-direction: column; }
-#screenGame.active { display: flex; }
+#screenGame.active { display: flex; align-items: stretch; }
 
 .game-hud {
     display: flex;
