@@ -53,11 +53,15 @@ function initGame() {
         x: CANVAS_W / 2,
         y: CANVAS_H / 2 + 50,
         state: 'idle',
-        timer: 0
+        timer: 0,
+        lives: 3,
+        invulnerable: false,
+        invulnTimer: 0
     };
     currentStage = 0;
     bossActive = false;
     boss = null;
+    warningTimer = 0;
     warningTimer = 0;
     if (window.audioFX) window.audioFX.init();
     gameRunning = true;
@@ -147,6 +151,22 @@ function attack(direction) {
     }
 }
 
+function takeDamage() {
+    if (player.invulnerable || !gameRunning) return;
+    
+    player.lives--;
+    player.invulnerable = true;
+    player.invulnTimer = 90; // 1.5s invulerability
+    screenShake = 20;
+    
+    if (navigator.vibrate) navigator.vibrate(100);
+    spawnParticles(player.x, player.y - 20, '#ff0000');
+    
+    if (player.lives <= 0) {
+        gameOver();
+    }
+}
+
 function triggerBoss() {
     bossActive = true;
     warningTimer = 180; // 3 seconds
@@ -210,7 +230,7 @@ class Wyrm {
 
             // Hit player
             if (!p.reflected && Math.abs(p.x - player.x) < 30) {
-                gameOver();
+                takeDamage();
             }
 
             if (p.x < -100 || p.x > CANVAS_W + 100) this.projectiles.splice(i, 1);
@@ -323,6 +343,11 @@ function update() {
     
     if (screenShake > 0) screenShake *= 0.9;
     if (comboGlow > 0) comboGlow--;
+    
+    if (player.invulnerable) {
+        player.invulnTimer--;
+        if (player.invulnTimer <= 0) player.invulnerable = false;
+    }
 
     if (!bossActive) {
         spawnTimer++;
@@ -346,8 +371,10 @@ function update() {
         } else {
             let dist = Math.abs(e.x - player.x);
             if (dist < KILL_RANGE) {
-                gameOver();
-                return;
+                takeDamage();
+                if (e.hp > 0) { // Push back slightly
+                    e.x += e.side === 'left' ? -50 : 50; 
+                }
             }
         }
     }
@@ -401,9 +428,12 @@ function draw() {
     ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     
-    let px = player.x;
     let py = player.y;
     
+    if (player.invulnerable && frameCount % 10 < 5) {
+        ctx.globalAlpha = 0.4;
+    }
+
     if (player.state === 'attackLeft') px -= 15;
     if (player.state === 'attackRight') px += 15;
     
@@ -480,11 +510,31 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
+    drawLives();
     ctx.restore();
 }
 
+function drawLives() {
+    ctx.save();
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'left';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ff4444';
+    
+    const isMobile = window.innerWidth <= 600;
+    const startX = isMobile ? 20 : 20;
+    const startY = isMobile ? 80 : 35; 
+
+    for (let i = 0; i < player.lives; i++) {
+        ctx.fillText('❤️', startX + (i * 35), startY);
+    }
+    ctx.restore();
+}
+
+let frameCount = 0;
 function loop(timestamp = 0) {
     if (gameRunning) {
+        frameCount++;
         frameId = requestAnimationFrame(loop);
         if (!lastTime) lastTime = timestamp;
         let elapsed = timestamp - lastTime;
