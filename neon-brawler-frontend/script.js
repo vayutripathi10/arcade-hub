@@ -28,10 +28,19 @@ let particles = [];
 let spawnTimer = 0;
 let spawnInterval = 100;
 let gameSpeedMultiplier = 1;
+let screenShake = 0;
 
-const HIT_RANGE = 130; 
+// Evolution State
+let currentStage = 0; // 0: Cyan, 1: Purple, 2: Red
+let comboGlow = 0;
+let bossActive = false;
+let boss = null;
+let warningTimer = 0;
+
+const STAGE_COLORS = ['#00ffcc', '#bc13fe', '#ff3366'];
+const HIT_RANGE = 140; 
 const KILL_RANGE = 35; 
-
+const BOSS_THRESHOLD = 100;
 function initGame() {
     score = 0;
     scoreEl.textContent = '0';
@@ -46,6 +55,10 @@ function initGame() {
         state: 'idle',
         timer: 0
     };
+    currentStage = 0;
+    bossActive = false;
+    boss = null;
+    warningTimer = 0;
     if (window.audioFX) window.audioFX.init();
     gameRunning = true;
     overlay.classList.add('hidden');
@@ -72,7 +85,21 @@ function attack(direction) {
     player.state = direction === 'left' ? 'attackLeft' : 'attackRight';
     player.timer = 8; 
     
-    let hit = false;
+    // Boss projectile reflection check
+    if (bossActive && boss) {
+        boss.projectiles.forEach(p => {
+            if (!p.reflected && ((direction === 'left' && p.x < player.x) || (direction === 'right' && p.x > player.x))) {
+                let dist = Math.abs(p.x - player.x);
+                if (dist < HIT_RANGE) {
+                    p.reflected = true;
+                    p.vx = -p.vx * 1.5;
+                    screenShake = 5;
+                    if (window.audioFX) window.audioFX.playJump();
+                }
+            }
+        });
+    }
+
     let closestEnemy = null;
     let closestDist = Infinity;
     
@@ -88,39 +115,173 @@ function attack(direction) {
     }
     
     if (closestEnemy && closestDist < HIT_RANGE) {
-        closestEnemy.dead = true;
-        closestEnemy.vx = (direction === 'left' ? -18 : 18);
-        closestEnemy.vy = -12;
-        score++;
-        scoreEl.textContent = score;
-        spawnParticles(closestEnemy.x, closestEnemy.y, '#ff3366');
-        if (window.audioFX) window.audioFX.playEat(); 
-        
-        if (window.achievements) {
-            if (score === 10) window.achievements.unlock('brawler', '10', 'Street Fighter');
-            if (score === 50) window.achievements.unlock('brawler', '50', 'Combo Master');
-            if (score === 100) window.achievements.unlock('brawler', '100', 'Neon Ninja');
+        closestEnemy.hp--;
+        if (closestEnemy.hp <= 0) {
+            closestEnemy.dead = true;
+            closestEnemy.vx = (direction === 'left' ? -18 : 18);
+            closestEnemy.vy = -12;
+            score++;
+            scoreEl.textContent = score;
+            spawnParticles(closestEnemy.x, closestEnemy.y, STAGE_COLORS[currentStage]);
+            if (window.audioFX) window.audioFX.playEat(); 
+            screenShake = closestEnemy.type === 'elite' ? 8 : 3;
+
+            // Evolution / Stage Logic
+            if (score > 0 && score % 50 === 0) {
+                currentStage = Math.min(2, Math.floor(score / 50));
+                comboGlow = 30;
+                if (navigator.vibrate) navigator.vibrate(100);
+            }
+
+            if (score === BOSS_THRESHOLD && !bossActive) {
+                triggerBoss();
+            }
+        } else {
+            // Shield hit
+            spawnParticles(closestEnemy.x, closestEnemy.y, '#ffffff');
+            if (window.audioFX) window.audioFX.playJump();
+            screenShake = 4;
         }
-        
-        if (score % 10 === 0) {
-            gameSpeedMultiplier += 0.2;
-            spawnInterval = Math.max(30, spawnInterval - 8);
-        }
-        
     } else {
         if (window.audioFX) window.audioFX.playJump(); 
     }
 }
 
+function triggerBoss() {
+    bossActive = true;
+    warningTimer = 180; // 3 seconds
+    boss = new Wyrm();
+    if (window.audioFX) window.audioFX.playGameOver(); // Reuse for alert
+}
+
+class Wyrm {
+    constructor() {
+        this.x = -200;
+        this.y = player.y - 120;
+        this.health = 5;
+        this.maxHealth = 5;
+        this.projectiles = [];
+        this.lastShot = 0;
+        this.sinOffset = 0;
+        this.active = false;
+        this.color = '#ff00ff';
+        this.segments = [];
+        for(let i=0; i<10; i++) this.segments.push({x: -200, y: this.y});
+    }
+
+    update() {
+        if (warningTimer > 0) return;
+        this.active = true;
+        this.sinOffset += 0.04;
+        this.x = (CANVAS_W/2) + Math.sin(this.sinOffset) * (CANVAS_W/2.5);
+        this.y = (CANVAS_H/2 - 100) + Math.cos(this.sinOffset * 0.5) * 50;
+
+        // Follow logic
+        this.segments[0].x = this.x;
+        this.segments[0].y = this.y;
+        for(let i=this.segments.length-1; i>0; i--) {
+            this.segments[i].x += (this.segments[i-1].x - this.segments[i].x) * 0.2;
+            this.segments[i].y += (this.segments[i-1].y - this.segments[i].y) * 0.2;
+        }
+
+        // Shooting
+        if (Date.now() - this.lastShot > 2500) {
+            this.lastShot = Date.now();
+            this.fire();
+        }
+
+        // Projectiles
+        for(let i=this.projectiles.length-1; i>=0; i--) {
+            let p = this.projectiles[i];
+            p.x += p.vx;
+            
+            // Reflected hit boss
+            if (p.reflected) {
+                let dx = p.x - this.x;
+                let dy = p.y - this.y;
+                if (Math.sqrt(dx*dx + dy*dy) < 60) {
+                    this.health--;
+                    this.projectiles.splice(i, 1);
+                    screenShake = 15;
+                    if (this.health <= 0) this.die();
+                    continue;
+                }
+            }
+
+            // Hit player
+            if (!p.reflected && Math.abs(p.x - player.x) < 30) {
+                gameOver();
+            }
+
+            if (p.x < -100 || p.x > CANVAS_W + 100) this.projectiles.splice(i, 1);
+        }
+    }
+
+    fire() {
+        let side = this.x < player.x ? -1 : 1;
+        this.projectiles.push({
+            x: this.x,
+            y: player.y,
+            vx: side === -1 ? 8 : -8,
+            reflected: false,
+            color: '#00ffff'
+        });
+    }
+
+    die() {
+        bossActive = false;
+        score += 500;
+        scoreEl.textContent = score;
+        spawnParticles(this.x, this.y, '#ffffff');
+        boss = null;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 10;
+        
+        ctx.beginPath();
+        this.segments.forEach((s, i) => {
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+        });
+        ctx.stroke();
+
+        this.projectiles.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.shadowColor = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 15, 0, Math.PI*2);
+            ctx.fill();
+        });
+
+        // Health bar
+        const bw = 300;
+        const bx = (CANVAS_W - bw)/2;
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(bx, 50, bw, 8);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(bx, 50, bw * (this.health/this.maxHealth), 8);
+        ctx.restore();
+    }
+}
+
 function createEnemy() {
+    if (bossActive) return; // Stop enemies during boss
     let side = Math.random() > 0.5 ? 'left' : 'right';
+    let type = score > 30 && Math.random() > 0.7 ? 'elite' : 'basic';
     enemies.push({
         x: side === 'left' ? -30 : CANVAS_W + 30,
         y: player.y,
         vx: (side === 'left' ? 3.5 : -3.5) * gameSpeedMultiplier,
         vy: 0,
         side: side,
-        dead: false
+        dead: false,
+        hp: type === 'elite' ? 2 : 1,
+        type: type
     });
 }
 
@@ -160,10 +321,18 @@ function update() {
         if (player.timer <= 0) player.state = 'idle';
     }
     
-    spawnTimer++;
-    if (spawnTimer >= spawnInterval) {
-        createEnemy();
-        spawnTimer = 0;
+    if (screenShake > 0) screenShake *= 0.9;
+    if (comboGlow > 0) comboGlow--;
+
+    if (!bossActive) {
+        spawnTimer++;
+        if (spawnTimer >= spawnInterval) {
+            createEnemy();
+            spawnTimer = 0;
+        }
+    } else if (boss) {
+        boss.update();
+        if (warningTimer > 0) warningTimer--;
     }
     
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -193,12 +362,18 @@ function update() {
 }
 
 function draw() {
+    ctx.save();
+    if (screenShake > 1) {
+        ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
+    }
+    
+    let baseColor = STAGE_COLORS[currentStage];
     ctx.fillStyle = '#0a0a0f';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     
     // Grid background
-    ctx.strokeStyle = '#1a1a24';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = comboGlow > 0 ? baseColor : '#1a1a24';
+    ctx.lineWidth = comboGlow > 0 ? 2 : 1;
     for(let i=0; i<CANVAS_W; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, CANVAS_H); ctx.stroke(); }
     
     ctx.strokeStyle = '#333';
@@ -208,10 +383,18 @@ function draw() {
     ctx.lineTo(CANVAS_W, player.y + 20);
     ctx.stroke();
     
-    ctx.fillStyle = 'rgba(0, 255, 204, 0.03)';
+    ctx.fillStyle = currentStage > 0 ? `rgba(${currentStage === 1 ? '188, 19, 254' : '255, 51, 102'}, 0.05)` : 'rgba(0, 255, 204, 0.03)';
     ctx.fillRect(player.x - HIT_RANGE, player.y - 40, HIT_RANGE*2, 60);
 
-    const pColor = player.state === 'dead' ? '#555' : '#00ffcc';
+    // Warning
+    if (warningTimer > 0) {
+        ctx.font = '700 40px Outfit, sans-serif';
+        ctx.fillStyle = warningTimer % 20 < 10 ? '#ff0000' : '#fff';
+        ctx.textAlign = 'center';
+        ctx.fillText('WARNING: BOSS INCOMING', CANVAS_W/2, CANVAS_H/2);
+    }
+
+    const pColor = player.state === 'dead' ? '#555' : STAGE_COLORS[currentStage];
     ctx.shadowBlur = 15;
     ctx.shadowColor = pColor;
     ctx.strokeStyle = pColor;
@@ -244,8 +427,9 @@ function draw() {
     
     for (let e of enemies) {
         ctx.shadowBlur = e.dead ? 0 : 15;
-        ctx.shadowColor = e.dead ? 'transparent' : '#ff3366';
-        ctx.strokeStyle = e.dead ? '#333' : '#ff3366';
+        let eColor = e.dead ? '#333' : (e.type === 'elite' ? '#ffcc00' : '#ff3366');
+        ctx.shadowColor = eColor;
+        ctx.strokeStyle = eColor;
         
         ctx.save();
         ctx.translate(e.x, e.y - 10);
@@ -256,6 +440,17 @@ function draw() {
         let armSwing = e.dead ? -5 : Math.sin(time + e.x + Math.PI) * 15;
         
         ctx.beginPath();
+        // Shield for elite
+        if (e.type === 'elite' && e.hp > 1) {
+            ctx.save();
+            ctx.strokeStyle = '#fff';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(0, -15, 45, 0, Math.PI*2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
         ctx.arc(0, -30, 9, 0, Math.PI * 2); // Head
         ctx.moveTo(0, -21); ctx.lineTo(0, 0); // Spine
         ctx.moveTo(0, 0); ctx.lineTo(-stride, 25); // Leg 1
@@ -271,6 +466,8 @@ function draw() {
         ctx.stroke();
         ctx.restore();
     }
+
+    if (bossActive && boss) boss.draw();
     
     ctx.shadowBlur = 10;
     for (let p of particles) {
@@ -283,6 +480,7 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
+    ctx.restore();
 }
 
 function loop(timestamp = 0) {
