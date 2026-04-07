@@ -186,6 +186,12 @@ function circleSegCollide(bx, by, vx, vy, x1, y1, x2, y2, rest) {
 
 function doPhysicsStep(lvl) {
     ball.vy += GRAVITY / SUBSTEPS;
+    
+    // Auto-roll forward motor so the ball doesn't sit stuck on flat platforms
+    if (ball.alive) {
+        ball.vx += 0.6 / SUBSTEPS;
+    }
+
     const spd = Math.sqrt(ball.vx*ball.vx + ball.vy*ball.vy);
     if (spd > MAX_SPEED) { ball.vx *= MAX_SPEED/spd; ball.vy *= MAX_SPEED/spd; }
     ball.x += ball.vx / SUBSTEPS;
@@ -404,7 +410,9 @@ function update() {
     }
     if (ball.y > 540 || ball.x < -60 || ball.x > 860) { die(); return; }
     var gx=lvl.goal.x, gy=lvl.goal.y, dx=ball.x-gx, dy2=ball.y-gy;
-    if (Math.sqrt(dx*dx+dy2*dy2) < 28) win();
+    
+    // Forgiving hitbox for goal triggers
+    if (Math.sqrt(dx*dx+dy2*dy2) < 40) win();
     for (var i=particles.length-1; i>=0; i--) {
         var p=particles[i];
         p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.life-=0.022;
