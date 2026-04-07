@@ -188,7 +188,7 @@ function doPhysicsStep(lvl) {
     ball.vy += GRAVITY / SUBSTEPS;
     
     // Auto-roll forward motor so the ball doesn't sit stuck on flat platforms
-    if (ball.alive) {
+    if (ball.alive && !ball.inFan) {
         ball.vx += 0.6 / SUBSTEPS;
     }
 
@@ -387,10 +387,12 @@ function update() {
         }
     });
     lvl.hammers.forEach(function(h) { h.angle += h.speed; });
+    ball.inFan = false;
     lvl.fans.forEach(function(f) {
         if (ball.x>=f.x && ball.x<=f.x+f.w && ball.y>=f.y && ball.y<=f.y+f.h) {
             ball.vx += Math.cos(f.angle)*f.force;
             ball.vy += Math.sin(f.angle)*f.force;
+            ball.inFan = true;
         }
     });
     lvl.keys.forEach(function(k) {
