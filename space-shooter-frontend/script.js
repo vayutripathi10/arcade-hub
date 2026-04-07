@@ -28,9 +28,9 @@ let animationFrameId;
 let dayPhase = 0;
 
 // Boss State
-let bossActive = false;
+let bossState = 'none'; // 'none', 'incoming', 'active', 'defeated'
 let boss = null;
-let bossWarningTimer = 0;
+let bossMessageTimer = 0;
 let screenShake = 0;
 let bossSpawnScore = 800; // First boss at 800 points
 let bossDefeatedCount = 0;
@@ -153,17 +153,17 @@ class Player {
 
     drawLives() {
         ctx.save();
-        ctx.font = '700 20px Outfit, sans-serif';
+        ctx.font = '700 24px Outfit, sans-serif';
         ctx.fillStyle = '#ff4444';
         ctx.shadowBlur = 10;
         ctx.shadowColor = '#ff4444';
         
-        const isMobile = window.innerWidth <= 600;
-        const startX = isMobile ? 20 : 20;
-        const startY = isMobile ? 70 : 40; // Lower on mobile to avoid home button overlap
+        const isMobile = canvas.width < 800;
+        const startX = isMobile ? 30 : 30;
+        const startY = isMobile ? 90 : 40; 
 
         for (let i = 0; i < this.lives; i++) {
-            ctx.fillText('❤️', startX + (i * 30), startY);
+            ctx.fillText('❤️', startX + (i * 35), startY);
         }
         ctx.restore();
     }
@@ -358,7 +358,8 @@ class Boss {
     }
 
     defeat() {
-        bossActive = false;
+        bossState = 'defeated';
+        bossMessageTimer = 120;
         bossDefeatedCount++;
         score += 2000;
         createExplosion(this.x, this.y, this.color);
@@ -430,15 +431,17 @@ class Boss {
 
     drawHealthBar() {
         const h = 10;
-        const isMobile = window.innerWidth <= 600;
-        const y = isMobile ? canvas.height - 60 : 30; // Move to bottom on mobile
+        const isMobile = canvas.width < 800;
+        const y = isMobile ? canvas.height - 40 : 30; // Move to bottom on mobile, safe margin
+        const barWidth = Math.min(400, canvas.width - 60);
+        const x = (canvas.width - barWidth) / 2;
 
         // Bg
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
         ctx.fillRect(x, y, barWidth, h);
 
         // Fill
-        const ratio = this.health / this.maxHealth;
+        const ratio = Math.max(0, this.health / this.maxHealth);
         const gradient = ctx.createLinearGradient(x, y, x + barWidth, y);
         gradient.addColorStop(0, '#ff00ff');
         gradient.addColorStop(1, '#00ffff');
@@ -673,12 +676,11 @@ function createExplosion(x, y, color) {
 }
 
 function spawnEntity() {
-    if (bossActive) return; // Don't spawn normal stuff during boss
+    if (bossState !== 'none') return; // Pause normal stuff during boss flow
 
     if (score >= bossSpawnScore) {
-        bossActive = true;
-        boss = new Boss();
-        bossWarningTimer = 180; // 3 seconds at 60fps
+        bossState = 'incoming';
+        bossMessageTimer = 120; // 2 seconds
         return;
     }
 
@@ -712,7 +714,7 @@ function update() {
         }
 
         // Bullet hit boss
-        if (bossActive && boss && boss.entryFinished) {
+        if (bossState === 'active' && boss && boss.entryFinished) {
             const dx = b.x - boss.x;
             const dy = b.y - boss.y;
             if (Math.abs(dx) < 60 && Math.abs(dy) < 40) {
@@ -739,7 +741,19 @@ function update() {
         }
     });
 
-    if (bossActive && boss) {
+    if (bossMessageTimer > 0) bossMessageTimer--;
+
+    if (bossState === 'incoming' && bossMessageTimer <= 0) {
+        bossState = 'active';
+        boss = new Boss();
+    }
+    
+    if (bossState === 'defeated' && bossMessageTimer <= 0) {
+        bossState = 'none';
+        boss = null;
+    }
+
+    if (bossState === 'active' && boss) {
         boss.update();
         // Collision dragon body with player
         boss.segments.forEach(seg => {
@@ -870,13 +884,14 @@ function draw() {
     enemies.forEach(e => e.draw());
     asteroids.forEach(a => a.draw());
     powerups.forEach(p => p.draw());
-    if (bossActive && boss) boss.draw();
+    if (bossState === 'active' && boss) boss.draw();
     player.draw();
     drawScore();
 
-    if (bossWarningTimer > 0) {
-        bossWarningTimer--;
-        drawBossWarning();
+    if (bossState === 'incoming') {
+        drawBossMessage('WARNING: BOSS INCOMING', '#ff0000');
+    } else if (bossState === 'defeated') {
+        drawBossMessage('BOSS DEFEATED!', '#00ffcc');
     }
     ctx.restore();
 
@@ -884,14 +899,15 @@ function draw() {
     player.drawLives();
 }
 
-function drawBossWarning() {
+function drawBossMessage(text, color) {
     ctx.save();
-    ctx.fillStyle = bossWarningTimer % 20 < 10 ? '#ff0000' : '#fff';
+    ctx.fillStyle = bossMessageTimer % 20 < 10 ? color : '#fff';
     ctx.shadowBlur = 20;
-    ctx.shadowColor = '#ff0000';
-    ctx.font = '700 40px Outfit, sans-serif';
+    ctx.shadowColor = color;
+    const fontSize = canvas.width < 500 ? 24 : 40;
+    ctx.font = `700 ${fontSize}px Outfit, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText('WARNING: BOSS INCOMING', canvas.width / 2, canvas.height / 2);
+    ctx.fillText(text, canvas.width / 2, canvas.height / 2);
     ctx.restore();
 }
 
@@ -903,15 +919,16 @@ function drawScore() {
     ctx.shadowColor = '#00ffcc';
     ctx.textAlign = 'right';
     
-    const isMobile = window.innerWidth <= 600;
-    const margin = 20;
+    const isMobile = canvas.width < 800;
+    const margin = isMobile ? 30 : 20;
+    const yTop = isMobile ? 60 : 40;
     
-    ctx.fillText(`${score}`, canvas.width - margin, isMobile ? 40 : 40);
+    ctx.fillText(`${score}`, canvas.width - margin, yTop);
     
     ctx.font = '500 14px Outfit, sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.shadowBlur = 0;
-    ctx.fillText(`BEST: ${highScore}`, canvas.width - margin, isMobile ? 60 : 60);
+    ctx.fillText(`BEST: ${highScore}`, canvas.width - margin, yTop + 20);
     ctx.restore();
 }
 
@@ -951,7 +968,8 @@ function startGame() {
     asteroids = [];
     powerups = [];
     particles = [];
-    bossActive = false;
+    bossState = 'none';
+    bossMessageTimer = 0;
     boss = null;
     bossSpawnScore = 800;
     bossDefeatedCount = 0;
@@ -986,8 +1004,9 @@ function resizeCanvas() {
     const isMobile = window.innerWidth <= 600;
     
     if (isMobile) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        const aspectRatio = window.innerHeight / window.innerWidth;
+        canvas.width = 600;
+        canvas.height = 600 * aspectRatio;
     } else {
         canvas.width = 800; // Fixed inner resolution for logic
         canvas.height = 500;

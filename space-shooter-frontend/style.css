@@ -354,16 +354,18 @@ body {
         border-radius: 0;
         box-shadow: none;
         flex-grow: 1;
-        width: 100vw;
-        height: auto;
+        width: 100%;
+        height: 100%;
         display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     #gameCanvas {
         border-radius: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: fill;
     }
 
     .overlay {
