@@ -72,6 +72,10 @@
                 <span class="pill-value" id="bridge-high">0</span>
             </div>
             <div class="stat-pill">
+                <span class="pill-label">Bottle Best</span>
+                <span class="pill-value" id="bottle-high">0</span>
+            </div>
+            <div class="stat-pill">
                 <span class="pill-label">Badges</span>
                 <span class="pill-value" id="badge-count">0/24</span>
             </div>
@@ -180,6 +184,18 @@
                     <span class="play-btn">Play Now</span>
                 </div>
             </a>
+
+            <!-- Neon Bottle Shooter Card -->
+            <a href="neon-bottle-shooter-frontend/index.html" class="game-card">
+                <div class="card-icon bottle-icon">
+                    <span class="bottle-emoji">🍾</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Bottle Shooter</h3>
+                    <p class="game-desc">A fast-paced neon shooting gallery! Break bottles, build combos, and survive.<br><br><b>How to play:</b> Tap or Click to shoot. Manage your ammo, hit special bottles for points, and don't shoot the bombs!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="news-section">
@@ -252,6 +268,15 @@
                 const prog = JSON.parse(localStorage.getItem('ndbProg') || '{}');
                 const totalStars = Object.values(prog).reduce((a, b) => a + b, 0);
                 bridgeEl.textContent = totalStars;
+            }
+            let bottleEl = document.getElementById('bottle-high');
+            if (bottleEl) {
+                const bscore = Math.max(
+                    parseInt(localStorage.getItem('bottleBest_classic') || 0),
+                    parseInt(localStorage.getItem('bottleBest_survival') || 0),
+                    parseInt(localStorage.getItem('bottleBest_precision') || 0)
+                );
+                bottleEl.textContent = bscore;
             }
             
             // Load Badge Count

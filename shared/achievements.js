@@ -175,7 +175,18 @@ class AchievementSystem {
             { id: 'space_score_100', game: 'space', title: 'Cadet', desc: 'Score 100 points in Space Shooter', icon: '🏅' },
             { id: 'space_score_500', game: 'space', title: 'Ace Pilot', desc: 'Score 500 points in Space Shooter', icon: '🎖️' },
             { id: 'space_score_1000', game: 'space', title: 'Galaxy Legend', desc: 'Score 1000 points in Space Shooter', icon: '🌌' },
-            { id: 'space_kill_tank', game: 'space', title: 'Tank Buster', desc: 'Destroy a heavy Tank Alien', icon: '💥' }
+            { id: 'space_kill_tank', game: 'space', title: 'Tank Buster', desc: 'Destroy a heavy Tank Alien', icon: '💥' },
+            { id: 'bottle_1st', game: 'bottle', title: 'First Smash', desc: 'Destroy your first bottle', icon: '🍾' },
+            { id: 'bottle_combo_10', game: 'bottle', title: 'Combo King', desc: 'Get a 10 combo streak', icon: '🔥' },
+            { id: 'bottle_sharp_90', game: 'bottle', title: 'Sharp Shooter', desc: 'Achieve 90%+ accuracy in a match', icon: '🎯' },
+            { id: 'bottle_destroy_500', game: 'bottle', title: 'Bottle Hunter', desc: 'Destroy 500 total bottles', icon: '🔫' },
+            { id: 'bottle_destroy_1000', game: 'bottle', title: 'Demolition Expert', desc: 'Destroy 1000 total bottles', icon: '💥' },
+            { id: 'bottle_gold_50', game: 'bottle', title: 'Gold Rush', desc: 'Destroy 50 gold bottles', icon: '🥇' },
+            { id: 'bottle_ice_25', game: 'bottle', title: 'Ice Breaker', desc: 'Destroy 25 ice bottles', icon: '🧊' },
+            { id: 'bottle_no_bombs', game: 'bottle', title: 'Untouchable', desc: 'Complete a round without shooting a bomb', icon: '🚫' },
+            { id: 'bottle_reload_20', game: 'bottle', title: 'Reload Master', desc: 'Reload perfectly 20 times', icon: '🔄' },
+            { id: 'bottle_boss_1', game: 'bottle', title: 'Boss Breaker', desc: 'Defeat your first boss round', icon: '👹' },
+            { id: 'bottle_score_legend', game: 'bottle', title: 'Neon Legend', desc: 'Reach 10,000 points in a round', icon: '👑' }
         ];
     }
 

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Bottle Shooter | Arcade Hub</title>
+    <meta name="description" content="Shoot the neon bottles in this fast-paced arcade gallery game. Test your accuracy and combo skills in multiple modes!">
+    <meta name="keywords" content="neon bottle shooter, shooting gallery, browser game, arcade hub">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    
+    <!-- Open Graph / Twitter -->
+    <meta property="og:title" content="Neon Bottle Shooter | Arcade Hub">
+    <meta property="og:description" content="Shoot the neon bottles in this fast-paced arcade gallery game. Test your accuracy and combo skills!">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-bottle-shooter-frontend/">
+    <meta name="twitter:card" content="summary">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <a href="../index.html" class="home-btn">← Home</a>
+        <h1 class="game-title">Neon Bottle Shooter</h1>
+    </div>
+
+    <!-- Main Game Wrapper -->
+    <div class="game-wrapper" id="gameWrapper">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- UI Overlays -->
+        <div id="hud" class="overlay hud-hidden">
+            <div class="top-bar">
+                <div class="score-container">SCORE: <span id="ui-score">0</span></div>
+                <div class="time-container" id="ui-time">60</div>
+                <div class="accuracy-container">ACC: <span id="ui-accuracy">100%</span></div>
+            </div>
+            <div class="combo-container" id="ui-combo-container">
+                <span id="ui-combo-text">COMBO x1</span>
+            </div>
+            <div class="bottom-bar">
+                <div class="ammo-container" id="ui-ammo">🔫 6 / 6</div>
+                <button id="btn-reload" class="action-btn reload-btn">RELOAD</button>
+                <button id="btn-pause" class="action-btn pause-btn">||</button>
+            </div>
+        </div>
+
+        <!-- Menus -->
+        <div id="mainMenu" class="menu-overlay">
+            <h2>Select Mode</h2>
+            <div class="mode-buttons">
+                <button class="mode-btn" data-mode="classic">
+                    <h3>Classic Mode</h3>
+                    <p>60 seconds. Highest score wins.</p>
+                </button>
+                <button class="mode-btn" data-mode="survival">
+                    <h3>Survival Mode</h3>
+                    <p>3 strikes and you're out. Increasing difficulty.</p>
+                </button>
+                <button class="mode-btn" data-mode="precision">
+                    <h3>Precision Mode</h3>
+                    <p>Limited bullets. Make every shot count.</p>
+                </button>
+            </div>
+        </div>
+
+        <div id="gameOverMenu" class="menu-overlay hidden">
+            <h2 id="go-title">Game Over</h2>
+            <div class="stats-panel">
+                <p>Score: <span id="go-score">0</span></p>
+                <p>Best: <span id="go-best">0</span></p>
+                <p>Accuracy: <span id="go-accuracy">0%</span></p>
+                <p>Max Combo: <span id="go-combo">0</span></p>
+                <p>Bottles: <span id="go-bottles">0</span></p>
+            </div>
+            <button id="btn-restart" class="play-btn">Play Again</button>
+            <button id="btn-menu" class="secondary-btn">Main Menu</button>
+        </div>
+        
+        <div id="pauseMenu" class="menu-overlay hidden">
+            <h2>Paused</h2>
+            <button id="btn-resume" class="play-btn">Resume</button>
+            <button id="btn-quit" class="secondary-btn">Quit to Menu</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
