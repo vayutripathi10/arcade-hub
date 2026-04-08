@@ -138,13 +138,17 @@ canvas.addEventListener('touchstart', (e) => {
 // --- Sound Utility ---
 function playSound(type) {
     if (!window.audioFX) return;
-    switch(type) {
-        case 'shoot': window.audioFX.playJump(); break; // using jump as a quick pew
-        case 'shatter': window.audioFX.playExplosion(); break;
-        case 'reload': window.audioFX.playSelect(); break;
-        case 'empty': window.audioFX.playGameOver(); break;
-        case 'combo': window.audioFX.playLevelUp(); break;
-        case 'bomb': window.audioFX.playGameOver(); break;
+    try {
+        switch(type) {
+            case 'shoot': if(window.audioFX.playJump) window.audioFX.playJump(); break; 
+            case 'shatter': if(window.audioFX.playEat) window.audioFX.playEat(); break;
+            case 'reload': if(window.audioFX.playJump) window.audioFX.playJump(); break;
+            case 'empty': if(window.audioFX.playGameOver) window.audioFX.playGameOver(); break;
+            case 'combo': if(window.audioFX.playLevelUp) window.audioFX.playLevelUp(); break;
+            case 'bomb': if(window.audioFX.playGameOver) window.audioFX.playGameOver(); break;
+        }
+    } catch(e) {
+        console.warn("Audio error:", e);
     }
 }
 
