@@ -217,7 +217,11 @@ class Bottle {
         // Starting pos and movement logic
         const side = Math.random() > 0.5 ? 1 : -1;
         this.x = side === 1 ? -100 : canvas.width + 100;
-        this.y = 100 + Math.random() * (canvas.height - 300);
+        
+        // Pick one of the 3 visual shelves (25%, 50%, 75% of screen height)
+        const shelfLevel = Math.floor(Math.random() * 3) + 1;
+        const shelfY = (canvas.height / 4) * shelfLevel;
+        this.y = shelfY - (this.h / 2);
         
         let speedMult = 1 + (currentWave * 0.2);
         this.vx = side * (Math.random() * 3 + 2) * speedMult;
