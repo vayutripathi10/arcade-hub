@@ -8,6 +8,14 @@ class AudioFX {
         this.masterGain = null;
         this.compressor = null;
         this.enabled = true;
+        this.isMuted = localStorage.getItem('arcadeHubMuted') === 'true';
+
+        // Setup UI when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.injectMuteButton());
+        } else {
+            this.injectMuteButton();
+        }
     }
 
     init() {
@@ -28,7 +36,11 @@ class AudioFX {
                 this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
                 this.compressor.release.setValueAtTime(0.25, this.ctx.currentTime);
                 
-                this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime); // Boost overall volume
+                if (this.isMuted) {
+                    this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                } else {
+                    this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime); // Boost overall volume
+                }
                 
                 this.compressor.connect(this.masterGain);
                 this.masterGain.connect(this.ctx.destination);
@@ -45,6 +57,113 @@ class AudioFX {
             this.ctx.resume().then(() => {
                 console.log('AudioFX: Context resumed. State:', this.ctx.state);
             });
+        }
+    }
+
+    injectMuteButton() {
+        // Only inject on game pages, not hub pages
+        if (document.getElementById('global-mute-btn')) return;
+        
+        const btn = document.createElement('button');
+        btn.id = 'global-mute-btn';
+        btn.innerHTML = this.isMuted ? '🔇' : '🔊';
+        btn.style.cssText = `
+            position: absolute;
+            top: 20px;
+            right: 80px; /* Offset from pause button */
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(12, 14, 20, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-size: 1.4rem;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        `;
+        
+        btn.onmouseover = () => {
+            btn.style.background = 'rgba(12, 14, 20, 1)';
+            btn.style.borderColor = '#8a2be2';
+            btn.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.3)';
+            btn.style.transform = 'scale(1.1)';
+        };
+        btn.onmouseout = () => {
+            btn.style.background = 'rgba(12, 14, 20, 0.8)';
+            btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+            btn.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
+            btn.style.transform = 'scale(1)';
+        };
+        
+        // Prevent focus so hitting Space to jump doesn't actuate mute button
+        btn.onfocus = () => btn.blur();
+        btn.onclick = (e) => {
+            e.preventDefault();
+            this.toggleMute();
+            // Start audio context if suspended
+            this.init();
+        };
+        
+        // Append to the wrapper if exists, otherwise body
+        const wrapper = document.querySelector('.game-wrapper');
+        if (wrapper) {
+            btn.style.position = 'absolute';
+            wrapper.appendChild(btn);
+        } else {
+            btn.style.position = 'fixed';
+            // Default offset if no pause button might be present
+            btn.style.right = '20px';
+            document.body.appendChild(btn);
+        }
+        
+        // Fix for mobile landscape mode overlaying correctly
+        const style = document.createElement('style');
+        style.textContent = `
+            @media (max-width: 600px) {
+                .game-wrapper #global-mute-btn {
+                    right: 70px !important;
+                }
+                #global-mute-btn {
+                    width: 44px !important;
+                    height: 44px !important;
+                    font-size: 1.2rem !important;
+                }
+            }
+            @media (max-height: 600px) and (orientation: landscape) {
+                #global-mute-btn {
+                    position: fixed !important;
+                    top: 10px !important;
+                    z-index: 9999 !important;
+                }
+                .game-wrapper #global-mute-btn {
+                    right: 70px !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        localStorage.setItem('arcadeHubMuted', this.isMuted);
+        const btn = document.getElementById('global-mute-btn');
+        if (btn) btn.innerHTML = this.isMuted ? '🔇' : '🔊';
+        
+        if (this.masterGain && this.ctx) {
+            if (this.isMuted) {
+                this.masterGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+            } else {
+                this.masterGain.gain.setTargetAtTime(1.5, this.ctx.currentTime, 0.05);
+            }
         }
     }
 
