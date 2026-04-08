@@ -366,7 +366,7 @@ function getStageConfigs(score) {
             celestial: 'sun',
             celestialOpacity: 1,
             ground: '#e0e0e0',
-            cloudOpacity: 0.5,
+            cloudColor: '#000000',
             dinoColor: '#1a1a1a',
             obstacleColor: '#2d5a27'
         };
@@ -379,7 +379,7 @@ function getStageConfigs(score) {
             celestial: 'sun',
             celestialOpacity: lerp(1, 0, t),
             ground: interpolateColors('#e0e0e0', 'rgba(138, 43, 226, 0.3)', t),
-            cloudOpacity: lerp(0.5, 0.1, t),
+            cloudColor: interpolateColors('#000000', '#ffffff', t),
             dinoColor: interpolateColors('#1a1a1a', '#bc13fe', t),
             obstacleColor: interpolateColors('#2d5a27', '#00ffcc', t)
         };
@@ -391,7 +391,7 @@ function getStageConfigs(score) {
             celestial: 'moon',
             celestialOpacity: 1,
             ground: 'rgba(138, 43, 226, 0.3)',
-            cloudOpacity: 0.1,
+            cloudColor: '#ffffff',
             dinoColor: '#bc13fe',
             obstacleColor: '#00ffcc'
         };
@@ -404,7 +404,7 @@ function getStageConfigs(score) {
             celestial: 'moon',
             celestialOpacity: lerp(1, 0, t),
             ground: interpolateColors('rgba(138, 43, 226, 0.3)', '#e0e0e0', t),
-            cloudOpacity: lerp(0.1, 0.5, t),
+            cloudColor: interpolateColors('#ffffff', '#000000', t),
             dinoColor: interpolateColors('#bc13fe', '#1a1a1a', t),
             obstacleColor: interpolateColors('#00ffcc', '#2d5a27', t)
         };
@@ -489,7 +489,7 @@ function draw() {
     ctx.stroke();
 
     // Draw Clouds
-    ctx.fillStyle = `rgba(255, 255, 255, ${config.cloudOpacity})`;
+    ctx.fillStyle = config.cloudColor;
     clouds.forEach(cloud => {
         drawPixelCloud(ctx, cloud.x, cloud.y, cloud.width, cloud.height);
     });
