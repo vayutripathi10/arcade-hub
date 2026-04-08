@@ -5,6 +5,11 @@
 
 const canvas = document.getElementById('gameCanvas');
 const ctx    = canvas.getContext('2d');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // ─── Constants ───────────────────────────────────────────────
 const GRAVITY   = 0.42;
@@ -16,6 +21,7 @@ const MAX_SPEED = 18;
 // ─── State ───────────────────────────────────────────────────
 let CW = 800, CH = 480;
 let mode      = 'menu';     // menu | draw | play | dead | won
+let isPaused  = false;
 let levelIdx  = 0;
 let retries   = 0;
 let inkUsed   = 0;
@@ -326,6 +332,8 @@ function loadLevel(idx) {
 
 function setDrawMode() {
     mode = 'draw';
+    isPaused = false;
+    pauseBtn?.classList.add('hidden');
     document.getElementById('btnDraw').classList.add('active');
     document.getElementById('btnPlay').classList.remove('active','play-active');
     initBall(LEVELS[levelIdx]);
@@ -335,6 +343,8 @@ function setDrawMode() {
 function startPlay() {
     if (mode !== 'draw') return;
     mode = 'play'; playTime = Date.now();
+    isPaused = false;
+    pauseBtn?.classList.remove('hidden');
     document.getElementById('btnPlay').classList.add('play-active');
     document.getElementById('btnDraw').classList.remove('active');
 }
@@ -342,6 +352,7 @@ function startPlay() {
 function die() {
     if (mode !== 'play') return;
     mode = 'dead'; retries++;
+    pauseBtn?.classList.add('hidden');
     spawnParticles(ball.x, ball.y, '#ff4444', 25);
     ball.alive = false;
     setTimeout(function(){ document.getElementById('overlayDead').classList.remove('hidden'); }, 700);
@@ -350,6 +361,7 @@ function die() {
 function win() {
     if (mode !== 'play') return;
     mode = 'won';
+    pauseBtn?.classList.add('hidden');
     var lvl     = LEVELS[levelIdx];
     var elapsed = (Date.now() - playTime) / 1000;
     var pct     = Math.max(0, 1 - inkUsed / lvl.inkBudget);
@@ -373,7 +385,7 @@ function win() {
 }
 
 function update() {
-    if (mode !== 'play') return;
+    if (mode !== 'play' || isPaused) return;
     var lvl = LEVELS[levelIdx];
     lvl.platforms.forEach(function(p) {
         if (p.axis === 'x') {
@@ -613,6 +625,47 @@ window.addEventListener('keydown', function(e){
     if(e.code==='Space'){e.preventDefault(); if(mode==='draw') startPlay(); else if(mode==='play') setDrawMode();}
     if(e.code==='KeyR') loadLevel(levelIdx);
     if(e.code==='KeyZ'&&(e.ctrlKey||e.metaKey)) undoLine();
+    if(e.code==='Escape' && mode==='play') togglePause();
 });
+
+pauseBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
+btnResume?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause(false);
+});
+btnQuit?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isPaused = false;
+    pauseMenu.classList.add('hidden');
+    pauseBtn?.classList.add('hidden');
+    buildMenu(); 
+    showScreen('menu');
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && mode === 'play' && !isPaused) togglePause(true);
+});
+window.addEventListener('blur', () => {
+    if (mode === 'play' && !isPaused) togglePause(true);
+});
+
+function togglePause(forcePause) {
+    if (mode !== 'play') return;
+    
+    isPaused = forcePause !== undefined ? forcePause : !isPaused;
+    
+    if (isPaused) {
+        pauseMenu.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else {
+        pauseMenu.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        // To avoid jumps in physics we could reset a timer if we had one
+        // but this uses a fixed step physics without a delta time anyway
+    }
+}
 
 buildMenu(); showScreen('menu'); resizeCanvas(); loop();

@@ -6,6 +6,11 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlayMessage = document.getElementById('overlayMessage');
 const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // Game Constants
 const gridSize = 20;
@@ -21,6 +26,7 @@ let nextDy = 0;
 let score = 0;
 let highScore = localStorage.getItem('snakeHighScore') || 0;
 let gameRunning = false;
+let isPaused = false;
 let gameLoopInterval;
 let speed = 200; // Slower initial speed
 let survivalTimer = 0;
@@ -47,6 +53,39 @@ function init() {
     document.getElementById('downBtn').addEventListener('click', () => handleDirection('arrowdown'));
     document.getElementById('leftBtn').addEventListener('click', () => handleDirection('arrowleft'));
     document.getElementById('rightBtn').addEventListener('click', () => handleDirection('arrowright'));
+
+    pauseBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePause();
+    });
+    btnResume?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePause(false);
+    });
+    btnQuit?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        gameRunning = false;
+        isPaused = false;
+        clearInterval(gameLoopInterval);
+        pauseMenu.classList.add('hidden');
+        overlayTitle.textContent = "Zen Snake";
+        overlayMessage.textContent = "Press any key to start";
+        startBtn.textContent = "Start Game";
+        document.getElementById('shareContainer')?.classList.add('hidden');
+        overlay.classList.remove('hidden');
+        pauseBtn?.classList.add('hidden');
+        snake = [{ x: 10, y: 10 }];
+        score = 0;
+        scoreElement.textContent = score;
+        draw();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && gameRunning && !isPaused) togglePause(true);
+    });
+    window.addEventListener('blur', () => {
+        if (gameRunning && !isPaused) togglePause(true);
+    });
 }
 
 function startGame() {
@@ -67,7 +106,9 @@ function startGame() {
     survivalTimer = 0;
     scoreElement.textContent = score;
     gameRunning = true;
+    isPaused = false;
     overlay.classList.add('hidden');
+    pauseBtn?.classList.remove('hidden');
     
     if (gameLoopInterval) clearInterval(gameLoopInterval);
     gameLoopInterval = setInterval(gameLoop, speed);
@@ -87,12 +128,13 @@ function handleKeyPress(e) {
         }
         return;
     }
+    if (isPaused) return;
     
     handleDirection(key);
 }
 
 function handleDirection(key) {
-    if (!gameRunning) return;
+    if (!gameRunning || isPaused) return;
 
     if ((key === 'arrowup' || key === 'w') && dy === 0) {
         nextDx = 0;
@@ -106,6 +148,21 @@ function handleDirection(key) {
     } else if ((key === 'arrowright' || key === 'd') && dx === 0) {
         nextDx = 1;
         nextDy = 0;
+    }
+}
+
+function togglePause(forcePause) {
+    if (!gameRunning) return;
+    isPaused = forcePause !== undefined ? forcePause : !isPaused;
+    
+    if (isPaused) {
+        clearInterval(gameLoopInterval);
+        pauseMenu.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else {
+        pauseMenu.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        gameLoopInterval = setInterval(gameLoop, speed);
     }
 }
 
@@ -280,6 +337,8 @@ function generateFood() {
 
 function gameOver() {
     gameRunning = false;
+    isPaused = false;
+    pauseBtn?.classList.add('hidden');
     clearInterval(gameLoopInterval);
     
     if (window.audioFX) window.audioFX.playGameOver();

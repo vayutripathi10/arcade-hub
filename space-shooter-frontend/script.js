@@ -6,6 +6,11 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlayMessage = document.getElementById('overlayMessage');
 const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // Game State
 const SafeStorage = {
@@ -22,6 +27,7 @@ const SafeStorage = {
 let score = 0;
 let highScore = SafeStorage.getItem('spaceShooterBest') || 0;
 let gameRunning = false;
+let isPaused = false;
 let frameCount = 0;
 let lastTime = 0;
 let animationFrameId;
@@ -943,7 +949,7 @@ function checkAchievements() {
 // --- Animation Loop ---
 
 function animate(timestamp) {
-    if (!gameRunning) return;
+    if (!gameRunning || isPaused) return;
     animationFrameId = requestAnimationFrame(animate);
     
     const elapsed = timestamp - lastTime;
@@ -977,11 +983,15 @@ function startGame() {
     initStars();
     
     overlay.classList.add('hidden');
+    isPaused = false;
+    pauseBtn?.classList.remove('hidden');
     animate(performance.now());
 }
 
 function gameOver() {
     gameRunning = false;
+    isPaused = false;
+    pauseBtn?.classList.add('hidden');
     cancelAnimationFrame(animationFrameId);
     if (window.audioFX) window.audioFX.playGameOver();
 
@@ -1027,6 +1037,64 @@ window.addEventListener('resize', () => {
 try { resizeCanvas(); } catch(e) {}
 
 startBtn.addEventListener('click', startGame);
+
+pauseBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
+btnResume?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause(false);
+});
+btnQuit?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    gameRunning = false;
+    isPaused = false;
+    cancelAnimationFrame(animationFrameId);
+    pauseMenu.classList.add('hidden');
+    overlayTitle.textContent = "Neon Shooter";
+    overlayMessage.textContent = "Fly through the cosmos. Eliminate all hostiles.";
+    startBtn.textContent = "Launch Mission";
+    document.getElementById('shareContainer')?.classList.add('hidden');
+    overlay.classList.remove('hidden');
+    pauseBtn?.classList.add('hidden');
+    
+    player = new Player();
+    bullets = [];
+    bossBullets = [];
+    enemies = [];
+    asteroids = [];
+    powerups = [];
+    particles = [];
+    score = 0;
+    scoreElement.textContent = score;
+    initStars();
+    draw();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && gameRunning && !isPaused) togglePause(true);
+});
+window.addEventListener('blur', () => {
+    if (gameRunning && !isPaused) togglePause(true);
+});
+
+function togglePause(forcePause) {
+    if (!gameRunning) return;
+    
+    isPaused = forcePause !== undefined ? forcePause : !isPaused;
+    
+    if (isPaused) {
+        cancelAnimationFrame(animationFrameId);
+        pauseMenu.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else {
+        pauseMenu.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        lastTime = performance.now();
+        animate(lastTime);
+    }
+}
 
 // Controls
 window.addEventListener('keydown', (e) => {

@@ -47,6 +47,9 @@
 
     <div class="game-wrapper">
         <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <button id="pauseBtn" class="pause-btn hidden">
+            <span class="pause-icon">||</span>
+        </button>
         <div id="overlay" class="overlay">
             <div class="overlay-content">
                 <h2 id="overlayTitle">Neon Shooter</h2>
@@ -56,6 +59,14 @@
                     <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
                 </div>
                 <button id="startBtn" class="btn primary">Launch Mission</button>
+            </div>
+        </div>
+
+        <div id="pauseMenu" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>Paused</h2>
+                <button id="btn-resume" class="btn primary" style="margin-bottom: 10px;">Resume</button>
+                <button id="btn-quit" class="btn share-btn">Quit to Menu</button>
             </div>
         </div>
     </div>

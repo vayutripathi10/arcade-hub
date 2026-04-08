@@ -53,6 +53,18 @@
 
     <div class="canvas-wrapper">
         <canvas id="gameCanvas"></canvas>
+        <button id="pauseBtn" class="pause-btn hidden">
+            <span class="pause-icon">||</span>
+        </button>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pauseMenu" class="overlay hidden">
+        <div class="overlay-box">
+            <h2>Paused</h2>
+            <button id="btn-resume" class="btn primary" style="margin-bottom: 10px;">Resume</button>
+            <button id="btn-quit" class="btn secondary">Quit to Menu</button>
+        </div>
     </div>
 
     <div class="controls-bar">

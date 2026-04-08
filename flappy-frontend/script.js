@@ -13,6 +13,11 @@ const scoreEl = document.getElementById('score');
 const highScoreEl = document.getElementById('highScore');
 const tweetBtn = document.getElementById('tweetBtn');
 const waBtn = document.getElementById('waBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // ─── Canvas Sizing ──────────────────────────────────────────────────────────
 const CANVAS_W = 360;
@@ -96,12 +101,13 @@ function resetGame() {
     particlePool = [];
     scoreEl.textContent = '0';
     gameState = 'running';
+    pauseBtn?.classList.remove('hidden');
     if (window.audioFX) window.audioFX.init();
 }
 
 // ─── Flap ─────────────────────────────────────────────────────────────────────
 function flap() {
-    if (gameState === 'dead') return;
+    if (gameState === 'dead' || gameState === 'paused') return;
     if (gameState === 'idle') {
         startGame();
         return;
@@ -121,6 +127,7 @@ function startGame() {
 
 function gameOver() {
     gameState = 'dead';
+    pauseBtn?.classList.add('hidden');
     spawnParticles(bird.x, bird.y, '#ff3366');
     if (window.audioFX) window.audioFX.playGameOver();
 
@@ -303,13 +310,17 @@ function drawPipes() {
 
         // Top pipe
         ctx.fillStyle = '#003d33';
-        roundRect(ctx, p.x, 0, PIPE_WIDTH, p.topH, { bl: radius, br: radius });
+        if (ctx.roundRect) roundRect(ctx, p.x, 0, PIPE_WIDTH, p.topH, { bl: radius, br: radius });
+        else ctx.fillRect(p.x, 0, PIPE_WIDTH, p.topH);
+        
         ctx.fillStyle = '#00ffcc';
         ctx.fillRect(p.x - 4, p.topH - 18, PIPE_WIDTH + 8, 18); // cap
 
         // Bottom pipe
         ctx.fillStyle = '#003d33';
-        roundRect(ctx, p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 20, { tl: radius, tr: radius });
+        if (ctx.roundRect) roundRect(ctx, p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 20, { tl: radius, tr: radius });
+        else ctx.fillRect(p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 20);
+        
         ctx.fillStyle = '#00ffcc';
         ctx.fillRect(p.x - 4, p.bottomY, PIPE_WIDTH + 8, 18); // cap
 
@@ -385,6 +396,7 @@ function drawParticles() {
 
 // ─── Rounded Rect helper ────────────────────────────────────────────────────
 function roundRect(ctx, x, y, w, h, radii = {}) {
+    if (!ctx.roundRect && !ctx.quadraticCurveTo) return;
     const { tl = 0, tr = 0, br = 0, bl = 0 } = radii;
     ctx.beginPath();
     ctx.moveTo(x + tl, y);
@@ -405,6 +417,7 @@ let lastTime = 0;
 const fpsInterval = 1000 / 60;
 
 function loop(timestamp = 0) {
+    if (gameState === 'paused') return;
     if (gameState !== 'dead') {
         frameId = requestAnimationFrame(loop);
         if (!lastTime) lastTime = timestamp;
@@ -449,6 +462,66 @@ canvas.addEventListener('click', flap);
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); flap(); }, { passive: false });
 
 startBtn.addEventListener('click', startGame);
+
+pauseBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
+btnResume?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause(false);
+});
+btnQuit?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    gameState = 'idle';
+    pauseMenu.classList.add('hidden');
+    overlayTitle.textContent = "Neon Flappy";
+    overlayMessage.textContent = "Tap or press Space to flap your wings!";
+    startBtn.textContent = "Start Game";
+    shareContainer.classList.add('hidden');
+    overlay.classList.remove('hidden');
+    pauseBtn?.classList.add('hidden');
+    
+    bird = createBird();
+    pipes = [];
+    score = 0;
+    scoreEl.textContent = '0';
+    
+    ctx.fillStyle = '#080d14';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    drawStars();
+    drawGround();
+    drawBird();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && gameState === 'running') togglePause(true);
+});
+window.addEventListener('blur', () => {
+    if (gameState === 'running') togglePause(true);
+});
+
+function togglePause(forcePause) {
+    if (gameState !== 'running' && gameState !== 'paused') return;
+    
+    if (forcePause !== undefined) {
+        if (forcePause && gameState === 'paused') return;
+        if (!forcePause && gameState === 'running') return;
+    }
+    
+    if (gameState === 'running') {
+        gameState = 'paused';
+        cancelAnimationFrame(frameId);
+        pauseMenu.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else if (gameState === 'paused') {
+        gameState = 'running';
+        pauseMenu.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        lastTime = performance.now();
+        loop(lastTime);
+    }
+}
 
 // ─── Social Sharing ───────────────────────────────────────────────────────────
 function shareScore(platform) {

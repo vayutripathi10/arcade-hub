@@ -13,6 +13,11 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 const goScore = document.getElementById('goScore');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // --- Game State ---
 let highScore = parseInt(localStorage.getItem('neonRunnerBest') || '0');
@@ -20,6 +25,7 @@ let totalCoins = parseInt(localStorage.getItem('neonRunnerTotalCoins') || '0');
 hudBest.textContent = highScore;
 
 let isRunning = false;
+let isPaused = false;
 let score = 0;
 let baseSpeed = 8;
 let speedMult = 1;
@@ -102,6 +108,8 @@ function resetGame() {
     startOverlay.classList.add('hidden');
     gameOverOverlay.classList.add('hidden');
     isRunning = true;
+    isPaused = false;
+    pauseBtn?.classList.remove('hidden');
     
     if (window.audioFX) window.audioFX.init();
     
@@ -117,6 +125,8 @@ function updateHUD() {
 
 function gameOver() {
     isRunning = false;
+    isPaused = false;
+    pauseBtn?.classList.add('hidden');
     cancelAnimationFrame(animationId);
     
     if (window.audioFX) window.audioFX.playGameOver();
@@ -139,7 +149,7 @@ function gameOver() {
 let lastTap = 0;
 
 function handleMove(dir) {
-    if (!isRunning) return;
+    if (!isRunning || isPaused) return;
     let moved = false;
     if (dir === 'up' && player.laneIndex > 0) { player.laneIndex--; moved = true; }
     if (dir === 'down' && player.laneIndex < 2) { player.laneIndex++; moved = true; }
@@ -151,7 +161,7 @@ function handleMove(dir) {
 }
 
 function triggerBoost() {
-    if (!isRunning || player.boosts <= 0 || player.invincible) return;
+    if (!isRunning || isPaused || player.boosts <= 0 || player.invincible) return;
     player.boosts--;
     player.invincible = true;
     player.invincTimer = 120; 
@@ -187,6 +197,56 @@ canvas.addEventListener('touchend', e => {
 
 startBtn.addEventListener('click', resetGame);
 restartBtn.addEventListener('click', resetGame);
+
+pauseBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
+btnResume?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause(false);
+});
+btnQuit?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isRunning = false;
+    isPaused = false;
+    cancelAnimationFrame(animationId);
+    pauseMenu.classList.add('hidden');
+    startOverlay.classList.remove('hidden');
+    pauseBtn?.classList.add('hidden');
+    
+    score = 0;
+    obstacles = [];
+    coins = [];
+    particles = [];
+    hudScore.textContent = '0';
+    initEnvironment();
+    drawBase();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && isRunning && !isPaused) togglePause(true);
+});
+window.addEventListener('blur', () => {
+    if (isRunning && !isPaused) togglePause(true);
+});
+
+function togglePause(forcePause) {
+    if (!isRunning) return;
+    
+    isPaused = forcePause !== undefined ? forcePause : !isPaused;
+    
+    if (isPaused) {
+        cancelAnimationFrame(animationId);
+        pauseMenu.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else {
+        pauseMenu.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        lastTime = performance.now();
+        loop(lastTime);
+    }
+}
 
 // --- Entity Spawning ---
 function spawnObstacle() {
@@ -435,7 +495,7 @@ function drawBase() {
 }
 
 function loop(timestamp) {
-    if (!isRunning) return;
+    if (!isRunning || isPaused) return;
     animationId = requestAnimationFrame(loop);
     
     if (!lastTime) lastTime = timestamp;

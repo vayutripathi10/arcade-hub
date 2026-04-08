@@ -58,6 +58,9 @@
     </div>
 
     <canvas id="gameCanvas"></canvas>
+    <button id="pauseBtn" class="pause-btn hidden">
+        <span class="pause-icon">||</span>
+    </button>
 
     <!-- Start Overlay -->
     <div id="startOverlay" class="overlay">
@@ -66,6 +69,15 @@
             <p>Swipe UP/DOWN or use Arrow Keys to switch lanes.<br>Dodge pink barriers, collect gold coins.<br><strong>Double Tap</strong> for a 2-second Invincibility Boost!</p>
             <button class="btn" id="startBtn">Start Running</button>
             <div class="controls-hint">Coins refill your boosts (1 boost per 10 coins).</div>
+        </div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pauseMenu" class="overlay hidden">
+        <div class="overlay-content">
+            <h2>Paused</h2>
+            <button id="btn-resume" class="btn primary" style="margin-bottom: 10px;">Resume</button>
+            <button id="btn-quit" class="btn share-btn">Quit to Menu</button>
         </div>
     </div>
 

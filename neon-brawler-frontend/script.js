@@ -8,6 +8,11 @@ const leftZone = document.getElementById('leftTouchZone');
 const rightZone = document.getElementById('rightTouchZone');
 const tweetBtn = document.getElementById('tweetBtn');
 const waBtn = document.getElementById('waBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 let CANVAS_W = 800;
 let CANVAS_H = 400;
@@ -17,6 +22,7 @@ let highScore = localStorage.getItem('brawlerHighScore') || 0;
 highScoreEl.textContent = highScore;
 
 let gameRunning = false;
+let isPaused = false;
 let frameId;
 let lastTime = 0;
 const fpsInterval = 1000 / 60;
@@ -64,7 +70,9 @@ function initGame() {
     warningTimer = 0;
     if (window.audioFX) window.audioFX.init();
     gameRunning = true;
+    isPaused = false;
     overlay.classList.add('hidden');
+    pauseBtn?.classList.remove('hidden');
     lastTime = performance.now();
     loop(lastTime);
 }
@@ -83,7 +91,7 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 function attack(direction) {
-    if (!gameRunning || player.state === 'dead') return;
+    if (!gameRunning || isPaused || player.state === 'dead') return;
     
     player.state = direction === 'left' ? 'attackLeft' : 'attackRight';
     player.timer = 8; 
@@ -317,6 +325,8 @@ function spawnParticles(x, y, color) {
 
 function gameOver() {
     gameRunning = false;
+    isPaused = false;
+    pauseBtn?.classList.add('hidden');
     player.state = 'dead';
     if (window.audioFX) window.audioFX.playGameOver();
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
@@ -533,6 +543,7 @@ function drawLives() {
 
 let frameCount = 0;
 function loop(timestamp = 0) {
+    if (isPaused) return;
     if (gameRunning) {
         frameCount++;
         frameId = requestAnimationFrame(loop);
@@ -554,6 +565,7 @@ window.addEventListener('keydown', (e) => {
         if(e.key === ' ' || e.key === 'Enter') initGame();
         return;
     }
+    if (isPaused) return;
     if (e.key === 'ArrowLeft') attack('left');
     if (e.key === 'ArrowRight') attack('right');
 });
@@ -561,6 +573,59 @@ leftZone.addEventListener('mousedown', () => attack('left'));
 rightZone.addEventListener('mousedown', () => attack('right'));
 leftZone.addEventListener('touchstart', (e) => { e.preventDefault(); attack('left'); }, {passive: false});
 rightZone.addEventListener('touchstart', (e) => { e.preventDefault(); attack('right'); }, {passive: false});
+
+pauseBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
+btnResume?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause(false);
+});
+btnQuit?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    gameRunning = false;
+    isPaused = false;
+    cancelAnimationFrame(frameId);
+    pauseMenu.classList.add('hidden');
+    document.getElementById('overlayTitle').textContent = "Neon Brawler";
+    document.getElementById('overlayMessage').innerHTML = "Enemies approach from both sides.<br>Tap Left/Right or use Arrow Keys to strike!";
+    startBtn.textContent = "Start Fighting";
+    document.getElementById('shareContainer')?.classList.add('hidden');
+    overlay.classList.remove('hidden');
+    pauseBtn?.classList.add('hidden');
+    
+    player = { x: CANVAS_W / 2, y: CANVAS_H / 2 + 50, state: 'idle' };
+    enemies = [];
+    particles = [];
+    score = 0;
+    scoreEl.textContent = '0';
+    draw();
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && gameRunning && !isPaused) togglePause(true);
+});
+window.addEventListener('blur', () => {
+    if (gameRunning && !isPaused) togglePause(true);
+});
+
+function togglePause(forcePause) {
+    if (!gameRunning) return;
+    
+    isPaused = forcePause !== undefined ? forcePause : !isPaused;
+    
+    if (isPaused) {
+        cancelAnimationFrame(frameId);
+        pauseMenu.classList.remove('hidden');
+        if (pauseIcon) pauseIcon.textContent = "▶";
+    } else {
+        pauseMenu.classList.add('hidden');
+        if (pauseIcon) pauseIcon.textContent = "||";
+        lastTime = performance.now();
+        loop(lastTime);
+    }
+}
 
 function shareScore(platform) {
     const text = `I just reached a streak of ${score} in Neon Brawler 🥊 at Arcade Hub! Can you beat me?`;

@@ -46,6 +46,9 @@
 
     <div class="game-wrapper">
         <canvas id="gameCanvas"></canvas>
+        <button id="pauseBtn" class="pause-btn hidden">
+            <span class="pause-icon">||</span>
+        </button>
         <div id="overlay" class="overlay">
             <div class="overlay-content">
                 <h2 id="overlayTitle">Neon Flappy</h2>
@@ -55,6 +58,14 @@
                     <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
                 </div>
                 <button id="startBtn" class="btn primary">Start Game</button>
+            </div>
+        </div>
+
+        <div id="pauseMenu" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>Paused</h2>
+                <button id="btn-resume" class="btn primary" style="margin-bottom: 10px;">Resume</button>
+                <button id="btn-quit" class="btn share-btn">Quit to Menu</button>
             </div>
         </div>
     </div>
