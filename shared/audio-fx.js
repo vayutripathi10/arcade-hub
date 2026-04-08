@@ -69,12 +69,12 @@ class AudioFX {
         btn.innerHTML = this.isMuted ? '🔇' : '🔊';
         btn.style.cssText = `
             position: absolute;
-            top: 20px;
-            right: 80px; /* Offset from pause button */
-            width: 48px;
-            height: 48px;
+            top: 75px; /* Offset vertically below the pause button to prevent score/button overlaps */
+            right: 20px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: rgba(12, 14, 20, 0.8);
+            background: rgba(12, 14, 20, 0.85);
             border: 2px solid rgba(255, 255, 255, 0.2);
             color: #ffffff;
             display: flex;
@@ -85,7 +85,7 @@ class AudioFX {
             backdrop-filter: blur(8px);
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             padding: 0;
             user-select: none;
             -webkit-user-select: none;
@@ -98,7 +98,7 @@ class AudioFX {
             btn.style.transform = 'scale(1.1)';
         };
         btn.onmouseout = () => {
-            btn.style.background = 'rgba(12, 14, 20, 0.8)';
+            btn.style.background = 'rgba(12, 14, 20, 0.85)';
             btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
             btn.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
             btn.style.transform = 'scale(1)';
@@ -125,27 +125,38 @@ class AudioFX {
             document.body.appendChild(btn);
         }
         
-        // Fix for mobile landscape mode overlaying correctly
+        // Fix for mobile landscape mode overlaying correctly and UI visual bugs
         const style = document.createElement('style');
         style.textContent = `
+            /* Fix invisible Quit to Menu button backgrounds */
+            #btn-quit {
+                background: rgba(255, 255, 255, 0.15) !important;
+                color: #ffffff !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            }
+            #btn-quit:hover {
+                background: rgba(255, 255, 255, 0.25) !important;
+            }
+            
+            /* Give the pause button breathing room on mobile */
+            .pause-btn {
+                right: 20px !important;
+            }
+
             @media (max-width: 600px) {
-                .game-wrapper #global-mute-btn {
-                    right: 70px !important;
-                }
                 #global-mute-btn {
-                    width: 44px !important;
-                    height: 44px !important;
-                    font-size: 1.2rem !important;
+                    width: 40px !important;
+                    height: 40px !important;
+                    font-size: 1.1rem !important;
+                    top: 65px !important;
                 }
             }
             @media (max-height: 600px) and (orientation: landscape) {
                 #global-mute-btn {
                     position: fixed !important;
-                    top: 10px !important;
+                    top: 65px !important; 
+                    right: 20px !important;
                     z-index: 9999 !important;
-                }
-                .game-wrapper #global-mute-btn {
-                    right: 70px !important;
                 }
             }
         `;
