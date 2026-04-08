@@ -923,18 +923,17 @@ function drawScore() {
     ctx.fillStyle = '#00ffcc';
     ctx.shadowBlur = 15;
     ctx.shadowColor = '#00ffcc';
-    ctx.textAlign = 'right';
+    ctx.textAlign = 'center';
     
     const isMobile = canvas.width < 800;
-    const margin = isMobile ? 30 : 20;
     const yTop = isMobile ? 60 : 40;
     
-    ctx.fillText(`${score}`, canvas.width - margin, yTop);
+    ctx.fillText(`${score}`, canvas.width / 2, yTop);
     
     ctx.font = '500 14px Outfit, sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.shadowBlur = 0;
-    ctx.fillText(`BEST: ${highScore}`, canvas.width - margin, yTop + 20);
+    ctx.fillText(`BEST: ${highScore}`, canvas.width / 2, yTop + 20);
     ctx.restore();
 }
 
