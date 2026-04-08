@@ -312,11 +312,12 @@ function update(deltaTime) {
 }
 
 function spawnCloud() {
+    const w = 70 + Math.random() * 30;
     clouds.push({
         x: canvas.width,
         y: 20 + Math.random() * 80,
-        width: 60 + Math.random() * 40,
-        height: 20 + Math.random() * 20
+        width: w,
+        height: w * (14 / 46)
     });
 }
 
@@ -490,7 +491,7 @@ function draw() {
     // Draw Clouds
     ctx.fillStyle = `rgba(255, 255, 255, ${config.cloudOpacity})`;
     clouds.forEach(cloud => {
-        drawRoundedRect(ctx, cloud.x, cloud.y, cloud.width, cloud.height, 10);
+        drawPixelCloud(ctx, cloud.x, cloud.y, cloud.width, cloud.height);
     });
 
     // Draw Dino
@@ -536,6 +537,26 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
         // Fallback
         ctx.rect(x, y, width, height);
     }
+    ctx.fill();
+}
+
+function drawPixelCloud(ctx, x, y, width, height) {
+    const w = width / 46;
+    const h = height / 14;
+    const pts = [
+        [0,11], [2,11], [2,9], [4,9], [4,8], [7,8], [7,6], [10,6], [10,5], 
+        [14,5], [14,3], [19,3], [19,1], [22,1], [22,0], [30,0], [30,1], 
+        [33,1], [33,3], [35,3], [35,4], [42,4], [42,5], [44,5], [44,6], 
+        [46,6], [46,12], [44,12], [44,13], [42,13], [42,14], [4,14], 
+        [4,13], [0,13]
+    ];
+    
+    ctx.beginPath();
+    ctx.moveTo(x + pts[0][0]*w, y + pts[0][1]*h);
+    for (let i = 1; i < pts.length; i++) {
+        ctx.lineTo(x + pts[i][0]*w, y + pts[i][1]*h);
+    }
+    ctx.closePath();
     ctx.fill();
 }
 
