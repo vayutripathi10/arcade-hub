@@ -128,19 +128,14 @@ class AudioFX {
         // Fix for mobile landscape mode overlaying correctly and UI visual bugs
         const style = document.createElement('style');
         style.textContent = `
-            /* Fix invisible Quit to Menu button backgrounds */
-            #btn-quit {
+            /* Fix invisible Quit to Menu button backgrounds for older games using share-btn */
+            #btn-quit.share-btn {
                 background: rgba(255, 255, 255, 0.15) !important;
                 color: #ffffff !important;
                 border: 1px solid rgba(255, 255, 255, 0.2) !important;
             }
-            #btn-quit:hover {
+            #btn-quit.share-btn:hover {
                 background: rgba(255, 255, 255, 0.25) !important;
-            }
-            
-            /* Give the pause button breathing room on mobile */
-            .pause-btn {
-                right: 20px !important;
             }
 
             @media (max-width: 600px) {

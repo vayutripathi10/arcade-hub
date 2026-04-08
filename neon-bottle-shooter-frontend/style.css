@@ -331,6 +331,14 @@ body, html {
     border-color: #fff;
 }
 
+#gameOverMenu .play-btn, #gameOverMenu .secondary-btn,
+#pauseMenu .play-btn, #pauseMenu .secondary-btn {
+    display: block;
+    margin: 15px auto;
+    width: 80%;
+    max-width: 250px;
+}
+
 /* Animations */
 @keyframes pulse {
     0% { transform: scale(1); opacity: 1; }
@@ -371,11 +379,17 @@ body, html {
     }
     
     .bottom-bar {
-        padding-bottom: 10px;
+        padding-bottom: 15px; /* iOS safe area */
+        gap: 5px;
+    }
+    
+    .action-btn {
+        padding: 8px 12px;
+        font-size: 0.85rem;
     }
 
     .ammo-container {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .menu-overlay {
