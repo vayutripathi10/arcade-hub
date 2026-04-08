@@ -37,8 +37,8 @@ Add a new `<url>` entry at the end of the `sitemap.xml` file:
 ## 3. Homepage (index.html)
 Add a new game card to the `.games-grid` section in the root `index.html`.
 
-## 4. News Section (updates.html)
-Add a new `<article>` entry to the `updates.html` file to announce the release.
+## 4. News Section (updates.html & index.html)
+Add a new `<article>` entry to the `updates.html` file to announce the release, AND add a shorter `<div class="news-item">` entry to the `.news-feed` section in `index.html` to ensure the updates stay synced.
 
 ## 5. Verify & Push
 - Run `git add .`
