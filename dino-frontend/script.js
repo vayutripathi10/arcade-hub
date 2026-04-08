@@ -8,6 +8,9 @@ const overlayMessage = document.getElementById('overlayMessage');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const pauseIcon = pauseBtn?.querySelector('.pause-icon');
+const pauseMenu = document.getElementById('pauseMenu');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // Game Constants
 const GRAVITY = 0.8;
@@ -128,9 +131,36 @@ function init() {
 
     window.addEventListener('focus', () => {
         if (gameRunning && isPaused) {
-            // Keep it paused but ensure UI is clear
             draw();
         }
+    });
+
+    btnResume?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        togglePause(false);
+    });
+
+    btnQuit?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        gameRunning = false;
+        isPaused = false;
+        pauseMenu.classList.add('hidden');
+        overlayTitle.textContent = "Zen Dino";
+        overlayMessage.innerHTML = "Press Space or Tap to jump.<br>Press again while in air to <b>Double Jump</b>!";
+        startBtn.textContent = "Start Game";
+        document.getElementById('shareContainer')?.classList.add('hidden');
+        overlay.classList.remove('hidden');
+        pauseBtn?.classList.add('hidden');
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        
+        // Reset state for visual only
+        dino.y = GROUND_Y;
+        dino.dy = 0;
+        obstacles = [];
+        clouds = [];
+        score = 0;
+        scoreElement.textContent = score;
+        draw();
     });
 }
 
@@ -168,12 +198,10 @@ function togglePause(forcePause) {
     isPaused = forcePause !== undefined ? forcePause : !isPaused;
     
     if (isPaused) {
-        overlayTitle.textContent = "Paused";
-        overlayMessage.textContent = "Game is paused. Click Play or Resume to continue.";
-        overlay.classList.remove('hidden');
+        pauseMenu.classList.remove('hidden');
         if (pauseIcon) pauseIcon.textContent = "▶";
     } else {
-        overlay.classList.add('hidden');
+        pauseMenu.classList.add('hidden');
         if (pauseIcon) pauseIcon.textContent = "||";
         lastTime = performance.now(); // Reset time to prevent jump
         animate(lastTime);
