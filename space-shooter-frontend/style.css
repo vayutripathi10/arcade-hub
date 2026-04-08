@@ -416,3 +416,11 @@ body {
 .pause-btn.hidden {
     display: none !important;
 }
+
+/* Ensure overlay menus stack buttons perfectly centered vertically */
+#pauseMenu .btn, #overlay .btn:not(.share-btn.twitter):not(.share-btn.whatsapp) {
+    display: block;
+    margin: 15px auto !important;
+    width: 80%;
+    max-width: 250px;
+}
