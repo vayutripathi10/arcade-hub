@@ -143,13 +143,13 @@ class AudioFX {
                     width: 40px !important;
                     height: 40px !important;
                     font-size: 1.1rem !important;
-                    top: 65px !important;
+                    top: 75px !important;
                 }
             }
             @media (max-height: 600px) and (orientation: landscape) {
                 #global-mute-btn {
                     position: fixed !important;
-                    top: 65px !important; 
+                    top: 75px !important; 
                     right: 20px !important;
                     z-index: 9999 !important;
                 }

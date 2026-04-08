@@ -436,10 +436,12 @@ body {
     .header {
         position: fixed;
         top: 10px;
-        right: 20px;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 100;
         margin: 0;
         pointer-events: none;
+        mix-blend-mode: difference;
     }
     
     .title {
@@ -516,8 +518,8 @@ body {
     }
 
     .pause-btn {
-        top: 65px; /* Moved below the score in landscape */
-        right: 15px;
+        top: 20px; /* Restored to standard 20px slot so Mute floats perfectly below */
+        right: 20px;
         width: 44px;
         height: 44px;
         background: rgba(12, 14, 20, 0.9);
