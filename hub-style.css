@@ -341,9 +341,12 @@ body::before {
     overflow-y: hidden;
     display: flex;
     justify-content: center;
+    background-color: transparent !important;
 }
 .ad-container iframe {
     max-width: 100%;
+    background-color: transparent !important;
+    color-scheme: dark;
 }
 
 
