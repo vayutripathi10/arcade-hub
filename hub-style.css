@@ -318,30 +318,34 @@ body::before {
         grid-template-columns: 1fr;
     }
 
-    /* Fix Score Panel Overflow */
+    /* Fix Score Panel Overflow & Ad Container */
     .stats-overview {
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        overflow-x: auto;
-        padding-bottom: 15px;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none; /* hide scrollbar Firefox */
-        width: 100vw;
-        margin-left: -1rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-
-    .stats-overview::-webkit-scrollbar {
-        display: none; /* hide scrollbar Chrome */
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        width: 100%;
+        margin-bottom: 2rem;
+        padding: 0 5px;
     }
 
     .stat-pill {
-        flex-shrink: 0;
-        scroll-snap-align: start;
+        width: 100%;
+        justify-content: space-between;
+        padding: 10px 12px;
     }
 }
+
+.ad-container {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    justify-content: center;
+}
+.ad-container iframe {
+    max-width: 100%;
+}
+
 
 /* News Section Styles */
 .news-section {
