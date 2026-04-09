@@ -86,6 +86,28 @@
             font-size: 0.9rem;
         }
     </style>
+
+    <!-- Ultimate Anti-Popunder Script to Protect Game Feel -->
+    <script>
+    (function() {
+        const stopAd = function(e) { e.stopPropagation(); };
+        function protectUI() {
+            const selectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select';
+            document.querySelectorAll(selectors).forEach(el => {
+                if (!el.dataset.protected) {
+                    el.dataset.protected = 'true';
+                    ['mousedown', 'touchstart', 'touchend', 'click'].forEach(evt => {
+                        el.addEventListener(evt, stopAd, { passive: false });
+                    });
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            protectUI();
+            new MutationObserver(protectUI).observe(document.body, { childList: true, subtree: true });
+        });
+    })();
+    </script>
 </head>
 <body>
     <header class="nav-header">

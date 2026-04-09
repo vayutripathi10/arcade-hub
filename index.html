@@ -35,6 +35,28 @@
     <script src="https://pl29104526.profitablecpmratenetwork.com/b9/a9/9c/b9a99c26405c2cd91e8037534ad77c2a.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="hub-style.css">
+
+    <!-- Ultimate Anti-Popunder Script to Protect Game Feel -->
+    <script>
+    (function() {
+        const stopAd = function(e) { e.stopPropagation(); };
+        function protectUI() {
+            const selectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select';
+            document.querySelectorAll(selectors).forEach(el => {
+                if (!el.dataset.protected) {
+                    el.dataset.protected = 'true';
+                    ['mousedown', 'touchstart', 'touchend', 'click'].forEach(evt => {
+                        el.addEventListener(evt, stopAd, { passive: false });
+                    });
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            protectUI();
+            new MutationObserver(protectUI).observe(document.body, { childList: true, subtree: true });
+        });
+    })();
+    </script>
 </head>
 <body>
     <div class="header-container">
@@ -313,14 +335,7 @@
                 document.getElementById('badge-count').textContent = `${unlocked}/${data.length}`;
             }
 
-            // Fix for Popunder hijacking the 'Play Now' game buttons
-            document.querySelectorAll('.game-card').forEach(card => {
-                card.addEventListener('click', (e) => {
-                    // Prevent the click from bubbling up to the document 
-                    // where Adsterra listens for popunders, allowing direct navigation
-                    e.stopPropagation();
-                });
-            });
+
         });
     </script>
 </body>
