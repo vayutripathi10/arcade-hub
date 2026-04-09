@@ -77,35 +77,7 @@
 
     <main class="container">
         <div class="stats-overview">
-            <div class="stat-pill">
-                <span class="pill-label">Dino Best</span>
-                <span class="pill-value" id="dino-high">0</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-label">Snake Best</span>
-                <span class="pill-value" id="snake-high">0</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-label">Brawler Best</span>
-                <span class="pill-value" id="brawler-high">0</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-label">Runner Best</span>
-                <span class="pill-value" id="runner-high">0</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-label">Space Best</span>
-                <span class="pill-value" id="space-high">0</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-label">Bridge Best</span>
-                <span class="pill-value" id="bridge-high">0</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-label">Bottle Best</span>
-                <span class="pill-value" id="bottle-high">0</span>
-            </div>
-            <div class="stat-pill">
+            <div class="stat-pill" style="min-width: 150px; justify-content: center;">
                 <span class="pill-label">Badges</span>
                 <span class="pill-value" id="badge-count">0/24</span>
             </div>
@@ -269,36 +241,6 @@
                     <h3>🚀 Neon Space Shooter Discovered!</h3>
                     <p>Take to the stars! Our latest arcade addition brings high-octane 2D shooting to the hub. Battle three types of alien ships and survive the asteroid fields.</p>
                 </div>
-                <div class="news-item">
-                    <span class="news-date">April 02, 2026</span>
-                    <h3>🏃‍♂️ Neon Runner Released!</h3>
-                    <p>Put on your running shoes! Sprint through a glowing cyberpunk city, collect coins, and smash barriers with the Neon Boost in our newest endless runner.</p>
-                </div>
-                <div class="news-item">
-                    <span class="news-date">April 01, 2026</span>
-                    <h3>🥊 Neon Brawler is Live!</h3>
-                    <p>Defend yourself in our new retro-neon fighting game! Survive waves of enemies running towards you from both sides.</p>
-                </div>
-                <div class="news-item">
-                    <span class="news-date">March 30, 2026</span>
-                    <h3>📱 Fullscreen Mobile Landscape for Zen Dino</h3>
-                    <p>Zen Dino's game canvas now dynamically scales to 100% of your mobile screen in landscape mode for a classic immersive experience.</p>
-                </div>
-                <div class="news-item">
-                    <span class="news-date">March 25, 2026</span>
-                    <h3>🐦 Neon Flappy is Here!</h3>
-                    <p>Our newest game is live! Tap to flap through glowing neon pipes and unlock 3 brand new achievements.</p>
-                </div>
-                <div class="news-item">
-                    <span class="news-date">March 24, 2026</span>
-                    <h3>The Hub is officially live!</h3>
-                    <p>We've launched at arcadehubplay.com. Explore our high-score tracking and brand new achievement system!</p>
-                </div>
-                <div class="news-item">
-                    <span class="news-date">March 23, 2026</span>
-                    <h3>Achievement System Released</h3>
-                    <p>Unlock badges and track your trophies in our new Trophy Room across Zen Dino and Zen Snake.</p>
-                </div>
             </div>
         </section>
     </main>
@@ -309,31 +251,6 @@
     <script src="shared/achievements.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Load Scores
-            document.getElementById('dino-high').textContent = localStorage.getItem('dinoHighScore') || 0;
-            document.getElementById('snake-high').textContent = localStorage.getItem('snakeHighScore') || 0;
-            let brawlerEl = document.getElementById('brawler-high');
-            if (brawlerEl) brawlerEl.textContent = localStorage.getItem('brawlerHighScore') || 0;
-            let runnerEl = document.getElementById('runner-high');
-            if (runnerEl) runnerEl.textContent = localStorage.getItem('neonRunnerBest') || 0;
-            let spaceEl = document.getElementById('space-high');
-            if (spaceEl) spaceEl.textContent = localStorage.getItem('spaceShooterBest') || 0;
-            let bridgeEl = document.getElementById('bridge-high');
-            if (bridgeEl) {
-                const prog = JSON.parse(localStorage.getItem('ndbProg') || '{}');
-                const totalStars = Object.values(prog).reduce((a, b) => a + b, 0);
-                bridgeEl.textContent = totalStars;
-            }
-            let bottleEl = document.getElementById('bottle-high');
-            if (bottleEl) {
-                const bscore = Math.max(
-                    parseInt(localStorage.getItem('bottleBest_classic') || 0),
-                    parseInt(localStorage.getItem('bottleBest_survival') || 0),
-                    parseInt(localStorage.getItem('bottleBest_precision') || 0)
-                );
-                bottleEl.textContent = bscore;
-            }
-            
             // Load Badge Count
             if (window.achievements) {
                 const data = window.achievements.getAllWithStatus();

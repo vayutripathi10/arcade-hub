@@ -320,18 +320,17 @@ body::before {
 
     /* Fix Score Panel Overflow & Ad Container */
     .stats-overview {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        display: flex;
+        justify-content: center;
         width: 100%;
         margin-bottom: 2rem;
         padding: 0 5px;
     }
 
     .stat-pill {
-        width: 100%;
-        justify-content: space-between;
-        padding: 10px 12px;
+        width: auto;
+        justify-content: center;
+        padding: 10px 20px;
     }
 }
 
