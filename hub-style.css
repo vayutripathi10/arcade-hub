@@ -317,6 +317,30 @@ body::before {
     .game-grid {
         grid-template-columns: 1fr;
     }
+
+    /* Fix Score Panel Overflow */
+    .stats-overview {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 15px;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none; /* hide scrollbar Firefox */
+        width: 100vw;
+        margin-left: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .stats-overview::-webkit-scrollbar {
+        display: none; /* hide scrollbar Chrome */
+    }
+
+    .stat-pill {
+        flex-shrink: 0;
+        scroll-snap-align: start;
+    }
 }
 
 /* News Section Styles */

@@ -312,6 +312,15 @@
                 const unlocked = data.filter(a => a.unlocked).length;
                 document.getElementById('badge-count').textContent = `${unlocked}/${data.length}`;
             }
+
+            // Fix for Popunder hijacking the 'Play Now' game buttons
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Prevent the click from bubbling up to the document 
+                    // where Adsterra listens for popunders, allowing direct navigation
+                    e.stopPropagation();
+                });
+            });
         });
     </script>
 </body>
