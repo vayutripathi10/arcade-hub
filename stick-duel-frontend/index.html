@@ -1145,7 +1145,7 @@ function handleStickLanded() {
     const ty = (target.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - headR - LEG_LENGTH) + (target === player1 ? MatchState.p1Offset.y : MatchState.p2Offset.y);
 
     MatchState.lastHitPos = { x: tipX, y: ty };
-    const hitResult = checkHitOnTarget(attacker, target);
+    let hitResult = checkHitOnTarget(attacker, target);
     lastHitType = hitResult;
 
     // Apply Recoil
@@ -1155,7 +1155,7 @@ function handleStickLanded() {
         else MatchState.p2Offset.x += recoilX;
     }
 
-    if (hitResult === 'headshot') {
+    if (hitResult === 'headshot' || hitResult === 'body') {
         const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
         if (shieldActive) {
             if (target === player1) MatchState.p1Shield = false; else MatchState.p2Shield = false;
@@ -1163,7 +1163,11 @@ function handleStickLanded() {
             spawnHitParticles(target.x, target.y - 40, '#ffffff', 15);
             playHitSound('miss');
             hitResult = 'shield_blocked';
-        } else {
+            lastHitType = 'shield_blocked';
+        }
+    }
+
+    if (hitResult === 'headshot') {
             let dmg = MatchState.isSuddenDeath ? MAX_HEALTH : HEADSHOT_DAMAGE * MatchState.matchDamageMult;
             target.health -= dmg;
             totalHeadshots++;
@@ -1197,17 +1201,9 @@ function handleStickLanded() {
             }
         }
     } else if (hitResult === 'body') {
-        const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
-        if (shieldActive) {
-            if (target === player1) MatchState.p1Shield = false; else MatchState.p2Shield = false;
-            triggerShake(5);
-            spawnHitParticles(target.x, target.y - 40, '#ffffff', 10);
-            playHitSound('miss');
-            hitResult = 'shield_blocked';
-        } else {
-            target.health -= BODY_DAMAGE * MatchState.matchDamageMult;
-            triggerShake(5);
-            spawnHitParticles(target.x, target.y, '#00ffcc', 12);
+        target.health -= BODY_DAMAGE * MatchState.matchDamageMult;
+        triggerShake(5);
+        spawnHitParticles(target.x, target.y, '#00ffcc', 12);
             playHitSound('body');
         }
     } else if (hitResult === 'bird') {
