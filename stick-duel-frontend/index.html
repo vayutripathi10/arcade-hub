@@ -1557,23 +1557,39 @@ function gameLoop(timestamp) {
     drawParticles();
 
     // Draw hit indicator text
-    if (lastHitType && stickState === 'landed') {
+    if (lastHitType && (stickState === 'landed' || stickState === 'breaking')) {
+        const target = currentTurn === 1 ? player2 : player1;
+        const targetOx = (target === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
+        const targetOy = (target === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
+        const headR = (target === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
+        
+        const tx = target.x + targetOx;
+        const ty = (target.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - headR - LEG_LENGTH) + targetOy;
+
         ctx.font = 'bold 1.2rem Outfit';
         ctx.textAlign = 'center';
+        
         if (lastHitType === 'headshot') {
             ctx.fillStyle = '#ffcc00';
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#ffcc00';
-            ctx.fillText('💥 HEADSHOT!', target.x, target.y - 40);
+            ctx.fillText('💥 HEADSHOT!', tx, ty - 40);
         } else if (lastHitType === 'body') {
             ctx.fillStyle = '#00ffcc';
-            ctx.fillText('Hit!', target.x, target.y - 40);
-        } else if (lastHitType === 'blocked') {
+            ctx.fillText('Hit!', tx, ty - 40);
+        } else if (lastHitType === 'blocked' || lastHitType === 'shield_blocked') {
             ctx.fillStyle = '#ff6666';
-            ctx.fillText('Blocked!', W / 2, H / 2 - 20);
-        } else {
+            if (lastHitType === 'shield_blocked') {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('🛡️ Shielded!', tx, ty - 40);
+            } else {
+                ctx.fillText('Blocked!', W / 2, H / 2 - 20);
+            }
+        } else if (lastHitType === 'bird') {
+            // Already handled via particles but can add text
+        } else if (lastHitType === 'miss') {
             ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.fillText('Miss', target.x, target.y - 40);
+            ctx.fillText('Miss', tx, ty - 40);
         }
         ctx.shadowBlur = 0;
     }
