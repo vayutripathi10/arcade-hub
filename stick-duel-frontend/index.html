@@ -605,14 +605,16 @@ function generateLevel(lvl) {
         }
     }
 
-    // Spawn reward Birds if Bonus modifier active
+    // Spawn reward Birds at stick landing height if Bonus modifier active
     if (MatchState.modifiers.includes('bonus') || Math.random() > 0.8) {
-        MatchState.birds.push({ x:0, y: H * 0.3, vx: 2, size: 10 });
+        const armY = player1.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+        const targetY = armY - 8;
+        MatchState.birds.push({ x:0, y: targetY, vx: 2, size: 12 });
     }
 
     // Spawn Lasers
-    if (MatchState.modifiers.includes('fog') || lvl > 12) {
-        MatchState.lasers.push({ x: centerX, y: H * 0.4, angle: 0, speed: 0.05, len: 120 });
+    if (MatchState.modifiers.includes('fog') || lvl > 10) {
+        MatchState.lasers.push({ x: centerX, y: H * 0.45, angle: 0, speed: 0.03, len: 140 });
         if (lvl % 10 === 0) {
             MatchState.lasers.push({ x: centerX - 100, y: H * 0.3, angle: Math.PI, speed: -0.04, len: 100 });
             MatchState.lasers.push({ x: centerX + 100, y: H * 0.3, angle: 0, speed: 0.04, len: 100 });
@@ -662,7 +664,12 @@ function updateHUD() {
     let levelText = `Level ${currentLevel}`;
     if (gameMode === 'tournament') levelText = `Tournament ${tournamentRound}/5`;
     if (gameMode === 'endless') levelText = `Streak: ${endlessWins}`;
-    document.getElementById('levelIndicator').textContent = levelText;
+    if (gameMode === 'local') {
+        document.getElementById('levelIndicator').style.display = 'none';
+    } else {
+        document.getElementById('levelIndicator').style.display = 'block';
+        document.getElementById('levelIndicator').textContent = levelText;
+    }
 }
 
 function updateWindDisplay() {
@@ -1025,16 +1032,19 @@ function checkHitOnTarget(attacker, target) {
 
     // Check Lasers
     for (const laser of MatchState.lasers) {
-        // Simple line-point distance check for laser beam
+        // Check if tip is within proximity of the rotating laser beam
         const lx1 = laser.x;
         const ly1 = laser.y;
-        const lx2 = laser.x + Math.cos(laser.angle) * laser.len;
-        const ly2 = laser.y + Math.sin(laser.angle) * laser.len;
+        const dx = tipX - lx1;
+        const dy = tipY - ly1;
+        const distToCenter = Math.sqrt(dx*dx + dy*dy);
         
-        // Check if tip hit the laser beam area
-        const distToLaser = Math.abs((ly2-ly1)*tipX - (lx2-lx1)*tipY + lx2*ly1 - ly2*lx1) / Math.sqrt((ly2-ly1)**2 + (lx2-lx1)**2);
-        if (distToLaser < 10 && tipX > Math.min(lx1, lx2) - 10 && tipX < Math.max(lx1, lx2) + 10) {
-            return 'blocked';
+        if (distToCenter <= laser.len + 15) {
+            const angleToTip = Math.atan2(dy, dx);
+            let angleDiff = Math.abs(angleToTip - laser.angle) % (Math.PI * 2);
+            if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
+            
+            if (angleDiff < 0.22) return 'blocked';
         }
     }
 
@@ -1111,6 +1121,16 @@ function releaseStick() {
 function handleStickLanded() {
     const attacker = currentTurn === 1 ? player1 : player2;
     const target = currentTurn === 1 ? player2 : player1;
+    
+    // Recalculate tip position for effects
+    const dir = target.x > attacker.x ? 1 : -1;
+    const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    const handX = attacker.x + dir * ARM_LENGTH;
+    const handY = armY - 8;
+    const windOffset = wind * (stickLength / MAX_STICK_LENGTH) * 5;
+    const tipX = handX + stickLength * dir + windOffset;
+    const tipY = handY;
+
     const hitResult = checkHitOnTarget(attacker, target);
     lastHitType = hitResult;
 
