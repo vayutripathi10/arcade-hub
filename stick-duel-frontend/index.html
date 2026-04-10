@@ -145,6 +145,10 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
 .g-btn { width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:rgba(10,14,26,0.85); color:var(--text); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); transition:all 0.3s; }
 .g-btn:hover { border-color:var(--primary); transform:scale(1.1); }
 
+/* ==================== BACK BUTTON ==================== */
+.back-btn { position:absolute; top:12px; left:12px; padding:8px 16px; background:rgba(10,14,26,0.85); border:1px solid var(--border); border-radius:50px; color:var(--text); font-size:0.8rem; font-weight:600; cursor:pointer; backdrop-filter:blur(8px); z-index:25; transition:all 0.3s; display:flex; align-items:center; gap:4px; }
+.back-btn:hover { border-color:var(--primary); color:var(--primary); }
+
 /* ==================== TOUCH INDICATOR ==================== */
 .touch-hint { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); font-size:clamp(0.8rem,2.5vw,1rem); color:var(--text-dim); pointer-events:none; z-index:20; animation:fadeInOut 2s infinite; }
 @keyframes fadeInOut { 0%,100%{opacity:0.3;} 50%{opacity:0.8;} }
@@ -180,13 +184,12 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width:600px) {
-    .health-bar-wrap { width:90px; }
-    .health-label { font-size:0.55rem; }
     .hud { padding:8px 10px; }
     .hud-center { top:8px; }
     .g-btn { width:36px; height:36px; font-size:1rem; }
     .game-btns { top:8px; right:8px; gap:6px; }
     .home-btn { top:8px; left:8px; padding:6px 10px; font-size:0.7rem; }
+    .back-btn { top:8px; left:8px; padding:6px 12px; font-size:0.7rem; }
 }
 @media (max-height:400px) and (orientation:landscape) {
     .hud { padding:4px 10px; }
@@ -262,23 +265,14 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
 <div id="gameScreen" class="screen">
     <canvas id="gameCanvas"></canvas>
 
+    <!-- Back Button -->
+    <button class="back-btn" id="btnBack">← Back</button>
+
     <!-- HUD -->
-    <div class="hud">
-        <div class="hud-left">
-            <div class="health-bar-wrap">
-                <span class="health-label" style="color:var(--p1-color);" id="p1Label">Player 1</span>
-                <div class="health-bar-bg"><div class="health-bar-fill p1" id="p1Bar" style="width:100%"></div></div>
-            </div>
-        </div>
-        <div class="hud-center">
+    <div class="hud" style="justify-content:center;">
+        <div class="hud-center" style="position:relative; left:auto; transform:none;">
             <div class="turn-indicator" id="turnIndicator">Player 1 Turn</div>
             <div class="level-indicator" id="levelIndicator">Level 1</div>
-        </div>
-        <div class="hud-right">
-            <div class="health-bar-wrap" style="text-align:right;">
-                <span class="health-label" style="color:var(--p2-color);" id="p2Label">AI</span>
-                <div class="health-bar-bg"><div class="health-bar-fill p2" id="p2Bar" style="width:100%"></div></div>
-            </div>
         </div>
     </div>
 
@@ -496,15 +490,10 @@ function generateLevel(lvl) {
 
 // ========== HUD UPDATES ==========
 function updateHUD() {
-    document.getElementById('p1Bar').style.width = Math.max(0, player1.health) + '%';
-    document.getElementById('p2Bar').style.width = Math.max(0, player2.health) + '%';
     const turnText = currentTurn === 1 ? 
         'Player 1 Turn' : 
         (gameMode === 'single' || gameMode === 'endless' || gameMode === 'tournament' ? 'AI Turn' : 'Player 2 Turn');
     document.getElementById('turnIndicator').textContent = turnText;
-    
-    const p2LabelText = (gameMode === 'single' || gameMode === 'endless' || gameMode === 'tournament') ? 'AI' : 'Player 2';
-    document.getElementById('p2Label').textContent = p2LabelText;
     
     let levelText = `Level ${currentLevel}`;
     if (gameMode === 'tournament') levelText = `Tournament ${tournamentRound}/5`;
@@ -1406,6 +1395,12 @@ document.getElementById('btnSkins').addEventListener('click', () => { renderSkin
 document.getElementById('btnSkinsBack').addEventListener('click', () => showScreen('menuScreen'));
 document.getElementById('btnHowTo').addEventListener('click', () => showScreen('howToScreen'));
 document.getElementById('btnHowBack').addEventListener('click', () => showScreen('menuScreen'));
+
+document.getElementById('btnBack').addEventListener('click', (e) => {
+    e.stopPropagation();
+    isPaused = true;
+    document.getElementById('pauseOverlay').classList.add('active');
+});
 
 // Game buttons
 document.getElementById('btnPause').addEventListener('click', (e) => {
