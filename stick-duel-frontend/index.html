@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="Play Stick Duel Towers - a free neon-themed turn-based stickman duel game at Arcade Hub! Grow your stick, aim carefully, and defeat your opponent.">
+    <meta name="keywords" content="stick duel, stickman game, tower game, duel game, browser game, arcade hub, turn based game">
+    <link rel="canonical" href="https://arcadehubplay.com/stick-duel-frontend/index.html">
+    <meta property="og:title" content="Stick Duel Towers | Arcade Hub">
+    <meta property="og:description" content="Play Stick Duel Towers - a free neon-themed turn-based stickman duel game at Arcade Hub!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/stick-duel-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Stick Duel Towers | Arcade Hub">
+    <meta name="twitter:description" content="Play Stick Duel Towers at Arcade Hub!">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    <title>Stick Duel Towers | Arcade Hub</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Adsterra Global Popunder -->
+    <script src="https://pl29104526.profitablecpmratenetwork.com/b9/a9/9c/b9a99c26405c2cd91e8037534ad77c2a.js"></script>
+    <!-- Ultimate Network Ad Blocker Shield -->
+    <script>
+    (function() {
+        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
+        const originalAdd = EventTarget.prototype.addEventListener;
+        EventTarget.prototype.addEventListener = function(type, listener, options) {
+            if ((this === window || this === document || this === document.body) && 
+                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
+                typeof listener === 'function') {
+                const wrappedListener = function(e) {
+                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) return;
+                    return listener.apply(this, arguments);
+                };
+                return originalAdd.call(this, type, wrappedListener, options);
+            }
+            return originalAdd.call(this, type, listener, options);
+        };
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mut => {
+                mut.addedNodes.forEach(node => {
+                    if (node.tagName === 'DIV' && node.style) {
+                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
+                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
+                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
+                            node.style.zIndex = '1';
+                            node.style.pointerEvents = 'none';
+                        }
+                    }
+                });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    })();
+    </script>
+    <!-- Dark Mode Ad Formatting -->
+    <style>
+        .ad-container { background-color: transparent !important; }
+        .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
+    </style>
+<style>
+/* ==================== GLOBAL RESET & THEME ==================== */
+:root {
+    --primary: #00ffcc;
+    --secondary: #8a2be2;
+    --danger: #ff3366;
+    --warning: #ffcc00;
+    --bg: #0a0e1a;
+    --card-bg: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.1);
+    --text: #f0f0f0;
+    --text-dim: rgba(255,255,255,0.5);
+    --p1-color: #00ffcc;
+    --p2-color: #ff3366;
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Outfit',sans-serif; }
+html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%; height:100%; touch-action:none; user-select:none; -webkit-user-select:none; }
+
+/* ==================== SCREENS ==================== */
+.screen { display:none; position:absolute; inset:0; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
+.screen.active { display:flex; }
+
+/* ==================== MENU SCREEN ==================== */
+#menuScreen { background: radial-gradient(ellipse at 50% 30%, rgba(0,255,204,0.08) 0%, transparent 60%), var(--bg); padding: 20px; overflow-y:auto; }
+.menu-title { font-size:clamp(2.2rem,7vw,4rem); font-weight:700; background:linear-gradient(135deg,var(--primary),var(--secondary)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; text-align:center; margin-bottom:8px; letter-spacing:2px; }
+.menu-subtitle { font-size:clamp(0.85rem,2.5vw,1.1rem); color:var(--text-dim); text-align:center; margin-bottom:30px; }
+.menu-modes { display:flex; flex-direction:column; gap:12px; width:100%; max-width:340px; }
+.mode-btn { padding:14px 24px; border:1px solid var(--border); border-radius:14px; background:var(--card-bg); color:var(--text); font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.3s ease; text-align:left; display:flex; align-items:center; gap:14px; backdrop-filter:blur(8px); }
+.mode-btn:hover { border-color:var(--primary); background:rgba(0,255,204,0.08); transform:translateY(-2px); box-shadow:0 8px 25px rgba(0,255,204,0.15); }
+.mode-btn .mode-icon { font-size:1.6rem; flex-shrink:0; }
+.mode-btn .mode-info { display:flex; flex-direction:column; }
+.mode-btn .mode-name { font-weight:700; }
+.mode-btn .mode-desc { font-size:0.75rem; color:var(--text-dim); margin-top:2px; }
+.menu-bottom { margin-top:30px; display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+.menu-sm-btn { padding:10px 18px; border:1px solid var(--border); border-radius:50px; background:transparent; color:var(--text-dim); font-size:0.85rem; cursor:pointer; transition:all 0.3s; }
+.menu-sm-btn:hover { border-color:var(--primary); color:var(--primary); }
+
+/* ==================== SKINS SCREEN ==================== */
+#skinsScreen { background:var(--bg); padding:20px; overflow-y:auto; }
+.skins-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:14px; width:100%; max-width:500px; margin-top:20px; }
+.skin-card { aspect-ratio:1; border:2px solid var(--border); border-radius:16px; background:var(--card-bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; cursor:pointer; transition:all 0.3s; position:relative; }
+.skin-card.selected { border-color:var(--primary); box-shadow:0 0 20px rgba(0,255,204,0.3); }
+.skin-card.locked { opacity:0.4; cursor:not-allowed; }
+.skin-card .lock-icon { position:absolute; top:6px; right:6px; font-size:0.7rem; }
+.skin-card canvas { width:50px; height:70px; }
+.skin-card .skin-name { font-size:0.7rem; color:var(--text-dim); }
+
+/* ==================== GAME SCREEN ==================== */
+#gameScreen { background:var(--bg); }
+#gameCanvas { display:block; width:100%; height:100%; }
+
+/* ==================== HUD ==================== */
+.hud { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:flex-start; padding:12px 16px; pointer-events:none; z-index:20; }
+.hud > * { pointer-events:auto; }
+.hud-left, .hud-right { display:flex; flex-direction:column; gap:6px; }
+.hud-center { position:absolute; left:50%; transform:translateX(-50%); top:12px; text-align:center; }
+.health-bar-wrap { width:120px; }
+.health-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:3px; display:block; }
+.health-bar-bg { width:100%; height:10px; background:rgba(255,255,255,0.1); border-radius:5px; overflow:hidden; }
+.health-bar-fill { height:100%; border-radius:5px; transition:width 0.4s ease; }
+.health-bar-fill.p1 { background:linear-gradient(90deg,var(--p1-color),#00cc99); }
+.health-bar-fill.p2 { background:linear-gradient(90deg,var(--p2-color),#ff6699); }
+.turn-indicator { font-size:clamp(0.8rem,2.5vw,1rem); font-weight:700; color:var(--warning); text-shadow:0 0 10px rgba(255,204,0,0.5); animation:pulseText 1.5s infinite; white-space:nowrap; }
+.level-indicator { font-size:0.7rem; color:var(--text-dim); margin-top:2px; }
+@keyframes pulseText { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+
+.power-meter-wrap { position:absolute; bottom:80px; left:50%; transform:translateX(-50%); width:clamp(150px,40vw,250px); text-align:center; pointer-events:none; z-index:20; opacity:0; transition:opacity 0.3s; }
+.power-meter-wrap.visible { opacity:1; }
+.power-label { font-size:0.7rem; color:var(--text-dim); margin-bottom:4px; display:block; }
+.power-bar-bg { width:100%; height:14px; background:rgba(255,255,255,0.08); border-radius:7px; overflow:hidden; border:1px solid var(--border); }
+.power-bar-fill { height:100%; border-radius:7px; background:linear-gradient(90deg,var(--primary),var(--warning),var(--danger)); transition:width 0.05s linear; }
+
+/* ==================== GAME BUTTONS ==================== */
+.game-btns { position:absolute; top:10px; right:10px; display:flex; gap:8px; z-index:25; }
+.g-btn { width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:rgba(10,14,26,0.85); color:var(--text); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px); transition:all 0.3s; }
+.g-btn:hover { border-color:var(--primary); transform:scale(1.1); }
+
+/* ==================== TOUCH INDICATOR ==================== */
+.touch-hint { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); font-size:clamp(0.8rem,2.5vw,1rem); color:var(--text-dim); pointer-events:none; z-index:20; animation:fadeInOut 2s infinite; }
+@keyframes fadeInOut { 0%,100%{opacity:0.3;} 50%{opacity:0.8;} }
+
+/* ==================== PAUSE OVERLAY ==================== */
+.pause-overlay { display:none; position:absolute; inset:0; background:rgba(10,14,26,0.92); z-index:30; flex-direction:column; align-items:center; justify-content:center; gap:16px; backdrop-filter:blur(6px); }
+.pause-overlay.active { display:flex; }
+.pause-overlay h2 { font-size:2rem; color:var(--primary); }
+.pause-overlay .menu-btn { min-width:200px; text-align:center; justify-content:center; }
+
+/* ==================== RESULT OVERLAY ==================== */
+.result-overlay { display:none; position:absolute; inset:0; background:rgba(10,14,26,0.95); z-index:30; flex-direction:column; align-items:center; justify-content:center; gap:14px; backdrop-filter:blur(8px); }
+.result-overlay.active { display:flex; }
+.result-title { font-size:clamp(2rem,6vw,3rem); font-weight:700; }
+.result-title.victory { background:linear-gradient(135deg,var(--primary),var(--warning)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.result-title.defeat { background:linear-gradient(135deg,var(--danger),#ff6699); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.result-stats { font-size:0.9rem; color:var(--text-dim); text-align:center; line-height:1.8; }
+.result-btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px; }
+.res-btn { padding:12px 28px; border-radius:12px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:0.95rem; font-weight:600; cursor:pointer; transition:all 0.3s; }
+.res-btn.primary { background:linear-gradient(135deg,var(--primary),#00cc99); color:#000; border:none; }
+.res-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.3); }
+
+/* ==================== WIND INDICATOR ==================== */
+.wind-display { position:absolute; bottom:60px; right:16px; font-size:0.75rem; color:var(--text-dim); pointer-events:none; z-index:20; display:flex; align-items:center; gap:5px; }
+.wind-arrow { font-size:1rem; transition:transform 0.3s; }
+
+/* ==================== DISTANCE DISPLAY ==================== */
+.dist-display { position:absolute; bottom:60px; left:16px; font-size:0.75rem; color:var(--text-dim); pointer-events:none; z-index:20; }
+
+/* ==================== HOME BUTTON ==================== */
+.home-btn { position:absolute; top:12px; left:12px; padding:8px 14px; background:rgba(10,14,26,0.85); border:1px solid var(--border); border-radius:50px; color:var(--text); text-decoration:none; font-size:0.8rem; font-weight:600; backdrop-filter:blur(8px); z-index:25; transition:all 0.3s; display:flex; align-items:center; gap:4px; }
+.home-btn:hover { border-color:var(--primary); color:var(--primary); }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width:600px) {
+    .health-bar-wrap { width:90px; }
+    .health-label { font-size:0.55rem; }
+    .hud { padding:8px 10px; }
+    .hud-center { top:8px; }
+    .g-btn { width:36px; height:36px; font-size:1rem; }
+    .game-btns { top:8px; right:8px; gap:6px; }
+    .home-btn { top:8px; left:8px; padding:6px 10px; font-size:0.7rem; }
+}
+@media (max-height:400px) and (orientation:landscape) {
+    .hud { padding:4px 10px; }
+    .health-bar-wrap { width:80px; }
+    .health-bar-bg { height:8px; }
+    .turn-indicator { font-size:0.75rem; }
+}
+
+/* ==================== FOOTER ==================== */
+.site-footer { width:100%; text-align:center; padding:16px 10px; border-top:1px solid var(--border); color:var(--text-dim); font-size:0.8rem; position:relative; z-index:5; }
+.site-footer a { color:var(--primary); text-decoration:none; margin-left:4px; }
+.site-footer a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<!-- ==================== MENU SCREEN ==================== -->
+<div id="menuScreen" class="screen active">
+    <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+    <h1 class="menu-title">Stick Duel Towers</h1>
+    <p class="menu-subtitle">Grow your stick. Aim for the head. Conquer the towers.</p>
+    <div class="menu-modes">
+        <button class="mode-btn" data-mode="single" id="btnSingle">
+            <span class="mode-icon">🤖</span>
+            <span class="mode-info"><span class="mode-name">Single Player vs AI</span><span class="mode-desc">Battle increasingly difficult AI opponents</span></span>
+        </button>
+        <button class="mode-btn" data-mode="local" id="btnLocal">
+            <span class="mode-icon">👥</span>
+            <span class="mode-info"><span class="mode-name">Local 2 Player</span><span class="mode-desc">Share the screen with a friend</span></span>
+        </button>
+        <button class="mode-btn" data-mode="endless" id="btnEndless">
+            <span class="mode-icon">♾️</span>
+            <span class="mode-info"><span class="mode-name">Endless Challenge</span><span class="mode-desc">Survive as many opponents as you can</span></span>
+        </button>
+        <button class="mode-btn" data-mode="tournament" id="btnTournament">
+            <span class="mode-icon">🏆</span>
+            <span class="mode-info"><span class="mode-name">Tournament Mode</span><span class="mode-desc">Win 5 matches to claim the trophy</span></span>
+        </button>
+    </div>
+    <div class="menu-bottom">
+        <button class="menu-sm-btn" id="btnSkins">🎨 Skins</button>
+        <button class="menu-sm-btn" id="btnHowTo">📖 How to Play</button>
+    </div>
+</div>
+
+<!-- ==================== SKINS SCREEN ==================== -->
+<div id="skinsScreen" class="screen">
+    <h2 style="font-size:1.6rem; color:var(--primary); margin-bottom:4px;">🎨 Stickman Skins</h2>
+    <p style="font-size:0.8rem; color:var(--text-dim);">Unlock skins by earning achievements</p>
+    <div class="skins-grid" id="skinsGrid"></div>
+    <button class="mode-btn" id="btnSkinsBack" style="margin-top:20px; max-width:200px; justify-content:center;">← Back to Menu</button>
+</div>
+
+<!-- ==================== HOW TO PLAY SCREEN ==================== -->
+<div id="howToScreen" class="screen" style="padding:30px; overflow-y:auto;">
+    <div style="max-width:500px; text-align:center;">
+        <h2 style="font-size:1.6rem; color:var(--primary); margin-bottom:16px;">📖 How to Play</h2>
+        <div style="text-align:left; color:var(--text-dim); font-size:0.9rem; line-height:1.8;">
+            <p>🎯 <b style="color:var(--text);">Goal:</b> Hit the opponent's head with your stick to deal damage.</p>
+            <p>🕹️ <b style="color:var(--text);">Controls:</b> Hold <b>SPACE</b> or <b>Touch & Hold</b> the screen to grow your stick upward.</p>
+            <p>📏 <b style="color:var(--text);">Aiming:</b> Release when the stick is the right length to reach the opponent.</p>
+            <p>🎯 <b style="color:var(--text);">Headshot:</b> Direct head hit = 30 damage + slow-mo effect!</p>
+            <p>💪 <b style="color:var(--text);">Body Hit:</b> Stick lands on the body = 10 damage.</p>
+            <p>❌ <b style="color:var(--text);">Miss:</b> Too short or too long = 0 damage!</p>
+            <p>🌬️ <b style="color:var(--text);">Wind:</b> Watch the wind indicator in later levels — it shifts your stick!</p>
+            <p>🏆 <b style="color:var(--text);">Win:</b> Reduce your opponent's health to 0 first.</p>
+        </div>
+        <button class="mode-btn" id="btnHowBack" style="margin-top:20px; justify-content:center;">← Back to Menu</button>
+    </div>
+</div>
+
+<!-- ==================== GAME SCREEN ==================== -->
+<div id="gameScreen" class="screen">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div class="hud">
+        <div class="hud-left">
+            <div class="health-bar-wrap">
+                <span class="health-label" style="color:var(--p1-color);" id="p1Label">Player 1</span>
+                <div class="health-bar-bg"><div class="health-bar-fill p1" id="p1Bar" style="width:100%"></div></div>
+            </div>
+        </div>
+        <div class="hud-center">
+            <div class="turn-indicator" id="turnIndicator">Player 1 Turn</div>
+            <div class="level-indicator" id="levelIndicator">Level 1</div>
+        </div>
+        <div class="hud-right">
+            <div class="health-bar-wrap" style="text-align:right;">
+                <span class="health-label" style="color:var(--p2-color);" id="p2Label">AI</span>
+                <div class="health-bar-bg"><div class="health-bar-fill p2" id="p2Bar" style="width:100%"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Power Meter -->
+    <div class="power-meter-wrap" id="powerMeter">
+        <span class="power-label">STICK POWER</span>
+        <div class="power-bar-bg"><div class="power-bar-fill" id="powerFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Wind & Distance -->
+    <div class="wind-display" id="windDisplay"><span class="wind-arrow" id="windArrow">→</span> <span id="windText">No Wind</span></div>
+    <div class="dist-display" id="distDisplay">Distance: --</div>
+
+    <!-- Touch Hint -->
+    <div class="touch-hint" id="touchHint">Hold SPACE or Touch to grow stick</div>
+
+    <!-- Game Buttons -->
+    <div class="game-btns" style="top:auto; bottom:12px; right:12px;">
+        <button class="g-btn" id="btnPause" title="Pause">⏸</button>
+        <button class="g-btn" id="btnRestart" title="Restart">🔄</button>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div class="pause-overlay" id="pauseOverlay">
+        <h2>⏸ Paused</h2>
+        <button class="mode-btn" id="btnResume" style="max-width:200px; justify-content:center;">▶ Resume</button>
+        <button class="mode-btn" id="btnQuitMenu" style="max-width:200px; justify-content:center;">🏠 Quit to Menu</button>
+    </div>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-title" id="resultTitle">Victory!</div>
+        <div class="result-stats" id="resultStats"></div>
+        <div class="result-btns">
+            <button class="res-btn primary" id="btnNextRound">Next Round</button>
+            <button class="res-btn" id="btnResultMenu">Main Menu</button>
+        </div>
+        <div id="shareContainer" style="display:flex; gap:10px; margin-top:8px;">
+            <button class="res-btn" id="btnShareX">Share on X</button>
+            <button class="res-btn" id="btnShareWA">WhatsApp</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== FOOTER (hidden during gameplay) ==================== -->
+<div id="footerWrap" style="display:none;">
+    <!-- Adsterra Mobile Banner (320x50) - OUTSIDE GAME AREA -->
+    <div class="ad-container mobile-banner" style="margin: 20px auto; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
+        <script>
+        atOptions = {
+            'key' : '68ced95a589a3c37a8f41a8fff267340',
+            'format' : 'iframe',
+            'height' : 50,
+            'width' : 320,
+            'params' : {}
+        };
+        </script>
+        <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
+    </div>
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy.html">Privacy Policy</a> | <a href="../contact.html">Contact Us</a> | <a href="../updates.html">News</a></p>
+    </footer>
+</div>
+
+<script src="../shared/audio-fx.js"></script>
+<script src="../shared/achievements.js"></script>
+<script>
+// ==================== GAME ENGINE ====================
+(function() {
+'use strict';
+
+// ========== CONSTANTS ==========
+const MAX_STICK_LENGTH = 350;
+const STICK_GROW_SPEED = 2.5;
+const STICK_FALL_SPEED = 4;
+const STICK_WIDTH = 4;
+const GRAVITY = 0.5;
+const HEAD_RADIUS = 10;
+const BODY_HEIGHT = 40;
+const LEG_LENGTH = 20;
+const ARM_LENGTH = 18;
+const PLATFORM_HEIGHT = 16;
+const MAX_HEALTH = 100;
+const HEADSHOT_DAMAGE = 30;
+const BODY_DAMAGE = 10;
+const SCREEN_SHAKE_DURATION = 300;
+const SLOW_MO_DURATION = 800;
+
+// ========== SKIN DEFINITIONS ==========
+const SKINS = [
+    { id:'default', name:'Classic', color:'#00ffcc', unlock:'free' },
+    { id:'neon_pink', name:'Neon Pink', color:'#ff3366', unlock:'stickduel_first_headshot' },
+    { id:'gold', name:'Gold', color:'#ffcc00', unlock:'stickduel_perfect_aim' },
+    { id:'purple', name:'Violet', color:'#8a2be2', unlock:'stickduel_long_distance' },
+    { id:'ice', name:'Ice Blue', color:'#00ccff', unlock:'stickduel_unstoppable' },
+    { id:'fire', name:'Fire', color:'#ff6600', unlock:'stickduel_tournament_winner' },
+    { id:'ghost', name:'Ghost', color:'rgba(255,255,255,0.6)', unlock:'stickduel_headshot_master' },
+    { id:'rainbow', name:'Rainbow', color:'rainbow', unlock:'stickduel_survival_expert' },
+];
+
+// ========== STATE ==========
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+let gameMode = 'single'; // single, local, endless, tournament
+let gameState = 'menu'; // menu, playing, paused, result
+let currentLevel = 1;
+let tournamentWins = 0;
+let tournamentRound = 0;
+let endlessWins = 0;
+let totalHeadshots = 0;
+let totalShots = 0;
+let sessionHeadshots = 0;
+let sessionShots = 0;
+let currentTurn = 1; // 1 or 2
+let isHolding = false;
+let stickLength = 0;
+let stickState = 'idle'; // idle, growing, falling, landed, breaking
+let stickAngle = 0; // 0 = vertical, PI/2 = horizontal
+let stickFallProgress = 0;
+let selectedSkin = localStorage.getItem('stickDuelSkin') || 'default';
+
+let player1 = { x:0, y:0, platformY:0, platformW:0, health:MAX_HEALTH, color:'#00ffcc' };
+let player2 = { x:0, y:0, platformY:0, platformW:0, health:MAX_HEALTH, color:'#ff3366' };
+let wind = 0; // negative = left, positive = right
+let particles = [];
+let screenShake = { x:0, y:0, timer:0 };
+let slowMo = { active:false, timer:0 };
+let lastHitType = ''; // 'headshot', 'body', 'miss'
+let animFrame = 0;
+let isPaused = false;
+let aiThinking = false;
+let aiTimer = 0;
+let obstacles = [];
+let movingPlatforms = false;
+let platformPhase = 0;
+let stickBreakParticles = [];
+
+// Stats for save
+let stats = JSON.parse(localStorage.getItem('stickDuelStats') || '{}');
+if (!stats.totalGames) stats = { totalGames:0, totalWins:0, totalHeadshots:0, totalShots:0, bestEndless:0, tournamentsWon:0, longestKillDist:0 };
+
+// ========== CANVAS RESIZE ==========
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ========== SCREEN MANAGEMENT ==========
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    // Show footer only on menu
+    document.getElementById('footerWrap').style.display = id === 'menuScreen' ? 'block' : 'none';
+}
+
+// ========== LEVEL GENERATION ==========
+function generateLevel(lvl) {
+    const diff = Math.min(lvl, 20);
+    const baseDistance = 150 + diff * 18 + Math.random() * 40;
+    const centerX = W / 2;
+
+    // Platform heights
+    let p1PlatH = H * 0.65;
+    let p2PlatH = H * 0.65;
+    if (diff > 3) {
+        const hDiff = Math.min(diff * 8, 80);
+        p1PlatH -= Math.random() * hDiff - hDiff / 2;
+        p2PlatH -= Math.random() * hDiff - hDiff / 2;
+    }
+
+    const platW = Math.max(50, 80 - diff * 1.5);
+    const halfDist = baseDistance / 2;
+
+    player1.platformW = platW;
+    player1.x = centerX - halfDist;
+    player1.platformY = p1PlatH;
+    player1.y = p1PlatH - PLATFORM_HEIGHT - BODY_HEIGHT - HEAD_RADIUS * 2 - LEG_LENGTH;
+    player1.health = MAX_HEALTH;
+
+    player2.platformW = platW;
+    player2.x = centerX + halfDist;
+    player2.platformY = p2PlatH;
+    player2.y = p2PlatH - PLATFORM_HEIGHT - BODY_HEIGHT - HEAD_RADIUS * 2 - LEG_LENGTH;
+    player2.health = MAX_HEALTH;
+
+    // Wind
+    wind = diff > 4 ? (Math.random() - 0.5) * Math.min(diff * 0.8, 8) : 0;
+
+    // Moving platforms
+    movingPlatforms = diff > 8;
+    platformPhase = 0;
+
+    // Obstacles
+    obstacles = [];
+    if (diff > 6) {
+        const numObs = Math.min(Math.floor((diff - 6) / 2) + 1, 3);
+        for (let i = 0; i < numObs; i++) {
+            const ox = centerX - halfDist + (baseDistance / (numObs + 1)) * (i + 1);
+            const oy = Math.min(p1PlatH, p2PlatH) - 20 - Math.random() * 60;
+            obstacles.push({ x: ox, y: oy, w: 8, h: 30 + Math.random() * 30 });
+        }
+    }
+
+    // Apply skin colors
+    const skin = SKINS.find(s => s.id === selectedSkin) || SKINS[0];
+    player1.color = skin.color === 'rainbow' ? '#00ffcc' : skin.color;
+
+    updateHUD();
+    updateWindDisplay();
+    updateDistDisplay();
+}
+
+// ========== HUD UPDATES ==========
+function updateHUD() {
+    document.getElementById('p1Bar').style.width = Math.max(0, player1.health) + '%';
+    document.getElementById('p2Bar').style.width = Math.max(0, player2.health) + '%';
+    const turnText = currentTurn === 1 ? 
+        'Player 1 Turn' : 
+        (gameMode === 'single' || gameMode === 'endless' || gameMode === 'tournament' ? 'AI Turn' : 'Player 2 Turn');
+    document.getElementById('turnIndicator').textContent = turnText;
+    
+    const p2LabelText = (gameMode === 'single' || gameMode === 'endless' || gameMode === 'tournament') ? 'AI' : 'Player 2';
+    document.getElementById('p2Label').textContent = p2LabelText;
+    
+    let levelText = `Level ${currentLevel}`;
+    if (gameMode === 'tournament') levelText = `Tournament ${tournamentRound}/5`;
+    if (gameMode === 'endless') levelText = `Streak: ${endlessWins}`;
+    document.getElementById('levelIndicator').textContent = levelText;
+}
+
+function updateWindDisplay() {
+    const el = document.getElementById('windDisplay');
+    if (Math.abs(wind) < 0.5) {
+        document.getElementById('windText').textContent = 'No Wind';
+        document.getElementById('windArrow').textContent = '—';
+    } else {
+        const strength = Math.abs(wind).toFixed(1);
+        document.getElementById('windText').textContent = `Wind ${strength}`;
+        document.getElementById('windArrow').textContent = wind > 0 ? '→' : '←';
+        document.getElementById('windArrow').style.transform = `scaleX(${Math.min(Math.abs(wind) / 4, 2)})`;
+    }
+}
+
+function updateDistDisplay() {
+    const dist = Math.abs(player2.x - player1.x);
+    document.getElementById('distDisplay').textContent = `Distance: ${Math.round(dist)}px`;
+}
+
+// ========== DRAWING ==========
+function getSkinColor(baseColor, t) {
+    if (baseColor === 'rainbow') {
+        const hue = (t * 3) % 360;
+        return `hsl(${hue}, 100%, 60%)`;
+    }
+    return baseColor;
+}
+
+function drawStickman(p, flip, t) {
+    const col = getSkinColor(p.color, t);
+    const footY = p.platformY - PLATFORM_HEIGHT;
+    const bodyBottom = footY - LEG_LENGTH;
+    const bodyTop = bodyBottom - BODY_HEIGHT;
+    const headY = bodyTop - HEAD_RADIUS;
+    const armY = bodyTop + 12;
+
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = col;
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(p.x, headY, HEAD_RADIUS, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Eyes
+    ctx.fillStyle = col;
+    const eyeDir = flip ? -1 : 1;
+    ctx.beginPath();
+    ctx.arc(p.x + eyeDir * 3, headY - 2, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.beginPath();
+    ctx.moveTo(p.x, bodyTop);
+    ctx.lineTo(p.x, bodyBottom);
+    ctx.stroke();
+
+    // Legs
+    ctx.beginPath();
+    ctx.moveTo(p.x, bodyBottom);
+    ctx.lineTo(p.x - 8, footY);
+    ctx.moveTo(p.x, bodyBottom);
+    ctx.lineTo(p.x + 8, footY);
+    ctx.stroke();
+
+    // Arms
+    const armDir = flip ? -1 : 1;
+    ctx.beginPath();
+    ctx.moveTo(p.x, armY);
+    ctx.lineTo(p.x + armDir * ARM_LENGTH, armY - 8);
+    ctx.stroke();
+
+    // Back arm (relaxed)
+    ctx.beginPath();
+    ctx.moveTo(p.x, armY);
+    ctx.lineTo(p.x - armDir * 10, armY + 8);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    // Health bar above head
+    const barW = 40;
+    const barH = 4;
+    const barX = p.x - barW / 2;
+    const barY = headY - HEAD_RADIUS - 14;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(barX, barY, barW, barH);
+    const hpRatio = Math.max(0, p.health / MAX_HEALTH);
+    const hpColor = hpRatio > 0.5 ? col : (hpRatio > 0.25 ? '#ffcc00' : '#ff3366');
+    ctx.fillStyle = hpColor;
+    ctx.fillRect(barX, barY, barW * hpRatio, barH);
+}
+
+function drawPlatform(x, y, w, color) {
+    ctx.fillStyle = color;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = color;
+
+    // Platform top
+    ctx.fillRect(x - w / 2, y - PLATFORM_HEIGHT, w, PLATFORM_HEIGHT);
+
+    // Tower body (extends to bottom)
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.shadowBlur = 0;
+    ctx.fillRect(x - w / 2 + 4, y, w - 8, H - y);
+
+    // Tower lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    for (let ty = y; ty < H; ty += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x - w / 2 + 4, ty);
+        ctx.lineTo(x + w / 2 - 4, ty);
+        ctx.stroke();
+    }
+}
+
+function drawStick(attacker, target) {
+    if (stickState === 'idle') return;
+    const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    const dir = target.x > attacker.x ? 1 : -1;
+    const handX = attacker.x + dir * ARM_LENGTH;
+    const handY = armY - 8;
+
+    ctx.strokeStyle = attacker.color === 'rainbow' ? getSkinColor('rainbow', animFrame) : attacker.color;
+    ctx.lineWidth = STICK_WIDTH;
+    ctx.lineCap = 'round';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = ctx.strokeStyle;
+
+    if (stickState === 'growing') {
+        // Growing upward
+        ctx.beginPath();
+        ctx.moveTo(handX, handY);
+        ctx.lineTo(handX, handY - stickLength);
+        ctx.stroke();
+    } else if (stickState === 'falling') {
+        // Rotating from vertical to horizontal
+        const pivotX = handX;
+        const pivotY = handY;
+        const tipX = pivotX + Math.sin(stickAngle) * stickLength * dir;
+        const tipY = pivotY - Math.cos(stickAngle) * stickLength;
+
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(tipX, tipY);
+        ctx.stroke();
+    } else if (stickState === 'landed') {
+        // Horizontal on the ground / hit
+        const pivotX = handX;
+        const pivotY = handY;
+        const tipX = pivotX + stickLength * dir;
+        const tipY = pivotY;
+        // Apply wind offset to tip
+        const windOffset = wind * (stickLength / MAX_STICK_LENGTH) * 5;
+        ctx.beginPath();
+        ctx.moveTo(pivotX, pivotY);
+        ctx.lineTo(tipX + windOffset, tipY);
+        ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0;
+}
+
+function drawObstacles() {
+    obstacles.forEach(obs => {
+        ctx.fillStyle = 'rgba(255,100,100,0.3)';
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = 'rgba(255,100,100,0.5)';
+        ctx.fillRect(obs.x - obs.w / 2, obs.y, obs.w, obs.h);
+        ctx.shadowBlur = 0;
+    });
+}
+
+function drawBackground(t) {
+    // Subtle grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx < W; gx += 40) {
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    }
+    for (let gy = 0; gy < H; gy += 40) {
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+    }
+
+    // Ground line
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, H - 2);
+    ctx.lineTo(W, H - 2);
+    ctx.stroke();
+
+    // Ambient particles
+    ctx.fillStyle = 'rgba(0,255,204,0.08)';
+    for (let i = 0; i < 5; i++) {
+        const px = ((t * 0.2 + i * 157) % W);
+        const py = ((t * 0.1 + i * 97) % H);
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.2;
+        p.life -= 0.02;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Stick break particles
+    for (let i = stickBreakParticles.length - 1; i >= 0; i--) {
+        const p = stickBreakParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.3;
+        p.life -= 0.03;
+        if (p.life <= 0) { stickBreakParticles.splice(i, 1); continue; }
+        ctx.globalAlpha = p.life;
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + p.len * Math.cos(p.angle), p.y + p.len * Math.sin(p.angle));
+        ctx.stroke();
+        p.angle += p.spin;
+    }
+    ctx.globalAlpha = 1;
+}
+
+// ========== PARTICLE SPAWNERS ==========
+function spawnHitParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.8) * 6,
+            size: Math.random() * 3 + 1,
+            life: 1,
+            color
+        });
+    }
+}
+
+function spawnStickBreak(x, y, color) {
+    for (let i = 0; i < 6; i++) {
+        stickBreakParticles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: -Math.random() * 5,
+            len: 8 + Math.random() * 12,
+            angle: Math.random() * Math.PI * 2,
+            spin: (Math.random() - 0.5) * 0.2,
+            life: 1,
+            color
+        });
+    }
+}
+
+// ========== SCREEN SHAKE ==========
+function triggerShake(intensity) {
+    screenShake.timer = SCREEN_SHAKE_DURATION;
+    screenShake.intensity = intensity || 8;
+}
+
+function updateShake(dt) {
+    if (screenShake.timer > 0) {
+        screenShake.timer -= dt;
+        const i = screenShake.intensity * (screenShake.timer / SCREEN_SHAKE_DURATION);
+        screenShake.x = (Math.random() - 0.5) * i;
+        screenShake.y = (Math.random() - 0.5) * i;
+    } else {
+        screenShake.x = 0;
+        screenShake.y = 0;
+    }
+}
+
+// ========== SLOW MOTION ==========
+function triggerSlowMo() {
+    slowMo.active = true;
+    slowMo.timer = SLOW_MO_DURATION;
+}
+
+// ========== HIT DETECTION ==========
+function checkHitOnTarget(attacker, target) {
+    const dir = target.x > attacker.x ? 1 : -1;
+    const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    const handX = attacker.x + dir * ARM_LENGTH;
+    const handY = armY - 8;
+    
+    // Stick tip with wind
+    const windOffset = wind * (stickLength / MAX_STICK_LENGTH) * 5;
+    const tipX = handX + stickLength * dir + windOffset;
+    const tipY = handY;
+
+    // Check if stick hits an obstacle
+    for (const obs of obstacles) {
+        const stickMinX = Math.min(handX, tipX);
+        const stickMaxX = Math.max(handX, tipX);
+        if (stickMaxX >= obs.x - obs.w / 2 && stickMinX <= obs.x + obs.w / 2) {
+            if (tipY >= obs.y && tipY <= obs.y + obs.h) {
+                return 'blocked';
+            }
+        }
+    }
+
+    // Target head position
+    const tFootY = target.platformY - PLATFORM_HEIGHT;
+    const tBodyBottom = tFootY - LEG_LENGTH;
+    const tBodyTop = tBodyBottom - BODY_HEIGHT;
+    const tHeadY = tBodyTop - HEAD_RADIUS;
+
+    // Headshot check
+    const headDist = Math.sqrt((tipX - target.x) ** 2 + (tipY - tHeadY) ** 2);
+    if (headDist <= HEAD_RADIUS + 6) return 'headshot';
+
+    // Body check
+    if (Math.abs(tipX - target.x) <= 12 && tipY >= tBodyTop && tipY <= tBodyBottom) return 'body';
+
+    return 'miss';
+}
+
+// ========== TURN LOGIC ==========
+function startTurn() {
+    stickState = 'idle';
+    stickLength = 0;
+    stickAngle = 0;
+    isHolding = false;
+    lastHitType = '';
+    stickBreakParticles = [];
+    document.getElementById('powerMeter').classList.remove('visible');
+    document.getElementById('touchHint').style.display = 'block';
+    updateHUD();
+
+    // AI turn
+    if (currentTurn === 2 && (gameMode === 'single' || gameMode === 'endless' || gameMode === 'tournament')) {
+        document.getElementById('touchHint').style.display = 'none';
+        aiThinking = true;
+        aiTimer = 600 + Math.random() * 500; // AI "thinks"
+    }
+}
+
+function endTurn() {
+    document.getElementById('touchHint').style.display = 'none';
+    document.getElementById('powerMeter').classList.remove('visible');
+
+    // Check win condition
+    if (player2.health <= 0) {
+        setTimeout(() => endRound(1), 600);
+        return;
+    }
+    if (player1.health <= 0) {
+        setTimeout(() => endRound(2), 600);
+        return;
+    }
+
+    // Switch turn
+    currentTurn = currentTurn === 1 ? 2 : 1;
+    setTimeout(() => startTurn(), 800);
+}
+
+function releaseStick() {
+    if (stickState !== 'growing') return;
+    stickState = 'falling';
+    stickAngle = 0;
+    totalShots++;
+    sessionShots++;
+    if (window.audioFX) { window.audioFX.init(); }
+}
+
+function handleStickLanded() {
+    const attacker = currentTurn === 1 ? player1 : player2;
+    const target = currentTurn === 1 ? player2 : player1;
+    const hitResult = checkHitOnTarget(attacker, target);
+    lastHitType = hitResult;
+
+    if (hitResult === 'headshot') {
+        target.health -= HEADSHOT_DAMAGE;
+        totalHeadshots++;
+        sessionHeadshots++;
+        triggerShake(12);
+        triggerSlowMo();
+        spawnHitParticles(target.x, target.y, '#ffcc00', 25);
+        spawnStickBreak(target.x, target.y, attacker.color === 'rainbow' ? '#ffcc00' : attacker.color);
+        playHitSound('headshot');
+        // Record longest distance
+        const dist = Math.abs(player2.x - player1.x);
+        if (dist > stats.longestKillDist) stats.longestKillDist = dist;
+        // Achievement checks
+        if (window.achievements) {
+            window.achievements.unlock('stickduel', 'first_headshot', 'First Headshot');
+            if (sessionHeadshots >= 5) window.achievements.unlock('stickduel', 'headshot_master', 'Headshot Master');
+            if (dist >= 350) window.achievements.unlock('stickduel', 'long_distance', 'Long Distance Kill');
+        }
+    } else if (hitResult === 'body') {
+        target.health -= BODY_DAMAGE;
+        triggerShake(5);
+        spawnHitParticles(target.x, target.y, '#00ffcc', 12);
+        playHitSound('body');
+    } else if (hitResult === 'blocked') {
+        triggerShake(3);
+        const obsHit = obstacles.find(o => {
+            const dir = target.x > attacker.x ? 1 : -1;
+            const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+            const handX = attacker.x + dir * ARM_LENGTH;
+            const tipX = handX + stickLength * dir;
+            return tipX >= o.x - o.w / 2 && tipX <= o.x + o.w / 2;
+        });
+        if (obsHit) spawnHitParticles(obsHit.x, obsHit.y, '#ff6666', 8);
+        spawnStickBreak(attacker.x, attacker.y, '#ff6666');
+        playHitSound('miss');
+    } else {
+        // Miss
+        spawnStickBreak(attacker.x + (target.x > attacker.x ? 1 : -1) * stickLength, attacker.y, 'rgba(255,255,255,0.3)');
+        playHitSound('miss');
+    }
+
+    updateHUD();
+    stickState = 'landed';
+    setTimeout(() => endTurn(), slowMo.active ? 1200 : 600);
+}
+
+// ========== AI LOGIC ==========
+function aiPlay() {
+    aiThinking = false;
+    const dist = Math.abs(player2.x - player1.x);
+    const armY = player2.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    // AI calculates ideal stick length based on distance + wind
+    const windOffset = wind * (1) * 5; // Approximate
+    let idealLength = dist - ARM_LENGTH + windOffset * (player1.x < player2.x ? 1 : -1);
+    
+    // Add difficulty-based randomness (easier at lower levels)
+    const accuracy = Math.min(0.85 + currentLevel * 0.01, 0.97);
+    const error = (1 - accuracy) * MAX_STICK_LENGTH;
+    idealLength += (Math.random() - 0.5) * error * 2;
+    idealLength = Math.max(20, Math.min(MAX_STICK_LENGTH, idealLength));
+
+    // AI grows stick over time
+    stickState = 'growing';
+    document.getElementById('powerMeter').classList.add('visible');
+    const growInterval = setInterval(() => {
+        if (isPaused) return;
+        stickLength += STICK_GROW_SPEED * 1.5;
+        document.getElementById('powerFill').style.width = (stickLength / MAX_STICK_LENGTH * 100) + '%';
+        if (stickLength >= idealLength) {
+            clearInterval(growInterval);
+            releaseStick();
+        }
+    }, 16);
+}
+
+// ========== ROUND END ==========
+function endRound(winner) {
+    stats.totalGames++;
+    if (winner === 1) stats.totalWins++;
+    stats.totalHeadshots = (stats.totalHeadshots || 0) + sessionHeadshots;
+    stats.totalShots = (stats.totalShots || 0) + sessionShots;
+    localStorage.setItem('stickDuelStats', JSON.stringify(stats));
+
+    const overlay = document.getElementById('resultOverlay');
+    const title = document.getElementById('resultTitle');
+    const statsEl = document.getElementById('resultStats');
+    const nextBtn = document.getElementById('btnNextRound');
+
+    if (winner === 1) {
+        title.textContent = '🎉 Victory!';
+        title.className = 'result-title victory';
+        if (window.audioFX) window.audioFX.playLevelUp();
+    } else {
+        title.textContent = '💀 Defeat';
+        title.className = 'result-title defeat';
+        if (window.audioFX) window.audioFX.playGameOver();
+    }
+
+    let extraStats = '';
+    if (gameMode === 'endless') {
+        if (winner === 1) endlessWins++;
+        else {
+            if (endlessWins > stats.bestEndless) {
+                stats.bestEndless = endlessWins;
+                localStorage.setItem('stickDuelStats', JSON.stringify(stats));
+            }
+        }
+        extraStats = `<br>Endless Streak: ${endlessWins}`;
+    }
+    if (gameMode === 'tournament') {
+        tournamentRound++;
+        if (winner === 1) tournamentWins++;
+        if (tournamentRound >= 5 || (tournamentWins >= 3) || (tournamentRound - tournamentWins >= 3)) {
+            const won = tournamentWins >= 3;
+            extraStats = `<br>Tournament: ${won ? 'WON! 🏆' : 'Eliminated'} (${tournamentWins}/5 wins)`;
+            if (won) {
+                stats.tournamentsWon = (stats.tournamentsWon || 0) + 1;
+                localStorage.setItem('stickDuelStats', JSON.stringify(stats));
+                if (window.achievements) window.achievements.unlock('stickduel', 'tournament_winner', 'Tournament Winner');
+            }
+            nextBtn.style.display = 'none';
+        } else {
+            extraStats = `<br>Tournament Round: ${tournamentRound}/5 | Wins: ${tournamentWins}`;
+        }
+    }
+
+    statsEl.innerHTML = `Shots Taken: ${sessionShots}<br>Headshots: ${sessionHeadshots}${extraStats}`;
+    
+    // Achievements
+    if (window.achievements) {
+        if (sessionShots > 0 && sessionHeadshots === sessionShots && sessionShots >= 3) {
+            window.achievements.unlock('stickduel', 'perfect_aim', 'Perfect Aim');
+        }
+        if (winner === 1 && gameMode === 'endless' && endlessWins >= 5) {
+            window.achievements.unlock('stickduel', 'unstoppable', 'Unstoppable');
+        }
+        if (winner === 1 && gameMode === 'endless' && endlessWins >= 10) {
+            window.achievements.unlock('stickduel', 'survival_expert', 'Survival Expert');
+        }
+    }
+
+    if (gameMode === 'single' || (gameMode === 'tournament' && tournamentRound >= 5) || (gameMode === 'endless' && winner === 2)) {
+        nextBtn.textContent = 'Play Again';
+    } else if (gameMode === 'endless' || gameMode === 'tournament') {
+        nextBtn.textContent = 'Next Round';
+        nextBtn.style.display = 'inline-block';
+    } else {
+        nextBtn.textContent = 'Rematch';
+    }
+
+    overlay.classList.add('active');
+    gameState = 'result';
+}
+
+// ========== SOUND ==========
+function playHitSound(type) {
+    if (!window.audioFX || !window.audioFX.ctx) return;
+    const ctx = window.audioFX.ctx;
+    const now = ctx.currentTime;
+
+    if (type === 'headshot') {
+        // Crunchy impact
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(window.audioFX.compressor);
+        osc.start(now);
+        osc.stop(now + 0.2);
+
+        // Secondary hit sparkle
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(800, now);
+        osc2.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+        gain2.gain.setValueAtTime(0.2, now);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc2.connect(gain2);
+        gain2.connect(window.audioFX.compressor);
+        osc2.start(now);
+        osc2.stop(now + 0.15);
+    } else if (type === 'body') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(window.audioFX.compressor);
+        osc.start(now);
+        osc.stop(now + 0.15);
+    } else {
+        // Whoosh miss
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(window.audioFX.compressor);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    }
+}
+
+function playGrowSound() {
+    if (!window.audioFX || !window.audioFX.ctx) return;
+    const ctx2 = window.audioFX.ctx;
+    const now = ctx2.currentTime;
+    const osc = ctx2.createOscillator();
+    const gain = ctx2.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(200 + stickLength * 2, now);
+    gain.gain.setValueAtTime(0.05, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+    osc.connect(gain);
+    gain.connect(window.audioFX.compressor);
+    osc.start(now);
+    osc.stop(now + 0.05);
+}
+
+// ========== MAIN LOOP ==========
+let lastTime = 0;
+function gameLoop(timestamp) {
+    animFrame = requestAnimationFrame(gameLoop);
+    if (gameState !== 'playing') return;
+
+    const rawDt = timestamp - (lastTime || timestamp);
+    lastTime = timestamp;
+    const timeScale = slowMo.active ? 0.25 : 1;
+    const dt = Math.min(rawDt, 33) * timeScale;
+
+    if (isPaused) return;
+
+    // Slow mo countdown
+    if (slowMo.active) {
+        slowMo.timer -= rawDt;
+        if (slowMo.timer <= 0) slowMo.active = false;
+    }
+
+    // Screen shake
+    updateShake(rawDt);
+
+    // Moving platforms
+    if (movingPlatforms) {
+        platformPhase += dt * 0.001;
+        const offset = Math.sin(platformPhase) * 15;
+        // Adjust p2 platform
+        const basePlatY = player2.platformY;
+    }
+
+    // Stick growing
+    if (stickState === 'growing' && isHolding) {
+        stickLength = Math.min(stickLength + STICK_GROW_SPEED * (dt / 16), MAX_STICK_LENGTH);
+        document.getElementById('powerFill').style.width = (stickLength / MAX_STICK_LENGTH * 100) + '%';
+        if (animFrame % 4 === 0) playGrowSound();
+    }
+
+    // Stick falling animation
+    if (stickState === 'falling') {
+        stickAngle += STICK_FALL_SPEED * (dt / 16) * (Math.PI / 180);
+        if (stickAngle >= Math.PI / 2) {
+            stickAngle = Math.PI / 2;
+            stickState = 'landed';
+            handleStickLanded();
+        }
+    }
+
+    // AI logic
+    if (aiThinking && currentTurn === 2) {
+        aiTimer -= rawDt;
+        if (aiTimer <= 0) aiPlay();
+    }
+
+    // ========== DRAW ==========
+    ctx.save();
+    ctx.translate(screenShake.x, screenShake.y);
+
+    ctx.fillStyle = var_bg();
+    ctx.fillRect(-10, -10, W + 20, H + 20);
+
+    drawBackground(timestamp / 16);
+
+    // Draw obstacles
+    drawObstacles();
+
+    // Draw platforms
+    drawPlatform(player1.x, player1.platformY, player1.platformW, 'rgba(0,255,204,0.25)');
+    drawPlatform(player2.x, player2.platformY, player2.platformW, 'rgba(255,51,102,0.25)');
+
+    // Draw stickmen
+    drawStickman(player1, false, timestamp);
+    drawStickman(player2, true, timestamp);
+
+    // Draw active stick
+    const attacker = currentTurn === 1 ? player1 : player2;
+    const target = currentTurn === 1 ? player2 : player1;
+    drawStick(attacker, target);
+
+    // Draw particles
+    drawParticles();
+
+    // Draw hit indicator text
+    if (lastHitType && stickState === 'landed') {
+        ctx.font = 'bold 1.2rem Outfit';
+        ctx.textAlign = 'center';
+        if (lastHitType === 'headshot') {
+            ctx.fillStyle = '#ffcc00';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ffcc00';
+            ctx.fillText('💥 HEADSHOT!', target.x, target.y - 40);
+        } else if (lastHitType === 'body') {
+            ctx.fillStyle = '#00ffcc';
+            ctx.fillText('Hit!', target.x, target.y - 40);
+        } else if (lastHitType === 'blocked') {
+            ctx.fillStyle = '#ff6666';
+            ctx.fillText('Blocked!', W / 2, H / 2 - 20);
+        } else {
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillText('Miss', target.x, target.y - 40);
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    ctx.restore();
+}
+
+function var_bg() { return '#0a0e1a'; }
+
+// ========== INPUT HANDLERS ==========
+function handleHoldStart(e) {
+    if (gameState !== 'playing' || isPaused) return;
+    if (currentTurn === 2 && (gameMode === 'single' || gameMode === 'endless' || gameMode === 'tournament')) return;
+    if (stickState !== 'idle') return;
+
+    e.preventDefault();
+    if (window.audioFX) window.audioFX.init();
+    isHolding = true;
+    stickState = 'growing';
+    stickLength = 0;
+    document.getElementById('powerMeter').classList.add('visible');
+    document.getElementById('touchHint').style.display = 'none';
+}
+
+function handleHoldEnd(e) {
+    if (!isHolding) return;
+    e.preventDefault();
+    isHolding = false;
+    if (stickState === 'growing' && stickLength > 10) {
+        releaseStick();
+    } else {
+        stickState = 'idle';
+        stickLength = 0;
+        document.getElementById('powerMeter').classList.remove('visible');
+    }
+}
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !e.repeat) {
+        handleHoldStart(e);
+    }
+});
+document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+        handleHoldEnd(e);
+    }
+});
+
+// Touch
+canvas.addEventListener('touchstart', (e) => handleHoldStart(e), { passive: false });
+canvas.addEventListener('touchend', (e) => handleHoldEnd(e), { passive: false });
+canvas.addEventListener('mousedown', (e) => handleHoldStart(e));
+canvas.addEventListener('mouseup', (e) => handleHoldEnd(e));
+
+// ========== GAME START ==========
+function startGame(mode) {
+    gameMode = mode;
+    gameState = 'playing';
+    currentLevel = 1;
+    currentTurn = 1;
+    sessionHeadshots = 0;
+    sessionShots = 0;
+    tournamentWins = 0;
+    tournamentRound = 0;
+    endlessWins = 0;
+    isPaused = false;
+    particles = [];
+    stickBreakParticles = [];
+
+    showScreen('gameScreen');
+    document.getElementById('resultOverlay').classList.remove('active');
+    document.getElementById('pauseOverlay').classList.remove('active');
+    document.getElementById('btnNextRound').style.display = 'inline-block';
+
+    resize();
+    generateLevel(currentLevel);
+    startTurn();
+    lastTime = 0;
+}
+
+// ========== NEXT ROUND ==========
+function nextRound() {
+    document.getElementById('resultOverlay').classList.remove('active');
+    gameState = 'playing';
+    sessionHeadshots = 0;
+    sessionShots = 0;
+
+    if (gameMode === 'single' || gameMode === 'local') {
+        currentLevel = 1;
+    } else {
+        currentLevel++;
+    }
+
+    currentTurn = 1;
+    particles = [];
+    stickBreakParticles = [];
+    generateLevel(currentLevel);
+    startTurn();
+    lastTime = 0;
+}
+
+// ========== SKINS ==========
+function renderSkins() {
+    const grid = document.getElementById('skinsGrid');
+    grid.innerHTML = '';
+    const unlockedAch = window.achievements ? window.achievements.load() : {};
+
+    SKINS.forEach(skin => {
+        const card = document.createElement('div');
+        card.className = 'skin-card';
+        const isUnlocked = skin.unlock === 'free' || (unlockedAch && unlockedAch[skin.unlock]);
+        if (!isUnlocked) card.classList.add('locked');
+        if (skin.id === selectedSkin) card.classList.add('selected');
+
+        // Mini stickman preview
+        const miniCanvas = document.createElement('canvas');
+        miniCanvas.width = 50; miniCanvas.height = 70;
+        const mctx = miniCanvas.getContext('2d');
+        const col = skin.color === 'rainbow' ? '#ff00ff' : skin.color;
+        mctx.strokeStyle = col;
+        mctx.lineWidth = 2;
+        mctx.lineCap = 'round';
+        // Head
+        mctx.beginPath(); mctx.arc(25, 12, 8, 0, Math.PI * 2); mctx.stroke();
+        // Body
+        mctx.beginPath(); mctx.moveTo(25, 20); mctx.lineTo(25, 45); mctx.stroke();
+        // Arms
+        mctx.beginPath(); mctx.moveTo(25, 28); mctx.lineTo(12, 36); mctx.moveTo(25, 28); mctx.lineTo(38, 36); mctx.stroke();
+        // Legs
+        mctx.beginPath(); mctx.moveTo(25, 45); mctx.lineTo(15, 60); mctx.moveTo(25, 45); mctx.lineTo(35, 60); mctx.stroke();
+
+        card.appendChild(miniCanvas);
+        const name = document.createElement('span');
+        name.className = 'skin-name';
+        name.textContent = skin.name;
+        card.appendChild(name);
+
+        if (!isUnlocked) {
+            const lock = document.createElement('span');
+            lock.className = 'lock-icon';
+            lock.textContent = '🔒';
+            card.appendChild(lock);
+        }
+
+        card.addEventListener('click', () => {
+            if (!isUnlocked) return;
+            selectedSkin = skin.id;
+            localStorage.setItem('stickDuelSkin', skin.id);
+            renderSkins();
+        });
+
+        grid.appendChild(card);
+    });
+}
+
+// ========== SHARE ==========
+function shareResult(platform) {
+    const text = `I just played Stick Duel Towers at Arcade Hub! Headshots: ${sessionHeadshots} 🎯`;
+    const url = 'https://arcadehubplay.com/stick-duel-frontend/';
+    if (platform === 'x') {
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    } else {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+    }
+}
+
+// ========== EVENT LISTENERS ==========
+// Menu buttons
+document.getElementById('btnSingle').addEventListener('click', () => startGame('single'));
+document.getElementById('btnLocal').addEventListener('click', () => startGame('local'));
+document.getElementById('btnEndless').addEventListener('click', () => startGame('endless'));
+document.getElementById('btnTournament').addEventListener('click', () => startGame('tournament'));
+document.getElementById('btnSkins').addEventListener('click', () => { renderSkins(); showScreen('skinsScreen'); });
+document.getElementById('btnSkinsBack').addEventListener('click', () => showScreen('menuScreen'));
+document.getElementById('btnHowTo').addEventListener('click', () => showScreen('howToScreen'));
+document.getElementById('btnHowBack').addEventListener('click', () => showScreen('menuScreen'));
+
+// Game buttons
+document.getElementById('btnPause').addEventListener('click', (e) => {
+    e.stopPropagation();
+    isPaused = true;
+    document.getElementById('pauseOverlay').classList.add('active');
+});
+document.getElementById('btnResume').addEventListener('click', (e) => {
+    e.stopPropagation();
+    isPaused = false;
+    document.getElementById('pauseOverlay').classList.remove('active');
+    lastTime = 0;
+});
+document.getElementById('btnQuitMenu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    gameState = 'menu';
+    isPaused = false;
+    showScreen('menuScreen');
+});
+document.getElementById('btnRestart').addEventListener('click', (e) => {
+    e.stopPropagation();
+    startGame(gameMode);
+});
+document.getElementById('btnNextRound').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (gameMode === 'single' || gameMode === 'local') {
+        startGame(gameMode);
+    } else {
+        nextRound();
+    }
+});
+document.getElementById('btnResultMenu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    gameState = 'menu';
+    showScreen('menuScreen');
+});
+document.getElementById('btnShareX').addEventListener('click', () => shareResult('x'));
+document.getElementById('btnShareWA').addEventListener('click', () => shareResult('wa'));
+
+// Start loop
+requestAnimationFrame(gameLoop);
+
+})();
+</script>
+</body>
+</html>

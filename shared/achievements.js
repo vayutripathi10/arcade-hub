@@ -186,7 +186,15 @@ class AchievementSystem {
             { id: 'bottle_no_bombs', game: 'bottle', title: 'Untouchable', desc: 'Complete a round without shooting a bomb', icon: '🚫' },
             { id: 'bottle_reload_20', game: 'bottle', title: 'Reload Master', desc: 'Reload perfectly 20 times', icon: '🔄' },
             { id: 'bottle_boss_1', game: 'bottle', title: 'Boss Breaker', desc: 'Defeat your first boss round', icon: '👹' },
-            { id: 'bottle_score_legend', game: 'bottle', title: 'Neon Legend', desc: 'Reach 10,000 points in a round', icon: '👑' }
+            { id: 'bottle_score_legend', game: 'bottle', title: 'Neon Legend', desc: 'Reach 10,000 points in a round', icon: '👑' },
+            // Stick Duel Towers
+            { id: 'stickduel_first_headshot', game: 'stickduel', title: 'First Headshot', desc: 'Land your first headshot in Stick Duel', icon: '🎯' },
+            { id: 'stickduel_perfect_aim', game: 'stickduel', title: 'Perfect Aim', desc: 'Win with 100% headshot accuracy (3+ shots)', icon: '🏹' },
+            { id: 'stickduel_long_distance', game: 'stickduel', title: 'Long Distance Kill', desc: 'Land a headshot from 350+ pixels away', icon: '🔭' },
+            { id: 'stickduel_unstoppable', game: 'stickduel', title: 'Unstoppable', desc: 'Win 5 rounds in Endless Challenge mode', icon: '💪' },
+            { id: 'stickduel_tournament_winner', game: 'stickduel', title: 'Tournament Winner', desc: 'Win a Tournament (3/5 matches)', icon: '🏆' },
+            { id: 'stickduel_headshot_master', game: 'stickduel', title: 'Headshot Master', desc: 'Land 5 headshots in a single session', icon: '💀' },
+            { id: 'stickduel_survival_expert', game: 'stickduel', title: 'Survival Expert', desc: 'Win 10 rounds in Endless Challenge mode', icon: '🛡️' }
         ];
     }
 
