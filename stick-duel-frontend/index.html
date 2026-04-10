@@ -1168,50 +1168,48 @@ function handleStickLanded() {
     }
 
     if (hitResult === 'headshot') {
-            let dmg = MatchState.isSuddenDeath ? MAX_HEALTH : HEADSHOT_DAMAGE * MatchState.matchDamageMult;
-            target.health -= dmg;
-            totalHeadshots++;
-            sessionHeadshots++;
-            triggerShake(15);
-            triggerSlowMo();
-            spawnHitParticles(target.x, target.y, '#ffcc00', 30);
-            spawnStickBreak(target.x, target.y, attacker.color === 'rainbow' ? '#ffcc00' : attacker.color);
-            playHitSound('headshot');
-            
-            // Teleport after headshot if modifier is active
-            if (MatchState.isTeleportRound) {
-                setTimeout(() => {
-                    const hDiff = 150;
-                    player1.platformY = H * 0.65 - (Math.random() * hDiff - hDiff / 2);
-                    player2.platformY = H * 0.65 - (Math.random() * hDiff - hDiff / 2);
-                    player1.y = player1.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p1HeadRadius * 2 - LEG_LENGTH;
-                    player2.y = player2.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p2HeadRadius * 2 - LEG_LENGTH;
-                    updateDistDisplay();
-                }, 800);
-            }
+        let dmg = MatchState.isSuddenDeath ? MAX_HEALTH : HEADSHOT_DAMAGE * MatchState.matchDamageMult;
+        target.health -= dmg;
+        totalHeadshots++;
+        sessionHeadshots++;
+        triggerShake(15);
+        triggerSlowMo();
+        spawnHitParticles(target.x, target.y, '#ffcc00', 30);
+        spawnStickBreak(target.x, target.y, attacker.color === 'rainbow' ? '#ffcc00' : attacker.color);
+        playHitSound('headshot');
+        
+        // Teleport after headshot if modifier is active
+        if (MatchState.isTeleportRound) {
+            setTimeout(() => {
+                const hDiff = 150;
+                player1.platformY = H * 0.65 - (Math.random() * hDiff - hDiff / 2);
+                player2.platformY = H * 0.65 - (Math.random() * hDiff - hDiff / 2);
+                player1.y = player1.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p1HeadRadius * 2 - LEG_LENGTH;
+                player2.y = player2.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p2HeadRadius * 2 - LEG_LENGTH;
+                updateDistDisplay();
+            }, 800);
+        }
 
-            // Record longest distance
-            const dist = Math.abs(player2.x - player1.x);
-            if (dist > stats.longestKillDist) stats.longestKillDist = dist;
-            // Achievement checks
-            if (window.achievements) {
-                window.achievements.unlock('stickduel', 'first_headshot', 'First Headshot');
-                if (sessionHeadshots >= 5) window.achievements.unlock('stickduel', 'headshot_master', 'Headshot Master');
-                if (dist >= 350) window.achievements.unlock('stickduel', 'long_distance', 'Long Distance Kill');
-            }
+        // Record longest distance
+        const dist = Math.abs(player2.x - player1.x);
+        if (dist > stats.longestKillDist) stats.longestKillDist = dist;
+        // Achievement checks
+        if (window.achievements) {
+            window.achievements.unlock('stickduel', 'first_headshot', 'First Headshot');
+            if (sessionHeadshots >= 5) window.achievements.unlock('stickduel', 'headshot_master', 'Headshot Master');
+            if (dist >= 350) window.achievements.unlock('stickduel', 'long_distance', 'Long Distance Kill');
         }
     } else if (hitResult === 'body') {
         target.health -= BODY_DAMAGE * MatchState.matchDamageMult;
         triggerShake(5);
         spawnHitParticles(target.x, target.y, '#00ffcc', 12);
-            playHitSound('body');
-        }
+        playHitSound('body');
     } else if (hitResult === 'bird') {
         attacker.health = Math.min(MAX_HEALTH, attacker.health + 10);
         triggerShake(2);
         spawnHitParticles(tipX, tipY, '#ffffff', 10);
         playHitSound('headshot');
-    } else if (hitResult === 'blocked') {
+    } else if (hitResult === 'blocked' || hitResult === 'shield_blocked') {
         triggerShake(3);
         const dir = target.x > attacker.x ? 1 : -1;
         spawnHitParticles(tipX, tipY, '#ff6666', 8);
