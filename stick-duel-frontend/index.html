@@ -268,8 +268,15 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
     <!-- Back Button -->
     <button class="back-btn" id="btnBack">← Back</button>
 
+    <!-- Round Announcement -->
+    <div id="announcement" style="position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:40; pointer-events:none; background:rgba(0,0,0,0.3); backdrop-filter:blur(2px); animation: announceFade 2s ease forwards;">
+        <h1 id="announceText" style="font-size:clamp(3rem,10vw,6rem); font-weight:900; color:var(--primary); text-transform:uppercase; letter-spacing:8px; text-shadow:0 0 30px var(--primary);">ROUND 1</h1>
+        <p id="announceSubtext" style="font-size:1.2rem; color:var(--text-dim); margin-top:10px; letter-spacing:2px;"></p>
+    </div>
+
     <!-- HUD -->
     <div class="hud" style="justify-content:center;">
+        <div id="activeModifiersPanel" style="position:absolute; top:60px; left:16px; display:flex; flex-direction:column; gap:5px; pointer-events:none;"></div>
         <div class="hud-center" style="position:relative; left:auto; transform:none;">
             <div class="turn-indicator" id="turnIndicator">Player 1 Turn</div>
             <div class="level-indicator" id="levelIndicator">Level 1</div>
@@ -411,6 +418,49 @@ let movingPlatforms = false;
 let platformPhase = 0;
 let stickBreakParticles = [];
 
+// ========== NEW MODIFIER STATE ==========
+const MatchState = {
+    modifiers: [], // List of active modifier IDs
+    p1Shield: false,
+    p2Shield: false,
+    p1HeadRadius: HEAD_RADIUS,
+    p2HeadRadius: HEAD_RADIUS,
+    isEarthquake: false,
+    isFog: false,
+    isTeleportRound: false,
+    birds: [],
+    lasers: [],
+    matchDamageMult: 1,
+    isSuddenDeath: false,
+    p1Moving: false,
+    p2Moving: false,
+    p1Offset: { x:0, y:0 },
+    p2Offset: { x:0, y:0 }
+};
+
+const MODIFIERS = {
+    WIND: { id:'wind', name:'Windy Arena', desc:'Wind shifts the stick' },
+    MOVING: { id:'moving', name:'Moving Platforms', desc:'Towers are not stable' },
+    HEIGHTS: { id:'heights', name:'Sky Duel', desc:'Variable tower heights' },
+    SHIELD: { id:'shield', name:'Shield Up', desc:'One hit is blocked' },
+    TINY_HEAD: { id:'tiny_head', name:'Tiny Head', desc:'Harder to target' },
+    GIANT_HEAD: { id:'giant_head', name:'Giant Head', desc:'Bigger targets' },
+    EARTHQUAKE: { id:'earthquake', name:'Earthquake', desc:'Shaky ground' },
+    FOG: { id:'fog', name:'Foggy Night', desc:'Blurry visibility' },
+    TELEPORT: { id:'teleport', name:'Teleport Duel', desc:'Move after headshots' },
+    DOUBLE_DAMAGE: { id:'double', name:'Double Damage', desc:'Deadly precision' },
+    SUDDEN_DEATH: { id:'sudden', name:'Sudden Death', desc:'One headshot wins' },
+    BONUS_HEALTH: { id:'bonus', name:'Reward Round', desc:'Heals available' }
+};
+
+const TOURNAMENT_DATA = [
+    { name: 'Match 1: The Warmup', mods: [] },
+    { name: 'Match 2: Moving Winds', mods: ['wind', 'moving'] },
+    { name: 'Match 3: Sky Shield', mods: ['heights', 'shield', 'tiny_head'] },
+    { name: 'Match 4: Phantom Lasers', mods: ['fog', 'teleport', 'moving'] },
+    { name: 'Match 5: THE FINAL CLASH', mods: ['wind', 'moving', 'earthquake', 'heights', 'sudden'] }
+];
+
 // Stats for save
 let stats = JSON.parse(localStorage.getItem('stickDuelStats') || '{}');
 if (!stats.totalGames) stats = { totalGames:0, totalWins:0, totalHeadshots:0, totalShots:0, bestEndless:0, tournamentsWon:0, longestKillDist:0 };
@@ -433,6 +483,67 @@ function showScreen(id) {
 
 // ========== LEVEL GENERATION ==========
 function generateLevel(lvl) {
+    MatchState.modifiers = [];
+    MatchState.lasers = [];
+    MatchState.birds = [];
+    MatchState.isFog = false;
+    MatchState.isEarthquake = false;
+    MatchState.p1Shield = false;
+    MatchState.p2Shield = false;
+    MatchState.p1HeadRadius = HEAD_RADIUS;
+    MatchState.p2HeadRadius = HEAD_RADIUS;
+    MatchState.matchDamageMult = 1;
+    MatchState.isSuddenDeath = false;
+    MatchState.p1Moving = false;
+    MatchState.p2Moving = false;
+    MatchState.isTeleportRound = false;
+
+    let announceTitle = `Level ${lvl}`;
+    let announceDesc = "Target the head!";
+
+    // Select Modifiers
+    if (gameMode === 'tournament') {
+        const stage = TOURNAMENT_DATA[tournamentRound] || TOURNAMENT_DATA[0];
+        MatchState.modifiers = stage.mods;
+        announceTitle = stage.name;
+    } else if (gameMode === 'endless') {
+        if (lvl % 5 === 0) {
+            announceTitle = "Elite Opponent!";
+            MatchState.matchDamageMult = 1.5;
+            MatchState.modifiers = ['wind', 'moving'];
+        } else if (lvl % 10 === 0) {
+            announceTitle = "BOSS BATTLE";
+            MatchState.matchDamageMult = 2;
+            MatchState.modifiers = ['wind', 'moving', 'earthquake', 'heights'];
+        } else if (lvl > 1) {
+            const possible = Object.keys(MODIFIERS);
+            const count = Math.min(Math.floor(lvl / 3) + 1, 3);
+            for(let i=0; i<count; i++) {
+                const modKey = possible[Math.floor(Math.random() * possible.length)];
+                if(!MatchState.modifiers.includes(MODIFIERS[modKey].id)) {
+                    MatchState.modifiers.push(MODIFIERS[modKey].id);
+                }
+            }
+        }
+    } else if (gameMode === 'single' && lvl > 3) {
+        // Simple random modifier for single player after some practice
+        if(Math.random() > 0.5) MatchState.modifiers.push('wind');
+    }
+
+    // Apply Modifier Flags
+    MatchState.modifiers.forEach(mId => {
+        if (mId === 'wind') wind = (Math.random() - 0.5) * 8;
+        if (mId === 'moving') { MatchState.p1Moving = true; MatchState.p2Moving = true; }
+        if (mId === 'shield') { MatchState.p1Shield = true; MatchState.p2Shield = true; }
+        if (mId === 'fog') MatchState.isFog = true;
+        if (mId === 'earthquake') MatchState.isEarthquake = true;
+        if (mId === 'tiny_head') { MatchState.p1HeadRadius = 6; MatchState.p2HeadRadius = 6; }
+        if (mId === 'giant_head') { MatchState.p1HeadRadius = 18; MatchState.p2HeadRadius = 18; }
+        if (mId === 'double') MatchState.matchDamageMult = 2;
+        if (mId === 'sudden') MatchState.isSuddenDeath = true;
+        if (mId === 'teleport') MatchState.isTeleportRound = true;
+    });
+
     const diff = Math.min(lvl, 20);
     const baseDistance = 150 + diff * 18 + Math.random() * 40;
     const centerX = W / 2;
@@ -440,52 +551,99 @@ function generateLevel(lvl) {
     // Platform heights
     let p1PlatH = H * 0.65;
     let p2PlatH = H * 0.65;
-    if (diff > 3) {
-        const hDiff = Math.min(diff * 8, 80);
+    
+    // heights modifier or level scaling
+    if (lvl > 3 || MatchState.modifiers.includes('heights')) {
+        const hDiff = MatchState.modifiers.includes('heights') ? 150 : Math.min(diff * 8, 80);
         p1PlatH -= Math.random() * hDiff - hDiff / 2;
         p2PlatH -= Math.random() * hDiff - hDiff / 2;
     }
 
-    const platW = Math.max(50, 80 - diff * 1.5);
+    const platW = Math.max(45, 80 - diff * 1.5);
     const halfDist = baseDistance / 2;
 
     player1.platformW = platW;
     player1.x = centerX - halfDist;
     player1.platformY = p1PlatH;
-    player1.y = p1PlatH - PLATFORM_HEIGHT - BODY_HEIGHT - HEAD_RADIUS * 2 - LEG_LENGTH;
+    player1.y = p1PlatH - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p1HeadRadius * 2 - LEG_LENGTH;
     player1.health = MAX_HEALTH;
 
     player2.platformW = platW;
     player2.x = centerX + halfDist;
     player2.platformY = p2PlatH;
-    player2.y = p2PlatH - PLATFORM_HEIGHT - BODY_HEIGHT - HEAD_RADIUS * 2 - LEG_LENGTH;
-    player2.health = MAX_HEALTH;
+    player2.y = p2PlatH - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p2HeadRadius * 2 - LEG_LENGTH;
+    player2.health = (lvl % 10 === 0) ? MAX_HEALTH * 2 : MAX_HEALTH; // Boss has more HP
 
-    // Wind
-    wind = diff > 4 ? (Math.random() - 0.5) * Math.min(diff * 0.8, 8) : 0;
+    // Apply announcement subtext based on mods
+    if (MatchState.modifiers.length > 0) {
+        announceDesc = MatchState.modifiers.map(m => MODIFIERS[Object.keys(MODIFIERS).find(k => MODIFIERS[k].id === m)].name).join(" • ");
+    }
+
+    requestAnnouncement(announceTitle, announceDesc);
+
+    // Initial Wind
+    if (!MatchState.modifiers.includes('wind')) wind = 0;
 
     // Moving platforms
-    movingPlatforms = diff > 8;
+    movingPlatforms = MatchState.p1Moving || MatchState.p2Moving;
     platformPhase = 0;
 
-    // Obstacles
+    // Obstacles & Birds
     obstacles = [];
-    if (diff > 6) {
-        const numObs = Math.min(Math.floor((diff - 6) / 2) + 1, 3);
+    if (lvl > 5 || MatchState.modifiers.includes('wind')) {
+        const numObs = Math.min(Math.floor(lvl / 5) + 1, 2);
         for (let i = 0; i < numObs; i++) {
             const ox = centerX - halfDist + (baseDistance / (numObs + 1)) * (i + 1);
-            const oy = Math.min(p1PlatH, p2PlatH) - 20 - Math.random() * 60;
-            obstacles.push({ x: ox, y: oy, w: 8, h: 30 + Math.random() * 30 });
+            const oy = Math.min(p1PlatH, p2PlatH) - 50 - Math.random() * 100;
+            obstacles.push({ x: ox, y: oy, w: 8, h: 40 + Math.random() * 40, hp: 2 }); // Breakable walls
         }
     }
 
-    // Apply skin colors
-    const skin = SKINS.find(s => s.id === selectedSkin) || SKINS[0];
-    player1.color = skin.color === 'rainbow' ? '#00ffcc' : skin.color;
+    // Spawn reward Birds if Bonus modifier active
+    if (MatchState.modifiers.includes('bonus') || Math.random() > 0.8) {
+        MatchState.birds.push({ x:0, y: H * 0.3, vx: 2, size: 10 });
+    }
 
+    // Spawn Lasers
+    if (MatchState.modifiers.includes('fog') || lvl > 12) {
+        MatchState.lasers.push({ x: centerX, y: H * 0.4, angle: 0, speed: 0.05, len: 120 });
+        if (lvl % 10 === 0) {
+            MatchState.lasers.push({ x: centerX - 100, y: H * 0.3, angle: Math.PI, speed: -0.04, len: 100 });
+            MatchState.lasers.push({ x: centerX + 100, y: H * 0.3, angle: 0, speed: 0.04, len: 100 });
+        }
+    }
+
+    // Update UI
+    updateModifierPanel();
     updateHUD();
     updateWindDisplay();
     updateDistDisplay();
+}
+
+function updateModifierPanel() {
+    const panel = document.getElementById('activeModifiersPanel');
+    panel.innerHTML = '';
+    MatchState.modifiers.forEach(m => {
+        const modTitle = MODIFIERS[Object.keys(MODIFIERS).find(k => MODIFIERS[k].id === m)].name;
+        const badge = document.createElement('div');
+        badge.className = 'modifier-badge';
+        badge.textContent = modTitle;
+        panel.appendChild(badge);
+    });
+}
+
+function requestAnnouncement(title, sub) {
+    const wrap = document.getElementById('announcement');
+    const t = document.getElementById('announceText');
+    const s = document.getElementById('announceSubtext');
+    t.textContent = title;
+    s.textContent = sub;
+    
+    wrap.style.display = 'flex';
+    wrap.style.animation = 'none';
+    wrap.offsetHeight; // trigger reflow
+    wrap.style.animation = 'announceFade 2.5s ease forwards';
+    setTimeout(() => { wrap.style.display = 'none'; }, 2500);
 }
 
 // ========== HUD UPDATES ==========
@@ -530,11 +688,18 @@ function getSkinColor(baseColor, t) {
 
 function drawStickman(p, flip, t) {
     const col = getSkinColor(p.color, t);
+    const headR = (p === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
     const footY = p.platformY - PLATFORM_HEIGHT;
     const bodyBottom = footY - LEG_LENGTH;
     const bodyTop = bodyBottom - BODY_HEIGHT;
-    const headY = bodyTop - HEAD_RADIUS;
+    const headY = bodyTop - headR;
     const armY = bodyTop + 12;
+
+    const ox = (p === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
+    const oy = (p === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
+
+    ctx.save();
+    ctx.translate(ox, oy);
 
     ctx.strokeStyle = col;
     ctx.lineWidth = 3;
@@ -542,16 +707,41 @@ function drawStickman(p, flip, t) {
     ctx.shadowBlur = 8;
     ctx.shadowColor = col;
 
+    // Draw Shield if active
+    const hasShield = (p === player1) ? MatchState.p1Shield : MatchState.p2Shield;
+    if (hasShield) {
+        ctx.beginPath();
+        ctx.arc(p.x, headY + BODY_HEIGHT/2, 50, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#fff';
+        ctx.globalAlpha = 0.2 + Math.sin(t * 0.01) * 0.1;
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 8;
+    }
+
+    // Fog Blur Effect (Apply to opponent)
+    if (MatchState.isFog && ((currentTurn === 1 && p === player2) || (currentTurn === 2 && p === player1))) {
+        ctx.filter = 'blur(4px)';
+    }
+
     // Head
     ctx.beginPath();
-    ctx.arc(p.x, headY, HEAD_RADIUS, 0, Math.PI * 2);
+    ctx.arc(p.x, headY, headR, 0, Math.PI * 2);
     ctx.stroke();
 
     // Eyes
     ctx.fillStyle = col;
     const eyeDir = flip ? -1 : 1;
     ctx.beginPath();
-    ctx.arc(p.x + eyeDir * 3, headY - 2, 1.5, 0, Math.PI * 2);
+    ctx.arc(p.x + eyeDir * (headR * 0.3), headY - 2, headR * 0.15, 0, Math.PI * 2);
     ctx.fill();
 
     // Body
@@ -582,18 +772,21 @@ function drawStickman(p, flip, t) {
     ctx.stroke();
 
     ctx.shadowBlur = 0;
+    ctx.filter = 'none';
 
     // Health bar above head
     const barW = 40;
     const barH = 4;
     const barX = p.x - barW / 2;
-    const barY = headY - HEAD_RADIUS - 14;
+    const barY = headY - headR - 14;
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.fillRect(barX, barY, barW, barH);
-    const hpRatio = Math.max(0, p.health / MAX_HEALTH);
+    const hpRatio = Math.max(0, p.health / ((p === player2 && currentLevel % 10 === 0) ? MAX_HEALTH * 2 : MAX_HEALTH));
     const hpColor = hpRatio > 0.5 ? col : (hpRatio > 0.25 ? '#ffcc00' : '#ff3366');
     ctx.fillStyle = hpColor;
     ctx.fillRect(barX, barY, barW * hpRatio, barH);
+    
+    ctx.restore();
 }
 
 function drawPlatform(x, y, w, color) {
@@ -808,31 +1001,58 @@ function checkHitOnTarget(attacker, target) {
     const tipX = handX + stickLength * dir + windOffset;
     const tipY = handY;
 
-    // Check if stick hits an obstacle
+    // Target head position
+    const tFootY = target.platformY - PLATFORM_HEIGHT;
+    const tBodyBottom = tFootY - LEG_LENGTH;
+    const tBodyTop = tBodyBottom - BODY_HEIGHT;
+    const tHeadR = (target === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
+    const tHeadY = tBodyTop - tHeadR;
+
+    // Check Birds (Reward)
+    for (let i = MatchState.birds.length - 1; i >= 0; i--) {
+        const b = MatchState.birds[i];
+        if (Math.sqrt((tipX - b.x) ** 2 + (tipY - b.y) ** 2) < b.size + 5) {
+            MatchState.birds.splice(i, 1);
+            return 'bird';
+        }
+    }
+
+    // Check Lasers
+    for (const laser of MatchState.lasers) {
+        // Simple line-point distance check for laser beam
+        const lx1 = laser.x;
+        const ly1 = laser.y;
+        const lx2 = laser.x + Math.cos(laser.angle) * laser.len;
+        const ly2 = laser.y + Math.sin(laser.angle) * laser.len;
+        
+        // Check if tip hit the laser beam area
+        const distToLaser = Math.abs((ly2-ly1)*tipX - (lx2-lx1)*tipY + lx2*ly1 - ly2*lx1) / Math.sqrt((ly2-ly1)**2 + (lx2-lx1)**2);
+        if (distToLaser < 10 && tipX > Math.min(lx1, lx2) - 10 && tipX < Math.max(lx1, lx2) + 10) {
+            return 'blocked';
+        }
+    }
+
+    // Check if stick hits an obstacle (Breakable Walls)
     for (const obs of obstacles) {
         const stickMinX = Math.min(handX, tipX);
         const stickMaxX = Math.max(handX, tipX);
         if (stickMaxX >= obs.x - obs.w / 2 && stickMinX <= obs.x + obs.w / 2) {
             if (tipY >= obs.y && tipY <= obs.y + obs.h) {
+                if (obs.hp !== undefined) obs.hp--;
                 return 'blocked';
             }
         }
     }
 
-    // Target head position
-    const tFootY = target.platformY - PLATFORM_HEIGHT;
-    const tBodyBottom = tFootY - LEG_LENGTH;
-    const tBodyTop = tBodyBottom - BODY_HEIGHT;
-    const tHeadY = tBodyTop - HEAD_RADIUS;
-
     // Headshot check
     const headDist = Math.sqrt((tipX - target.x) ** 2 + (tipY - tHeadY) ** 2);
-    if (headDist <= HEAD_RADIUS + 6) return 'headshot';
+    if (headDist <= tHeadR + 6) return 'headshot';
 
     // Body check
-    if (Math.abs(tipX - target.x) <= 12 && tipY >= tBodyTop && tipY <= tBodyBottom) return 'body';
+    if (Math.abs(tipX - target.x) <= 15 && tipY >= tBodyTop && tipY <= tBodyBottom) return 'body';
 
     return 'miss';
+}
 }
 
 // ========== TURN LOGIC ==========
@@ -890,38 +1110,69 @@ function handleStickLanded() {
     lastHitType = hitResult;
 
     if (hitResult === 'headshot') {
-        target.health -= HEADSHOT_DAMAGE;
-        totalHeadshots++;
-        sessionHeadshots++;
-        triggerShake(12);
-        triggerSlowMo();
-        spawnHitParticles(target.x, target.y, '#ffcc00', 25);
-        spawnStickBreak(target.x, target.y, attacker.color === 'rainbow' ? '#ffcc00' : attacker.color);
-        playHitSound('headshot');
-        // Record longest distance
-        const dist = Math.abs(player2.x - player1.x);
-        if (dist > stats.longestKillDist) stats.longestKillDist = dist;
-        // Achievement checks
-        if (window.achievements) {
-            window.achievements.unlock('stickduel', 'first_headshot', 'First Headshot');
-            if (sessionHeadshots >= 5) window.achievements.unlock('stickduel', 'headshot_master', 'Headshot Master');
-            if (dist >= 350) window.achievements.unlock('stickduel', 'long_distance', 'Long Distance Kill');
+        const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
+        if (shieldActive) {
+            if (target === player1) MatchState.p1Shield = false; else MatchState.p2Shield = false;
+            triggerShake(5);
+            spawnHitParticles(target.x, target.y - 40, '#ffffff', 15);
+            playHitSound('miss');
+            hitResult = 'shield_blocked';
+        } else {
+            let dmg = MatchState.isSuddenDeath ? MAX_HEALTH : HEADSHOT_DAMAGE * MatchState.matchDamageMult;
+            target.health -= dmg;
+            totalHeadshots++;
+            sessionHeadshots++;
+            triggerShake(15);
+            triggerSlowMo();
+            spawnHitParticles(target.x, target.y, '#ffcc00', 30);
+            spawnStickBreak(target.x, target.y, attacker.color === 'rainbow' ? '#ffcc00' : attacker.color);
+            playHitSound('headshot');
+            
+            // Teleport after headshot if modifier is active
+            if (MatchState.isTeleportRound) {
+                setTimeout(() => {
+                    const hDiff = 150;
+                    player1.platformY = H * 0.65 - (Math.random() * hDiff - hDiff / 2);
+                    player2.platformY = H * 0.65 - (Math.random() * hDiff - hDiff / 2);
+                    player1.y = player1.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p1HeadRadius * 2 - LEG_LENGTH;
+                    player2.y = player2.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - MatchState.p2HeadRadius * 2 - LEG_LENGTH;
+                    updateDistDisplay();
+                }, 800);
+            }
+
+            // Record longest distance
+            const dist = Math.abs(player2.x - player1.x);
+            if (dist > stats.longestKillDist) stats.longestKillDist = dist;
+            // Achievement checks
+            if (window.achievements) {
+                window.achievements.unlock('stickduel', 'first_headshot', 'First Headshot');
+                if (sessionHeadshots >= 5) window.achievements.unlock('stickduel', 'headshot_master', 'Headshot Master');
+                if (dist >= 350) window.achievements.unlock('stickduel', 'long_distance', 'Long Distance Kill');
+            }
         }
     } else if (hitResult === 'body') {
-        target.health -= BODY_DAMAGE;
-        triggerShake(5);
-        spawnHitParticles(target.x, target.y, '#00ffcc', 12);
-        playHitSound('body');
+        const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
+        if (shieldActive) {
+            if (target === player1) MatchState.p1Shield = false; else MatchState.p2Shield = false;
+            triggerShake(5);
+            spawnHitParticles(target.x, target.y - 40, '#ffffff', 10);
+            playHitSound('miss');
+            hitResult = 'shield_blocked';
+        } else {
+            target.health -= BODY_DAMAGE * MatchState.matchDamageMult;
+            triggerShake(5);
+            spawnHitParticles(target.x, target.y, '#00ffcc', 12);
+            playHitSound('body');
+        }
+    } else if (hitResult === 'bird') {
+        attacker.health = Math.min(MAX_HEALTH, attacker.health + 10);
+        triggerShake(2);
+        spawnHitParticles(tipX, tipY, '#ffffff', 10);
+        playHitSound('headshot');
     } else if (hitResult === 'blocked') {
         triggerShake(3);
-        const obsHit = obstacles.find(o => {
-            const dir = target.x > attacker.x ? 1 : -1;
-            const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
-            const handX = attacker.x + dir * ARM_LENGTH;
-            const tipX = handX + stickLength * dir;
-            return tipX >= o.x - o.w / 2 && tipX <= o.x + o.w / 2;
-        });
-        if (obsHit) spawnHitParticles(obsHit.x, obsHit.y, '#ff6666', 8);
+        const dir = target.x > attacker.x ? 1 : -1;
+        spawnHitParticles(tipX, tipY, '#ff6666', 8);
         spawnStickBreak(attacker.x, attacker.y, '#ff6666');
         playHitSound('miss');
     } else {
@@ -929,6 +1180,8 @@ function handleStickLanded() {
         spawnStickBreak(attacker.x + (target.x > attacker.x ? 1 : -1) * stickLength, attacker.y, 'rgba(255,255,255,0.3)');
         playHitSound('miss');
     }
+    
+    lastHitType = hitResult;
 
     updateHUD();
     stickState = 'landed';
@@ -938,19 +1191,39 @@ function handleStickLanded() {
 // ========== AI LOGIC ==========
 function aiPlay() {
     aiThinking = false;
-    const dist = Math.abs(player2.x - player1.x);
-    const armY = player2.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
-    // AI calculates ideal stick length based on distance + wind
-    const windOffset = wind * (1) * 5; // Approximate
-    let idealLength = dist - ARM_LENGTH + windOffset * (player1.x < player2.x ? 1 : -1);
+    const attacker = player2;
+    const target = player1;
+    const dist = Math.abs(target.x - attacker.x);
     
-    // Add difficulty-based randomness (easier at lower levels)
-    const accuracy = Math.min(0.85 + currentLevel * 0.01, 0.97);
+    // AI calculates ideal stick length based on distance + wind + target movement
+    let windOffset = wind * (1) * 5; 
+    
+    // Predictive aiming for moving platforms
+    let targetOy = MatchState.p1Offset.y;
+    // AI predicts where the target will be when stick falls (approx 1s delay)
+    if (MatchState.p1Moving) {
+        const futurePhase = platformPhase + 0.002 * 60; // ~1s later
+        targetOy = Math.sin(futurePhase) * 40;
+    }
+
+    let idealLength = dist - ARM_LENGTH + windOffset * (target.x < attacker.x ? 1 : -1);
+    
+    // Add difficulty-based randomness
+    let accuracy = 0.7; // Default base
+    if (gameMode === 'tournament') {
+        accuracy = 0.8 + (tournamentRound * 0.04);
+    } else if (gameMode === 'endless') {
+        accuracy = Math.min(0.8 + (endlessWins * 0.02), 0.98);
+        if (currentLevel % 10 === 0) accuracy = 0.99; // Boss is deadly
+    } else {
+        accuracy = Math.min(0.85 + currentLevel * 0.015, 0.96);
+    }
+
     const error = (1 - accuracy) * MAX_STICK_LENGTH;
     idealLength += (Math.random() - 0.5) * error * 2;
-    idealLength = Math.max(20, Math.min(MAX_STICK_LENGTH, idealLength));
+    idealLength = Math.max(10, Math.min(MAX_STICK_LENGTH, idealLength));
 
-    // AI grows stick over time
+    // AI grows stick
     stickState = 'growing';
     document.getElementById('powerMeter').classList.add('visible');
     const growInterval = setInterval(() => {
@@ -1141,13 +1414,35 @@ function gameLoop(timestamp) {
     // Screen shake
     updateShake(rawDt);
 
-    // Moving platforms
+    // Moving platforms logic
     if (movingPlatforms) {
-        platformPhase += dt * 0.001;
-        const offset = Math.sin(platformPhase) * 15;
-        // Adjust p2 platform
-        const basePlatY = player2.platformY;
+        platformPhase += dt * 0.002;
+        if (MatchState.p1Moving) {
+            MatchState.p1Offset.y = Math.sin(platformPhase) * 40;
+            MatchState.p1Offset.x = Math.cos(platformPhase * 0.7) * 20;
+        }
+        if (MatchState.p2Moving) {
+            MatchState.p2Offset.y = Math.cos(platformPhase * 1.1) * 40;
+            MatchState.p2Offset.x = Math.sin(platformPhase * 0.8) * 20;
+        }
+    } else {
+        MatchState.p1Offset = {x:0, y:0};
+        MatchState.p2Offset = {x:0, y:0};
     }
+
+    // Earthquake (Shake during aiming)
+    if (MatchState.isEarthquake && stickState === 'growing') {
+        screenShake.timer = 100;
+        screenShake.intensity = 4;
+    }
+
+    // Update Birds
+    MatchState.birds.forEach(bird => {
+        bird.x += bird.vx * (dt / 16);
+        if (bird.x > W + 100) bird.x = -100;
+        if (bird.x < -100) bird.x = W + 100;
+        bird.y += Math.sin(timestamp * 0.005) * 0.5;
+    });
 
     // Stick growing
     if (stickState === 'growing' && isHolding) {
@@ -1179,14 +1474,50 @@ function gameLoop(timestamp) {
     ctx.fillStyle = var_bg();
     ctx.fillRect(-10, -10, W + 20, H + 20);
 
+    // Update Lasers
+    MatchState.lasers.forEach(laser => {
+        laser.angle += laser.speed * (dt / 16);
+    });
+
+    // Draw background logic
     drawBackground(timestamp / 16);
+
+    // Draw Lasers
+    MatchState.lasers.forEach(laser => {
+        ctx.strokeStyle = '#ff3366';
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff3366';
+        ctx.beginPath();
+        ctx.moveTo(laser.x, laser.y);
+        ctx.lineTo(laser.x + Math.cos(laser.angle) * laser.len, laser.y + Math.sin(laser.angle) * laser.len);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    });
 
     // Draw obstacles
     drawObstacles();
 
     // Draw platforms
-    drawPlatform(player1.x, player1.platformY, player1.platformW, 'rgba(0,255,204,0.25)');
-    drawPlatform(player2.x, player2.platformY, player2.platformW, 'rgba(255,51,102,0.25)');
+    drawPlatform(player1.x + MatchState.p1Offset.x, player1.platformY + MatchState.p1Offset.y, player1.platformW, 'rgba(0,255,204,0.25)');
+    drawPlatform(player2.x + MatchState.p2Offset.x, player2.platformY + MatchState.p2Offset.y, player2.platformW, 'rgba(255,51,102,0.25)');
+
+    // Draw Birds
+    MatchState.birds.forEach(b => {
+        ctx.fillStyle = '#fff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#fff';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+        ctx.fill();
+        // Wings
+        ctx.beginPath();
+        const wingY = Math.sin(timestamp * 0.02) * 10;
+        ctx.moveTo(b.x - 10, b.y);
+        ctx.quadraticCurveTo(b.x, b.y - wingY, b.x + 10, b.y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    });
 
     // Draw stickmen
     drawStickman(player1, false, timestamp);
