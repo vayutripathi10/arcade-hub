@@ -435,7 +435,8 @@ const MatchState = {
     p1Moving: false,
     p2Moving: false,
     p1Offset: { x:0, y:0 },
-    p2Offset: { x:0, y:0 }
+    p2Offset: { x:0, y:0 },
+    lastHitPos: { x:0, y:0 }
 };
 
 // ========== UI HELPERS ==========
@@ -593,33 +594,6 @@ function generateLevel(lvl) {
     // Moving platforms
     movingPlatforms = MatchState.p1Moving || MatchState.p2Moving;
     platformPhase = 0;
-
-    // Obstacles & Birds
-    obstacles = [];
-    if (lvl > 5 || MatchState.modifiers.includes('wind')) {
-        const numObs = Math.min(Math.floor(lvl / 5) + 1, 2);
-        for (let i = 0; i < numObs; i++) {
-            const ox = centerX - halfDist + (baseDistance / (numObs + 1)) * (i + 1);
-            const oy = Math.min(p1PlatH, p2PlatH) - 50 - Math.random() * 100;
-            obstacles.push({ x: ox, y: oy, w: 8, h: 40 + Math.random() * 40, hp: 2 }); // Breakable walls
-        }
-    }
-
-    // Spawn reward Birds at stick landing height if Bonus modifier active
-    if (MatchState.modifiers.includes('bonus') || Math.random() > 0.8) {
-        const armY = player1.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
-        const targetY = armY - 8;
-        MatchState.birds.push({ x:0, y: targetY, vx: 2, size: 12 });
-    }
-
-    // Spawn Lasers
-    if (MatchState.modifiers.includes('fog') || lvl > 10) {
-        MatchState.lasers.push({ x: centerX, y: H * 0.45, angle: 0, speed: 0.03, len: 140 });
-        if (lvl % 10 === 0) {
-            MatchState.lasers.push({ x: centerX - 100, y: H * 0.3, angle: Math.PI, speed: -0.04, len: 100 });
-            MatchState.lasers.push({ x: centerX + 100, y: H * 0.3, angle: 0, speed: 0.04, len: 100 });
-        }
-    }
 
     // Update UI
     updateModifierPanel();
@@ -1131,6 +1105,10 @@ function handleStickLanded() {
     const tipX = handX + stickLength * dir + windOffset;
     const tipY = handY;
 
+    const headR = (target === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
+    const ty = (target.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - headR - LEG_LENGTH) + (target === player1 ? MatchState.p1Offset.y : MatchState.p2Offset.y);
+
+    MatchState.lastHitPos = { x: tipX, y: ty };
     const hitResult = checkHitOnTarget(attacker, target);
     lastHitType = hitResult;
 
@@ -1558,13 +1536,8 @@ function gameLoop(timestamp) {
 
     // Draw hit indicator text
     if (lastHitType && (stickState === 'landed' || stickState === 'breaking')) {
-        const target = currentTurn === 1 ? player2 : player1;
-        const targetOx = (target === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
-        const targetOy = (target === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
-        const headR = (target === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
-        
-        const tx = target.x + targetOx;
-        const ty = (target.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - headR - LEG_LENGTH) + targetOy;
+        const tx = MatchState.lastHitPos.x;
+        const ty = MatchState.lastHitPos.y;
 
         ctx.font = 'bold 1.2rem Outfit';
         ctx.textAlign = 'center';
