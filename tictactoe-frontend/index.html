@@ -130,6 +130,14 @@
                 <option value="hard" selected>Hard (Unbeatable)</option>
             </select>
         </div>
+        <button id="howToPlayBtn" class="btn" style="margin-top:10px; font-size:0.85rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.7); padding:8px 16px; border-radius:8px; cursor:pointer; width:100%; max-width:300px;" onclick="document.getElementById('howToPanel').classList.toggle('hidden')">📖 How to Play</button>
+        <div id="howToPanel" class="hidden" style="text-align:left; margin-top:12px; padding:12px; background:rgba(255,255,255,0.05); border-radius:12px; font-size:0.85rem; color:rgba(255,255,255,0.7); line-height:1.7; max-width:350px;">
+            <p>🕹️ <b style="color:#fff;">Controls:</b> <b>Tap</b> or <b>Click</b> any empty square to place your mark.</p>
+            <p>❌ <b style="color:#fff;">Player 1:</b> Always plays as X (neon green).</p>
+            <p>⭕ <b style="color:#fff;">Player 2/AI:</b> Plays as O (neon pink).</p>
+            <p>🤖 <b style="color:#fff;">AI Mode:</b> Toggle AI on/off and choose Easy, Medium, or Hard (Unbeatable) difficulty.</p>
+            <p>🏆 <b style="color:#fff;">Goal:</b> Connect 3 marks in a row (horizontal, vertical, or diagonal) to win!</p>
+        </div>
     </div>
 
     <script>

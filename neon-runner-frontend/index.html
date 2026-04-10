@@ -126,6 +126,14 @@
             <h1>Neon Runner</h1>
             <p>Swipe UP/DOWN or use Arrow Keys to switch lanes.<br>Dodge pink barriers, collect gold coins.<br><strong>Double Tap</strong> for a 2-second Invincibility Boost!</p>
 <button class="btn" id="startBtn">Start Running</button>
+                <button id="howToPlayBtn" class="btn" style="margin-top:8px; font-size:0.85rem; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);" onclick="document.getElementById('howToPanel').classList.toggle('hidden')">📖 How to Play</button>
+                <div id="howToPanel" class="hidden" style="text-align:left; margin-top:12px; padding:12px; background:rgba(255,255,255,0.05); border-radius:12px; font-size:0.85rem; color:rgba(255,255,255,0.7); line-height:1.7; max-width:350px;">
+                    <p>🕹️ <b style="color:#fff;">Controls:</b> <b>Swipe Up/Down</b> or use <b>Arrow Keys</b> to switch lanes.</p>
+                    <p>🪙 <b style="color:#fff;">Coins:</b> Collect gold coins — every 10 coins refills a boost!</p>
+                    <p>⚡ <b style="color:#fff;">Boost:</b> <b>Double Tap</b> for 2 seconds of Invincibility!</p>
+                    <p>🚧 <b style="color:#fff;">Barriers:</b> Dodge pink barriers to survive.</p>
+                    <p>🏆 <b style="color:#fff;">Goal:</b> Run as far as possible and beat your best score!</p>
+                </div>
             <div class="controls-hint">Coins refill your boosts (1 boost per 10 coins).</div>
         </div>
     </div>
