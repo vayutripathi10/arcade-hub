@@ -30,7 +30,7 @@
     <!-- Ultimate Network Ad Blocker Shield -->
     <script>
     (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
+        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container, .mode-btn, .menu-sm-btn, .back-btn, .res-btn, .g-btn';
         const originalAdd = EventTarget.prototype.addEventListener;
         EventTarget.prototype.addEventListener = function(type, listener, options) {
             if ((this === window || this === document || this === document.body) && 
@@ -437,6 +437,12 @@ const MatchState = {
     p1Offset: { x:0, y:0 },
     p2Offset: { x:0, y:0 }
 };
+
+// ========== UI HELPERS ==========
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
 
 const MODIFIERS = {
     WIND: { id:'wind', name:'Windy Arena', desc:'Wind shifts the stick' },
@@ -1052,7 +1058,6 @@ function checkHitOnTarget(attacker, target) {
     if (Math.abs(tipX - target.x) <= 15 && tipY >= tBodyTop && tipY <= tBodyBottom) return 'body';
 
     return 'miss';
-}
 }
 
 // ========== TURN LOGIC ==========
