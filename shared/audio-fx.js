@@ -9,6 +9,8 @@ class AudioFX {
         this.compressor = null;
         this.enabled = true;
         this.isMuted = localStorage.getItem('arcadeHubMuted') === 'true';
+        this.engineOsc = null;
+        this.engineGain = null;
 
         // Setup UI when DOM is ready
         if (document.readyState === 'loading') {
@@ -252,6 +254,92 @@ class AudioFX {
             gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4); // Slower decay
             osc.start(now + i * 0.1);
             osc.stop(now + i * 0.1 + 0.4);
+        });
+    }
+
+    playExplosion() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        
+        console.log('AudioFX: Playing Explosion sound');
+        const bufferSize = this.ctx.sampleRate * 2; // 2 seconds of noise
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        // Highpass filter to make it crunchy
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 1);
+
+        const gain = this.ctx.createGain();
+        const now = this.ctx.currentTime;
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.compressor);
+
+        noise.start(now);
+        noise.stop(now + 1);
+    }
+    
+    startEngine() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        if (this.engineOsc) return;
+
+        const { osc, gain } = this.createOscillator(50, 'sawtooth');
+        this.engineOsc = osc;
+        this.engineGain = gain;
+        
+        gain.gain.value = 0.2;
+        this.engineOsc.start();
+    }
+    
+    updateEngine(speed) {
+        if (!this.engineOsc || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Pitch mapping from 50Hz to 200Hz based on speed
+        const pitch = 50 + (speed * 0.7);
+        this.engineOsc.frequency.setTargetAtTime(pitch, now, 0.1);
+    }
+    
+    stopEngine() {
+        if (this.engineOsc && this.ctx) {
+            const now = this.ctx.currentTime;
+            this.engineGain.gain.setTargetAtTime(0, now, 0.1);
+            setTimeout(() => {
+                if(this.engineOsc) this.engineOsc.stop();
+                this.engineOsc = null;
+                this.engineGain = null;
+            }, 200);
+        }
+    }
+    
+    playVictory() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        
+        console.log('AudioFX: Playing Victory sound');
+        const now = this.ctx.currentTime;
+        // Jingle: C E G C
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        notes.forEach((freq, i) => {
+            const { osc, gain } = this.createOscillator(freq, 'square');
+            gain.gain.setValueAtTime(0.3, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.3);
         });
     }
 
