@@ -25,7 +25,7 @@ let runDistance = 0;
 
 // Stage System
 let currentStage = 1;
-let stageDistanceTarget = 5000;
+let stageDistanceTarget = 2800; // Roughly 28 seconds of racing
 let finishLineY = -1; // -1 means inactive
 let finishedStage = false;
 
@@ -151,7 +151,7 @@ function initGame() {
     roadOffset = 0;
     
     currentStage = 1;
-    stageDistanceTarget = 5000;
+    stageDistanceTarget = 2800;
     finishLineY = -1;
     finishedStage = false;
     
@@ -173,7 +173,7 @@ function initGame() {
 
 function startNextStage() {
     currentStage++;
-    stageDistanceTarget += 2000; // Increase required distance each stage
+    stageDistanceTarget += 600; // Increase required distance each stage
     runDistance = 0;
     timer += 20; // Bonus time
     finishLineY = -1;

@@ -297,20 +297,20 @@ class AudioFX {
         if (!this.ctx) return;
         if (this.engineOsc) return;
 
+        // Use square/sawtooth but heavily lowpassed, or just sine for a hum
         const { osc, gain } = this.createOscillator(50, 'sawtooth');
         this.engineOsc = osc;
         this.engineGain = gain;
         
-        gain.gain.value = 0.2;
-        this.engineOsc.start();
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        this.engineOsc.start(this.ctx.currentTime);
     }
     
     updateEngine(speed) {
         if (!this.engineOsc || !this.ctx) return;
-        const now = this.ctx.currentTime;
         // Pitch mapping from 50Hz to 200Hz based on speed
-        const pitch = 50 + (speed * 0.7);
-        this.engineOsc.frequency.setTargetAtTime(pitch, now, 0.1);
+        const pitch = 30 + (speed * 0.8);
+        this.engineOsc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
     }
     
     stopEngine() {
