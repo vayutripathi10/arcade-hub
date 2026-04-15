@@ -352,7 +352,7 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
 'use strict';
 
 // ========== CONSTANTS ==========
-const MAX_STICK_LENGTH = 350;
+const MAX_STICK_LENGTH = 600;
 const STICK_GROW_SPEED = 2.5;
 const STICK_FALL_SPEED = 4;
 const STICK_WIDTH = 4;
@@ -838,9 +838,11 @@ function drawPlatform(x, y, w, color) {
 
 function drawStick(attacker, target) {
     if (stickState === 'idle') return;
-    const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    const aOx = (attacker === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
+    const aOy = (attacker === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
+    const armY = attacker.platformY + aOy - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
     const dir = target.x > attacker.x ? 1 : -1;
-    const handX = attacker.x + dir * ARM_LENGTH;
+    const handX = attacker.x + aOx + dir * ARM_LENGTH;
     const handY = armY - 8;
 
     ctx.strokeStyle = attacker.color === 'rainbow' ? getSkinColor('rainbow', animFrame) : attacker.color;
@@ -1014,9 +1016,11 @@ function triggerSlowMo() {
 
 // ========== HIT DETECTION ==========
 function checkHitOnTarget(attacker, target) {
+    const aOx = (attacker === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
+    const aOy = (attacker === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
     const dir = target.x > attacker.x ? 1 : -1;
-    const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
-    const handX = attacker.x + dir * ARM_LENGTH;
+    const armY = attacker.platformY + aOy - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    const handX = attacker.x + aOx + dir * ARM_LENGTH;
     const handY = armY - 8;
     
     // Stick tip with wind
@@ -1025,7 +1029,11 @@ function checkHitOnTarget(attacker, target) {
     const tipY = handY;
 
     // Target head position
-    const tFootY = target.platformY - PLATFORM_HEIGHT;
+    const tOx = (target === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
+    const tOy = (target === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
+    const targetX = target.x + tOx;
+    
+    const tFootY = target.platformY + tOy - PLATFORM_HEIGHT;
     const tBodyBottom = tFootY - LEG_LENGTH;
     const tBodyTop = tBodyBottom - BODY_HEIGHT;
     const tHeadR = (target === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
@@ -1073,16 +1081,16 @@ function checkHitOnTarget(attacker, target) {
     // Shield check
     const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
     if (shieldActive) {
-        const shieldDist = Math.sqrt((tipX - target.x) ** 2 + (tipY - (tHeadY + BODY_HEIGHT / 2)) ** 2);
+        const shieldDist = Math.sqrt((tipX - targetX) ** 2 + (tipY - (tHeadY + BODY_HEIGHT / 2)) ** 2);
         if (shieldDist <= 50) return 'shield_hit';
     }
 
     // Headshot check
-    const headDist = Math.sqrt((tipX - target.x) ** 2 + (tipY - tHeadY) ** 2);
+    const headDist = Math.sqrt((tipX - targetX) ** 2 + (tipY - tHeadY) ** 2);
     if (headDist <= tHeadR + 6) return 'headshot';
 
     // Body check
-    if (Math.abs(tipX - target.x) <= 15 && tipY >= tBodyTop && tipY <= tBodyBottom) return 'body';
+    if (Math.abs(tipX - targetX) <= 15 && tipY >= tBodyTop && tipY <= tBodyBottom) return 'body';
 
     return 'miss';
 }
@@ -1121,6 +1129,8 @@ function endTurn() {
         return;
     }
 
+    stickState = 'idle';
+
     // Switch turn
     currentTurn = currentTurn === 1 ? 2 : 1;
     setTimeout(() => startTurn(), 800);
@@ -1140,16 +1150,19 @@ function handleStickLanded() {
     const target = currentTurn === 1 ? player2 : player1;
     
     // Recalculate tip position for effects
+    const aOx = (attacker === player1) ? MatchState.p1Offset.x : MatchState.p2Offset.x;
+    const aOy = (attacker === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
     const dir = target.x > attacker.x ? 1 : -1;
-    const armY = attacker.platformY - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
-    const handX = attacker.x + dir * ARM_LENGTH;
+    const armY = attacker.platformY + aOy - PLATFORM_HEIGHT - LEG_LENGTH - BODY_HEIGHT + 12;
+    const handX = attacker.x + aOx + dir * ARM_LENGTH;
     const handY = armY - 8;
     const windOffset = wind * (stickLength / MAX_STICK_LENGTH) * 5;
     const tipX = handX + stickLength * dir + windOffset;
     const tipY = handY;
 
     const headR = (target === player1) ? MatchState.p1HeadRadius : MatchState.p2HeadRadius;
-    const ty = (target.platformY - PLATFORM_HEIGHT - BODY_HEIGHT - headR - LEG_LENGTH) + (target === player1 ? MatchState.p1Offset.y : MatchState.p2Offset.y);
+    const tOy = (target === player1) ? MatchState.p1Offset.y : MatchState.p2Offset.y;
+    const ty = (target.platformY + tOy - PLATFORM_HEIGHT - BODY_HEIGHT - headR - LEG_LENGTH);
 
     MatchState.lastHitPos = { x: tipX, y: ty };
     let hitResult = checkHitOnTarget(attacker, target);
@@ -1240,7 +1253,10 @@ function aiPlay() {
     aiThinking = false;
     const attacker = player2;
     const target = player1;
-    const dist = Math.abs(target.x - attacker.x);
+
+    const tOx = MatchState.p1Offset.x;
+    const aOx = MatchState.p2Offset.x;
+    const dist = Math.abs((target.x + tOx) - (attacker.x + aOx));
     
     // AI calculates ideal stick length based on distance + wind + target movement
     let windOffset = wind * (1) * 5; 
