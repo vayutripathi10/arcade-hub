@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro Racer - Arcade Hub</title>
+    <!-- Use a retro pixel font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background wrapper for mobile filling -->
+    <div id="gameWrapper">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- UI Overlay -->
+        <div id="hud" class="hud-hidden">
+            <div class="hud-top">
+                <div class="score-box">SCORE: <span id="ui-score">0</span></div>
+                <div class="lives-box">LIVES: <span id="ui-lives">3</span></div>
+            </div>
+            <div class="hud-bottom">
+                <div class="timer-box">TIME: <span id="ui-time">30</span></div>
+                <div class="speed-box"><span id="ui-speed">0</span> MPH</div>
+            </div>
+        </div>
+
+        <!-- Menus -->
+        <div id="mainMenu" class="menu-overlay">
+            <h1>RETRO RACER</h1>
+            <p>Dodge traffic. Collect Fuel. Survive!</p>
+            <div class="controls-info">
+                <span>💻 Arrow Keys</span> | <span>📱 Swipe Left/Right</span>
+            </div>
+            <button id="btn-start" class="arcade-btn">START RACE</button>
+            <button id="btn-howtoplay" class="arcade-btn outline">HOW TO PLAY</button>
+            <a href="../retro-hub.html" class="back-link">← Back to Hub</a>
+        </div>
+
+        <div id="pauseMenu" class="menu-overlay hidden">
+            <h1>PAUSED</h1>
+            <button id="btn-resume" class="arcade-btn">RESUME</button>
+            <button id="btn-quit" class="arcade-btn outline">QUIT</button>
+        </div>
+
+        <div id="gameOverMenu" class="menu-overlay hidden">
+            <h1 id="go-title">OUT OF TIME!</h1>
+            <div class="stats-box">
+                <p>FINAL SCORE: <span id="go-score">0</span></p>
+                <p>HIGH SCORE: <span id="go-best">0</span></p>
+            </div>
+            <button id="btn-restart" class="arcade-btn">RACE AGAIN</button>
+            <button id="btn-menu" class="arcade-btn outline">MAIN MENU</button>
+        </div>
+
+        <!-- Controls UI -->
+        <button id="btn-pause" class="icon-btn">⏸</button>
+        <button id="btn-mute" class="icon-btn">🔊</button>
+    </div>
+
+    <!-- Modals -->
+    <div id="howToPlayModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>HOW TO PLAY</h2>
+            <ul>
+                <li>Drive as far as you can before the <b>Timer</b> hits 0.</li>
+                <li>Dodge the <b>Blue Traffic Cars</b> to avoid losing your 3 Lives!</li>
+                <li>Hit the <b>Yellow Petrol Trucks</b> to replenish your Time!</li>
+            </ul>
+            <button id="btn-close-htp" class="arcade-btn">GOT IT</button>
+        </div>
+    </div>
+
+    <script src="../shared/achievements.js"></script>
+    <script src="../shared/audio.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
