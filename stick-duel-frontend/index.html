@@ -1070,6 +1070,13 @@ function checkHitOnTarget(attacker, target) {
         }
     }
 
+    // Shield check
+    const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
+    if (shieldActive) {
+        const shieldDist = Math.sqrt((tipX - target.x) ** 2 + (tipY - (tHeadY + BODY_HEIGHT / 2)) ** 2);
+        if (shieldDist <= 50) return 'shield_hit';
+    }
+
     // Headshot check
     const headDist = Math.sqrt((tipX - target.x) ** 2 + (tipY - tHeadY) ** 2);
     if (headDist <= tHeadR + 6) return 'headshot';
@@ -1155,7 +1162,7 @@ function handleStickLanded() {
         else MatchState.p2Offset.x += recoilX;
     }
 
-    if (hitResult === 'headshot' || hitResult === 'body') {
+    if (hitResult === 'headshot' || hitResult === 'body' || hitResult === 'shield_hit') {
         const shieldActive = (target === player1) ? MatchState.p1Shield : MatchState.p2Shield;
         if (shieldActive) {
             if (target === player1) MatchState.p1Shield = false; else MatchState.p2Shield = false;
