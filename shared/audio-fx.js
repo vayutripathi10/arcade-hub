@@ -297,20 +297,30 @@ class AudioFX {
         if (!this.ctx) return;
         if (this.engineOsc) return;
 
-        // Use square/sawtooth but heavily lowpassed, or just sine for a hum
-        const { osc, gain } = this.createOscillator(50, 'sawtooth');
+        // Use square wave for more audible harmonics on laptop speakers
+        const { osc, gain } = this.createOscillator(50, 'square');
         this.engineOsc = osc;
         this.engineGain = gain;
         
-        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        // Filter it so it doesn't sound too harsh
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400; // Keep it low and rumbly
+        
+        osc.disconnect();
+        osc.connect(filter);
+        filter.connect(gain);
+        
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
         this.engineOsc.start(this.ctx.currentTime);
     }
     
     updateEngine(speed) {
         if (!this.engineOsc || !this.ctx) return;
-        // Pitch mapping from 50Hz to 200Hz based on speed
-        const pitch = 30 + (speed * 0.8);
-        this.engineOsc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
+        // Pitch mapping: 60 speed = 60Hz, 150 speed = 150Hz
+        const pitch = Math.max(30, speed);
+        // Direct assignment works much better for 60fps frame loops than scheduling events
+        this.engineOsc.frequency.value = pitch;
     }
     
     stopEngine() {

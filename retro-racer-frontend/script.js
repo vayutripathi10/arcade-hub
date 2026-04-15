@@ -172,7 +172,6 @@ function initGame() {
 }
 
 function startNextStage() {
-    currentStage++;
     stageDistanceTarget += 600; // Increase required distance each stage
     runDistance = 0;
     timer += 20; // Bonus time
@@ -299,7 +298,13 @@ function update(dt) {
             if (window.audioFX && window.audioFX.stopEngine) window.audioFX.stopEngine();
             playSound('victory');
             score += 1000 * currentStage;
-            setTimeout(startNextStage, 3000);
+            
+            // Show CLEAR for 2 seconds, then STARTING for 2 seconds
+            setTimeout(() => {
+                gameState = 'stage_starting';
+                currentStage++;
+                setTimeout(startNextStage, 2000);
+            }, 2000);
             return;
         }
     } else {
@@ -443,14 +448,19 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     
-    // Stage Clear Overlay
-    if (gameState === 'stage_clear') {
+    // Stage Overlays
+    if (gameState === 'stage_clear' || gameState === 'stage_starting') {
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#ffd700';
-        ctx.font = '30px "Press Start 2P"';
+        ctx.font = '24px "Press Start 2P"';
         ctx.shadowBlur = 10; ctx.shadowColor = '#000';
-        ctx.fillText("STAGE " + currentStage + " CLEAR!", canvas.width/2, canvas.height/2);
+        
+        if (gameState === 'stage_clear') {
+            ctx.fillText("STAGE " + currentStage + " CLEAR!", canvas.width/2, canvas.height/2);
+        } else if (gameState === 'stage_starting') {
+            ctx.fillText("STAGE " + currentStage + " STARTING...", canvas.width/2, canvas.height/2);
+        }
         ctx.shadowBlur = 0;
     }
 }
