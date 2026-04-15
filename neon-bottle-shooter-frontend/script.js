@@ -183,12 +183,13 @@ class Particle {
 }
 
 class FloatingText {
-    constructor(x, y, text, color) {
+    constructor(x, y, text, color, size = 24) {
         this.x = x;
         this.y = y;
         this.text = text;
         this.color = color;
         this.life = 1.0;
+        this.size = size;
     }
     update() {
         this.y -= 2;
@@ -198,7 +199,7 @@ class FloatingText {
         ctx.save();
         ctx.globalAlpha = this.life;
         ctx.fillStyle = this.color;
-        ctx.font = 'bold 24px Outfit';
+        ctx.font = `bold ${this.size}px Outfit`;
         ctx.textAlign = 'center';
         ctx.shadowBlur = 5;
         ctx.shadowColor = this.color;
@@ -425,6 +426,7 @@ function hitBottle(b, index) {
             freezeTimer = 120; // 2 seconds
             iceDestroyed++;
             if(iceDestroyed>=25 && window.achievements) window.achievements.unlock('bottle', 'ice_25', 'Ice Breaker');
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '❄️ TIME FROZEN! ❄️', colors.ice, 48));
             break;
         case 'giant': 
             pts = 200; screenShake = 15; 
