@@ -210,12 +210,25 @@ function spawnObstacle() {
     const lanes = 3;
     const laneWidth = roadWidth / lanes;
     const lane = Math.floor(Math.random() * lanes);
-    const x = grassWidth + (lane * laneWidth) + (laneWidth / 2);
+    
+    // Create random variance so the white lines are NOT safe zones
+    // Petrol cars stay generally centered, enemies can drift heavily
+    const varianceMultiplier = isPetrol ? 0.3 : 0.85; 
+    const variance = (Math.random() - 0.5) * (laneWidth * varianceMultiplier);
+    
+    const x = grassWidth + (lane * laneWidth) + (laneWidth / 2) + variance;
+    
+    // In Stage 2+, some enemy cars weave horizontally!
+    let vx = 0;
+    if (!isPetrol && currentStage >= 2 && Math.random() < 0.4) {
+        vx = (Math.random() > 0.5 ? 1 : -1) * (30 + (currentStage * 15));
+    }
     
     obstacles.push({
         type: isPetrol ? 'petrol' : 'enemy',
         x: x, y: -100,
         w: 35, h: 70,
+        vx: vx,
         speed: speed * 0.4 + (Math.random() * 20) + (currentStage * 5),
         active: true, crashed: false
     });
@@ -325,6 +338,14 @@ function update(dt) {
         
         obs.y += speed * 3 * (dt/1000); // Relative approach
         if (obs.y > canvas.height + 100) obs.active = false;
+        
+        // Weaving mechanics for advanced enemies
+        if (obs.vx) {
+            obs.x += obs.vx * (dt/1000);
+            // Bounce off the grass edges so they don't off-road
+            if (obs.x < grassWidth + obs.w) { obs.x = grassWidth + obs.w; obs.vx *= -1; }
+            if (obs.x > canvas.width - grassWidth - obs.w) { obs.x = canvas.width - grassWidth - obs.w; obs.vx *= -1; }
+        }
         
         // Collision
         if (!obs.crashed) {
