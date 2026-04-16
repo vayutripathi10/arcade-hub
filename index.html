@@ -81,7 +81,26 @@
     <!-- Adsterra Global Popunder -->
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="hub-style.css">
+
+    <style>
+        .retro-card { transition: all 0.3s ease; }
+        .retro-card:hover {
+            transform: translateY(-5px);
+            box-shadow: inset 0 0 15px #0f0, 4px 8px 0 #0f0 !important;
+            border-color: #0f0 !important;
+        }
+        .retro-card:hover .play-btn {
+            background: #fff !important;
+            color: #000 !important;
+            box-shadow: 4px 4px 0 #000, inset 0 0 10px #0f0 !important;
+        }
+        .retro-card:hover .card-icon {
+            box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0 !important;
+            background: rgba(0, 255, 0, 0.3) !important;
+        }
+    </style>
 
     
 
@@ -126,7 +145,92 @@
         </div>
 
         <div class="games-grid">
-            <!-- Dino Runner Card -->
+            
+
+            <!-- Stick Duel Towers Card -->
+            <a href="stick-duel-frontend/index.html" class="game-card">
+                <div class="card-icon duel-icon">
+                    <span class="duel-emoji">⚔️</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Stick Duel Towers</h3>
+                    <p class="game-desc">A turn-based stickman duel! Grow your stick, aim for the head, and conquer the towers.<br><br><b>How to play:</b> Hold SPACE or Touch & Hold to grow your stick. Release to throw it at your opponent. Headshots deal extra damage!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+
+            <!-- Neon Space Shooter Card -->
+            <a href="space-shooter-frontend/index.html" class="game-card">
+                <div class="card-icon space-icon">
+                    <span class="space-emoji">🚀</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Space Shooter</h3>
+                    <p class="game-desc">Destroy alien swarms and dodge asteroids in deep space!<br><br><b>How to play:</b> Use Arrows/WASD to move. Your ship auto-shoots. Collect power-ups from heavy Tank Aliens to boost your firepower or shields!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Neon Draw Bridge Card -->
+            <a href="neon-drawbridge-frontend/index.html" class="game-card">
+                <div class="card-icon bridge-icon">
+                    <span class="bridge-emoji">🌉</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Draw Bridge</h3>
+                    <p class="game-desc">Draw bridges and ramps to guide a glowing neon ball to the portal.<br><br><b>How to play:</b> Use your mouse or finger to draw lines. Press Space or Tap the Play button to start the physics simulation!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Neon Bottle Shooter Card -->
+            <a href="neon-bottle-shooter-frontend/index.html" class="game-card">
+                <div class="card-icon bottle-icon">
+                    <span class="bottle-emoji">🍾</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Bottle Shooter</h3>
+                    <p class="game-desc">A fast-paced neon shooting gallery! Break bottles, build combos, and survive.<br><br><b>How to play:</b> Tap or Click to shoot. Manage your ammo, hit special bottles for points, and don't shoot the bombs!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Flappy Bird Card -->
+            <a href="flappy-frontend/index.html" class="game-card">
+                <div class="card-icon flappy-icon">
+                    <span class="bird-emoji">🐦</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Flappy</h3>
+                    <p class="game-desc">Tap to flap through glowing neon pipes. How high can you score?<br><br><b>How to play:</b> Press Space or Tap the screen to flap your wings and fly higher. Navigate safely through the gaps to survive!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Neon Brawler Card -->
+            <a href="neon-brawler-frontend/index.html" class="game-card">
+                <div class="card-icon brawler-icon">
+                    <span class="brawler-emoji">🥊</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Brawler</h3>
+                    <p class="game-desc">Defend yourself from incoming enemies in this action-reaction fighting game!<br><br><b>How to play:</b> Tap the Left or Right half of the screen (or use Arrow Keys) to attack enemies as they enter your hit range.</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a>
+
+            <!-- Neon Runner Card -->
+            <a href="neon-runner-frontend/index.html" class="game-card">
+                <div class="card-icon runner-icon">
+                    <span class="runner-emoji">🏃‍♂️</span>
+                </div>
+                <div class="card-content">
+                    <h3 class="game-title">Neon Runner</h3>
+                    <p class="game-desc">Sprint through a retro-neon city in this endless 3-lane runner!<br><br><b>How to play:</b> Swipe Up/Down (or use Arrow Keys) to switch lanes and dodge barriers. Collect coins to refill your double-tap Invincibility Boost!</p>
+                    <span class="play-btn">Play Now</span>
+                </div>
+            </a><!-- Dino Runner Card -->
             <a href="dino-frontend/index.html" class="game-card">
                 <div class="card-icon dino-icon">
                     <div class="dino-head"></div>
@@ -168,88 +272,15 @@
                     <span class="play-btn">Play Now</span>
                 </div>
             </a>
-
-            <!-- Flappy Bird Card -->
-            <a href="flappy-frontend/index.html" class="game-card">
-                <div class="card-icon flappy-icon">
-                    <span class="bird-emoji">🐦</span>
+            <!-- Retro Hub Card -->
+            <a href="retro-hub.html" class="game-card retro-card" style="background: #111; border: 4px inset #666; box-shadow: inset 0 0 10px #000, 4px 4px 0 #000; border-radius: 0;">
+                <div class="card-icon" style="background: rgba(0,255,0,0.1); border: 2px solid #0f0; border-radius: 0; box-shadow: 0 0 10px #0f0;">
+                    <span style="font-family: 'Press Start 2P', Courier; color: #0f0; font-weight: bold; font-size: 24px;">🕹️</span>
                 </div>
                 <div class="card-content">
-                    <h3 class="game-title">Neon Flappy</h3>
-                    <p class="game-desc">Tap to flap through glowing neon pipes. How high can you score?<br><br><b>How to play:</b> Press Space or Tap the screen to flap your wings and fly higher. Navigate safely through the gaps to survive!</p>
-                    <span class="play-btn">Play Now</span>
-                </div>
-            </a>
-
-            <!-- Neon Brawler Card -->
-            <a href="neon-brawler-frontend/index.html" class="game-card">
-                <div class="card-icon brawler-icon">
-                    <span class="brawler-emoji">🥊</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="game-title">Neon Brawler</h3>
-                    <p class="game-desc">Defend yourself from incoming enemies in this action-reaction fighting game!<br><br><b>How to play:</b> Tap the Left or Right half of the screen (or use Arrow Keys) to attack enemies as they enter your hit range.</p>
-                    <span class="play-btn">Play Now</span>
-                </div>
-            </a>
-
-            <!-- Neon Runner Card -->
-            <a href="neon-runner-frontend/index.html" class="game-card">
-                <div class="card-icon runner-icon">
-                    <span class="runner-emoji">🏃‍♂️</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="game-title">Neon Runner</h3>
-                    <p class="game-desc">Sprint through a retro-neon city in this endless 3-lane runner!<br><br><b>How to play:</b> Swipe Up/Down (or use Arrow Keys) to switch lanes and dodge barriers. Collect coins to refill your double-tap Invincibility Boost!</p>
-                    <span class="play-btn">Play Now</span>
-                </div>
-            </a>
-
-            <!-- Neon Space Shooter Card -->
-            <a href="space-shooter-frontend/index.html" class="game-card">
-                <div class="card-icon space-icon">
-                    <span class="space-emoji">🚀</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="game-title">Neon Space Shooter</h3>
-                    <p class="game-desc">Destroy alien swarms and dodge asteroids in deep space!<br><br><b>How to play:</b> Use Arrows/WASD to move. Your ship auto-shoots. Collect power-ups from heavy Tank Aliens to boost your firepower or shields!</p>
-                    <span class="play-btn">Play Now</span>
-                </div>
-            </a>
-
-            <!-- Neon Draw Bridge Card -->
-            <a href="neon-drawbridge-frontend/index.html" class="game-card">
-                <div class="card-icon bridge-icon">
-                    <span class="bridge-emoji">🌉</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="game-title">Neon Draw Bridge</h3>
-                    <p class="game-desc">Draw bridges and ramps to guide a glowing neon ball to the portal.<br><br><b>How to play:</b> Use your mouse or finger to draw lines. Press Space or Tap the Play button to start the physics simulation!</p>
-                    <span class="play-btn">Play Now</span>
-                </div>
-            </a>
-
-            <!-- Neon Bottle Shooter Card -->
-            <a href="neon-bottle-shooter-frontend/index.html" class="game-card">
-                <div class="card-icon bottle-icon">
-                    <span class="bottle-emoji">🍾</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="game-title">Neon Bottle Shooter</h3>
-                    <p class="game-desc">A fast-paced neon shooting gallery! Break bottles, build combos, and survive.<br><br><b>How to play:</b> Tap or Click to shoot. Manage your ammo, hit special bottles for points, and don't shoot the bombs!</p>
-                    <span class="play-btn">Play Now</span>
-                </div>
-            </a>
-
-            <!-- Stick Duel Towers Card -->
-            <a href="stick-duel-frontend/index.html" class="game-card">
-                <div class="card-icon duel-icon">
-                    <span class="duel-emoji">⚔️</span>
-                </div>
-                <div class="card-content">
-                    <h3 class="game-title">Stick Duel Towers</h3>
-                    <p class="game-desc">A turn-based stickman duel! Grow your stick, aim for the head, and conquer the towers.<br><br><b>How to play:</b> Hold SPACE or Touch & Hold to grow your stick. Release to throw it at your opponent. Headshots deal extra damage!</p>
-                    <span class="play-btn">Play Now</span>
+                    <h3 class="game-title" style="font-family: 'Press Start 2P', Courier; color: #0f0; text-shadow: none; font-size: 14px; text-transform: uppercase;">Retro Hub</h3>
+                    <p class="game-desc" style="color: #ccc; font-family: 'Courier New', Courier, monospace;">Insert Coin. Step back into the 8-bit era and survive the high scores.</p>
+                    <span class="play-btn" style="background: #0f0; color: #000; border: none; border-radius: 0; font-weight: bold; box-shadow: 2px 2px 0 #000; text-shadow: none;">INSERT COIN</span>
                 </div>
             </a>
         </div>
