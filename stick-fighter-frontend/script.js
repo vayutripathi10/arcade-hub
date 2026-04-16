@@ -318,7 +318,7 @@ function executeAttack(ent) {
         }
     } else {
         // Enemy attacks are simple depending on boss
-        if (ent.isBoss) { attackType = Math.random()>0.5?'attack2':'attack3'; damage = 15; knockback = 15; atkTime = 500; }
+        if (ent.isBoss) { attackType = Math.random()>0.5?'attack2':'attack1'; damage = 15; knockback = 20; atkTime = 400; }
         else { damage = 5; knockback = 5; }
         playSound('swing');
     }
@@ -355,7 +355,7 @@ function checkHitbox(attacker, defender) {
         // Hit!
         if (h.type !== 'attack3') attacker.attackHitbox.active = false; // Normal attacks vanish, flying kicks pierce!
         
-        if (h.type === 'attack3' && !defender.isBoss) {
+        if (h.type === 'attack3' && attacker === player && !defender.isBoss) {
             defender.hp = 0; // One-shot regular enemies!
         } else {
             defender.hp -= h.damage;
