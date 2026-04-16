@@ -424,7 +424,10 @@ function update(dt) {
     }
     if (player.state.startsWith('attack')) {
         player.stateFrame -= dt;
-        if (player.stateFrame <= 0) player.state = 'idle';
+        if (player.stateFrame <= 0) {
+            player.state = 'idle';
+            if (player.attackHitbox) player.attackHitbox.active = false;
+        }
     }
     
     player.x += player.vx;
@@ -466,7 +469,10 @@ function update(dt) {
         }
         else if (e.state.startsWith('attack')) {
             e.stateFrame -= dt;
-            if (e.stateFrame <= 0) e.state = 'idle';
+            if (e.stateFrame <= 0) {
+                e.state = 'idle';
+                if (e.attackHitbox) e.attackHitbox.active = false;
+            }
         }
         else {
             // AI Movement
