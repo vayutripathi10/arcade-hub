@@ -13,5 +13,6 @@ To add a new game to the Arcade Hub, follow these steps:
     - Google Analytics script matching other pages.
 3. **Update Sitemap**: Open `sitemap.xml` and add a new `<url>` block for the game's `index.html`.
 4. **Update Homepage**: Add a new game card to the `.games-grid` in the root `index.html`.
-5. **Announce in News**: Add a new entry to `updates.html`.
-6. **Deploy**: Stage, commit, and push all changes.
+5. **Update About Us**: Open `about.html` and add the new game `span` to the `.game-list-horizontal` and increment the total games count under `.stats-bar`.
+6. **Announce in News**: Add a new entry to `updates.html` and `index.html`.
+7. **Deploy**: Stage, commit, and push all changes.
