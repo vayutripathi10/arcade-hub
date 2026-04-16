@@ -63,15 +63,15 @@ class AudioFX {
     }
 
     injectMuteButton() {
-        // Only inject on game pages, not hub pages
-        if (document.getElementById('global-mute-btn')) return;
+        // Only inject if no mute button exists
+        if (document.getElementById('global-mute-btn') || document.getElementById('btn-mute')) return;
         
         const btn = document.createElement('button');
         btn.id = 'global-mute-btn';
         btn.innerHTML = this.isMuted ? '🔇' : '🔊';
         btn.style.cssText = `
             position: absolute;
-            top: 75px; /* Offset vertically below the pause button to prevent score/button overlaps */
+            top: 75px; /* Default Offset vertically below the pause button */
             right: 20px;
             width: 44px;
             height: 44px;
@@ -93,6 +93,12 @@ class AudioFX {
             -webkit-user-select: none;
         `;
         
+        // Dynamically adjust for specific games with conflicting top-HUDs
+        if (window.location.href.includes('bottle-shooter')) {
+            btn.style.top = 'auto';
+            btn.style.bottom = '90px';
+        }
+
         btn.onmouseover = () => {
             btn.style.background = 'rgba(12, 14, 20, 1)';
             btn.style.borderColor = '#8a2be2';
@@ -122,14 +128,15 @@ class AudioFX {
             wrapper.appendChild(btn);
         } else {
             btn.style.position = 'fixed';
-            // Default offset if no pause button might be present
-            btn.style.right = '20px';
+            if (!window.location.href.includes('bottle-shooter')) {
+                btn.style.right = '20px';
+            }
             document.body.appendChild(btn);
         }
         
         // Fix for mobile landscape mode overlaying correctly and UI visual bugs
         const style = document.createElement('style');
-        style.textContent = `
+        style.textContent = \`
             /* Fix invisible Quit to Menu button backgrounds for older games using share-btn */
             #btn-quit.share-btn {
                 background: rgba(255, 255, 255, 0.15) !important;
@@ -145,18 +152,15 @@ class AudioFX {
                     width: 40px !important;
                     height: 40px !important;
                     font-size: 1.1rem !important;
-                    top: 75px !important;
                 }
             }
             @media (max-height: 600px) and (orientation: landscape) {
                 #global-mute-btn {
                     position: fixed !important;
-                    top: 75px !important; 
-                    right: 20px !important;
                     z-index: 9999 !important;
                 }
             }
-        `;
+        \`;
         document.head.appendChild(style);
     }
 
