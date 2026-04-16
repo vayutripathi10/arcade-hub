@@ -49,6 +49,7 @@ class Entity {
         this.x = x;
         this.y = groundY;
         this.vx = 0;
+        this.vy = 0;
         this.dir = 1; // 1 = right, -1 = left
         this.color = color;
         this.state = 'idle'; // idle, run, attack1, attack2, attack3, hit, dead
@@ -226,12 +227,14 @@ function drawStickman(ctx, ent) {
         l_foot.x = 20;
         r_foot.x = -20;
     }
-    else if (ent.state === 'attack3') { // High Kick
-        l_hand = {x: -20, y: -60};
-        r_hand = {x: 20, y: -20};
-        r_foot = {x: -10, y: 0}; // planted
-        l_foot = {x: 50, y: -60}; // Kicking high!
-        headOffset.x = -10;
+    else if (ent.state === 'attack3') { // Flying Kick
+        ctx.translate(0, -30); // hover
+        ctx.rotate(1.2); // lean horizontally!
+        l_hand = {x: -20, y: -10};
+        r_hand = {x: 20, y: -10};
+        r_foot = {x: -10, y: -30}; // tucked back leg
+        l_foot = {x: 10, y: 40}; // flying forward leg!
+        headOffset = {x: 0, y: -70};
     }
     else if (ent.state === 'hit') {
         headOffset = {x: -20, y: -70};
@@ -308,8 +311,10 @@ function executeAttack(ent) {
         if (comboCount === 2) {
             attackType = 'attack2'; damage = 10; knockback = 10; atkTime = 300;
         } else if (comboCount >= 3) {
-            attackType = 'attack3'; damage = 25; knockback = 25; atkTime = 500;
+            attackType = 'attack3'; damage = 25; knockback = 30; atkTime = 500;
             comboCount = 0; // reset
+            ent.vy = -18; // Flying jump
+            ent.vx = ent.dir * 15; // Flying rush forward
         }
     } else {
         // Enemy attacks are simple depending on boss
@@ -415,6 +420,9 @@ function update(dt) {
     
     player.x += player.vx;
     player.vx *= 0.8; // friction
+    player.y += player.vy;
+    if (player.y < groundY) player.vy += 60 * (dt/1000); // Gravity
+    else { player.y = groundY; player.vy = 0; }
     
     // Check Player hitting Enemies
     enemies.forEach(e => checkHitbox(player, e));
@@ -464,7 +472,7 @@ function update(dt) {
                 e.state = 'idle';
                 e.dir = dist > 0 ? 1 : -1;
                 // Attack Player
-                if (Math.random() < (e.isBoss ? 0.05 : 0.02)) {
+                if (Math.random() < (e.isBoss ? 0.18 : 0.12)) {
                     executeAttack(e);
                 }
             }
@@ -472,6 +480,9 @@ function update(dt) {
         
         e.x += e.vx;
         e.vx *= 0.8;
+        e.y += e.vy;
+        if (e.y < groundY) e.vy += 60 * (dt/1000);
+        else { e.y = groundY; e.vy = 0; }
         
         checkHitbox(e, player);
     }
