@@ -8,7 +8,14 @@ class AudioFX {
         this.masterGain = null;
         this.compressor = null;
         this.enabled = true;
-        this.isMuted = localStorage.getItem('arcadeHubMuted') === 'true';
+        
+        this.isMuted = false;
+        try {
+            this.isMuted = localStorage.getItem('arcadeHubMuted') === 'true';
+        } catch (e) {
+            console.warn('AudioFX: LocalStorage access denied. Defaulting to unmuted.');
+        }
+
         this.engineOsc = null;
         this.engineGain = null;
 
@@ -68,7 +75,7 @@ class AudioFX {
         
         const btn = document.createElement('button');
         btn.id = 'global-mute-btn';
-        btn.innerHTML = this.isMuted ? '🔇' : '🔊';
+        btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
         btn.style.cssText = `
             position: absolute;
             top: 75px; /* Default Offset vertically below the pause button */
@@ -160,16 +167,23 @@ class AudioFX {
                     z-index: 9999 !important;
                 }
             }
-        \`;
+        `;
         document.head.appendChild(style);
     }
 
     toggleMute() {
         this.isMuted = !this.isMuted;
-        localStorage.setItem('arcadeHubMuted', this.isMuted);
-        const btn = document.getElementById('global-mute-btn');
-        if (btn) btn.innerHTML = this.isMuted ? '🔇' : '🔊';
+        try {
+            localStorage.setItem('arcadeHubMuted', this.isMuted);
+        } catch (e) {}
         
+        const btn = document.getElementById('global-mute-btn');
+        if (btn) btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+        
+        const retroBtn = document.getElementById('btn-mute');
+        if (retroBtn) retroBtn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+
+        // Update master volume if initialized
         if (this.masterGain && this.ctx) {
             if (this.isMuted) {
                 this.masterGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
@@ -301,30 +315,20 @@ class AudioFX {
         if (!this.ctx) return;
         if (this.engineOsc) return;
 
-        // Use square wave for more audible harmonics on laptop speakers
-        const { osc, gain } = this.createOscillator(50, 'square');
+        // Use a simple sine wave to guarantee it isn't filtered out by the biquad filter
+        const { osc, gain } = this.createOscillator(50, 'sine');
         this.engineOsc = osc;
         this.engineGain = gain;
         
-        // Filter it so it doesn't sound too harsh
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 400; // Keep it low and rumbly
-        
-        osc.disconnect();
-        osc.connect(filter);
-        filter.connect(gain);
-        
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
         this.engineOsc.start(this.ctx.currentTime);
     }
     
     updateEngine(speed) {
         if (!this.engineOsc || !this.ctx) return;
-        // Pitch mapping: 60 speed = 60Hz, 150 speed = 150Hz
         const pitch = Math.max(30, speed);
-        // Direct assignment works much better for 60fps frame loops than scheduling events
-        this.engineOsc.frequency.value = pitch;
+        // Use setTargetAtTime with a very short time constant
+        this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.016);
     }
     
     stopEngine() {
