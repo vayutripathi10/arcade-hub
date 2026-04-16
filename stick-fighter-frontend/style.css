@@ -15,8 +15,9 @@ body {
     position: relative;
     width: 100%;
     max-width: 800px;
-    height: 600px;
-    margin: 20px auto;
+    height: 80vh;
+    max-height: 600px;
+    margin: 2vh auto;
     background: linear-gradient(180deg, #120e2b 0%, #291244 40%, #000 100%);
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
     border: 2px solid #0ff;
