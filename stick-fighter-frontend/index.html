@@ -19,17 +19,9 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="header" style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:rgba(0,0,0,0.5); border-bottom:1px solid #0ff;">
-        <div class="nav-left">
-            <a href="../index.html" class="back-btn" style="color:#0ff; text-decoration:none; font-family:'Press Start 2P', monospace; font-size:12px;">&#8592; Arcade Hub</a>
-        </div>
-        <div class="nav-right" style="display:flex; gap:20px; align-items:center;">
-            <div class="stat-box" style="font-family:'Press Start 2P', monospace; font-size:12px; color:#fff;">
-                <span class="stat-label">SCORE</span>
-                <span class="stat-val gold" id="ui-score" style="color:#ffd700;">0</span>
-            </div>
-            <button id="btn-pause" class="pause-btn" style="background:#f0f; color:#fff; border:none; padding:5px 10px; font-family:'Press Start 2P', monospace; cursor:pointer; font-size:12px;">||</button>
-        </div>
+    <div class="header">
+        <a href="../index.html" class="back-btn">&#8592; Arcade Hub</a>
+        <button id="btn-pause" class="pause-btn">|| Pause</button>
     </div>
 
     <!-- Top Banner Ad Space -->
@@ -59,7 +51,7 @@
             </div>
 
             <div class="overlay-stats">
-                <div class="stat-left">Defeated: <span id="ui-kills">0</span></div>
+                <div class="stat-left">Defeated: <span id="ui-kills">0</span><br>Score: <span id="ui-score">0</span></div>
                 <div id="ui-combo" class="stat-right hidden">COMBO x<span>0</span></div>
             </div>
         </div>

@@ -11,12 +11,14 @@ body {
     background-color: #0b0b1a; /* Dark synthwave night sky */
 }
 
+
+/* Fix CSS boundary bottom */
 #gameWrapper {
     position: relative;
     width: 100%;
     max-width: 800px;
-    height: 80vh;
-    max-height: 600px;
+    height: 100vh;
+    max-height: calc(100vh - 150px);
     margin: 2vh auto;
     background: linear-gradient(180deg, #120e2b 0%, #291244 40%, #000 100%);
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
@@ -25,7 +27,16 @@ body {
     overflow: hidden;
 }
 
+.header {
+    position: absolute; top: 0; left: 0; width: 100%;
+    display: flex; justify-content: space-between; padding: 15px 20px;
+    box-sizing: border-box; z-index: 1000;
+}
+.back-btn { color: #0ff; text-decoration: none; font-family: 'Press Start 2P', monospace; font-size: 14px; text-shadow: 0 0 5px #0ff;}
+.pause-btn { background: transparent; border: 2px solid #f0f; color: #f0f; font-weight: bold; font-size: 12px; cursor: pointer; padding: 5px 10px; font-family: 'Press Start 2P', monospace; }
+
 #gameCanvas {
+
     display: block;
     width: 100%;
     height: 100%;

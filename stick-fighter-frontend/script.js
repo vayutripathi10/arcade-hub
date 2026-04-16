@@ -313,8 +313,8 @@ function executeAttack(ent) {
         } else if (comboCount >= 3) {
             attackType = 'attack3'; damage = 25; knockback = 30; atkTime = 500;
             comboCount = 0; // reset
-            ent.vy = -18; // Flying jump
-            ent.vx = ent.dir * 15; // Flying rush forward
+            ent.vy = -5; // Horizontal smash
+            ent.vx = ent.dir * 18; // Extreme forward smash
         }
     } else {
         // Enemy attacks are simple depending on boss
@@ -582,3 +582,4 @@ document.querySelector('.close-btn').addEventListener('click', () => { howToPlay
 document.getElementById('btn-quit').addEventListener('click', () => { window.location.href = '../index.html'; });
 document.getElementById('btn-quit-end').addEventListener('click', () => { window.location.href = '../index.html'; });
 document.getElementById('btn-resume').addEventListener('click', togglePause);
+document.getElementById('btn-pause').addEventListener('click', togglePause);
