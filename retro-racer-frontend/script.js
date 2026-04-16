@@ -229,6 +229,12 @@ function updateHUD() {
     
     if (timer <= 10) uiTime.style.color = '#ff0055';
     else uiTime.style.color = '#ffd700';
+    
+    const pFill = document.getElementById('ui-progress-fill');
+    if (pFill) {
+        let pct = Math.min(100, Math.max(0, (runDistance / stageDistanceTarget) * 100));
+        pFill.style.width = pct + "%";
+    }
 }
 
 function gameOver() {
