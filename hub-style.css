@@ -16,7 +16,8 @@
 .nav-links {
     margin-bottom: 2rem;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
     width: 100%;
     gap: 1rem;
 }
@@ -30,6 +31,7 @@
     border-radius: 50px;
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-link:hover {
