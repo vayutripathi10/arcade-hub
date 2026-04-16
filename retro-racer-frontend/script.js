@@ -204,6 +204,11 @@ function spawnFloatingText(x, y, text, color) {
 }
 
 function spawnObstacle() {
+    // Prevent overlapping spawns right at the top
+    for (const obs of obstacles) {
+        if (obs.active && obs.y < 50) return;
+    }
+
     // Stage increases difficulty: enemies spawn faster
     const isPetrol = Math.random() < Math.max(0.04, 0.1 - (currentStage * 0.01)); // Petrol slightly rarer later
     

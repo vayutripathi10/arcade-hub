@@ -36,5 +36,5 @@ def process_image(src_path, dst_filename, target_size=(40, 80)):
 
 base = r"C:\Users\vaytripa\.gemini\antigravity\brain\a6fc08ba-dfbf-42ed-a68a-13725c3736ff"
 process_image(os.path.join(base, "retro_player_car_1776363344538.png"), "player.png", (40, 80))
-process_image(os.path.join(base, "retro_enemy_car_1776363367051.png"), "enemy.png", (40, 80))
+process_image(os.path.join(base, "retro_enemy_car_improved_1776363849494.png"), "enemy.png", (40, 80))
 process_image(os.path.join(base, "retro_petrol_truck_1776363387309.png"), "petrol.png", (44, 95)) # making truck slightly wider and longer
