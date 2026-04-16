@@ -1,0 +1,203 @@
+:root {
+    --player-color: #0ff;
+    --enemy-color: #f0f;
+    --boss-color: #f00;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #0b0b1a; /* Dark synthwave night sky */
+}
+
+#gameWrapper {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 600px;
+    margin: 20px auto;
+    background: linear-gradient(180deg, #120e2b 0%, #291244 40%, #000 100%);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    border: 2px solid #0ff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Transition applied conditionally in script for screenshake */
+}
+
+.shake {
+    animation: shakeEffect 0.2s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shakeEffect {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-5px, 2px); }
+    40% { transform: translate(5px, -2px); }
+    60% { transform: translate(-3px, 5px); }
+    80% { transform: translate(3px, -5px); }
+}
+
+#hud {
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 10;
+    pointer-events: none;
+}
+.hud-hidden { display: none !important; }
+
+/* Health Bars */
+#player-health-bar-container {
+    width: 100%;
+    height: 15px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #0ff;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 10px #0ff;
+}
+
+#player-health-bar {
+    width: 100%;
+    height: 100%;
+    background: #0ff;
+    transition: width 0.1s linear, background 0.3s;
+}
+
+#boss-health-bar-container {
+    width: 80%;
+    height: 15px;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid #f00;
+    border-radius: 4px;
+    margin: 0 auto 10px auto;
+    box-shadow: 0 0 15px #f00;
+}
+
+#boss-health-bar {
+    width: 100%;
+    height: 100%;
+    background: #f00;
+    transition: width 0.1s linear;
+}
+
+.overlay-stats {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Press Start 2P', Courier;
+    color: #fff;
+    font-size: 14px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+#ui-combo {
+    color: #f0f;
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); text-shadow: 0 0 10px #f0f; }
+    100% { transform: scale(1); }
+}
+
+/* Mobile Controls */
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 20;
+}
+
+.m-btn {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 255, 255, 0.2);
+    border: 2px solid #0ff;
+    color: #fff;
+    font-size: 24px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.m-btn:active {
+    background: rgba(0, 255, 255, 0.6);
+    transform: scale(0.9);
+}
+
+.attack-btn {
+    width: 80px; height: 80px;
+    background: rgba(255, 0, 85, 0.2);
+    border-color: #ff0055;
+    font-family: 'Press Start 2P', Courier;
+    font-size: 10px;
+}
+.attack-btn:active {
+    background: rgba(255, 0, 85, 0.6);
+}
+
+.dpad-left { display: flex; gap: 10px; }
+.dpad-right { margin-right: 20px;}
+
+/* Match Mobile Constraints */
+@media (max-width: 600px) {
+    #gameWrapper {
+        height: 100vh;
+        height: 100dvh;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+    }
+    #mobile-controls {
+        display: flex !important; /* overriden by JS but ensures format */
+    }
+}
+@media (min-width: 601px) {
+    #mobile-controls { display: none !important; }
+}
+
+/* Base Modal Overrides */
+.menu-overlay {
+    background: rgba(10, 10, 25, 0.9);
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    text-align: center;
+}
+.hidden { display: none !important; }
+
+.btn {
+    margin: 10px; padding: 15px 30px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    border: none; border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+.primary-btn {
+    background: #0ff; color: #000;
+    box-shadow: 0 0 15px #0ff;
+}
+.secondary-btn {
+    background: transparent; color: #f0f;
+    border: 2px solid #f0f;
+}
