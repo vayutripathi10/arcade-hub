@@ -315,20 +315,20 @@ class AudioFX {
         if (!this.ctx) return;
         if (this.engineOsc) return;
 
-        // Use a simple sine wave to guarantee it isn't filtered out by the biquad filter
-        const { osc, gain } = this.createOscillator(50, 'sine');
+        // Use a triangle wave for an audible buzzy engine hum that works on mobile speakers
+        const { osc, gain } = this.createOscillator(80, 'triangle');
         this.engineOsc = osc;
         this.engineGain = gain;
         
-        gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
         this.engineOsc.start(this.ctx.currentTime);
     }
     
     updateEngine(speed) {
         if (!this.engineOsc || !this.ctx) return;
-        const pitch = Math.max(30, speed);
-        // Use setTargetAtTime with a very short time constant
-        this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.016);
+        // Pitch mapping from audible idle rumble (80Hz) to high whining speed
+        const pitch = 80 + (speed * 0.8);
+        this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.05);
     }
     
     stopEngine() {
