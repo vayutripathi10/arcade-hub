@@ -63,8 +63,11 @@ let totalEnemiesInStage = 5;
 let enemies = [];
 let bullets = [];
 let particles = [];
+let powerUps = [];
 let enemySpawnTimer = 0;
 let spawnRate = 3000;
+let freezeTimer = 0;
+let deathAnimationTimer = 0;
 
 // Tile Map (0: Empty, 1: Brick, 2: Steel, 3: Grass, 4: Water)
 let map = [];
@@ -84,17 +87,68 @@ function initMap() {
             }
         }
     }
-    // Clear area around HQ and spawn
+    // Clear area around HQ
     const midX = Math.floor(MAP_COLS / 2);
-    map[MAP_ROWS - 2][midX] = 0; // HQ spot
-    map[MAP_ROWS - 3][midX] = 0;
-    map[MAP_ROWS - 3][midX - 1] = 0;
-    map[MAP_ROWS - 3][midX + 1] = 0;
+    for (let r = MAP_ROWS - 4; r < MAP_ROWS - 1; r++) {
+        for (let c = midX - 2; c <= midX + 2; c++) {
+            if (map[r] && map[r][c] !== undefined) map[r][c] = 0;
+        }
+    }
     
-    // Clear spawn area
-    map[2][midX] = 0;
-    map[2][midX-1] = 0;
-    map[2][midX+1] = 0;
+    // Clear Player Spawn Area (Centered at MAP_ROWS-5, midX)
+    for (let r = MAP_ROWS - 7; r < MAP_ROWS - 3; r++) {
+        for (let c = midX - 2; c <= midX + 2; c++) {
+            if (map[r] && map[r][c] !== undefined) map[r][c] = 0;
+        }
+    }
+
+    // Clear Enemy Spawn Area (Top)
+    for (let r = 1; r < 4; r++) {
+        for (let c = 1; c < MAP_COLS - 1; c++) {
+            if (map[r] && map[r][c] !== undefined) {
+                // Keep top row mostly clear
+                if (Math.random() < 0.8) map[r][c] = 0;
+            }
+        }
+    }
+}
+
+// PowerUp Types
+const POWERUP_TYPES = ['shield', 'freeze', 'multi', 'strong', 'speed'];
+
+class PowerUp {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.width = 24;
+        this.height = 24;
+        this.life = 10000; // 10 seconds to collect
+        this.spawnTime = Date.now();
+    }
+
+    draw() {
+        const glow = Math.sin(Date.now() / 200) * 5 + 5;
+        ctx.shadowBlur = glow;
+        ctx.shadowColor = '#fff';
+
+        let color = '#fff';
+        let char = '?';
+        if (this.type === 'shield') { color = '#00ccff'; char = 'S'; }
+        if (this.type === 'freeze') { color = '#00ffff'; char = 'F'; }
+        if (this.type === 'multi') { color = '#ff00ff'; char = 'M'; }
+        if (this.type === 'strong') { color = '#ff4400'; char = 'B'; }
+        if (this.type === 'speed') { color = '#ffff00'; char = 'V'; }
+
+        ctx.fillStyle = color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        
+        ctx.fillStyle = '#000';
+        ctx.font = '12px "Press Start 2P"';
+        ctx.fillText(char, this.x + 5, this.y + 18);
+        
+        ctx.shadowBlur = 0;
+    }
 }
 
 class Tank {
@@ -113,11 +167,29 @@ class Tank {
         this.lastShot = 0;
         this.shotCooldown = type === 'player' ? 500 : Math.max(800, 2000 - (currentStage * 100));
         this.moving = false;
+
+        // Power-up States
+        this.shield = 0; 
+        this.multiShotTimer = 0;
+        this.strongBulletTimer = 0;
+        this.speedTimer = 0;
     }
 
     draw() {
         const img = this.type === 'player' ? assets.playerTank : assets.enemyTank;
         if (!img) return;
+
+        // Draw Shield
+        if (this.type === 'player' && this.shield > 0) {
+            ctx.beginPath();
+            ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 1.5, 0, Math.PI * 2);
+            ctx.strokeStyle = '#00ccff';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            ctx.lineDashOffset = Date.now() / 50;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
 
         ctx.save();
         ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
@@ -184,24 +256,42 @@ class Tank {
 
     shoot() {
         const now = Date.now();
-        if (now - this.lastShot < this.shotCooldown) return;
+        // Speed powerup reduces cooldown
+        const effectiveCooldown = (this.type === 'player' && this.speedTimer > 0) ? this.shotCooldown / 1.8 : this.shotCooldown;
+        if (now - this.lastShot < effectiveCooldown) return;
 
         let bx = this.x + this.width / 2;
         let by = this.y + this.height / 2;
-        bullets.push(new Bullet(bx, by, this.dir, this.type));
+        
+        if (this.type === 'player' && this.multiShotTimer > 0) {
+            // Triple shot spread
+            bullets.push(new Bullet(bx, by, this.dir, this.type, this.strongBulletTimer > 0));
+            const offset = 12;
+            if (this.dir === 0 || this.dir === 2) {
+                bullets.push(new Bullet(bx - offset, by, this.dir, this.type, this.strongBulletTimer > 0));
+                bullets.push(new Bullet(bx + offset, by, this.dir, this.type, this.strongBulletTimer > 0));
+            } else {
+                bullets.push(new Bullet(bx, by - offset, this.dir, this.type, this.strongBulletTimer > 0));
+                bullets.push(new Bullet(bx, by + offset, this.dir, this.type, this.strongBulletTimer > 0));
+            }
+        } else {
+            bullets.push(new Bullet(bx, by, this.dir, this.type, this.strongBulletTimer > 0));
+        }
+
         this.lastShot = now;
         if (this.type === 'player' && window.audioFX) window.audioFX.playJump();
     }
 }
 
 class Bullet {
-    constructor(x, y, dir, owner) {
+    constructor(x, y, dir, owner, isStrong = false) {
         this.x = x;
         this.y = y;
         this.dir = dir;
         this.owner = owner;
         this.speed = owner === 'player' ? 6 : 4;
         this.radius = 4;
+        this.isStrong = isStrong;
     }
 
     update() {
@@ -210,11 +300,19 @@ class Bullet {
         if (this.dir === 2) this.y += this.speed;
         if (this.dir === 3) this.x -= this.speed;
 
-        // Collision with map
         const r = Math.floor(this.y / TILE_SIZE);
         const c = Math.floor(this.x / TILE_SIZE);
         if (map[r] && map[r][c] > 0) {
-            if (map[r][c] === 1) map[r][c] = 0; // Destroy brick
+            if (map[r][c] === 1) {
+                map[r][c] = 0; // Destroy brick
+                // Chance to drop powerup
+                if (Math.random() < 0.15) {
+                    const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
+                    powerUps.push(new PowerUp(c * TILE_SIZE + 4, r * TILE_SIZE + 4, type));
+                }
+            } else if (map[r][c] === 2 && this.isStrong) {
+                map[r][c] = 0; // Destroy steel!
+            }
             createExplosion(this.x, this.y, '#f00');
             return false;
         }
@@ -232,10 +330,15 @@ class Bullet {
         // Collision with Tanks
         if (this.owner === 'enemy') {
             if (Math.abs(this.x - (player.x + TANK_SIZE / 2)) < 24 && Math.abs(this.y - (player.y + TANK_SIZE / 2)) < 24) {
-                player.hp -= 10;
-                createExplosion(this.x, this.y, '#0ff');
-                updateHUD();
-                if (player.hp <= 0) endGame('MISSION FAILED');
+                if (player.shield > 0) {
+                    player.shield--;
+                    createExplosion(this.x, this.y, '#00ccff');
+                } else {
+                    player.hp -= 10;
+                    createExplosion(this.x, this.y, '#0ff');
+                    updateHUD();
+                    if (player.hp <= 0) endGame('MISSION FAILED');
+                }
                 return false;
             }
         } else {
@@ -257,9 +360,7 @@ class Bullet {
             }
         }
 
-        // Out of bounds
         if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) return false;
-
         return true;
     }
 
@@ -290,20 +391,61 @@ window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'S
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
 function update(dt) {
+    if (gameState === 'death_sequence') {
+        deathAnimationTimer -= dt;
+        particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
+        particles = particles.filter(p => p.life > 0);
+        if (deathAnimationTimer <= 0) endGame('TANK COLLISION!');
+        return;
+    }
+
     if (gameState !== 'playing') return;
 
-    // Player controls
-    player.moving = false;
-    if (keys['ArrowUp'] || keys['KeyW']) { player.dir = 0; player.moving = true; }
-    else if (keys['ArrowRight'] || keys['KeyD']) { player.dir = 1; player.moving = true; }
-    else if (keys['ArrowDown'] || keys['KeyS']) { player.dir = 2; player.moving = true; }
-    else if (keys['ArrowLeft'] || keys['KeyA']) { player.dir = 3; player.moving = true; }
+    // Power-up durations
+    if (player.multiShotTimer > 0) player.multiShotTimer -= dt;
+    if (player.strongBulletTimer > 0) player.strongBulletTimer -= dt;
+    if (player.speedTimer > 0) player.speedTimer -= dt;
+    if (freezeTimer > 0) freezeTimer -= dt;
 
-    player.move(dt);
+    // Player with speed boost
+    player.moving = false;
+    const pSpeed = player.speedTimer > 0 ? player.speed * 1.5 : player.speed;
+
+    if (keys['ArrowUp'] || keys['KeyW']) { 
+        player.dir = 0; player.moving = true; 
+        const nx = player.x; const ny = player.y - pSpeed;
+        if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
+    }
+    else if (keys['ArrowRight'] || keys['KeyD']) { 
+        player.dir = 1; player.moving = true; 
+        const nx = player.x + pSpeed; const ny = player.y;
+        if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
+    }
+    else if (keys['ArrowDown'] || keys['KeyS']) { 
+        player.dir = 2; player.moving = true; 
+        const nx = player.x; const ny = player.y + pSpeed;
+        if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
+    }
+    else if (keys['ArrowLeft'] || keys['KeyA']) { 
+        player.dir = 3; player.moving = true; 
+        const nx = player.x - pSpeed; const ny = player.y;
+        if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
+    }
 
     // Bullet updates
     for (let i = bullets.length - 1; i >= 0; i--) {
         if (!bullets[i].update()) bullets.splice(i, 1);
+    }
+
+    // Power-up Collection
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+        const p = powerUps[i];
+        if (Math.abs(player.x + TANK_SIZE/2 - p.x - 12) < 32 && Math.abs(player.y + TANK_SIZE/2 - p.y - 12) < 32) {
+            collectPowerUp(p.type);
+            powerUps.splice(i, 1);
+            continue;
+        }
+        if (Date.now() - p.spawnTime > p.life) powerUps.splice(i, 1);
     }
 
     // Enemy AI
@@ -313,39 +455,52 @@ function update(dt) {
         enemySpawnTimer = 0;
     }
 
-    enemies.forEach((e, idx) => {
-        // Tank Collisions
-        const dist = Math.sqrt((player.x - e.x)**2 + (player.y - e.y)**2);
-        if (dist < TANK_SIZE * 0.8) {
-            createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#0ff');
-            createExplosion(e.x + TANK_SIZE/2, e.y + TANK_SIZE/2, '#f0f');
-            player.hp = 0;
-            enemies.splice(idx, 1);
-            updateHUD();
-            endGame('TANK COLLISION!');
-            return;
-        }
+    if (freezeTimer <= 0) {
+        enemies.forEach((e, idx) => {
+            const dist = Math.sqrt((player.x - e.x)**2 + (player.y - e.y)**2);
+            if (dist < TANK_SIZE * 0.75) {
+                if (player.shield > 0) {
+                    player.shield = 0;
+                    createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#00ccff');
+                    enemies.splice(idx, 1);
+                    enemiesInStageRemaining--;
+                    checkStageClear();
+                } else {
+                    createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#0ff');
+                    createExplosion(e.x + TANK_SIZE/2, e.y + TANK_SIZE/2, '#f0f');
+                    gameState = 'death_sequence';
+                    deathAnimationTimer = 1000;
+                    return;
+                }
+            }
 
-        // Moving towards HQ
-        const hqX = (MAP_COLS / 2) * TILE_SIZE;
-        const hqY = (MAP_ROWS - 2) * TILE_SIZE;
-        
-        if (Math.random() < 0.02) {
-            const dx = hqX - e.x;
-            const dy = hqY - e.y;
-            if (Math.abs(dx) > Math.abs(dy)) e.dir = dx > 0 ? 1 : 3;
-            else e.dir = dy > 0 ? 2 : 0;
-        }
-        
-        e.move(dt);
-        if (Math.random() < 0.01) e.shoot();
-    });
+            const hqX = (MAP_COLS / 2) * TILE_SIZE;
+            const hqY = (MAP_ROWS - 2) * TILE_SIZE;
+            if (Math.random() < 0.02) {
+                const dx = hqX - e.x;
+                const dy = hqY - e.y;
+                if (Math.abs(dx) > Math.abs(dy)) e.dir = dx > 0 ? 1 : 3;
+                else e.dir = dy > 0 ? 2 : 0;
+            }
+            e.move(dt);
+            if (Math.random() < 0.01) e.shoot();
+        });
+    }
 
     // Particles
     particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
     particles = particles.filter(p => p.life > 0);
 
     if (hqHP <= 0) endGame('HQ DESTROYED');
+}
+
+function collectPowerUp(type) {
+    if (window.audioFX) window.audioFX.playCollect();
+    if (type === 'shield') { player.shield = 1; }
+    else if (type === 'freeze') { freezeTimer = 5000; }
+    else if (type === 'multi') { player.multiShotTimer = 10000; }
+    else if (type === 'strong') { player.strongBulletTimer = 10000; }
+    else if (type === 'speed') { player.speedTimer = 8000; }
 }
 
 function draw() {
@@ -374,6 +529,7 @@ function draw() {
     player.draw();
     enemies.forEach(e => e.draw());
     bullets.forEach(b => b.draw());
+    powerUps.forEach(p => p.draw());
 
     particles.forEach(p => {
         ctx.globalAlpha = p.life;
@@ -421,11 +577,17 @@ function startNextStage() {
     enemies = [];
     bullets = [];
     particles = [];
+    powerUps = [];
     enemiesSpawnedInStage = 0;
     enemiesInStageRemaining = totalEnemiesInStage;
     spawnRate = Math.max(800, 3000 - (currentStage * 200));
-    
+    freezeTimer = 0;
+
     player.hp = 100;
+    player.shield = 0;
+    player.multiShotTimer = 0;
+    player.strongBulletTimer = 0;
+    player.speedTimer = 0;
     player.x = (MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2;
     player.y = (MAP_ROWS - 5) * TILE_SIZE;
     
@@ -451,8 +613,16 @@ function initGame() {
     enemies = [];
     bullets = [];
     particles = [];
+    powerUps = [];
     enemiesSpawnedInStage = 0;
     enemiesInStageRemaining = totalEnemiesInStage;
+    freezeTimer = 0;
+    deathAnimationTimer = 0;
+    
+    player.shield = 0;
+    player.multiShotTimer = 0;
+    player.strongBulletTimer = 0;
+    player.speedTimer = 0;
     
     updateHUD();
     mainMenu.classList.add('hidden');
