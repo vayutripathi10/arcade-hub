@@ -173,9 +173,11 @@ class Tank {
         this.multiShotTimer = 0;
         this.strongBulletTimer = 0;
         this.speedTimer = 0;
+        this.visible = true; // NEW
     }
 
     draw() {
+        if (!this.visible) return; // Skip if exploding
         const img = this.type === 'player' ? assets.playerTank : assets.enemyTank;
         if (!img) return;
 
@@ -468,8 +470,16 @@ function update(dt) {
                 } else {
                     createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#0ff');
                     createExplosion(e.x + TANK_SIZE/2, e.y + TANK_SIZE/2, '#f0f');
+                    // Massive explosion for collision
+                    for (let x = 0; x < 5; x++) {
+                        createExplosion(player.x + TANK_SIZE/2 + (Math.random()-0.5)*40, player.y + TANK_SIZE/2 + (Math.random()-0.5)*40, '#fff');
+                    }
+                    
+                    player.visible = false;
+                    enemies.splice(idx, 1);
                     gameState = 'death_sequence';
                     deathAnimationTimer = 1000;
+                    if (window.audioFX) window.audioFX.playExplosion();
                     return;
                 }
             }
@@ -495,7 +505,7 @@ function update(dt) {
 }
 
 function collectPowerUp(type) {
-    if (window.audioFX) window.audioFX.playCollect();
+    if (window.audioFX) window.audioFX.playLevelUp();
     if (type === 'shield') { player.shield = 1; }
     else if (type === 'freeze') { freezeTimer = 5000; }
     else if (type === 'multi') { player.multiShotTimer = 10000; }
@@ -584,6 +594,7 @@ function startNextStage() {
     freezeTimer = 0;
 
     player.hp = 100;
+    player.visible = true;
     player.shield = 0;
     player.multiShotTimer = 0;
     player.strongBulletTimer = 0;
