@@ -639,11 +639,10 @@ function initGame() {
 }
 
 function gameLoop(timestamp) {
-    if (gameState !== 'playing') return;
+    if (gameState !== 'playing' && gameState !== 'death_sequence') return;
     const dt = timestamp - lastTime;
     lastTime = timestamp;
-    update(dt);
-    draw();
+    update(dt); draw();
     requestAnimationFrame(gameLoop);
 }
 
