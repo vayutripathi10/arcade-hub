@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- SEO and Social Media -->
+    <title>Retro Tank Battle | Arcade Hub</title>
+    <meta name="description" content="Defend your HQ and eliminate enemy tanks in this high-quality pixel-art tactical shooter. Classic retro tank combat at its finest!">
+    <meta name="keywords" content="retro, tank, battle, shooting, arcade, game, pixel art, tank battle">
+    <link rel="canonical" href="https://arcadehubplay.com/retro-tank-battle-frontend/index.html">
+    <meta property="og:title" content="Retro Tank Battle | Arcade Hub">
+    <meta property="og:description" content="Defend your HQ and eliminate enemy tanks in this high-quality pixel-art tactical shooter.">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <!-- Styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../hub-style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <a href="../retro-hub.html" class="back-btn">&#8592; Retro Hub</a>
+        <div class="hud-top">
+            <span class="hud-label">HQ HP:</span>
+            <div class="hp-bar-container">
+                <div id="hq-hp-bar" class="hp-bar"></div>
+            </div>
+            <span class="hud-label">SCORE:</span>
+            <span id="ui-score" class="hud-value">00000</span>
+        </div>
+        <div class="header-controls">
+            <button id="btn-mute" class="icon-btn">🔊</button>
+            <button id="btn-pause" class="icon-btn">⏸</button>
+        </div>
+    </div>
+
+    <div id="gameWrapper">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Main Menu -->
+        <div id="mainMenu" class="menu-overlay">
+            <h1 class="game-title">RETR0<br>TANK<br>BATTLE</h1>
+            <p>DEFEND THE EAGLE HQ!</p>
+            <div class="controls-hint">
+                Desktop: WASD / Arrows & SPACE<br>
+                Mobile: D-Pad & Fire Button
+            </div>
+            <button id="btn-start" class="btn primary-btn">DEPLOY</button>
+            <button id="btn-howtoplay" class="btn secondary-btn">INTEL</button>
+            
+            <!-- Adsterra Mobile Banner (320x50) -->
+            <div class="ad-container mobile-banner">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '68ced95a589a3c37a8f41a8fff267340',
+                        'format' : 'iframe',
+                        'height' : 50,
+                        'width' : 320,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
+            </div>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pauseMenu" class="menu-overlay hidden">
+            <h2 class="menu-title">COMMAND HALTED</h2>
+            <button id="btn-resume" class="btn primary-btn">RESUME</button>
+            <button id="btn-quit" class="btn secondary-btn">ABORT</button>
+        </div>
+
+        <!-- Game Over Menu -->
+        <div id="gameOverMenu" class="menu-overlay hidden">
+            <h2 id="end-title" class="menu-title">HQ DESTROYED</h2>
+            <div class="end-stats">
+                <p>FINAL SCORE: <span id="final-score">0</span></p>
+                <p>TANKS ELIMINATED: <span id="final-kills">0</span></p>
+            </div>
+            <button id="btn-restart" class="btn primary-btn">REDEPLOY</button>
+            <button id="btn-quit-end" class="btn secondary-btn">RETREAT</button>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobile-controls" class="hidden">
+            <div class="controls-row">
+                <div class="dpad">
+                    <button id="btn-up" class="m-btn">▲</button>
+                    <div class="dpad-mid">
+                        <button id="btn-left" class="m-btn">◀</button>
+                        <button id="btn-right" class="m-btn">▶</button>
+                    </div>
+                    <button id="btn-down" class="m-btn">▼</button>
+                </div>
+                <div class="action-btn-container">
+                    <button id="btn-fire" class="m-btn fire-btn">FIRE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intel Modal -->
+        <div id="howToPlayModal" class="menu-overlay hidden">
+            <h2 class="menu-title">FIELD MANUAL</h2>
+            <div class="rules-container">
+                <p>• <b>OBJECTIVE:</b> Protect the HQ at the bottom center. If its health builds to 0, mission fails.</p>
+                <p>• <b>ARMOR:</b> Move with WASD or Arrows. Press SPACE to fire shells.</p>
+                <p>• <b>TERRAIN:</b> Brick walls are destructible. Steel is impenetrable.</p>
+                <p>• <b>INTEL:</b> Enemy tanks spawn in waves. Each wave is faster and stronger.</p>
+            </div>
+            <button class="btn primary-btn close-btn">RETURN</button>
+            
+            <!-- Adsterra Mobile Banner (320x50) -->
+            <div class="ad-container mobile-banner" style="margin-top:20px;">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '68ced95a589a3c37a8f41a8fff267340',
+                        'format' : 'iframe',
+                        'height' : 50,
+                        'width' : 320,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../shared/audio-fx.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

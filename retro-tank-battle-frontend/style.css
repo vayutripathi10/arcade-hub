@@ -1,0 +1,228 @@
+:root {
+    --retro-red: #cc0000;
+    --retro-gray: #333;
+    --retro-light: #e0e0e0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Press Start 2P', cursive;
+}
+
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--retro-red);
+    border-bottom: 4px solid #fff;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+
+.back-btn {
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.hud-top {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #fff;
+    font-size: 12px;
+}
+
+.hp-bar-container {
+    width: 100px;
+    height: 14px;
+    background: #444;
+    border: 2px solid #fff;
+}
+
+.hp-bar {
+    width: 100%;
+    height: 100%;
+    background: #00ff00;
+    transition: width 0.3s, background 0.3s;
+}
+
+.header-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.icon-btn {
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 40px;
+    height: 40px;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.icon-btn:hover {
+    background: #222;
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 #000;
+}
+
+.ad-container {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    max-height: 50px;
+}
+
+#gameWrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #222;
+}
+
+#gameCanvas {
+    background-color: #3e3e3e;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border: 4px solid var(--retro-red);
+    image-rendering: pixelated;
+}
+
+/* Overlays */
+.menu-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 50;
+    color: #fff;
+    padding: 20px;
+}
+
+.hidden { display: none !important; }
+
+.game-title {
+    font-size: 40px;
+    color: var(--retro-red);
+    text-shadow: 4px 4px 0 #fff;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.menu-title {
+    color: var(--retro-red);
+    margin-bottom: 30px;
+}
+
+.btn {
+    margin: 10px;
+    padding: 15px 30px;
+    font-family: inherit;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.primary-btn {
+    background: var(--retro-red);
+    color: #fff;
+    box-shadow: 4px 4px 0 #fff;
+}
+
+.secondary-btn {
+    background: #fff;
+    color: #000;
+    box-shadow: 4px 4px 0 var(--retro-red);
+}
+
+.rules-container {
+    text-align: left;
+    max-width: 500px;
+    line-height: 1.6;
+    font-size: 10px;
+    background: #111;
+    padding: 20px;
+    border: 2px solid var(--retro-red);
+    margin-bottom: 20px;
+}
+
+/* Mobile Controls */
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    z-index: 100;
+}
+
+.controls-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px;
+    align-items: flex-end;
+}
+
+.dpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dpad-mid {
+    display: flex;
+    gap: 10px;
+}
+
+.m-btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(204, 0, 0, 0.4);
+    border: 2px solid #fff;
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+}
+
+.m-btn:active {
+    background: rgba(204, 0, 0, 0.8);
+}
+
+.fire-btn {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+@media (max-width: 600px) {
+    .game-title { font-size: 24px; }
+    .header { padding: 5px 10px; }
+}
