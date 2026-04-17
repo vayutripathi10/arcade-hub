@@ -5,10 +5,13 @@ const gameWrapper = document.getElementById('gameWrapper');
 // HUD/UI
 const uiScore = document.getElementById('ui-score');
 const hqHpBar = document.getElementById('hq-hp-bar');
+const playerHpBar = document.getElementById('player-hp-bar');
+const uiStage = document.getElementById('ui-stage');
 const mainMenu = document.getElementById('mainMenu');
 const pauseMenu = document.getElementById('pauseMenu');
 const gameOverMenu = document.getElementById('gameOverMenu');
 const howToPlayModal = document.getElementById('howToPlayModal');
+const stageOverlay = document.getElementById('stageOverlay');
 
 // Asset Loading
 const assets = {};
@@ -44,7 +47,7 @@ loadAssets();
 const TILE_SIZE = 32;
 const MAP_COLS = 25; // 800px / 32
 const MAP_ROWS = 18; // 576px (roughly 600)
-const TANK_SIZE = 48; // Sized down from 64 for better navigation
+const TANK_SIZE = 48;
 
 // Game State
 let gameState = 'menu';
@@ -52,11 +55,16 @@ let score = 0;
 let kills = 0;
 let hqHP = 100;
 let lastTime = 0;
+let currentStage = 1;
+let enemiesInStageRemaining = 0;
+let enemiesSpawnedInStage = 0;
+let totalEnemiesInStage = 5;
+
 let enemies = [];
 let bullets = [];
 let particles = [];
 let enemySpawnTimer = 0;
-let spawnRate = 3000; // ms
+let spawnRate = 3000;
 
 // Tile Map (0: Empty, 1: Brick, 2: Steel, 3: Grass, 4: Water)
 let map = [];
@@ -95,12 +103,12 @@ class Tank {
         this.y = y;
         this.type = type; // 'player', 'enemy'
         this.dir = 0; // 0: Up, 1: Right, 2: Down, 3: Left
-        this.speed = type === 'player' ? 3 : 1.5;
+        this.speed = type === 'player' ? 3 : Math.min(2.5, 1.5 + (currentStage * 0.1));
         this.width = TANK_SIZE;
         this.height = TANK_SIZE;
         this.hp = type === 'player' ? 100 : 20;
         this.lastShot = 0;
-        this.shotCooldown = type === 'player' ? 500 : 2000;
+        this.shotCooldown = type === 'player' ? 500 : Math.max(800, 2000 - (currentStage * 100));
         this.moving = false;
     }
 
@@ -184,9 +192,8 @@ class Bullet {
         this.y = y;
         this.dir = dir;
         this.owner = owner;
-        this.speed = 6;
+        this.speed = owner === 'player' ? 6 : 4;
         this.radius = 4;
-        this.life = 2000;
     }
 
     update() {
@@ -219,6 +226,7 @@ class Bullet {
             if (Math.abs(this.x - (player.x + TANK_SIZE / 2)) < 24 && Math.abs(this.y - (player.y + TANK_SIZE / 2)) < 24) {
                 player.hp -= 10;
                 createExplosion(this.x, this.y, '#0ff');
+                updateHUD();
                 if (player.hp <= 0) endGame('MISSION FAILED');
                 return false;
             }
@@ -230,9 +238,11 @@ class Bullet {
                     createExplosion(this.x, this.y, '#f0f');
                     if (e.hp <= 0) {
                         enemies.splice(i, 1);
+                        enemiesInStageRemaining--;
                         score += 100;
                         kills++;
                         updateHUD();
+                        checkStageClear();
                     }
                     return false;
                 }
@@ -290,13 +300,24 @@ function update(dt) {
 
     // Enemy AI
     enemySpawnTimer += dt;
-    if (enemySpawnTimer > spawnRate) {
+    if (enemySpawnTimer > spawnRate && enemiesSpawnedInStage < totalEnemiesInStage) {
         spawnEnemy();
         enemySpawnTimer = 0;
-        spawnRate = Math.max(1000, spawnRate - 50);
     }
 
-    enemies.forEach(e => {
+    enemies.forEach((e, idx) => {
+        // Tank Collisions
+        const dist = Math.sqrt((player.x - e.x)**2 + (player.y - e.y)**2);
+        if (dist < TANK_SIZE * 0.8) {
+            createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#0ff');
+            createExplosion(e.x + TANK_SIZE/2, e.y + TANK_SIZE/2, '#f0f');
+            player.hp = 0;
+            enemies.splice(idx, 1);
+            updateHUD();
+            endGame('TANK COLLISION!');
+            return;
+        }
+
         // Moving towards HQ
         const hqX = (MAP_COLS / 2) * TILE_SIZE;
         const hqY = (MAP_ROWS - 2) * TILE_SIZE;
@@ -355,38 +376,88 @@ function draw() {
 }
 
 function spawnEnemy() {
-    if (enemies.length >= 5) return;
-    const col = Math.floor(Math.random() * (MAP_COLS - 4)) + 2;
-    enemies.push(new Tank(col * TILE_SIZE, TILE_SIZE * 2, 'enemy'));
+    if (enemies.length >= 4) return;
+    const colList = [2, 10, 20];
+    const col = colList[Math.floor(Math.random() * colList.length)];
+    enemies.push(new Tank(col * TILE_SIZE, TILE_SIZE * 1, 'enemy'));
+    enemiesSpawnedInStage++;
 }
 
 function updateHUD() {
     uiScore.textContent = score.toString().padStart(5, '0');
-    hqHpBar.style.width = hqHP + '%';
-    if (hqHP < 40) hqHpBar.style.background = '#ff0000';
-    else hqHpBar.style.background = '#00ff00';
+    hqHpBar.style.width = Math.max(0, hqHP) + '%';
+    playerHpBar.style.width = Math.max(0, player.hp) + '%';
+    uiStage.textContent = currentStage;
+    hqHpBar.style.background = hqHP < 40 ? '#ff0000' : '#00ff00';
+    playerHpBar.style.background = player.hp < 40 ? '#ffaa00' : '#00ccff';
+}
+
+function checkStageClear() {
+    if (enemiesInStageRemaining <= 0 && enemiesSpawnedInStage >= totalEnemiesInStage) {
+        gameState = 'stage_clear';
+        currentStage++;
+        totalEnemiesInStage = 5 + (currentStage * 2);
+        showStageOverlay(`STAGE ${currentStage}`, "GET READY!");
+        setTimeout(startNextStage, 2000);
+    }
+}
+
+function showStageOverlay(title, sub) {
+    stageOverlay.classList.remove('hidden');
+    document.getElementById('stage-title').textContent = title;
+    document.getElementById('stage-subtitle').textContent = sub;
+}
+
+function startNextStage() {
+    initMap();
+    enemies = [];
+    bullets = [];
+    particles = [];
+    enemiesSpawnedInStage = 0;
+    enemiesInStageRemaining = totalEnemiesInStage;
+    spawnRate = Math.max(800, 3000 - (currentStage * 200));
+    
+    player.hp = 100;
+    player.x = (MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2;
+    player.y = (MAP_ROWS - 5) * TILE_SIZE;
+    
+    updateHUD();
+    stageOverlay.classList.add('hidden');
+    gameState = 'playing';
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
 }
 
 function initGame() {
     canvas.width = 800;
     canvas.height = 576;
-    initMap();
-    player = new Tank((MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2, (MAP_ROWS - 5) * TILE_SIZE, 'player');
-    enemies = [];
-    bullets = [];
-    particles = [];
+    currentStage = 1;
+    totalEnemiesInStage = 5;
     score = 0;
     kills = 0;
     hqHP = 100;
-    spawnRate = 3000;
-    updateHUD();
     
-    gameState = 'playing';
+    initMap();
+    player = new Tank((MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2, (MAP_ROWS - 5) * TILE_SIZE, 'player');
+    
+    enemies = [];
+    bullets = [];
+    particles = [];
+    enemiesSpawnedInStage = 0;
+    enemiesInStageRemaining = totalEnemiesInStage;
+    
+    updateHUD();
     mainMenu.classList.add('hidden');
     pauseMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
-    lastTime = performance.now();
-    requestAnimationFrame(gameLoop);
+    
+    showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
+    setTimeout(() => {
+        stageOverlay.classList.add('hidden');
+        gameState = 'playing';
+        lastTime = performance.now();
+        requestAnimationFrame(gameLoop);
+    }, 2000);
 }
 
 function gameLoop(timestamp) {
@@ -443,8 +514,15 @@ document.getElementById('btn-quit-end').addEventListener('click', quitGame);
 const bindBtn = (id, key) => {
     const btn = document.getElementById(id);
     if (!btn) return;
-    btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; if(key==='Space') player.shoot(); });
-    btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        keys[key] = true;
+        if(key==='Space') player.shoot();
+    }, {passive: false});
+    btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys[key] = false;
+    }, {passive: false});
 };
 bindBtn('btn-up', 'ArrowUp');
 bindBtn('btn-down', 'ArrowDown');

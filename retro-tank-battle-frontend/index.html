@@ -21,12 +21,22 @@
     <div class="header">
         <a href="../retro-hub.html" class="back-btn">&#8592; Retro Hub</a>
         <div class="hud-top">
-            <span class="hud-label">HQ HP:</span>
-            <div class="hp-bar-container">
-                <div id="hq-hp-bar" class="hp-bar"></div>
+            <div class="hud-stat">
+                <span class="hud-label">HQ HP</span>
+                <div class="hp-bar-container"><div id="hq-hp-bar" class="hp-bar"></div></div>
             </div>
-            <span class="hud-label">SCORE:</span>
-            <span id="ui-score" class="hud-value">00000</span>
+            <div class="hud-stat">
+                <span class="hud-label">LIFE</span>
+                <div class="hp-bar-container"><div id="player-hp-bar" class="hp-bar player-hp"></div></div>
+            </div>
+            <div class="hud-stat">
+                <span class="hud-label">SCORE</span>
+                <span id="ui-score" class="hud-value">00000</span>
+            </div>
+            <div class="hud-stat hidden-mobile">
+                <span class="hud-label">STAGE</span>
+                <span id="ui-stage" class="hud-value">1</span>
+            </div>
         </div>
         <div class="header-controls">
             <button id="btn-mute" class="icon-btn">🔊</button>
@@ -68,6 +78,12 @@
             <h2 class="menu-title">COMMAND HALTED</h2>
             <button id="btn-resume" class="btn primary-btn">RESUME</button>
             <button id="btn-quit" class="btn secondary-btn">ABORT</button>
+        </div>
+
+        <!-- Stage Overlay -->
+        <div id="stageOverlay" class="menu-overlay hidden">
+            <h1 id="stage-title" class="game-title">STAGE 1</h1>
+            <p id="stage-subtitle">PREPARE FOR BATTLE</p>
         </div>
 
         <!-- Game Over Menu -->

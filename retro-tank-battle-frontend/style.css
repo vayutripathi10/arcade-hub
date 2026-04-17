@@ -37,16 +37,30 @@ body {
 .hud-top {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     color: #fff;
-    font-size: 12px;
+    font-size: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.hud-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.hud-label {
+    font-size: 8px;
+    opacity: 0.8;
 }
 
 .hp-bar-container {
-    width: 100px;
-    height: 14px;
+    width: 60px;
+    height: 10px;
     background: #444;
-    border: 2px solid #fff;
+    border: 1px solid #fff;
 }
 
 .hp-bar {
@@ -54,6 +68,10 @@ body {
     height: 100%;
     background: #00ff00;
     transition: width 0.3s, background 0.3s;
+}
+
+.player-hp {
+    background: #00ccff;
 }
 
 .header-controls {
@@ -102,10 +120,13 @@ body {
 }
 
 #gameCanvas {
+    max-width: 100%;
+    max-height: calc(100vh - 80px); /* Account for header */
     background-color: #3e3e3e;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
     border: 4px solid var(--retro-red);
     image-rendering: pixelated;
+    object-fit: contain;
 }
 
 /* Overlays */
@@ -223,6 +244,13 @@ body {
 }
 
 @media (max-width: 600px) {
-    .game-title { font-size: 24px; }
-    .header { padding: 5px 10px; }
+    .game-title { font-size: 20px; }
+    .header { padding: 5px 8px; }
+    .hud-stat .hud-label { display: none; }
+    .hp-bar-container { width: 40px; }
+    .hud-top { gap: 8px; }
+    .hidden-mobile { display: none !important; }
+    .icon-btn { min-width: 32px; height: 32px; font-size: 14px; padding: 2px 5px; }
+    .m-btn { width: 50px; height: 50px; font-size: 18px; }
+    .fire-btn { width: 65px; height: 65px; }
 }
