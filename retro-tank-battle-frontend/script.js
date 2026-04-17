@@ -101,11 +101,14 @@ class Tank {
     constructor(x, y, type) {
         this.x = x;
         this.y = y;
-        this.type = type; // 'player', 'enemy'
-        this.dir = 0; // 0: Up, 1: Right, 2: Down, 3: Left
+        this.type = type;
+        this.dir = 0; 
         this.speed = type === 'player' ? 3 : Math.min(2.5, 1.5 + (currentStage * 0.1));
         this.width = TANK_SIZE;
         this.height = TANK_SIZE;
+        // HITBOX: Slightly smaller than visual size for better movement through gaps
+        this.hitboxW = 38;
+        this.hitboxH = 38;
         this.hp = type === 'player' ? 100 : 20;
         this.lastShot = 0;
         this.shotCooldown = type === 'player' ? 500 : Math.max(800, 2000 - (currentStage * 100));
@@ -147,29 +150,34 @@ class Tank {
     }
 
     checkCollision(nx, ny) {
-        // Map bounds
-        if (nx < TILE_SIZE || nx > canvas.width - TILE_SIZE - this.width || 
-            ny < TILE_SIZE || ny > canvas.height - TILE_SIZE - this.height) return true;
+        // Calculate hitbox centered coordinates
+        const hx = nx + (this.width - this.hitboxW) / 2;
+        const hy = ny + (this.height - this.hitboxH) / 2;
 
-        // Tiles
-        const left = Math.floor(nx / TILE_SIZE);
-        const right = Math.floor((nx + this.width) / TILE_SIZE);
-        const top = Math.floor(ny / TILE_SIZE);
-        const bottom = Math.floor((ny + this.height) / TILE_SIZE);
+        // Map bounds
+        if (hx < TILE_SIZE || hx + this.hitboxW > canvas.width - TILE_SIZE || 
+            hy < TILE_SIZE || hy + this.hitboxH > canvas.height - TILE_SIZE) return true;
+
+        // Tile overlap check
+        const left = Math.floor(hx / TILE_SIZE);
+        const right = Math.floor((hx + this.hitboxW) / TILE_SIZE);
+        const top = Math.floor(hy / TILE_SIZE);
+        const bottom = Math.floor((hy + this.hitboxH) / TILE_SIZE);
 
         for (let r = top; r <= bottom; r++) {
             for (let c = left; c <= right; c++) {
-                if (map[r] && (map[r][c] === 1 || map[r][c] === 2 || map[r][c] === 4)) {
-                    return true;
-                }
+                if (map[r] && (map[r][c] === 1 || map[r][c] === 2 || map[r][c] === 4)) return true;
             }
         }
 
-        // HQ
+        // HQ Collision
         const hqX = (MAP_COLS / 2) * TILE_SIZE - TILE_SIZE;
         const hqY = (MAP_ROWS - 2) * TILE_SIZE;
-        if (nx < hqX + TILE_SIZE * 2 && nx + this.width > hqX && 
-            ny < hqY + TILE_SIZE && ny + this.height > hqY) return true;
+        const hqW = TILE_SIZE * 2;
+        const hqH = TILE_SIZE * 2;
+        
+        if (hx < hqX + hqW && hx + this.hitboxW > hqX && 
+            hy < hqY + hqH && hy + this.hitboxH > hqY) return true;
 
         return false;
     }
@@ -475,6 +483,11 @@ function endGame(title) {
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-kills').textContent = kills;
     gameOverMenu.classList.remove('hidden');
+}
+
+// Auto-detect touch support
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    document.getElementById('mobile-controls').classList.remove('hidden');
 }
 
 // Button Events

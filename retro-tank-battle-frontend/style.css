@@ -195,9 +195,14 @@ body {
 /* Mobile Controls */
 #mobile-controls {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     width: 100%;
-    z-index: 100;
+    z-index: 200; /* Ensure it stays above everything */
+    pointer-events: none; /* Allow interaction with children only */
+}
+
+#mobile-controls .m-btn {
+    pointer-events: auto; /* Enable touch on buttons */
 }
 
 .controls-row {
