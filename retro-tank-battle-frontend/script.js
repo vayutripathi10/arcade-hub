@@ -458,32 +458,16 @@ function update(dt) {
     }
 
     if (freezeTimer <= 0) {
-        enemies.forEach((e, idx) => {
+        let collisionFound = false;
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
             const dist = Math.sqrt((player.x - e.x)**2 + (player.y - e.y)**2);
             if (dist < TANK_SIZE * 0.75) {
-                if (player.shield > 0) {
-                    player.shield = 0;
-                    createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#00ccff');
-                    enemies.splice(idx, 1);
-                    enemiesInStageRemaining--;
-                    checkStageClear();
-                } else {
-                    createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#0ff');
-                    createExplosion(e.x + TANK_SIZE/2, e.y + TANK_SIZE/2, '#f0f');
-                    // Massive explosion for collision
-                    for (let x = 0; x < 5; x++) {
-                        createExplosion(player.x + TANK_SIZE/2 + (Math.random()-0.5)*40, player.y + TANK_SIZE/2 + (Math.random()-0.5)*40, '#fff');
-                    }
-                    
-                    player.visible = false;
-                    enemies.splice(idx, 1);
-                    gameState = 'death_sequence';
-                    deathAnimationTimer = 1000;
-                    if (window.audioFX) window.audioFX.playExplosion();
-                    return;
-                }
+                collisionFound = handleTankCollision(e, i);
+                if (collisionFound) break;
             }
 
+            // Normal AI logic
             const hqX = (MAP_COLS / 2) * TILE_SIZE;
             const hqY = (MAP_ROWS - 2) * TILE_SIZE;
             if (Math.random() < 0.02) {
@@ -494,8 +478,9 @@ function update(dt) {
             }
             e.move(dt);
             if (Math.random() < 0.01) e.shoot();
-        });
+        }
     }
+    // Particles
 
     // Particles
     particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
@@ -649,10 +634,51 @@ function initGame() {
     }, 2000);
 }
 
+function handleTankCollision(e, idx) {
+    if (player.shield > 0) {
+        player.shield = 0;
+        createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#00ccff');
+        enemies.splice(idx, 1);
+        enemiesInStageRemaining--;
+        checkStageClear();
+        return false;
+    } else {
+        // Hide both and start sequence
+        player.visible = false;
+        e.visible = false;
+        
+        // Cleanup enemy
+        enemies.splice(idx, 1);
+        
+        // Massive explosion sequence
+        gameState = 'death_sequence';
+        deathAnimationTimer = 1200;
+        
+        createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#fff');
+        // Delayed secondary explosions for "Big Boom"
+        for (let n = 1; n <= 6; n++) {
+            setTimeout(() => {
+                if (gameState === 'death_sequence') {
+                    createExplosion(player.x + TANK_SIZE/2 + (Math.random()-0.5)*50, 
+                                    player.y + TANK_SIZE/2 + (Math.random()-0.5)*50, '#ffaa00');
+                }
+            }, n * 150);
+        }
+        
+        if (window.audioFX) window.audioFX.playExplosion();
+        return true;
+    }
+}
+
 function gameLoop(timestamp) {
     if (gameState !== 'playing' && gameState !== 'death_sequence') return;
-    const dt = timestamp - lastTime;
+    
+    // Sanitize DT
+    if (!lastTime) lastTime = timestamp;
+    let dt = timestamp - lastTime;
+    if (dt > 100) dt = 16; // Capped to avoid timer jumps on lag/first frame
     lastTime = timestamp;
+
     update(dt); draw();
     requestAnimationFrame(gameLoop);
 }
