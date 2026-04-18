@@ -491,8 +491,14 @@ function update(dt) {
     }
     // Particles
 
-    // Particles
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
+    // Particles (Bouncing and Fading)
+    particles.forEach(p => { 
+        p.x += p.vx; 
+        p.y += p.vy; 
+        p.life -= 0.02; 
+    });
+    particles = particles.filter(p => p.life > 0);
+
     if (hqHP <= 0) endGame('HQ DESTROYED');
 
     // Engine Sound Logic
@@ -565,6 +571,18 @@ function updateHUD() {
     uiStage.textContent = currentStage;
     hqHpBar.style.background = hqHP < 40 ? '#ff0000' : '#00ff00';
     playerHpBar.style.background = player.hp < 40 ? '#ffaa00' : '#00ccff';
+
+    // Sound Status Diagnostic
+    const sdk = window.audioFX;
+    const uiSound = document.getElementById('ui-sound');
+    if (uiSound) {
+        if (!sdk) uiSound.textContent = 'NO-SDK';
+        else if (!sdk.ctx) uiSound.textContent = 'NO-CTX';
+        else {
+            uiSound.textContent = sdk.ctx.state;
+            uiSound.style.color = sdk.ctx.state === 'running' ? '#0f0' : '#f00';
+        }
+    }
 }
 
 function checkStageClear() {
@@ -645,9 +663,13 @@ function initGame() {
     
     // Unlock Audio Context on first gesture
     if (window.audioFX) {
-        window.audioFX.init();
-        if (typeof window.audioFX.startEngine === 'function') {
-            window.audioFX.startEngine();
+        const sdk = window.audioFX;
+        sdk.init();
+        if (sdk.ctx && sdk.ctx.state === 'suspended') {
+            sdk.ctx.resume();
+        }
+        if (typeof sdk.startEngine === 'function') {
+            sdk.startEngine();
         }
     }
 
