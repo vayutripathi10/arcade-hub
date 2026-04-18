@@ -287,6 +287,16 @@ function togglePause() {
     }
 }
 
+// GLOBAL AUDIO WAKE-UP (Invisible)
+const wakeUpAudio = () => {
+    if (window.audioFX && typeof window.audioFX.init === 'function') {
+        window.audioFX.init();
+    }
+};
+window.addEventListener('mousedown', wakeUpAudio, { once: true });
+window.addEventListener('touchstart', wakeUpAudio, { once: true });
+window.addEventListener('keydown', wakeUpAudio, { once: true });
+
 function update(dt) {
     if (gameState !== 'playing') return;
     
@@ -526,7 +536,10 @@ document.getElementById('btn-quit').addEventListener('click', () => {
 
 const btnMute = document.getElementById('btn-mute');
 if (window.audioFX && window.audioFX.toggleMute) {
-    btnMute.addEventListener('click', () => window.audioFX.toggleMute(btnMute));
+    btnMute.addEventListener('click', () => {
+        window.audioFX.init();
+        window.audioFX.toggleMute();
+    });
 } else btnMute.style.display = 'none';
 
 document.getElementById('btn-howtoplay').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));

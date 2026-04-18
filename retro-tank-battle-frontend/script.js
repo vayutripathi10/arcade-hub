@@ -578,21 +578,10 @@ function updateHUD() {
     hqHpBar.style.background = hqHP < 40 ? '#ff0000' : '#00ff00';
     playerHpBar.style.background = player.hp < 40 ? '#ffaa00' : '#00ccff';
 
-    // Sound Status Diagnostic
-    const sdk = window.audioFX;
-    const uiSound = document.getElementById('ui-sound');
-    if (uiSound) {
-        if (!sdk) {
-            uiSound.textContent = 'RESCUING...';
-            uiSound.style.color = '#ffaa00';
-        } else if (!sdk.ctx) {
-            uiSound.textContent = 'NO-CTX';
-            uiSound.style.color = '#ff0000';
-        } else {
-            uiSound.textContent = sdk.ctx.state;
-            uiSound.style.color = sdk.ctx.state === 'running' ? '#0f0' : '#f00';
-        }
-    }
+    // HUD
+    document.getElementById('ui-hq-hp').textContent = Math.ceil(hqHP);
+    document.getElementById('ui-stage').textContent = currentStage;
+    document.getElementById('ui-kills').textContent = kills;
 }
 
 function checkStageClear() {
@@ -823,16 +812,6 @@ bindBtn('btn-down', 'ArrowDown');
 bindBtn('btn-left', 'ArrowLeft');
 bindBtn('btn-right', 'ArrowRight');
 bindBtn('btn-fire', 'Space');
-
-document.getElementById('btn-repair').addEventListener('click', () => {
-    if (window.audioFX) {
-        window.audioFX.init();
-        if (typeof window.audioFX.stopEngine === 'function') window.audioFX.stopEngine();
-        if (typeof window.audioFX.startEngine === 'function') window.audioFX.startEngine();
-    } else {
-        location.reload(); // Hard reset if absolutely missing
-    }
-});
 
 // GLOBAL AUDIO WAKE-UP
 const wakeUpAudio = () => {
