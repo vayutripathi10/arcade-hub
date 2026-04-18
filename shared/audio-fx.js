@@ -138,7 +138,7 @@ class AudioFX {
             if (!window.location.href.includes('bottle-shooter')) {
                 btn.style.right = '20px';
             }
-            document.body.appendChild(btn);
+            if (document.body) document.body.appendChild(btn);
         }
         
         // Fix for mobile landscape mode overlaying correctly and UI visual bugs

@@ -602,6 +602,7 @@ function startNextStage() {
     stageOverlay.classList.add('hidden');
     gameState = 'playing';
     lastTime = performance.now();
+    deathSequenceStartTime = 0; // Fix: Reset absolute timer
     requestAnimationFrame(gameLoop);
 }
 
@@ -625,6 +626,7 @@ function initGame() {
     enemiesInStageRemaining = totalEnemiesInStage;
     freezeTimer = 0;
     deathAnimationTimer = 0;
+    deathSequenceStartTime = 0; // Fix: Ensure no partial death from previous sessions
     
     player.shield = 0;
     player.multiShotTimer = 0;
@@ -649,6 +651,9 @@ function initGame() {
 }
 
 function handleTankCollision(e, idx) {
+    // Safety check: Cannot die while READY overlay is showing
+    if (!stageOverlay.classList.contains('hidden') || gameState !== 'playing') return false;
+
     if (player.shield > 0) {
         player.shield = 0;
         createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#00ccff');
