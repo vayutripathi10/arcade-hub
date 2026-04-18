@@ -282,7 +282,9 @@ class Tank {
         }
 
         this.lastShot = now;
-        if (this.type === 'player' && window.audioFX) window.audioFX.playJump();
+        if (this.type === 'player' && window.audioFX && typeof window.audioFX.playJump === 'function') {
+            window.audioFX.playJump();
+        }
     }
 }
 
@@ -497,7 +499,9 @@ function update(dt) {
 }
 
 function collectPowerUp(type) {
-    if (window.audioFX) window.audioFX.playLevelUp();
+    if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+        window.audioFX.playLevelUp();
+    }
     if (type === 'shield') { player.shield = 1; }
     else if (type === 'freeze') { freezeTimer = 5000; }
     else if (type === 'multi') { player.multiShotTimer = 10000; }
@@ -673,7 +677,9 @@ function handleTankCollision(e, idx) {
             }, n * 150);
         }
         
-        if (window.audioFX) window.audioFX.playExplosion();
+        if (window.audioFX && typeof window.audioFX.playExplosion === 'function') {
+            window.audioFX.playExplosion();
+        }
         return true;
     }
 }
