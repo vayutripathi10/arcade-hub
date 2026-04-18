@@ -692,11 +692,13 @@ function gameLoop(timestamp) {
 }
 
 function endGame(title) {
+    console.log('--- RECOVERY STARTED: endGame triggered with state:', title);
     gameState = 'gameover';
     document.getElementById('end-title').textContent = title;
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-kills').textContent = kills;
     gameOverMenu.classList.remove('hidden');
+    gameOverMenu.style.display = 'flex'; // FORCE visibility override
 }
 
 // Auto-detect touch support
