@@ -636,6 +636,9 @@ function initGame() {
     pauseMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
     
+    // Unlock Audio Context on first gesture
+    if (window.audioFX) window.audioFX.init();
+
     showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
     setTimeout(() => {
         stageOverlay.classList.add('hidden');
@@ -732,9 +735,10 @@ document.querySelector('.close-btn').addEventListener('click', () => howToPlayMo
 
 // Mute Logic
 document.getElementById('btn-mute').addEventListener('click', () => {
-    if (window.audioFX) {
-        window.audioFX.muted = !window.audioFX.muted;
-        document.getElementById('btn-mute').textContent = window.audioFX.muted ? '🔇' : '🔊';
+    if (window.audioFX && typeof window.audioFX.toggleMute === 'function') {
+        window.audioFX.toggleMute();
+        // The icon is updated inside toggleMute, but we can sync here as well
+        document.getElementById('btn-mute').textContent = window.audioFX.isMuted ? '🔇' : '🔊';
     }
 });
 
