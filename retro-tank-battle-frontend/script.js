@@ -1,9 +1,8 @@
-// SDK RESCUE LOGIC: If sound script fails, try to force-load from root
 (function rescueSDK() {
     if (!window.audioFX) {
         console.warn('--- SDK MISSING: Attempting Rescue... ---');
         const s = document.createElement('script');
-        s.src = '/shared/audio-fx.js?v=9';
+        s.src = 'audio-fx.js?v=9';
         document.body.appendChild(s);
     }
 })();
@@ -184,7 +183,8 @@ class Tank {
         this.multiShotTimer = 0;
         this.strongBulletTimer = 0;
         this.speedTimer = 0;
-        this.visible = true; // NEW
+        this.visible = true; 
+        this.invincibilityTimer = 0; // NEW: Timer for startup shield
     }
 
     draw() {
@@ -192,11 +192,11 @@ class Tank {
         const img = this.type === 'player' ? assets.playerTank : assets.enemyTank;
         if (!img) return;
 
-        // Draw Shield
-        if (this.type === 'player' && this.shield > 0) {
+        // Draw Shield (Power-up or Startup/Respawn)
+        if (this.type === 'player' && (this.shield > 0 || this.invincibilityTimer > 0)) {
             ctx.beginPath();
             ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 1.5, 0, Math.PI * 2);
-            ctx.strokeStyle = '#00ccff';
+            ctx.strokeStyle = this.invincibilityTimer > 0 ? '#00ccff' : '#00ffff';
             ctx.lineWidth = 3;
             ctx.setLineDash([5, 5]);
             ctx.lineDashOffset = Date.now() / 50;
@@ -212,6 +212,11 @@ class Tank {
     }
 
     move(dt) {
+        // Handle invincibility countdown (player only)
+        if (this.type === 'player' && this.invincibilityTimer > 0) {
+            this.invincibilityTimer -= dt;
+        }
+
         if (this.type === 'enemy' || (this.type === 'player' && this.moving)) {
             let nextX = this.x;
             let nextY = this.y;
@@ -632,6 +637,7 @@ function startNextStage() {
     player.multiShotTimer = 0;
     player.strongBulletTimer = 0;
     player.speedTimer = 0;
+    player.invincibilityTimer = 3000;
     player.x = (MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2;
     player.y = (MAP_ROWS - 5) * TILE_SIZE;
     
@@ -669,6 +675,7 @@ function initGame() {
     player.multiShotTimer = 0;
     player.strongBulletTimer = 0;
     player.speedTimer = 0;
+    player.invincibilityTimer = 3000;
     
     updateHUD();
     mainMenu.classList.add('hidden');
@@ -697,8 +704,9 @@ function initGame() {
 }
 
 function handleTankCollision(e, idx) {
-    // Safety check: Cannot die while READY overlay is showing
+    // Safety check: Cannot die while READY overlay is showing or if invincible
     if (!stageOverlay.classList.contains('hidden') || gameState !== 'playing') return false;
+    if (player.invincibilityTimer > 0) return false;
 
     if (player.shield > 0) {
         player.shield = 0;
@@ -824,6 +832,16 @@ bindBtn('btn-down', 'ArrowDown');
 bindBtn('btn-left', 'ArrowLeft');
 bindBtn('btn-right', 'ArrowRight');
 bindBtn('btn-fire', 'Space');
+
+document.getElementById('btn-repair').addEventListener('click', () => {
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (typeof window.audioFX.stopEngine === 'function') window.audioFX.stopEngine();
+        if (typeof window.audioFX.startEngine === 'function') window.audioFX.startEngine();
+    } else {
+        location.reload(); // Hard reset if absolutely missing
+    }
+});
 
 // GLOBAL AUDIO WAKE-UP
 const wakeUpAudio = () => {
