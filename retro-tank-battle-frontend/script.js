@@ -493,9 +493,14 @@ function update(dt) {
 
     // Particles
     particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
-    particles = particles.filter(p => p.life > 0);
-
     if (hqHP <= 0) endGame('HQ DESTROYED');
+
+    // Engine Sound Logic
+    if (window.audioFX && typeof window.audioFX.updateEngine === 'function') {
+        const isTankMoving = keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] || 
+                             keys['w'] || keys['s'] || keys['a'] || keys['d'];
+        window.audioFX.updateEngine(isTankMoving ? 150 : 20); // Pitch shift on move
+    }
 }
 
 function collectPowerUp(type) {
@@ -639,7 +644,12 @@ function initGame() {
     gameOverMenu.classList.add('hidden');
     
     // Unlock Audio Context on first gesture
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (typeof window.audioFX.startEngine === 'function') {
+            window.audioFX.startEngine();
+        }
+    }
 
     showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
     setTimeout(() => {
@@ -713,6 +723,11 @@ function endGame(title) {
     document.getElementById('final-kills').textContent = kills;
     gameOverMenu.classList.remove('hidden');
     gameOverMenu.style.display = 'flex'; // FORCE visibility override
+
+    // Stop Engine Rumble
+    if (window.audioFX && typeof window.audioFX.stopEngine === 'function') {
+        window.audioFX.stopEngine();
+    }
 }
 
 // Auto-detect touch support
@@ -773,3 +788,15 @@ bindBtn('btn-down', 'ArrowDown');
 bindBtn('btn-left', 'ArrowLeft');
 bindBtn('btn-right', 'ArrowRight');
 bindBtn('btn-fire', 'Space');
+
+// GLOBAL AUDIO WAKE-UP
+const wakeUpAudio = () => {
+    if (window.audioFX && typeof window.audioFX.init === 'function') {
+        window.audioFX.init();
+        console.log('--- AUDIO WAKE-UP TRIGGERED ---');
+    }
+    window.removeEventListener('click', wakeUpAudio);
+    window.removeEventListener('touchstart', wakeUpAudio);
+};
+window.addEventListener('click', wakeUpAudio);
+window.addEventListener('touchstart', wakeUpAudio);
