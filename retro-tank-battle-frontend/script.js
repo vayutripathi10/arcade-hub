@@ -1,3 +1,13 @@
+// SDK RESCUE LOGIC: If sound script fails, try to force-load from root
+(function rescueSDK() {
+    if (!window.audioFX) {
+        console.warn('--- SDK MISSING: Attempting Rescue... ---');
+        const s = document.createElement('script');
+        s.src = '/shared/audio-fx.js?v=9';
+        document.body.appendChild(s);
+    }
+})();
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gameWrapper = document.getElementById('gameWrapper');
@@ -576,9 +586,13 @@ function updateHUD() {
     const sdk = window.audioFX;
     const uiSound = document.getElementById('ui-sound');
     if (uiSound) {
-        if (!sdk) uiSound.textContent = 'NO-SDK';
-        else if (!sdk.ctx) uiSound.textContent = 'NO-CTX';
-        else {
+        if (!sdk) {
+            uiSound.textContent = 'RESCUING...';
+            uiSound.style.color = '#ffaa00';
+        } else if (!sdk.ctx) {
+            uiSound.textContent = 'NO-CTX';
+            uiSound.style.color = '#ff0000';
+        } else {
             uiSound.textContent = sdk.ctx.state;
             uiSound.style.color = sdk.ctx.state === 'running' ? '#0f0' : '#f00';
         }
