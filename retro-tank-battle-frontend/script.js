@@ -68,6 +68,7 @@ let enemySpawnTimer = 0;
 let spawnRate = 3000;
 let freezeTimer = 0;
 let deathAnimationTimer = 0;
+let deathSequenceStartTime = 0; // NEW: Real-world timestamp
 
 // Tile Map (0: Empty, 1: Brick, 2: Steel, 3: Grass, 4: Water)
 let map = [];
@@ -394,10 +395,16 @@ window.addEventListener('keyup', e => { keys[e.code] = false; });
 
 function update(dt) {
     if (gameState === 'death_sequence') {
-        deathAnimationTimer -= dt;
+        const elapsed = Date.now() - deathSequenceStartTime;
+        
+        // Update particles only
         particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
         particles = particles.filter(p => p.life > 0);
-        if (deathAnimationTimer <= 0) endGame('TANK COLLISION!');
+        
+        // Force transition after 1.2s absolute time
+        if (elapsed > 1200) {
+            endGame('TANK COLLISION!');
+        }
         return;
     }
 
@@ -652,7 +659,8 @@ function handleTankCollision(e, idx) {
         
         // Massive explosion sequence
         gameState = 'death_sequence';
-        deathAnimationTimer = 1200;
+        deathSequenceStartTime = Date.now();
+        deathAnimationTimer = 1200; 
         
         createExplosion(player.x + TANK_SIZE/2, player.y + TANK_SIZE/2, '#fff');
         // Delayed secondary explosions for "Big Boom"
@@ -674,9 +682,9 @@ function gameLoop(timestamp) {
     if (gameState !== 'playing' && gameState !== 'death_sequence') return;
     
     // Sanitize DT
-    if (!lastTime) lastTime = timestamp;
+    if (!lastTime || lastTime > timestamp) lastTime = timestamp;
     let dt = timestamp - lastTime;
-    if (dt > 100) dt = 16; // Capped to avoid timer jumps on lag/first frame
+    if (dt > 100) dt = 16; 
     lastTime = timestamp;
 
     update(dt); draw();
