@@ -22,6 +22,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
 }
 
@@ -29,6 +30,7 @@ body {
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     max-width: 600px;
     background-color: var(--bg-retro);
     overflow: hidden;
@@ -53,6 +55,7 @@ body {
     flex-direction: column;
     justify-content: space-between;
     padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
     font-size: 14px;
     text-shadow: 2px 2px 0 #000;
 }
@@ -190,6 +193,7 @@ p {
     cursor: pointer;
     z-index: 5;
     bottom: 60px;
+    bottom: calc(60px + env(safe-area-inset-bottom));
     font-family: Arial, sans-serif;
 }
 
