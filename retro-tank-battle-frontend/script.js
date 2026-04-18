@@ -1,12 +1,3 @@
-(function rescueSDK() {
-    if (!window.audioFX) {
-        console.warn('--- SDK MISSING: Attempting Rescue... ---');
-        const s = document.createElement('script');
-        s.src = 'audio-fx.js?v=9';
-        document.body.appendChild(s);
-    }
-})();
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gameWrapper = document.getElementById('gameWrapper');
@@ -212,11 +203,6 @@ class Tank {
     }
 
     move(dt) {
-        // Handle invincibility countdown (player only)
-        if (this.type === 'player' && this.invincibilityTimer > 0) {
-            this.invincibilityTimer -= dt;
-        }
-
         if (this.type === 'enemy' || (this.type === 'player' && this.moving)) {
             let nextX = this.x;
             let nextY = this.y;
@@ -513,6 +499,11 @@ function update(dt) {
         p.life -= 0.02; 
     });
     particles = particles.filter(p => p.life > 0);
+
+    // Player Shield Countdown (Ensures it ends even if standing still)
+    if (player && player.invincibilityTimer > 0) {
+        player.invincibilityTimer -= dt;
+    }
 
     if (hqHP <= 0) endGame('HQ DESTROYED');
 
