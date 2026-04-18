@@ -577,11 +577,6 @@ function updateHUD() {
     uiStage.textContent = currentStage;
     hqHpBar.style.background = hqHP < 40 ? '#ff0000' : '#00ff00';
     playerHpBar.style.background = player.hp < 40 ? '#ffaa00' : '#00ccff';
-
-    // HUD
-    document.getElementById('ui-hq-hp').textContent = Math.ceil(hqHP);
-    document.getElementById('ui-stage').textContent = currentStage;
-    document.getElementById('ui-kills').textContent = kills;
 }
 
 function checkStageClear() {
