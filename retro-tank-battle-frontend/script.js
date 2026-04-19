@@ -821,3 +821,10 @@ const wakeUpAudio = () => {
 };
 window.addEventListener('click', wakeUpAudio);
 window.addEventListener('touchstart', wakeUpAudio);
+
+// NUCLEAR OPTION: Prevent ALL scrolling on the document level during gameplay
+document.addEventListener('touchmove', (e) => {
+    if (gameState === 'playing' || gameState === 'paused') {
+        e.preventDefault();
+    }
+}, { passive: false });
