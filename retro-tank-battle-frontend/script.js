@@ -394,7 +394,16 @@ function createExplosion(x, y, color) {
 let player;
 const keys = {};
 
-window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') player.shoot(); });
+window.addEventListener('keydown', e => { 
+    keys[e.code] = true; 
+    
+    // Prevent default scrolling for game keys on laptop browsers
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyW', 'KeyS', 'KeyA', 'KeyD'].includes(e.code)) {
+        e.preventDefault();
+    }
+    
+    if (e.code === 'Space') player.shoot(); 
+});
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
 function update(dt) {
