@@ -401,17 +401,25 @@ function endGame(state) {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    paddle.draw();
-    bricks.forEach(b => b.draw());
-    balls.forEach(b => b.draw());
-    powerUps.forEach(p => p.draw());
-    particles.forEach(p => p.draw());
+    if (paddle) paddle.draw();
+    if (bricks.length > 0) bricks.forEach(b => b.draw());
+    if (balls.length > 0) balls.forEach(b => b.draw());
+    if (powerUps.length > 0) powerUps.forEach(p => p.draw());
+    if (particles.length > 0) particles.forEach(p => p.draw());
 }
 
 function loop(t) {
+    if (!lastTime) {
+        lastTime = t;
+        requestAnimationFrame(loop);
+        return;
+    }
     const dt = t - lastTime;
     lastTime = t;
-    update(dt);
+    
+    if (gameState === 'playing') {
+        update(dt);
+    }
     draw();
     requestAnimationFrame(loop);
 }
