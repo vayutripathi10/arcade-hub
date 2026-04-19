@@ -10,6 +10,10 @@ const gameOverMenu = document.getElementById('gameOverMenu');
 const howToPlayModal = document.getElementById('howToPlayModal');
 const endTitle = document.getElementById('end-title');
 const endScore = document.getElementById('end-score');
+const btnPause = document.getElementById('btn-pause');
+const btnMute = document.getElementById('btn-mute');
+const btnResume = document.getElementById('btn-resume');
+const btnQuit = document.getElementById('btn-quit');
 
 // Game Settings
 let gameState = 'title'; // title, playing, paused, gameover, won
@@ -245,6 +249,13 @@ function startGame() {
 function updateHUD() {
     uiScore.textContent = score;
     uiLives.textContent = lives;
+    
+    // Manage header controls visibility
+    if (gameState === 'playing' || gameState === 'paused') {
+        btnPause.classList.remove('hidden');
+    } else {
+        btnPause.classList.add('hidden');
+    }
 }
 
 function spawnParticles(x, y, color) {
@@ -386,6 +397,22 @@ function update(dt) {
     }
 }
 
+function togglePause() {
+    if (gameState === 'playing') {
+        gameState = 'paused';
+        pauseMenu.classList.remove('hidden');
+    } else if (gameState === 'paused') {
+        gameState = 'playing';
+        pauseMenu.classList.add('hidden');
+    }
+}
+
+function toggleMute() {
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+    }
+}
+
 function endGame(state) {
     gameState = state;
     gameOverMenu.classList.remove('hidden');
@@ -443,8 +470,36 @@ document.getElementById('btn-start').addEventListener('click', startGame);
 document.getElementById('btn-restart').addEventListener('click', startGame);
 document.getElementById('btn-how').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
 document.getElementById('btn-close-how').addEventListener('click', () => howToPlayModal.classList.add('hidden'));
+
+btnPause.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
+
+btnResume.addEventListener('click', togglePause);
+
+btnMute.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMute();
+});
+
+btnQuit.addEventListener('click', () => {
+    pauseMenu.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    gameState = 'title';
+    updateHUD();
+});
+
 document.getElementById('btn-home').addEventListener('click', () => {
     gameOverMenu.classList.add('hidden');
     mainMenu.classList.remove('hidden');
     gameState = 'title';
+    updateHUD();
+});
+
+// Keyboard Shortcuts
+window.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'p') togglePause();
+    if (e.key.toLowerCase() === 'm') toggleMute();
+    if (e.key === 'Escape' && gameState === 'playing') togglePause();
 });
