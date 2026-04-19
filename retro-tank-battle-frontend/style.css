@@ -1,7 +1,9 @@
-:root {
     --retro-red: #cc0000;
     --retro-gray: #333;
     --retro-light: #e0e0e0;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --header-height: 80px;
 }
 
 body {
@@ -9,39 +11,96 @@ body {
     padding: 0;
     overflow: hidden;
     background-color: #000;
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'Outfit', sans-serif;
 }
 
+/* --- HEADER & HUD PILL --- */
 .header {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: var(--retro-red);
-    border-bottom: 4px solid #fff;
-    box-sizing: border-box;
+    height: var(--header-height);
     z-index: 1000;
+    pointer-events: none;
+    padding-top: env(safe-area-inset-top);
 }
 
-.back-btn {
-    color: #fff;
+.header > * {
+    pointer-events: auto;
+}
+
+.home-btn {
+    position: absolute;
+    left: 20px;
+    top: calc(50% + env(safe-area-inset-top) / 2);
+    transform: translateY(-50%);
     text-decoration: none;
-    font-size: 14px;
-    text-shadow: 1px 1px 0 #000;
-}
-
-.hud-top {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    white-space: nowrap;
+    font-family: 'Outfit', sans-serif;
+}
+
+.home-btn:hover {
     color: #fff;
-    font-size: 10px;
-    flex: 1;
-    justify-content: center;
+    border-color: var(--retro-red);
+    box-shadow: 0 0 15px rgba(204, 0, 0, 0.2);
+    transform: translateY(-50%) translateX(5px);
+}
+
+.hud-pill {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + env(safe-area-inset-top) / 2);
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 6px 16px;
+    border-radius: 50px;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
+}
+
+.hud-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 40px;
+}
+
+.hud-label {
+    font-size: 0.45rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Press Start 2P', cursive;
+    margin-bottom: 4px;
+}
+
+.hud-value {
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: 'Press Start 2P', cursive;
+    color: #fff;
+}
+
+.hud-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .hud-stat {
@@ -75,30 +134,35 @@ body {
 }
 
 .header-controls {
+    position: absolute;
+    right: 20px;
+    top: calc(50% + env(safe-area-inset-top) / 2);
+    transform: translateY(-50%);
     display: flex;
     gap: 10px;
 }
 
 .icon-btn {
-    background: #000;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
     color: #fff;
-    border: 2px solid #fff;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 16px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    min-width: 40px;
-    height: 40px;
-    box-shadow: 2px 2px 0 #000;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    outline: none;
 }
 
 .icon-btn:hover {
-    background: #222;
-    transform: translate(1px, 1px);
-    box-shadow: 1px 1px 0 #000;
+    border-color: var(--retro-red);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(204, 0, 0, 0.2);
 }
 
 .ad-container {
@@ -253,12 +317,31 @@ body {
 
 @media (max-width: 600px) {
     .game-title { font-size: 20px; }
-    .header { padding: 5px 8px; }
     .hud-stat .hud-label { display: none; }
     .hp-bar-container { width: 40px; }
-    .hud-top { gap: 8px; }
     .hidden-mobile { display: none !important; }
-    .icon-btn { min-width: 32px; height: 32px; font-size: 14px; padding: 2px 5px; }
+    .icon-btn { width: 36px; height: 36px; font-size: 1rem; }
     .m-btn { width: 50px; height: 50px; font-size: 18px; }
     .fire-btn { width: 65px; height: 65px; }
+}
+
+@media (max-width: 400px) {
+    .home-btn { 
+        padding: 0.5rem 0.7rem; 
+        font-size: 0.7rem; 
+        left: 10px;
+    }
+    .hud-pill {
+        gap: 8px;
+        padding: 6px 10px;
+    }
+    .header-controls {
+        right: 10px;
+        gap: 6px;
+    }
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+    }
 }

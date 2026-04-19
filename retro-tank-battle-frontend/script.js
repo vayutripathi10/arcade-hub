@@ -7,6 +7,7 @@ const uiScore = document.getElementById('ui-score');
 const hqHpBar = document.getElementById('hq-hp-bar');
 const playerHpBar = document.getElementById('player-hp-bar');
 const uiStage = document.getElementById('ui-stage');
+const uiKills = document.getElementById('ui-kills');
 const mainMenu = document.getElementById('mainMenu');
 const pauseMenu = document.getElementById('pauseMenu');
 const gameOverMenu = document.getElementById('gameOverMenu');
@@ -574,7 +575,8 @@ function updateHUD() {
     uiScore.textContent = score.toString().padStart(5, '0');
     hqHpBar.style.width = Math.max(0, hqHP) + '%';
     playerHpBar.style.width = Math.max(0, player.hp) + '%';
-    uiStage.textContent = currentStage;
+    if (uiStage) uiStage.textContent = currentStage;
+    if (uiKills) uiKills.textContent = kills;
     hqHpBar.style.background = hqHP < 40 ? '#ff0000' : '#00ff00';
     playerHpBar.style.background = player.hp < 40 ? '#ffaa00' : '#00ccff';
 }
@@ -749,8 +751,8 @@ function endGame(title) {
     }
 }
 
-// Auto-detect touch support
-if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+// Auto-detect touch support with screen width fallback
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 1024) {
     document.getElementById('mobile-controls').classList.remove('hidden');
 }
 
@@ -783,7 +785,7 @@ document.getElementById('btn-mute').addEventListener('click', () => {
 
 // Quit Logic
 const quitGame = () => {
-    window.location.href = '../retro-hub.html';
+    window.location.href = '../index.html';
 };
 document.getElementById('btn-quit').addEventListener('click', quitGame);
 document.getElementById('btn-quit-end').addEventListener('click', quitGame);

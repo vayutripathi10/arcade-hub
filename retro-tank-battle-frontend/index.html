@@ -19,32 +19,38 @@
 </head>
 <body>
     <div class="header">
-        <a href="../retro-hub.html" class="back-btn">&#8592; Retro Hub</a>
-        <div class="hud-top">
+        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+        
+        <div class="hud-pill">
             <div class="hud-stat">
-                <span class="hud-label">HQ HP</span>
+                <span class="hud-label">HQ</span>
                 <div class="hp-bar-container"><div id="hq-hp-bar" class="hp-bar"></div></div>
             </div>
+            <div class="hud-divider"></div>
             <div class="hud-stat">
                 <span class="hud-label">LIFE</span>
                 <div class="hp-bar-container"><div id="player-hp-bar" class="hp-bar player-hp"></div></div>
             </div>
+            <div class="hud-divider"></div>
             <div class="hud-stat">
                 <span class="hud-label">SCORE</span>
                 <span id="ui-score" class="hud-value">00000</span>
             </div>
-            <div class="hud-stat hidden-mobile">
-                <span class="hud-label">STAGE</span>
-                <span id="ui-stage" class="hud-value">1</span>
-            </div>
+            <div class="hud-divider"></div>
             <div class="hud-stat">
                 <span class="hud-label">KILLS</span>
                 <span id="ui-kills" class="hud-value">0</span>
             </div>
+            <div class="hud-divider hidden-mobile"></div>
+            <div class="hud-stat hidden-mobile">
+                <span class="hud-label">STAGE</span>
+                <span id="ui-stage" class="hud-value">1</span>
+            </div>
         </div>
+
         <div class="header-controls">
-            <button id="btn-mute" class="icon-btn">🔊</button>
-            <button id="btn-pause" class="icon-btn">⏸</button>
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="btn-pause" class="icon-btn" title="Pause Game">⏸</button>
         </div>
     </div>
 
@@ -276,6 +282,6 @@ class AudioFX {
 }
 window.audioFX = new AudioFX();
     </script>
-    <script src="script.js?v=FinalFix"></script>
+    <script src="script.js?v=ArcadeHub_Final"></script>
 </body>
 </html>
