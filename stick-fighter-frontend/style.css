@@ -18,7 +18,9 @@ body {
     width: 100%;
     max-width: 800px;
     height: 100vh;
+    height: 100dvh;
     max-height: calc(100vh - 150px);
+    max-height: calc(100dvh - 150px);
     margin: 2vh auto;
     background: linear-gradient(180deg, #120e2b 0%, #291244 40%, #000 100%);
     box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
@@ -170,6 +172,7 @@ body {
 @media (max-width: 600px) {
     #gameWrapper {
         height: 100vh;
+        height: 100dvh;
         height: 100dvh;
         margin: 0;
         border: none;

@@ -23,6 +23,7 @@ body {
     color: var(--text-primary);
     min-height: 100vh;
     min-height: 100dvh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -326,6 +327,7 @@ body {
         padding: 0;
         margin: 0;
         height: 100vh;
+        height: 100dvh;
         height: 100dvh;
         display: flex;
         flex-direction: column;
