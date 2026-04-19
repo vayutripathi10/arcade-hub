@@ -1,0 +1,172 @@
+:root {
+    --bg: #0a0b10;
+    --primary: #00f3ff;
+    --secondary: #ff00de;
+    --accent: #bc00ff;
+    --success: #00ff88;
+    --text: #ffffff;
+    --font-arcade: 'Press Start 2P', cursive;
+    --font-ui: 'Outfit', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameWrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 600px;
+    background-color: var(--bg);
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #1a1b25 0%, #0a0b10 100%);
+}
+
+/* UI Overlays */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 11, 16, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    z-index: 100;
+}
+
+.hidden { display: none !important; }
+
+h1 {
+    font-family: var(--font-arcade);
+    font-size: 2rem;
+    color: var(--primary);
+    text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+    margin-bottom: 2rem;
+    line-height: 1.4;
+}
+
+p {
+    margin-bottom: 2rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.btn {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 15px 30px;
+    font-family: var(--font-arcade);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+    margin: 10px;
+    width: 80%;
+}
+
+.btn:hover {
+    background: var(--primary);
+    color: var(--bg);
+    box-shadow: 0 0 20px var(--primary);
+}
+
+.hud {
+    position: absolute;
+    top: env(safe-area-inset-top, 0);
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+    z-index: 50;
+    font-family: var(--font-arcade);
+    font-size: 0.6rem;
+}
+
+.hud-item {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stat-label { color: rgba(255, 255, 255, 0.5); font-size: 0.5rem; }
+.stat-value { color: var(--success); text-shadow: 0 0 5px var(--success); }
+
+/* Control Hints */
+.control-hint {
+    position: absolute;
+    bottom: calc(40px + env(safe-area-inset-bottom));
+    width: 100%;
+    text-align: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+}
+
+/* Modals */
+.modal-content {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(243, 0, 255, 0.3);
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 90%;
+    backdrop-filter: blur(10px);
+}
+
+.powerup-hint {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.pu-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+}
+
+.back-link {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    font-size: 0.8rem;
+    z-index: 1000;
+}
