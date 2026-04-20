@@ -41,7 +41,9 @@
             </div>
             <button id="btn-start" class="arcade-btn">START RACE</button>
             <button id="btn-howtoplay" class="arcade-btn outline">HOW TO PLAY</button>
-            <a href="../retro-hub.html" class="back-link">← Back to Hub</a>
+            <div class="header">
+                <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+            </div>
             
             <!-- Adsterra Mobile Banner (320x50) in Main Menu -->
             <div class="ad-container mobile-banner" style="margin-top: 30px; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
@@ -253,6 +255,15 @@ class AudioFX {
 }
 window.audioFX = new AudioFX();
     </script>
-    <script src="script.js?v=CleanFinal"></script>
+    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
+<script>
+    const wakeUpAudio = () => {
+        if (window.audioFX && typeof window.audioFX.init === 'function') {
+            window.audioFX.init();
+        }
+    };
+    window.addEventListener('click', wakeUpAudio, { once: true });
+    window.addEventListener('touchstart', wakeUpAudio, { once: true });
+</script>
 </body>
 </html>

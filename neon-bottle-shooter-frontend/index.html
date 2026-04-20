@@ -87,7 +87,7 @@
 </head>
 <body>
     <div class="header">
-        <a href="../index.html" class="home-btn">← Home</a>
+        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
         <h1 class="game-title">Neon Bottle Shooter</h1>
     </div>
 
@@ -155,6 +155,15 @@
     <!-- Scripts -->
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
+            }
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
 </body>
 </html>

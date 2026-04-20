@@ -282,6 +282,15 @@ class AudioFX {
 }
 window.audioFX = new AudioFX();
     </script>
-    <script src="script.js?v=ArcadeHub_v5_UniversalLock"></script>
+    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
+            }
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
 </body>
 </html>

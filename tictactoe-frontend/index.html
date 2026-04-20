@@ -168,8 +168,11 @@
 </head>
 <body>
 
-    <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
     <div class="header">
+        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+    </div>
+
+    <div class="title-wrapper">
         <h1 class="title">TIC TAC TOE</h1>
         <div class="status x-turn" id="status">Player 1's Turn</div>
     </div>
@@ -538,8 +541,17 @@
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy.html">Privacy Policy</a> | <a href="../contact.html">Contact Us</a> | <a href="../updates.html">News</a></p>
     </footer>
 
-    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/audio-fx.js?v=ArcadeHub_GlobalUI"></script>
     <script src="../shared/achievements.js"></script>
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
+            }
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
 
     <!-- How to Play Overlay -->
     <div class="htp-overlay" id="htpOverlay">

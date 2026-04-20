@@ -28,19 +28,24 @@ body {
 }
 
 .header {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    z-index: 1001;
     pointer-events: none;
+    background: transparent;
 }
 
-.nav-left { pointer-events: auto; }
-.nav-right { text-align: right; display: flex; gap: 15px; pointer-events: auto; }
+    pointer-events: auto; 
+    z-index: 2000 !important;
+}
+
+    gap: 15px; 
+    pointer-events: auto; 
+    z-index: 2000 !important;
+}
 
 .back-btn {
     text-decoration: none;
@@ -164,8 +169,8 @@ canvas {
 /* Pause Button */
 .pause-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: calc(env(safe-area-inset-top) + 70px);
+    right: 15px;
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -176,7 +181,7 @@ canvas {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 100;
+    z-index: 1002;
     backdrop-filter: blur(8px);
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -192,4 +197,49 @@ canvas {
 }
 .pause-btn.hidden {
     display: none !important;
+}
+
+@media (max-width: 600px) {
+    .back-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+    .nav-left {
+        left: 10px;
+        top: calc(env(safe-area-inset-top) + 12px);
+    }
+    .nav-right {
+        right: 10px;
+        top: calc(env(safe-area-inset-top) + 12px);
+        gap: 8px;
+    }
+    .stat-box {
+        padding: 4px 8px;
+    }
+    .stat-val {
+        font-size: 1rem;
+    }
+    .pause-btn {
+        top: calc(env(safe-area-inset-top) + 60px);
+        right: 10px;
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 550px) {
+    .back-btn { font-size: 0 !important; }
+    .back-btn::before { content: '← Hub'; font-size: 0.75rem; }
+}
+
+@media (max-width: 360px) {
+    .back-btn {
+        width: 40px;
+        overflow: hidden;
+        padding: 6px 0;
+        display: flex;
+        justify-content: center;
+    }
+    .back-btn::before { content: '←'; }
 }

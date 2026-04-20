@@ -167,9 +167,8 @@
     </style>
 </head>
 <body>
-    <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-    
     <div class="header">
+        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
         <h1 class="title">ZEN SNAKE</h1>
         <div class="score-container">
             <div class="score-box">
@@ -247,7 +246,16 @@
 
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
+            }
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
 
     <!-- How to Play Overlay -->
     <div class="htp-overlay" id="htpOverlay">

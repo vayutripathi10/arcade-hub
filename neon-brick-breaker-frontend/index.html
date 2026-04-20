@@ -183,6 +183,13 @@
     }
     window.audioFX = new AudioFX();
     </script>
-    <script src="script.js"></script>
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX) window.audioFX.init();
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
+    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
 </body>
 </html>

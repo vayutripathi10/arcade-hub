@@ -89,7 +89,9 @@
 
 <!-- ── Level Select Screen ───────────────────── -->
 <div id="screenMenu" class="screen active">
-    <a href="../index.html" class="home-btn">&larr; Arcade Hub</a>
+    <div class="header">
+        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+    </div>
     <h1 class="game-title">NEON DRAW<br><span>BRIDGE</span></h1>
     <p class="subtitle">Draw bridges. Defy gravity. Reach the portal.</p>
     <div id="levelGrid" class="level-grid"></div>
@@ -170,6 +172,15 @@
 </div>
 
 <script src="../shared/audio-fx.js"></script>
-<script src="script.js"></script>
+<script src="script.js?v=ArcadeHub_GlobalUI"></script>
+<script>
+    const wakeUpAudio = () => {
+        if (window.audioFX && typeof window.audioFX.init === 'function') {
+            window.audioFX.init();
+        }
+    };
+    window.addEventListener('click', wakeUpAudio, { once: true });
+    window.addEventListener('touchstart', wakeUpAudio, { once: true });
+</script>
 </body>
 </html>

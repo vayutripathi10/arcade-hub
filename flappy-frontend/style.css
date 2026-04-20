@@ -35,32 +35,63 @@ body {
     overflow-y: auto;
 }
 
-.home-btn {
+.header {
     position: fixed;
-    top: 1.5rem;
-    left: 1.5rem;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    z-index: 1001;
+    pointer-events: none;
+    background: transparent;
+    display: block !important; /* Ensure it stays visible on mobile */
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.header > * {
+    pointer-events: auto;
+}
+
+.home-btn {
+    position: absolute;
+    left: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
     text-decoration: none;
     color: var(--text-secondary);
     font-weight: 500;
-    padding: 0.7rem 1.1rem;
+    padding: 0.6rem 1rem;
     border-radius: 12px;
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
-    z-index: 200;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    z-index: 1100;
 }
 
-.home-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(-5px);
+.score-container {
+    position: absolute;
+    left: 50%;
+    top: calc(env(safe-area-inset-top) + 20px);
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 6px 16px;
+    border-radius: 50px;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    z-index: 1100;
 }
 
-.header {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    width: 100%;
+.title {
+    display: none; /* Already using HUD pill */
 }
 
 .title {
@@ -74,11 +105,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.score-container {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-}
+/* Score container moved to absolute header position */
 
 .score-box {
     background: var(--card-bg);
@@ -295,7 +322,7 @@ body {
 /* Pause Button */
 .pause-btn {
     position: absolute;
-    top: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
     right: 20px;
     width: 44px;
     height: 44px;
@@ -307,7 +334,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 100;
+    z-index: 1002;
     backdrop-filter: blur(8px);
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
