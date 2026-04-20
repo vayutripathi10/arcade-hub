@@ -1,3 +1,13 @@
+:root {
+    --bg-color: #050510;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --accent-color: #00ffcc;
+    --accent-glow: rgba(0, 255, 204, 0.3);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --bg: var(--bg-color);
+    --text: var(--text-primary);
     --header-height: 80px;
     --header-row-height: 60px;
 }

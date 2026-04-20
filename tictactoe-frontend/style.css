@@ -1,14 +1,14 @@
-        :root {
-            --primary: #8a2be2;
-            --secondary: #4a00e0;
-            --background: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text: #f8fafc;
-            --x-color: #00ffcc;
-            --o-color: #ff3366;
-            --header-height: 80px;
-        }
+:root {
+    --primary: #8a2be2;
+    --secondary: #4a00e0;
+    --background: #0f172a;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text: #f8fafc;
+    --x-color: #00ffcc;
+    --o-color: #ff3366;
+    --header-height: 80px;
+}
 
         * {
             margin: 0;

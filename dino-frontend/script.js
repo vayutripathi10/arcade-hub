@@ -136,6 +136,8 @@ function init() {
         }
     });
 
+    btnResume?.addEventListener('click', (e) => {
+        e.stopPropagation();
         togglePause(false);
     });
 
