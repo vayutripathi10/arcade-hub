@@ -636,6 +636,11 @@ function startNextStage() {
 }
 
 function initGame() {
+    if (window.audioFX) {
+        window.audioFX.init();
+        const muteBtn = document.getElementById('btn-mute');
+        if (muteBtn) muteBtn.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     canvas.width = 800;
     canvas.height = 576;
     currentStage = 1;

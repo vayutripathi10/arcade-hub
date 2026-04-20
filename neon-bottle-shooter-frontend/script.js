@@ -631,6 +631,10 @@ function loop(timestamp) {
 // --- Game Flow ---
 
 function initGame(mode) {
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     gameMode = mode;
     score = 0;
     timer = gameMode === 'classic' ? 60 : 0;
