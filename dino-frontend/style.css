@@ -6,6 +6,7 @@
     --accent-glow: rgba(138, 43, 226, 0.3);
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.6);
+    --header-height: 80px;
 }
 
 * {
@@ -23,12 +24,12 @@ body {
     color: var(--text-primary);
     min-height: 100vh;
     min-height: 100dvh;
-    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 80px 20px 20px;
+    padding-top: var(--header-height);
+    margin: 0;
     box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: auto;
@@ -39,17 +40,43 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
+    height: var(--header-height);
     z-index: 1001;
     pointer-events: none;
     background: transparent;
-    display: block !important; /* Ensure it stays visible on mobile */
-    margin-bottom: 0;
-    text-align: center;
+    display: block !important;
 }
 
-.header > * {
+.header-controls {
+    position: absolute;
+    right: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
+    display: flex;
+    gap: 10px;
     pointer-events: auto;
+    z-index: 2000 !important;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+    transform: scale(1.1);
 }
 
 .home-btn {
@@ -559,14 +586,51 @@ body {
         background-color: transparent;
         display: block;  /* removes extra gap below canvas */
     }
+}
     
+@media (max-width: 600px) {
+    :root { --header-height: 140px; }
+    
+    .header-controls {
+        right: 15px;
+        top: calc(env(safe-area-inset-top) + 15px);
+    }
     .home-btn {
-        top: 10px;
         left: 10px;
-        z-index: 100;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.8rem;
+        top: calc(env(safe-area-inset-top) + 15px);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
         background: rgba(12, 14, 20, 0.5);
+    }
+    .score-container {
+        gap: 8px;
+        padding: 4px 12px;
+        top: calc(env(safe-area-inset-top) + 65px);
+        transform: translateX(-50%) scale(0.9);
+    }
+
+    .game-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100dvh;
+        max-width: none;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin: 0;
+        z-index: 50;
+        box-shadow: none;
+        background: transparent;
+    }
+    
+    #gameCanvas {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        background-color: transparent;
+        display: block;
     }
     
     .controls-info, .site-footer {
@@ -576,13 +640,5 @@ body {
     .overlay {
         border-radius: 0;
         background: rgba(12, 14, 20, 0.85);
-    }
-
-    .pause-btn {
-        top: 20px; /* Restored to standard 20px slot so Mute floats perfectly below */
-        right: 20px;
-        width: 44px;
-        height: 44px;
-        background: rgba(12, 14, 20, 0.9);
     }
 }

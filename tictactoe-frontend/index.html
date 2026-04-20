@@ -170,6 +170,12 @@
 
     <div class="header">
         <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+        <div class="header-controls">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
+                <span class="pause-icon">||</span>
+            </button>
+        </div>
     </div>
 
     <div class="title-wrapper">
@@ -227,6 +233,7 @@
         const p2NameInput = document.getElementById('p2Name');
         const p1ScoreDisplay = document.getElementById('p1ScoreDisplay');
         const p2ScoreDisplay = document.getElementById('p2ScoreDisplay');
+        const btnMute = document.getElementById('btn-mute');
         
         let board = ["", "", "", "", "", "", "", "", ""];
         let currentPlayer = "X";
@@ -259,6 +266,19 @@
             
             running = true;
             updateStatusText();
+
+            btnMute.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (window.audioFX) {
+                    window.audioFX.toggleMute();
+                    btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+                }
+            });
+            
+            // Sync mute icon initial state
+            if (window.audioFX && btnMute) {
+                btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+            }
         }
 
         function toggleAI() {
@@ -292,6 +312,8 @@
             if (board[cellIndex] !== "" || !running || isThinking) {
                 return;
             }
+
+            if (window.audioFX) window.audioFX.init();
 
             // In AI mode, prevent human from clicking when it's O's turn
             if (isVsAI && currentPlayer === "O") {

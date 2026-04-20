@@ -61,85 +61,21 @@ class AudioFX {
                 return;
             }
         }
-        if (this.ctx && this.ctx.state === 'suspended') {
-            console.log('AudioFX: Resuming suspended context...');
+        
+        // Always try to resume if suspended (standard browser requirement)
+        if (this.ctx && (this.ctx.state === 'suspended' || this.ctx.state === 'interrupted')) {
             this.ctx.resume().then(() => {
                 console.log('AudioFX: Context resumed. State:', this.ctx.state);
-            });
+            }).catch(e => console.warn('AudioFX: Resume failed', e));
         }
     }
 
     injectMuteButton() {
-        // Only inject if no mute button exists
-        if (document.getElementById('global-mute-btn') || document.getElementById('btn-mute')) return;
-        
-        const btn = document.createElement('button');
-        btn.id = 'global-mute-btn';
-        btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
-        btn.style.cssText = `
-            position: absolute;
-            top: 75px; /* Default Offset vertically below the pause button */
-            right: 20px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(12, 14, 20, 0.85);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            font-size: 1.2rem;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        `;
-        
-        // Dynamically adjust for specific games with conflicting top-HUDs
-        if (window.location.href.includes('bottle-shooter')) {
-            btn.style.top = 'auto';
-            btn.style.bottom = '90px';
-        }
-
-        btn.onmouseover = () => {
-            btn.style.background = 'rgba(12, 14, 20, 1)';
-            btn.style.borderColor = '#8a2be2';
-            btn.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.3)';
-            btn.style.transform = 'scale(1.1)';
-        };
-        btn.onmouseout = () => {
-            btn.style.background = 'rgba(12, 14, 20, 0.85)';
-            btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            btn.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-            btn.style.transform = 'scale(1)';
-        };
-        
-        // Prevent focus so hitting Space to jump doesn't actuate mute button
-        btn.onfocus = () => btn.blur();
-        btn.onclick = (e) => {
-            e.preventDefault();
-            this.toggleMute();
-            // Start audio context if suspended
-            this.init();
-        };
-        
-        // Append to the wrapper if exists, otherwise body
-        const wrapper = document.querySelector('.game-wrapper');
-        if (wrapper) {
-            btn.style.position = 'absolute';
-            wrapper.appendChild(btn);
-        } else {
-            btn.style.position = 'fixed';
-            if (!window.location.href.includes('bottle-shooter')) {
-                btn.style.right = '20px';
-            }
-            if (document.body) document.body.appendChild(btn);
-        }
+        // [DEPRECATED] Dynamic injection is disabled in favor of manual HTML placement
+        // for better consistency and z-index control across all games.
+        console.log('AudioFX: Dynamic injection skipped.');
+        return;
+    }
         
         // Fix for mobile landscape mode overlaying correctly and UI visual bugs
         const style = document.createElement('style');

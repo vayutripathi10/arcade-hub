@@ -15,6 +15,7 @@ const mainMenu = document.getElementById('mainMenu');
 const pauseMenu = document.getElementById('pauseMenu');
 const gameOverMenu = document.getElementById('gameOverMenu');
 const howToPlayModal = document.getElementById('howToPlayModal');
+const btnMute = document.getElementById('btn-mute');
 
 // Game State
 let gameState = 'menu'; // menu, playing, paused, gameover
@@ -154,6 +155,10 @@ function initGame() {
     // Spawn initial enemy
     spawnEnemy();
     lastTime = performance.now();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     requestAnimationFrame(loop);
 }
 
@@ -598,3 +603,11 @@ document.getElementById('btn-quit').addEventListener('click', () => { window.loc
 document.getElementById('btn-quit-end').addEventListener('click', () => { window.location.href = '../index.html'; });
 document.getElementById('btn-resume').addEventListener('click', togglePause);
 document.getElementById('btn-pause').addEventListener('click', togglePause);
+
+btnMute?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
+});

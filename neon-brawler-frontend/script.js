@@ -13,6 +13,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 let CANVAS_W = 800;
 let CANVAS_H = 400;
@@ -68,7 +69,10 @@ function initGame() {
     bossActive = false;
     boss = null;
     warningTimer = 0;
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     gameRunning = true;
     isPaused = false;
     overlay.classList.add('hidden');
@@ -601,6 +605,14 @@ btnQuit?.addEventListener('click', (e) => {
     score = 0;
     scoreEl.textContent = '0';
     draw();
+});
+
+btnMute?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 });
 
 document.addEventListener('visibilitychange', () => {

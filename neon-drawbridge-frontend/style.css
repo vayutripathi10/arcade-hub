@@ -1,4 +1,3 @@
-:root {
     --bg: #0a0a0f;
     --card-bg: rgba(255,255,255,0.04);
     --border: rgba(255,255,255,0.1);
@@ -9,6 +8,7 @@
     --gold: #ffd700;
     --text: #ffffff;
     --subtext: rgba(255,255,255,0.55);
+    --header-height: 80px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,14 +40,42 @@ html, body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
+    height: var(--header-height);
     z-index: 1001;
     pointer-events: none;
     background: transparent;
 }
 
-.header > * {
+.header-controls {
+    position: absolute;
+    right: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
+    display: flex;
+    gap: 10px;
     pointer-events: auto;
+    z-index: 2000 !important;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--cyan);
+    transform: scale(1.1);
 }
 
 .home-btn {
@@ -129,27 +157,47 @@ html, body {
 #screenGame { padding: 0; display: none; flex-direction: column; }
 #screenGame.active { display: flex; align-items: stretch; }
 
-.game-hud {
+.score-container {
+    position: absolute;
+    left: 50%;
+    top: calc(env(safe-area-inset-top) + 20px);
+    transform: translateX(-50%);
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 14px;
-    background: rgba(0,0,0,0.5);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    z-index: 10;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 6px 16px;
+    border-radius: 50px;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1500 !important;
 }
 
-.home-btn-small {
-    text-decoration: none;
-    color: var(--subtext);
-    font-size: 1rem;
-    padding: 4px 10px;
-    border-radius: 8px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    white-space: nowrap;
+.score-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
 }
+
+.score-label {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+    color: var(--subtext);
+    margin-bottom: 2px;
+}
+
+#levelName {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cyan);
+}
+
+.ink-box { min-width: 100px; }
+.ink-bar-bg { width: 80px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 2px; }
+.ink-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--cyan), var(--magenta)); border-radius: 4px; transition: width 0.1s, background 0.3s; box-shadow: 0 0 8px rgba(0,255,204,0.5); }
+.ink-bar.low { background: linear-gradient(90deg, #ff8800, var(--red)); box-shadow: 0 0 8px rgba(255,34,68,0.5); }
 .level-name { font-weight: 700; font-size: 0.9rem; color: var(--cyan); flex: 1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .ink-container { display: flex; align-items: center; gap: 6px; }
@@ -272,7 +320,25 @@ html, body {
 .hint-box p { color: var(--text); font-size: 1.1rem; line-height: 1.5; }
 
 /* ── Mobile ───────────────────────────────── */
-@media (max-width: 500px) {
+@media (max-width: 600px) {
+    :root { --header-height: 140px; }
+    
+    .header-controls {
+        right: 15px;
+        top: calc(env(safe-area-inset-top) + 15px);
+    }
+    .home-btn {
+        left: 10px;
+        top: calc(env(safe-area-inset-top) + 15px);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+    }
+    .score-container {
+        gap: 8px;
+        padding: 4px 12px;
+        top: calc(env(safe-area-inset-top) + 65px);
+        transform: translateX(-50%) scale(0.9);
+    }
     .level-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
     .ctrl-btn { padding: 8px 10px; font-size: 0.75rem; }
     .ink-bar-bg { width: 60px; }
@@ -280,34 +346,6 @@ html, body {
 }
 
 /* Pause Button */
-.pause-btn {
-    position: absolute;
-    top: calc(env(safe-area-inset-top) + 20px);
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(12, 14, 20, 0.85);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1002;
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    font-size: 1.2rem;
-    padding: 0;
-    outline: none;
-}
-.pause-btn:hover {
-    background: rgba(12, 14, 20, 1);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 15px var(--accent-glow);
-    transform: scale(1.1);
-}
 .pause-btn.hidden {
     display: none !important;
 }

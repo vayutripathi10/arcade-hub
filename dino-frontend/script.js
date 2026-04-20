@@ -11,6 +11,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 // Game Constants
 const GRAVITY = 0.8;
@@ -135,10 +136,21 @@ function init() {
         }
     });
 
-    btnResume?.addEventListener('click', (e) => {
-        e.stopPropagation();
         togglePause(false);
     });
+
+    btnMute?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.audioFX) {
+            window.audioFX.toggleMute();
+            btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+        }
+    });
+
+    // Sync mute icon initial state
+    if (window.audioFX && btnMute) {
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 
     btnQuit?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -168,7 +180,10 @@ function startGame() {
     if (gameRunning) return;
     
     // Initialize AudioFX on user gesture
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     
     // Reset state
     dino.y = GROUND_Y;

@@ -7,8 +7,10 @@ const uiAccuracy = document.getElementById('ui-accuracy');
 const uiAmmo = document.getElementById('ui-ammo');
 const uiComboText = document.getElementById('ui-combo-text');
 const uiComboContainer = document.getElementById('ui-combo-container');
-const btnReload = document.getElementById('btn-reload');
+const btnAmmoReload = document.getElementById('btn-reload');
 const btnPause = document.getElementById('btn-pause');
+const btnStandardPause = document.getElementById('pauseBtn');
+const btnMute = document.getElementById('btn-mute');
 
 // Menus
 const mainMenu = document.getElementById('mainMenu');
@@ -134,6 +136,17 @@ canvas.addEventListener('touchstart', (e) => {
     crosshair.y = p.y;
     shoot();
 }, {passive: false});
+
+// --- Sound Standard ---
+if (btnMute) {
+    btnMute.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.audioFX) {
+            window.audioFX.toggleMute();
+            btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+        }
+    });
+}
 
 // --- Sound Utility ---
 function playSound(type) {
@@ -362,6 +375,7 @@ function shoot() {
 
     ammo--;
     shotsFired++;
+    if (window.audioFX) window.audioFX.init();
     playSound('shoot');
     updateHUD();
     
@@ -659,6 +673,10 @@ function initGame(mode) {
     lastTime = performance.now();
     
     if (!animationFrameId) loop(lastTime);
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 }
 
 function updateHUD() {
@@ -735,11 +753,15 @@ modeBtns.forEach(btn => {
     });
 });
 
-btnReload.addEventListener('click', () => {
+btnAmmoReload.addEventListener('click', () => {
     if (gameState === 'playing') reload();
 });
 
 btnPause.addEventListener('click', togglePause);
+btnStandardPause?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePause();
+});
 document.getElementById('btn-resume').addEventListener('click', togglePause);
 
 document.getElementById('btn-restart').addEventListener('click', () => initGame(gameMode));

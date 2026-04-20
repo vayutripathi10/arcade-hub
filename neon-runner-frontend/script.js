@@ -18,6 +18,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 // --- Game State ---
 let highScore = parseInt(localStorage.getItem('neonRunnerBest') || '0');
@@ -111,7 +112,10 @@ function resetGame() {
     isPaused = false;
     pauseBtn?.classList.remove('hidden');
     
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     
     lastTime = performance.now();
     unlockAchievement('achievement_neon_runner_first_run');
@@ -222,6 +226,14 @@ btnQuit?.addEventListener('click', (e) => {
     hudScore.textContent = '0';
     initEnvironment();
     drawBase();
+});
+
+btnMute?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 });
 
 document.addEventListener('visibilitychange', () => {

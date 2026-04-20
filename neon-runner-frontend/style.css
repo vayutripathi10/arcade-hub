@@ -1,12 +1,5 @@
-:root {
-    --bg: #080d14;
-    --cyan: #00ffcc;
-    --purple: #8a2be2;
-    --pink: #ff3366;
-    --gold: #ffcc00;
-    --text: #ffffff;
-    --text-dim: rgba(255,255,255,0.6);
-    --panel-bg: rgba(20, 25, 35, 0.85);
+    --header-height: 80px;
+    --header-row-height: 60px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
 body { 
@@ -25,6 +18,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    padding-top: var(--header-height);
 }
 
 .header {
@@ -32,19 +26,76 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
+    height: var(--header-height);
     z-index: 1001;
     pointer-events: none;
     background: transparent;
 }
 
-    pointer-events: auto; 
+.home-btn {
+    position: absolute;
+    left: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
+    text-decoration: none;
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    z-index: 2000 !important;
+    pointer-events: auto;
+}
+
+.home-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
+.header-controls {
+    position: absolute;
+    right: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
     z-index: 2000 !important;
 }
 
-    gap: 15px; 
-    pointer-events: auto; 
-    z-index: 2000 !important;
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--cyan);
+    transform: scale(1.1);
+}
+
+.score-container {
+    position: absolute;
+    left: 50%;
+    top: calc(env(safe-area-inset-top) + 20px);
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+    z-index: 1500 !important;
 }
 
 .back-btn {
@@ -166,80 +217,42 @@ canvas {
     #gameArea { display: none !important; }
 }
 
-/* Pause Button */
-.pause-btn {
-    position: absolute;
-    top: calc(env(safe-area-inset-top) + 70px);
-    right: 15px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(12, 14, 20, 0.85);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1002;
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    font-size: 1.2rem;
-    padding: 0;
-    outline: none;
-}
-.pause-btn:hover {
-    background: rgba(12, 14, 20, 1);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 15px var(--accent-glow);
-    transform: scale(1.1);
-}
-.pause-btn.hidden {
-    display: none !important;
-}
-
+/* Standardized Header Controls */
 @media (max-width: 600px) {
-    .back-btn {
-        padding: 6px 10px;
+    :root { 
+        --header-height: 140px; 
+    }
+    
+    .header-controls {
+        right: 15px;
+        top: calc(env(safe-area-inset-top) + 15px);
+    }
+
+    .home-btn {
+        left: 10px;
+        top: calc(env(safe-area-inset-top) + 15px);
+        padding: 0.4rem 0.8rem;
         font-size: 0.75rem;
     }
-    .nav-left {
-        left: 10px;
-        top: calc(env(safe-area-inset-top) + 12px);
-    }
-    .nav-right {
-        right: 10px;
-        top: calc(env(safe-area-inset-top) + 12px);
+    .score-container {
         gap: 8px;
-    }
-    .stat-box {
-        padding: 4px 8px;
-    }
-    .stat-val {
-        font-size: 1rem;
-    }
-    .pause-btn {
-        top: calc(env(safe-area-inset-top) + 60px);
-        right: 10px;
-        width: 38px;
-        height: 38px;
-        font-size: 1rem;
+        padding: 4px 12px;
+        top: calc(env(safe-area-inset-top) + 65px);
+        transform: translateX(-50%) scale(0.9);
     }
 }
 
 @media (max-width: 550px) {
-    .back-btn { font-size: 0 !important; }
-    .back-btn::before { content: '← Hub'; font-size: 0.75rem; }
+    .home-btn { font-size: 0 !important; }
+    .home-btn::before { content: '← Hub'; font-size: 0.75rem; }
 }
 
 @media (max-width: 360px) {
-    .back-btn {
+    .home-btn {
         width: 40px;
         overflow: hidden;
-        padding: 6px 0;
-        display: flex;
+        padding: 0.4rem 0;
         justify-content: center;
     }
-    .back-btn::before { content: '←'; }
+    .home-btn::before { content: '←'; }
 }

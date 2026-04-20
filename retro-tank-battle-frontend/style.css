@@ -1,9 +1,5 @@
-    --retro-red: #cc0000;
-    --retro-gray: #333;
-    --retro-light: #e0e0e0;
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --border-color: rgba(255, 255, 255, 0.1);
     --header-height: 80px;
+    --header-row-height: 60px;
 }
 
 html, body {
@@ -66,6 +62,10 @@ html, body {
 }
 
 @media (max-width: 600px) {
+    :root { 
+        --header-height: 140px; 
+    }
+    
     .home-btn {
         left: 10px;
         top: calc(env(safe-area-inset-top) + 15px);
@@ -75,11 +75,11 @@ html, body {
     .hud-pill {
         gap: 8px;
         padding: 4px 12px;
-        top: calc(env(safe-area-inset-top) + 60px);
+        top: calc(env(safe-area-inset-top) + 65px);
         transform: translateX(-50%) scale(0.9);
     }
     .header-controls {
-        right: 10px !important;
+        right: 15px !important;
         top: calc(env(safe-area-inset-top) + 15px) !important;
     }
     /* Integrated from legacy block */

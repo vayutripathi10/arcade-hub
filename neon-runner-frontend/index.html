@@ -177,13 +177,9 @@
 <div id="gameArea">
     <div class="header">
         <div class="nav-left">
-            <a href="../index.html" class="back-btn">&#8592; Arcade Hub</a>
+            <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
         </div>
-        <div class="nav-right">
-            <div class="stat-box">
-                <span class="stat-label">Boosts</span>
-                <span class="stat-val pink" id="hudBoosts">3</span>
-            </div>
+        <div class="score-container">
             <div class="stat-box">
                 <span class="stat-label">Best</span>
                 <span class="stat-val" id="hudBest">0</span>
@@ -192,6 +188,12 @@
                 <span class="stat-label">Score</span>
                 <span class="stat-val gold" id="hudScore">0</span>
             </div>
+        </div>
+        <div class="header-controls">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
+                <span class="pause-icon">||</span>
+            </button>
         </div>
     </div>
 

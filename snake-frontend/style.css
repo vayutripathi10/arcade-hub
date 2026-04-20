@@ -1,4 +1,3 @@
-:root {
     --bg-color: #0c0e14;
     --card-bg: rgba(255, 255, 255, 0.05);
     --border-color: rgba(255, 255, 255, 0.1);
@@ -7,6 +6,8 @@
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.6);
     --danger: #ff3366;
+    --header-height: 80px;
+    --header-row-height: 60px;
 }
 
 * {
@@ -28,7 +29,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: 80px 20px 20px;
+    padding-top: var(--header-height);
+    margin: 0;
     box-sizing: border-box;
     overflow-x: hidden;
     overflow-y: auto;
@@ -39,17 +41,43 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
+    height: var(--header-height);
     z-index: 1001;
     pointer-events: none;
     background: transparent;
-    display: block !important; /* Ensure it stays visible on mobile */
-    margin-bottom: 0;
-    text-align: center;
+    display: block !important;
 }
 
-.header > * {
+.header-controls {
+    position: absolute;
+    right: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
+    display: flex;
+    gap: 10px;
     pointer-events: auto;
+    z-index: 2000 !important;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+    transform: scale(1.1);
 }
 
 .home-btn {
@@ -384,6 +412,12 @@ body {
 }
 
 @media (max-width: 600px) {
+    :root { --header-height: 140px; }
+    
+    .header-controls {
+        right: 15px;
+        top: calc(env(safe-area-inset-top) + 15px);
+    }
     .home-btn {
         left: 10px;
         top: calc(env(safe-area-inset-top) + 15px);
@@ -393,7 +427,7 @@ body {
     .score-container {
         gap: 8px;
         padding: 4px 12px;
-        top: calc(env(safe-area-inset-top) + 60px);
+        top: calc(env(safe-area-inset-top) + 65px);
         transform: translateX(-50%) scale(0.9);
     }
 }

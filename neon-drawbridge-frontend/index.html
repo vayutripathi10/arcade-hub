@@ -100,13 +100,22 @@
 
 <!-- ── Game Screen ───────────────────────────── -->
 <div id="screenGame" class="screen">
-    <div class="game-hud">
-        <a href="../index.html" class="home-btn-small">&larr;</a>
-        <span id="levelName" class="level-name">Level 1</span>
-        <div class="ink-container">
-            <span class="ink-label">INK</span>
-            <div class="ink-bar-bg">
-                <div id="inkBar" class="ink-bar"></div>
+    <div class="header">
+        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+        <div class="header-controls">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
+                <span class="pause-icon">||</span>
+            </button>
+        </div>
+        <div class="score-container">
+            <div class="score-box">
+                <span class="score-label">Level</span>
+                <span id="levelName">Level 1</span>
+            </div>
+            <div class="score-box ink-box">
+                <span class="score-label">INK</span>
+                <div class="ink-bar-bg"><div id="inkBar" class="ink-bar"></div></div>
             </div>
         </div>
     </div>

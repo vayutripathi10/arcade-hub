@@ -18,6 +18,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 // ─── Canvas Sizing ──────────────────────────────────────────────────────────
 const CANVAS_W = 360;
@@ -102,7 +103,10 @@ function resetGame() {
     scoreEl.textContent = '0';
     gameState = 'running';
     pauseBtn?.classList.remove('hidden');
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 }
 
 // ─── Flap ─────────────────────────────────────────────────────────────────────
@@ -462,6 +466,14 @@ canvas.addEventListener('click', flap);
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); flap(); }, { passive: false });
 
 startBtn.addEventListener('click', startGame);
+
+btnMute?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
+});
 
 pauseBtn?.addEventListener('click', (e) => {
     e.stopPropagation();

@@ -11,6 +11,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 // Game Constants
 const gridSize = 20;
@@ -80,6 +81,14 @@ function init() {
         draw();
     });
 
+    btnMute?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.audioFX) {
+            window.audioFX.toggleMute();
+            btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+        }
+    });
+
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && gameRunning && !isPaused) togglePause(true);
     });
@@ -92,7 +101,10 @@ function startGame() {
     if (gameRunning) return;
     
     // Initialize AudioFX on user gesture
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     
     // Reset state
     snake = [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }]; // Start with 3 segments

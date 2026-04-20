@@ -10,6 +10,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 // ─── Constants ───────────────────────────────────────────────
 const GRAVITY   = 0.42;
@@ -316,6 +317,10 @@ function loadLevel(idx) {
     userSegs = []; undoGroups = []; particles = []; curSeg = null;
     var lvl  = LEVELS[idx];
     resizeCanvas();
+    if (window.audioFX) {
+        window.audioFX.init();
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     lvl.keys.forEach(function(k) { k.collected = false; });
     lvl.gates.forEach(function(g) { g.open = false; });
     lvl.platforms.forEach(function(p) { if(p._dir===undefined) p._dir=1; });
@@ -344,6 +349,7 @@ function startPlay() {
     if (mode !== 'draw') return;
     mode = 'play'; playTime = Date.now();
     isPaused = false;
+    if (window.audioFX) window.audioFX.init();
     pauseBtn?.classList.remove('hidden');
     document.getElementById('btnPlay').classList.add('play-active');
     document.getElementById('btnDraw').classList.remove('active');
@@ -643,6 +649,14 @@ btnQuit?.addEventListener('click', (e) => {
     pauseBtn?.classList.add('hidden');
     buildMenu(); 
     showScreen('menu');
+});
+
+btnMute?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 });
 
 document.addEventListener('visibilitychange', () => {

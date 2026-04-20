@@ -11,6 +11,7 @@ const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
+const btnMute = document.getElementById('btn-mute');
 
 // Game State
 const SafeStorage = {
@@ -961,7 +962,11 @@ function animate(timestamp) {
 
 function startGame() {
     if (gameRunning) return;
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        // Update mute icon state on start
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     
     gameRunning = true;
     score = 0;
@@ -1069,6 +1074,14 @@ btnQuit?.addEventListener('click', (e) => {
     scoreElement.textContent = score;
     initStars();
     draw();
+});
+
+btnMute?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 });
 
 document.addEventListener('visibilitychange', () => {

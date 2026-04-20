@@ -170,6 +170,12 @@
     <div class="header">
         <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
         <h1 class="title">NEON SPACE</h1>
+        <div class="header-controls">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
+                <span class="pause-icon">||</span>
+            </button>
+        </div>
         <div class="score-container">
             <div class="score-box">
                 <span class="score-label">Score</span>
@@ -184,9 +190,6 @@
 
     <div class="game-wrapper">
         <canvas id="gameCanvas" width="800" height="500"></canvas>
-        <button id="pauseBtn" class="pause-btn hidden">
-            <span class="pause-icon">||</span>
-        </button>
         <div id="overlay" class="overlay">
             <div class="overlay-content">
                 <h2 id="overlayTitle">Neon Shooter</h2>

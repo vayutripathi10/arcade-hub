@@ -670,13 +670,12 @@ function initGame() {
     
     // Unlock Audio Context on first gesture
     if (window.audioFX) {
-        const sdk = window.audioFX;
-        sdk.init();
-        if (sdk.ctx && sdk.ctx.state === 'suspended') {
-            sdk.ctx.resume();
-        }
-        if (typeof sdk.startEngine === 'function') {
-            sdk.startEngine();
+        window.audioFX.init();
+        const btnMute = document.getElementById('btn-mute');
+        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+        
+        if (typeof window.audioFX.startEngine === 'function') {
+            window.audioFX.startEngine();
         }
     }
 
@@ -787,8 +786,7 @@ document.querySelector('.close-btn').addEventListener('click', () => howToPlayMo
 document.getElementById('btn-mute').addEventListener('click', () => {
     if (window.audioFX && typeof window.audioFX.toggleMute === 'function') {
         window.audioFX.toggleMute();
-        // The icon is updated inside toggleMute, but we can sync here as well
-        document.getElementById('btn-mute').textContent = window.audioFX.isMuted ? '🔇' : '🔊';
+        document.getElementById('btn-mute').innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
 });
 

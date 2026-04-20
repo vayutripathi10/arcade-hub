@@ -335,6 +335,7 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
 
     <!-- Game Buttons -->
     <div class="game-btns" style="top:auto; bottom:12px; right:12px;">
+        <button class="g-btn" id="btn-mute" title="Toggle Sound">🔊</button>
         <button class="g-btn" id="btnPause" title="Pause">⏸</button>
         <button class="g-btn" id="btnRestart" title="Restart">🔄</button>
     </div>
@@ -1757,6 +1758,12 @@ function startGame(mode) {
     generateLevel(currentLevel);
     startTurn();
     lastTime = 0;
+    // Initialize AudioFX on user gesture
+    if (window.audioFX) {
+        window.audioFX.init();
+        const muteBtn = document.getElementById('btn-mute');
+        if (muteBtn) muteBtn.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
 }
 
 // ========== NEXT ROUND ==========
@@ -1899,6 +1906,15 @@ document.getElementById('btnResultMenu').addEventListener('click', (e) => {
 });
 document.getElementById('btnShareX').addEventListener('click', () => shareResult('x'));
 document.getElementById('btnShareWA').addEventListener('click', () => shareResult('wa'));
+
+// Mute button
+document.getElementById('btn-mute')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
+        window.audioFX.toggleMute();
+        e.currentTarget.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
+});
 
 // Start loop
 requestAnimationFrame(gameLoop);

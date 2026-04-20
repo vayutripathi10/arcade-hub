@@ -8,6 +8,7 @@
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.7);
     --glass-bg: rgba(10, 10, 20, 0.7);
+    --header-height: 80px;
 }
 
 * {
@@ -26,6 +27,7 @@ body, html {
     height: 100dvh;
     display: flex;
     flex-direction: column;
+    padding-top: var(--header-height);
     overflow: hidden;
     touch-action: none;
 }
@@ -35,14 +37,42 @@ body, html {
     top: 0;
     left: 0;
     width: 100%;
-    height: 80px;
+    height: var(--header-height);
     z-index: 1001;
     pointer-events: none;
     background: transparent;
 }
 
-.header > * {
+.header-controls {
+    position: absolute;
+    right: 20px;
+    top: calc(env(safe-area-inset-top) + 20px);
+    display: flex;
+    gap: 10px;
     pointer-events: auto;
+    z-index: 2000 !important;
+}
+
+.icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
+    transform: scale(1.1);
 }
 
 .home-btn {
@@ -91,7 +121,7 @@ body, html {
     flex-grow: 1;
     position: relative;
     width: 100%;
-    height: calc(100dvh - 60px);
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -374,12 +404,31 @@ body, html {
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
+    :root { --header-height: 140px; }
     .header {
-        position: absolute;
+        position: fixed;
         top: 0;
+        left: 0;
         width: 100%;
+        height: var(--header-height);
+        z-index: 1001;
+        pointer-events: none;
         background: transparent;
-        border-bottom: none;
+    }
+    .header-controls {
+        right: 15px;
+        top: calc(env(safe-area-inset-top) + 15px);
+    }
+    .home-btn {
+        left: 10px;
+        top: calc(env(safe-area-inset-top) + 15px);
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+    }
+    .game-title {
+        font-size: 1rem;
+        top: calc(env(safe-area-inset-top) + 65px);
+        transform: translateX(-50%) scale(0.9);
     }
     
     .game-wrapper {
@@ -424,32 +473,3 @@ body, html {
     }
 }
 
-/* Compact Mobile Media Queries for Header */
-@media (max-width: 600px) {
-    .home-btn {
-        left: 10px;
-        top: calc(env(safe-area-inset-top) + 15px);
-        padding: 0.4rem 0.8rem;
-        font-size: 0.75rem;
-    }
-    .game-title {
-        font-size: 1rem;
-        top: calc(env(safe-area-inset-top) + 60px);
-        transform: translateX(-50%) scale(0.9);
-    }
-}
-
-@media (max-width: 550px) {
-    .home-btn { font-size: 0 !important; }
-    .home-btn::before { content: '← Hub'; font-size: 0.75rem; }
-}
-
-@media (max-width: 360px) {
-    .home-btn {
-        width: 40px;
-        overflow: hidden;
-        padding: 0.4rem 0;
-        justify-content: center;
-    }
-    .home-btn::before { content: '←'; }
-}

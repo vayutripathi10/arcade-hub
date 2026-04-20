@@ -535,12 +535,14 @@ document.getElementById('btn-quit').addEventListener('click', () => {
 });
 
 const btnMute = document.getElementById('btn-mute');
-if (window.audioFX && window.audioFX.toggleMute) {
-    btnMute.addEventListener('click', () => {
+btnMute.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.audioFX) {
         window.audioFX.init();
         window.audioFX.toggleMute();
-    });
-} else btnMute.style.display = 'none';
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
+});
 
 document.getElementById('btn-howtoplay').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
 document.getElementById('btn-close-htp').addEventListener('click', () => howToPlayModal.classList.add('hidden'));
