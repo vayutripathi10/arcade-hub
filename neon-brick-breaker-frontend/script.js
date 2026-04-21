@@ -224,7 +224,7 @@ function initLevel(lvl) {
             if (lvl > 1 && Math.random() < 0.2) continue;
             
             const color = palette[r % palette.length];
-            bricks.push(new Brick(c * brickW, r * brickH + 60, brickW, brickH, color));
+            bricks.push(new Brick(c * brickW, r * brickH + 120, brickW, brickH, color));
         }
     }
 }

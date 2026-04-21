@@ -272,6 +272,8 @@ p {
 }
 
 @media (max-width: 600px) {
+    :root { --header-height: 140px; }
+    
     .home-btn {
         left: 10px;
         top: calc(env(safe-area-inset-top) + 15px);
@@ -281,7 +283,7 @@ p {
     .hud-pill {
         gap: 8px;
         padding: 4px 12px;
-        top: calc(env(safe-area-inset-top) + 60px);
+        top: calc(env(safe-area-inset-top) + 65px);
         transform: translateX(-50%) scale(0.9);
     }
     .header-controls {
