@@ -1434,7 +1434,7 @@ function endRound(winner) {
 
 // ========== SOUND ==========
 function playHitSound(type) {
-    if (!window.audioFX || !window.audioFX.ctx) return;
+    if (!window.audioFX || !window.audioFX.ctx || window.audioFX.isMuted) return;
     const ctx = window.audioFX.ctx;
     const now = ctx.currentTime;
 
@@ -1493,7 +1493,7 @@ function playHitSound(type) {
 }
 
 function playGrowSound() {
-    if (!window.audioFX || !window.audioFX.ctx) return;
+    if (!window.audioFX || !window.audioFX.ctx || window.audioFX.isMuted) return;
     const ctx2 = window.audioFX.ctx;
     const now = ctx2.currentTime;
     const osc = ctx2.createOscillator();

@@ -74,12 +74,10 @@ class AudioFX {
         // [DEPRECATED] Dynamic injection is disabled in favor of manual HTML placement
         // for better consistency and z-index control across all games.
         console.log('AudioFX: Dynamic injection skipped.');
-        return;
-    }
         
         // Fix for mobile landscape mode overlaying correctly and UI visual bugs
         const style = document.createElement('style');
-        style.textContent = \`
+        style.textContent = `
             /* Fix invisible Quit to Menu button backgrounds for older games using share-btn */
             #btn-quit.share-btn {
                 background: rgba(255, 255, 255, 0.15) !important;
