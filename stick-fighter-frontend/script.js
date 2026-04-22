@@ -1,12 +1,11 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const gameWrapper = document.getElementById('gameWrapper');
 
 // UI Elements
 const uiScore = document.getElementById('ui-score');
 const uiKills = document.getElementById('ui-kills');
 const uiCombo = document.getElementById('ui-combo');
-const comboSpan = uiCombo.querySelector('span');
+const comboSpan = uiCombo?.querySelector('span');
 const playerHealthBar = document.getElementById('player-health-bar');
 const bossHealthContainer = document.getElementById('boss-health-bar-container');
 const bossHealthBar = document.getElementById('boss-health-bar');
@@ -16,6 +15,15 @@ const pauseMenu = document.getElementById('pauseMenu');
 const gameOverMenu = document.getElementById('gameOverMenu');
 const howToPlayModal = document.getElementById('howToPlayModal');
 const btnMute = document.getElementById('btn-mute');
+const btnPauseHUD = document.getElementById('btn-pause-hud');
+
+// Navigation
+document.querySelectorAll('.btn-hub').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        console.log('hub clicked');
+        // window.location.href = '../index.html';
+    });
+});
 
 // Game State
 let gameState = 'menu'; // menu, playing, paused, gameover
@@ -56,12 +64,12 @@ class Entity {
         this.state = 'idle'; // idle, run, attack1, attack2, attack3, hit, dead
         this.stateFrame = 0;
         
-        this.maxHp = isBoss ? 600 : 30; // Player = 100, Boss = 100, Enemy = 25
+        this.maxHp = isBoss ? 600 : 30; // Player = 100, Boss = 600, Enemy = 30
         this.hp = this.maxHp;
         this.isBoss = isBoss;
         
         this.hitStun = 0;
-        this.attackHitbox = null; // {x, y, w, h, active, damage, knockback}
+        this.attackHitbox = null; 
     }
 }
 
@@ -99,9 +107,8 @@ document.getElementById('btn-attack').addEventListener('touchstart', (e) => { e.
 document.getElementById('btn-attack').addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; }, {passive:false});
 
 function resize() {
-    const rect = gameWrapper.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight - (document.querySelector('.header')?.offsetHeight || 0) - (document.querySelector('.stats-bar')?.offsetHeight || 0);
     
     if (window.innerWidth <= 600) {
         document.getElementById('mobile-controls').classList.remove('hidden');
@@ -113,14 +120,12 @@ window.addEventListener('resize', resize);
 resize();
 
 function spawnEnemy() {
-    // Only spawn if below cap limit (increases with kills)
     const cap = Math.min(6, 1 + Math.floor(kills / 5));
     if (enemies.length >= cap) return;
     
     const side = Math.random() > 0.5 ? 1 : -1;
     const x = canvas.width / 2 + (side * (canvas.width/2 + 50));
     
-    // Boss check
     if (kills > 0 && kills % 10 === 0 && !enemies.some(e => e.isBoss)) {
         enemies.push(new Entity(x, '#f00', true));
         spawnFloatingText(canvas.width/2, 200, "WARNING: BOSS INCOMING", "#f00");
@@ -150,9 +155,7 @@ function initGame() {
     gameState = 'playing';
     mainMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
-    document.getElementById('hud').classList.remove('hud-hidden');
     
-    // Spawn initial enemy
     spawnEnemy();
     lastTime = performance.now();
     if (window.audioFX) {
@@ -182,23 +185,21 @@ function togglePause() {
     }
 }
 
-// Procedural Animation System
 function drawStickman(ctx, ent) {
     const scale = ent.isBoss ? 1.5 : 1;
     const x = ent.x;
     const y = ent.y;
-    const dir = ent.dir; // 1 right, -1 left
+    const dir = ent.dir; 
     
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(dir * scale, scale); // Flip horizontally if moving left
+    ctx.scale(dir * scale, scale); 
     
     ctx.strokeStyle = ent.hitStun > 0 ? '#fff' : ent.color;
     ctx.lineWidth = 4;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     
-    // Animate based on state
     let headOffset = {x:0,y:-80};
     let l_arm = {x:0, y:-50}, l_hand = {x:0, y:0};
     let r_arm = {x:0, y:-50}, r_hand = {x:0, y:0};
@@ -220,26 +221,26 @@ function drawStickman(ctx, ent) {
         headOffset.x = 10;
         headOffset.y += Math.abs(str)*0.2;
     }
-    else if (ent.state === 'attack1') { // Jab
-        l_hand = {x: 40, y: -50}; // Punch forward
+    else if (ent.state === 'attack1') { 
+        l_hand = {x: 40, y: -50}; 
         r_hand = {x: -10, y: -30};
         headOffset.x = 15;
     }
-    else if (ent.state === 'attack2') { // Strong Punch
+    else if (ent.state === 'attack2') { 
         r_hand = {x: 50, y: -50}; 
         l_hand = {x: -20, y: -30};
         headOffset.x = 20;
         l_foot.x = 20;
         r_foot.x = -20;
     }
-    else if (ent.state === 'attack3') { // Flying Dropkick
-        ctx.translate(0, -20); // hover
-        ctx.rotate(-1.4); // Lean backwards to point feet completely forward!
+    else if (ent.state === 'attack3') { 
+        ctx.translate(0, -20); 
+        ctx.rotate(-1.4); 
         l_hand = {x: 0, y: -20};
         r_hand = {x: -20, y: -40};
-        r_foot = {x: -10, y: 20}; // Tucked leg
-        l_foot = {x: 10, y: 60}; // Fully extended dropkick leg (stretching WAY out forward on X axis)
-        headOffset = {x: 0, y: -60}; // Head is safely in the back
+        r_foot = {x: -10, y: 20}; 
+        l_foot = {x: 10, y: 60}; 
+        headOffset = {x: 0, y: -60}; 
     }
     else if (ent.state === 'hit') {
         headOffset = {x: -20, y: -70};
@@ -248,36 +249,30 @@ function drawStickman(ctx, ent) {
         l_foot = {x: -20, y: -10};
     }
 
-    // Glow
     ctx.shadowBlur = 10;
     ctx.shadowColor = ent.color;
     
-    // Draw Torso
     ctx.beginPath();
     ctx.moveTo(0, headOffset.y + 10);
     ctx.lineTo(0, -30);
     ctx.stroke();
     
-    // Draw Head
     ctx.beginPath();
     ctx.arc(headOffset.x, headOffset.y, 12, 0, Math.PI*2);
     ctx.stroke();
     
-    // Draw Arms
     ctx.beginPath();
-    ctx.moveTo(0, -50); ctx.lineTo(l_arm.x, l_arm.y); ctx.lineTo(l_hand.x, l_hand.y); // Left
-    ctx.moveTo(0, -50); ctx.lineTo(r_arm.x, r_arm.y); ctx.lineTo(r_hand.x, r_hand.y); // Right
+    ctx.moveTo(0, -50); ctx.lineTo(l_arm.x, l_arm.y); ctx.lineTo(l_hand.x, l_hand.y); 
+    ctx.moveTo(0, -50); ctx.lineTo(r_arm.x, r_arm.y); ctx.lineTo(r_hand.x, r_hand.y); 
     ctx.stroke();
     
-    // Draw Legs
     ctx.beginPath();
-    ctx.moveTo(0, -30); ctx.lineTo(l_leg.x, l_leg.y); ctx.lineTo(l_foot.x, l_foot.y); // Left
-    ctx.moveTo(0, -30); ctx.lineTo(r_leg.x, r_leg.y); ctx.lineTo(r_foot.x, r_foot.y); // Right
+    ctx.moveTo(0, -30); ctx.lineTo(l_leg.x, l_leg.y); ctx.lineTo(l_foot.x, l_foot.y); 
+    ctx.moveTo(0, -30); ctx.lineTo(r_leg.x, r_leg.y); ctx.lineTo(r_foot.x, r_foot.y); 
     ctx.stroke();
     
     ctx.restore();
     
-    // Draw Enemy Health Bar above head
     if (ent !== player && ent.hp > 0 && !ent.isBoss) {
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(ent.x - 20, ent.y - (100 * scale), 40, 5);
@@ -317,12 +312,11 @@ function executeAttack(ent) {
             attackType = 'attack2'; damage = 10; knockback = 10; atkTime = 300;
         } else if (comboCount >= 3) {
             attackType = 'attack3'; damage = 25; knockback = 30; atkTime = 500;
-            comboCount = 0; // reset
-            ent.vy = -5; // Horizontal smash
-            ent.vx = ent.dir * 18; // Extreme forward smash
+            comboCount = 0; 
+            ent.vy = -5; 
+            ent.vx = ent.dir * 18; 
         }
     } else {
-        // Enemy attacks are simple depending on boss
         if (ent.isBoss) { attackType = Math.random()>0.5?'attack2':'attack1'; damage = 15; knockback = 20; atkTime = 400; }
         else { damage = 5; knockback = 5; }
         playSound('swing');
@@ -331,7 +325,6 @@ function executeAttack(ent) {
     ent.state = attackType;
     ent.stateFrame = atkTime;
     
-    // Generate active hitbox map
     ent.attackHitbox = {
         offsetX: 40,
         offsetY: -45,
@@ -347,7 +340,7 @@ function executeAttack(ent) {
 
 function checkHitbox(attacker, defender) {
     if (!attacker.attackHitbox || !attacker.attackHitbox.active) return false;
-    if (defender.hitStun > 0) return false; // i-frames
+    if (defender.hitStun > 0) return false; 
     
     const h = attacker.attackHitbox;
     const hx = attacker.x + (attacker.dir * h.offsetX);
@@ -357,16 +350,15 @@ function checkHitbox(attacker, defender) {
     if (Math.abs(hx - defender.x) < (h.w/2 + defW) && 
         Math.abs(hy - (defender.y - 40)) < (h.h/2 + 40)) {
         
-        // Hit!
-        if (h.type !== 'attack3') attacker.attackHitbox.active = false; // Normal attacks vanish, flying kicks pierce!
+        if (h.type !== 'attack3') attacker.attackHitbox.active = false; 
         
         if (h.type === 'attack3' && attacker === player && !defender.isBoss) {
-            defender.hp = 0; // One-shot regular enemies!
+            defender.hp = 0; 
         } else {
             defender.hp -= h.damage;
         }
-        defender.hitStun = 300; // 300ms stun
-        defender.vx = attacker.dir * h.knockback; // launch away
+        defender.hitStun = 300; 
+        defender.vx = attacker.dir * h.knockback; 
         defender.state = 'hit';
         
         createHitSparks(defender.x, defender.y - 40, attacker.color);
@@ -374,17 +366,14 @@ function checkHitbox(attacker, defender) {
         
         if (defender === player) {
             shakeTime = 200;
-            gameWrapper.classList.add('shake');
-            setTimeout(() => gameWrapper.classList.remove('shake'), 200);
-            comboCount = 0; // Break combo
+            comboCount = 0; 
         } else {
-            // Player hit enemy
             score += h.damage * 10;
             spawnFloatingText(defender.x, defender.y - 80, h.damage, "#ff0");
             
-            if (comboCount > 1) {
+            if (comboCount > 1 && uiCombo) {
                 uiCombo.classList.remove('hidden');
-                comboSpan.textContent = comboCount;
+                if (comboSpan) comboSpan.textContent = comboCount;
             }
         }
         updateHUD();
@@ -394,26 +383,23 @@ function checkHitbox(attacker, defender) {
 }
 
 function update(dt) {
-    // Timers
     if (shakeTime > 0) shakeTime -= dt;
     if (comboTimer > 0) {
         comboTimer -= dt;
         if (comboTimer <= 0) {
             comboCount = 0;
-            uiCombo.classList.add('hidden');
+            uiCombo?.classList.add('hidden');
         }
     }
     
     if (Math.random() < 0.01) spawnEnemy();
     
-    // Player Input
     if (player.hitStun <= 0 && !player.state.startsWith('attack')) {
         const speed = 250;
         if (keys.left) { player.x -= speed * (dt/1000); player.dir = -1; player.state = 'run'; }
         else if (keys.right) { player.x += speed * (dt/1000); player.dir = 1; player.state = 'run'; }
         else { player.state = 'idle'; }
         
-        // clamp bounds
         player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
     }
     
@@ -422,7 +408,6 @@ function update(dt) {
         executeAttack(player);
     }
     
-    // Enact Player Logic
     if (player.hitStun > 0) {
         player.hitStun -= dt;
         if (player.hitStun <= 0) player.state = 'idle';
@@ -436,15 +421,13 @@ function update(dt) {
     }
     
     player.x += player.vx;
-    player.vx *= 0.8; // friction
+    player.vx *= 0.8; 
     player.y += player.vy;
-    if (player.y < groundY) player.vy += 60 * (dt/1000); // Gravity
+    if (player.y < groundY) player.vy += 60 * (dt/1000); 
     else { player.y = groundY; player.vy = 0; }
     
-    // Check Player hitting Enemies
     enemies.forEach(e => checkHitbox(player, e));
     
-    // Update Boss UI
     let activeBoss = enemies.find(e => e.isBoss);
     if (activeBoss) {
         bossHealthContainer.classList.remove('hidden');
@@ -453,11 +436,9 @@ function update(dt) {
         bossHealthContainer.classList.add('hidden');
     }
 
-    // Enemies
     for (let i = enemies.length - 1; i >= 0; i--) {
         let e = enemies[i];
         
-        // Die?
         if (e.hp <= 0) {
             kills++;
             score += e.isBoss ? 5000 : 500;
@@ -480,7 +461,6 @@ function update(dt) {
             }
         }
         else {
-            // AI Movement
             const dist = player.x - e.x;
             const reach = e.isBoss ? 70 : 50;
             if (Math.abs(dist) > reach) {
@@ -491,7 +471,6 @@ function update(dt) {
             } else {
                 e.state = 'idle';
                 e.dir = dist > 0 ? 1 : -1;
-                // Attack Player
                 if (Math.random() < (e.isBoss ? 0.18 : 0.12)) {
                     executeAttack(e);
                 }
@@ -511,7 +490,6 @@ function update(dt) {
         gameOver();
     }
     
-    // Particles
     particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= dt/1000; });
     particles = particles.filter(p => p.life > 0);
     
@@ -520,41 +498,30 @@ function update(dt) {
 }
 
 function updateHUD() {
-    uiScore.textContent = Math.floor(score);
-    uiKills.textContent = kills;
-    playerHealthBar.style.width = Math.max(0, (player.hp / player.maxHp) * 100) + "%";
-    
-    if (player.hp < 30) playerHealthBar.style.background = '#ff0055';
-    else playerHealthBar.style.background = '#0ff';
+    if (uiScore) uiScore.textContent = Math.floor(score);
+    if (uiKills) uiKills.textContent = kills;
+    if (playerHealthBar) {
+        playerHealthBar.style.width = Math.max(0, (player.hp / player.maxHp) * 100) + "%";
+        if (player.hp < 30) playerHealthBar.style.background = '#ff0055';
+        else playerHealthBar.style.background = '#00ffff';
+    }
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Screenshake transform
     ctx.save();
     if (shakeTime > 0) {
         ctx.translate((Math.random()-0.5)*10, (Math.random()-0.5)*10);
     }
     
-    // Floor
     ctx.strokeStyle = '#222';
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(canvas.width, groundY); ctx.stroke();
     
-    // Entities
     enemies.forEach(e => drawStickman(ctx, e));
-    drawStickman(ctx, player);
+    if (player) drawStickman(ctx, player);
     
-    // Visual Hitboxes for debugging (off in prod)
-    /*
-    ctx.fillStyle = 'rgba(255,0,0,0.5)';
-    if(player.attackHitbox && player.attackHitbox.active) {
-        ctx.fillRect(player.attackHitbox.x - player.attackHitbox.w/2, player.attackHitbox.y - player.attackHitbox.h/2, player.attackHitbox.w, player.attackHitbox.h);
-    }
-    */
-    
-    // Particles
     particles.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.globalAlpha = Math.max(0, p.life);
@@ -562,7 +529,6 @@ function draw() {
     });
     ctx.globalAlpha = 1.0;
     
-    // Floating texts
     ctx.font = 'bold 20px "Press Start 2P"';
     ctx.textAlign = 'center';
     floatingTexts.forEach(t => {
@@ -602,7 +568,7 @@ document.querySelector('.close-btn').addEventListener('click', () => { howToPlay
 document.getElementById('btn-quit').addEventListener('click', () => { window.location.href = '../index.html'; });
 document.getElementById('btn-quit-end').addEventListener('click', () => { window.location.href = '../index.html'; });
 document.getElementById('btn-resume').addEventListener('click', togglePause);
-document.getElementById('btn-pause').addEventListener('click', togglePause);
+btnPauseHUD?.addEventListener('click', togglePause);
 
 btnMute?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -611,3 +577,10 @@ btnMute?.addEventListener('click', (e) => {
         btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
 });
+
+// Idle initialization
+player = new Entity(window.innerWidth/2, '#0ff', false);
+player.hp = 100;
+updateHUD();
+resize();
+draw();

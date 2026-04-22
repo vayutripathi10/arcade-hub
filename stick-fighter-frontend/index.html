@@ -19,47 +19,43 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="header">
-        <a href="../index.html" class="back-btn">&#8592; Arcade Hub</a>
-        <div class="header-controls">
-            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="btn-pause" class="icon-btn" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
         </div>
-    </div>
+        <div class="header-center">
+            <div class="score-pills">
+                <div class="score-pill">
+                    <span class="pill-label">Score</span>
+                    <span id="ui-score" class="pill-value">0</span>
+                </div>
+                <div class="score-pill">
+                    <span class="pill-label">Defeated</span>
+                    <span id="ui-kills" class="pill-value">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="btn-pause-hud" class="icon-btn" title="Pause Game">||</button>
+        </div>
+    </header>
 
-    <!-- Top Banner Ad Space -->
-    <div class="ad-container top-banner">
-        <script>
-        atOptions = {
-            'key' : '3fb80c92dd0b330a64a39034e4b5ea92',
-            'format' : 'iframe',
-            'height' : 90,
-            'width' : 728,
-            'params' : {}
-        };
-        document.write('<scr' + 'ipt type="text/javascript" src="https://www.highperformanceformat.com/3fb80c92dd0b330a64a39034e4b5ea92/invoke.js"></scr' + 'ipt>');
-        </script>
-    </div>
-
-    <!-- Gameplay Area -->
-    <div id="gameWrapper">
-        <div id="hud" class="hud-hidden">
+    <div class="stats-bar">
+        <div class="health-container">
+            <span class="bar-label">HP</span>
             <div id="player-health-bar-container">
                 <div id="player-health-bar"></div>
             </div>
-            
-            <div id="boss-health-bar-container" class="hidden">
-                <span style="display: block; text-align: center; color: red; font-family: 'Press Start 2P', monospace; font-size: 10px; margin-bottom: 2px;">BOSS</span>
-                <div id="boss-health-bar"></div>
-            </div>
-
-            <div class="overlay-stats">
-                <div class="stat-left">Defeated: <span id="ui-kills">0</span><br>Score: <span id="ui-score">0</span></div>
-                <div id="ui-combo" class="stat-right hidden">COMBO x<span>0</span></div>
-            </div>
         </div>
+        <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
+    </div>
+
+    <!-- Boss Bar Overlay -->
+    <div id="boss-health-bar-container" class="boss-bar hidden">
+        <span class="boss-label">BOSS</span>
+        <div id="boss-health-bar"></div>
+    </div>
 
         <canvas id="gameCanvas"></canvas>
 
