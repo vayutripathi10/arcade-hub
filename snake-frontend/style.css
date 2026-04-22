@@ -1,449 +1,294 @@
 :root {
     --bg-color: #0c0e14;
     --card-bg: rgba(255, 255, 255, 0.05);
-    --border-color: rgba(255, 255, 255, 0.1);
-    --accent-color: #00ffcc; /* Zen Green */
-    --accent-glow: rgba(0, 255, 204, 0.3);
+    --border-color: rgba(255, 255, 255, 0.15);
+    --accent-color: #00ffcc;
+    --accent-glow: rgba(0, 255, 204, 0.4);
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.6);
-    --danger: #ff3366;
-    --header-height: 80px;
-    --header-row-height: 60px;
+    --hud-h-desktop: 64px;
+    --hud-h-mobile: 56px;
+    --ad-h-desktop: 90px;
+    --ad-h-mobile: 50px;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     font-family: 'Outfit', sans-serif;
-    background-color: var(--bg-color);
-    background-image: 
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 204, 0.05) 0%, transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.05) 0%, transparent 40%);
+    background-color: #000;
     color: var(--text-primary);
-    min-height: 100vh;
-    min-height: 100dvh;
+    overflow: hidden;
+}
+
+/* ==================== GAME ROOT ==================== */
+.game-root {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-color);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ==================== 1. HUD BAR (3-Column Grid) ==================== */
+.header {
+    height: var(--hud-h-desktop);
+    width: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+.nav-left { display: flex; align-items: center; min-width: 120px; }
+.home-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.home-btn:hover { color: #fff; border-color: var(--accent-color); }
+
+.header-center { display: flex; justify-content: center; align-items: center; }
+.score-pills { display: flex; gap: 10px; }
+
+.score-pill {
+    background: rgba(0, 255, 204, 0.08);
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    padding: 4px 14px;
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: var(--header-height);
-    margin: 0;
-    box-sizing: border-box;
-    overflow-x: hidden;
-    overflow-y: auto;
+    min-width: 80px;
 }
 
-.header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    z-index: 1001;
-    pointer-events: none;
-    background: transparent;
-    display: block !important;
+.pill-label {
+    font-size: 8px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
-.header-controls {
-    position: absolute;
-    right: 20px;
-    top: calc(env(safe-area-inset-top) + 20px);
-    display: flex;
-    gap: 10px;
-    pointer-events: auto;
-    z-index: 2000 !important;
+.pill-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-shadow: 0 0 10px var(--accent-glow);
 }
+
+.header-right { display: flex; gap: 8px; justify-content: flex-end; min-width: 120px; }
 
 .icon-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--card-bg);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border-color);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 1.2rem;
-    backdrop-filter: blur(10px);
+    font-size: 1.1rem;
     transition: all 0.3s ease;
 }
+.icon-btn:hover { border-color: var(--accent-color); transform: scale(1.05); }
+.icon-btn.hidden { display: none !important; }
 
-.icon-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--accent-color);
-    transform: scale(1.1);
-}
-
-.home-btn {
-    position: absolute;
-    left: 20px;
-    top: calc(env(safe-area-inset-top) + 20px);
-    text-decoration: none;
-    color: var(--text-secondary);
-    font-weight: 500;
-    padding: 0.6rem 1rem;
-    border-radius: 12px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-    font-size: 0.8rem;
+/* ==================== 2. GAME AREA ==================== */
+.game-wrapper {
+    flex: 1;
+    position: relative;
+    width: 100%;
     display: flex;
     align-items: center;
-    white-space: nowrap;
-    z-index: 2000 !important;
-}
-
-.score-container {
-    position: absolute;
-    left: 50%;
-    top: calc(env(safe-area-inset-top) + 20px);
-    transform: translateX(-50%);
-    display: flex;
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    padding: 6px 16px;
-    border-radius: 50px;
-    pointer-events: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    z-index: 1500 !important;
-}
-
-.title {
-    display: none; /* Already using HUD pill */
-}
-
-/* Score container moved to absolute header position */
-
-.score-box {
-    background: var(--card-bg);
-    padding: 0.8rem 1.5rem;
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    min-width: 120px;
-    backdrop-filter: blur(5px);
-}
-
-.score-label {
-    display: block;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    margin-bottom: 0.2rem;
-}
-
-#score, #highScore {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--accent-color);
-}
-
-.game-wrapper {
-    position: relative;
-    padding: 10px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
 }
 
 #gameCanvas {
     display: block;
-    border-radius: 12px;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: #050508;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
 }
 
+/* ==================== 3. MODALS & OVERLAYS ==================== */
 .overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(12, 14, 20, 0.8);
+    inset: 0;
+    background: rgba(12, 14, 20, 0.92);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 20px;
-    z-index: 10;
-    opacity: 1;
-    transition: opacity 0.3s ease;
+    z-index: 20;
 }
-
-.overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
+.overlay.hidden { display: none !important; }
 
 .overlay-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 32px;
     text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .overlay-content h2 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff, var(--accent-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.overlay-content p {
-    color: var(--text-secondary);
-    margin-bottom: 1.5rem;
-}
+.overlay-content p { color: var(--text-secondary); margin-bottom: 24px; }
+
+.action-buttons { display: flex; flex-direction: column; gap: 12px; }
 
 .btn {
-    padding: 1rem 2rem;
+    padding: 12px 24px;
     font-size: 1rem;
     font-weight: 700;
-    border: none;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 0.1rem;
+    letter-spacing: 1px;
+    border: none;
 }
 
-.btn.primary {
+.primary {
     background: var(--accent-color);
     color: #000;
-    box-shadow: 0 4px 15px var(--accent-glow);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
+.primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px var(--accent-glow); }
 
-.btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px var(--accent-glow);
-}
-
-.share-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 1.5rem;
-    justify-content: center;
-}
-
-.share-container.hidden {
-    display: none;
-}
-
-.share-btn {
-    padding: 0.8rem 1.2rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
     color: white;
 }
+.secondary:hover { border-color: var(--accent-color); }
 
-.share-btn:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-}
+.share-container { display: flex; gap: 10px; margin-bottom: 20px; }
+.share-container.hidden { display: none; }
+.share-btn { flex: 1; height: 48px; border-radius: 10px; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
+.twitter { background: #1DA1F2; }
+.whatsapp { background: #25D366; }
 
-.share-btn.twitter {
-    background: #1DA1F2;
-}
-
-.share-btn.whatsapp {
-    background: #25D366;
-}
-
-.controls-info {
-    margin-top: 2rem;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
+/* ==================== 4. MOBILE CONTROLS ==================== */
 .mobile-controls {
-    display: none; /* Hidden on desktop */
-    margin-top: 1.5rem;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom)); /* Extra space for iPhone toolbar */
+    z-index: 15;
+    pointer-events: none;
 }
 
-.control-row {
-    display: flex;
-    gap: 10px;
-}
-
+.control-row { display: flex; gap: 10px; }
 .control-btn {
-    width: 60px;
-    height: 60px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 15px;
-    color: var(--text-primary);
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-    cursor: pointer;
-    user-select: none;
-    touch-action: manipulation;
-}
-
-.control-btn:active {
-    background: var(--accent-color);
-    color: #000;
-}
-
-@media (max-width: 800px) {
-    .mobile-controls {
-        display: flex;
-    }
-    .controls-info {
-        display: none;
-    }
-    .title {
-        font-size: 2.2rem;
-    }
-}
-
-/* Footer styles for game pages */
-.site-footer {
-    width: 100%;
-    text-align: center;
-    padding: 1.5rem 1rem;
-    margin-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
-}
-.site-footer a {
-    color: #00ffcc;
-    text-decoration: none;
-}
-.site-footer a:hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 600px) {
-    body {
-        justify-content: flex-start;
-        padding: 70px 10px 20px;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    .game-wrapper {
-        width: 100%;
-        max-width: 400px;
-        padding: 5px;
-    }
-    #gameCanvas {
-        width: 100%;
-        height: auto;
-    }
-    .title {
-        font-size: 1.8rem;
-        margin-bottom: 0.2rem;
-    }
-    .header {
-        margin-bottom: 0.5rem;
-    }
-    .score-container {
-        gap: 0.8rem;
-        margin-bottom: 0.5rem;
-    }
-    .score-box {
-        padding: 0.4rem 0.8rem;
-        min-width: 90px;
-    }
-    .home-btn {
-        top: 10px;
-        left: 10px;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.75rem;
-    }
-    .mobile-controls {
-        margin-top: 1rem;
-        gap: 5px;
-    }
-    .control-btn {
-        width: 55px;
-        height: 55px;
-        font-size: 1.2rem;
-    }
-}
-
-/* Pause Button */
-.pause-btn {
-    position: absolute;
-    top: calc(env(safe-area-inset-top) + 20px);
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(12, 14, 20, 0.85);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1002;
-    backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 54px;
+    height: 54px;
+    background: rgba(0, 255, 204, 0.1);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    border-radius: 12px;
+    color: #fff;
     font-size: 1.2rem;
-    padding: 0;
-    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.1s ease;
 }
-.pause-btn:hover {
-    background: rgba(12, 14, 20, 1);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 15px var(--accent-glow);
-    transform: scale(1.1);
+.control-btn:active { background: var(--accent-color); color: #000; transform: scale(0.95); }
+
+/* ==================== 5. AD CONTAINER ==================== */
+.ad-container {
+    width: 100%;
+    max-width: 728px;
+    height: var(--ad-h-desktop);
+    margin: 0 auto;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: transparent;
+    display: none; /* Hidden until ad-loaded */
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid var(--border-color);
 }
-.pause-btn.hidden {
-    display: none !important;
+
+.ad-container.ad-loaded { display: flex; }
+
+/* ==================== MOBILE ADJUSTMENTS ==================== */
+@media (max-width: 800px) {
+    .mobile-controls { display: flex; }
 }
 
 @media (max-width: 600px) {
-    :root { --header-height: 140px; }
+    .header { height: var(--hud-h-mobile); padding: 0 10px; }
+    .nav-left, .header-right { min-width: 80px; }
+    .home-btn { padding: 6px 10px; font-size: 0; }
+    .home-btn::after { content: '← Hub'; font-size: 0.8rem; }
     
-    .header-controls {
-        right: 15px;
-        top: calc(env(safe-area-inset-top) + 15px);
-    }
-    .home-btn {
-        left: 10px;
-        top: calc(env(safe-area-inset-top) + 15px);
-        padding: 0.4rem 0.8rem;
-        font-size: 0.75rem;
-    }
-    .score-container {
-        gap: 8px;
-        padding: 4px 12px;
-        top: calc(env(safe-area-inset-top) + 65px);
-        transform: translateX(-50%) scale(0.9);
-    }
+    .score-pill { min-width: 72px; padding: 4px 10px; }
+    .pill-label { font-size: 7px; }
+    .pill-value { font-size: 0.95rem; }
+    
+    .overlay-content { padding: 24px; }
+    .overlay-content h2 { font-size: 1.8rem; }
+    
+    .ad-container { height: var(--ad-h-mobile); max-width: 320px; }
 }
 
-@media (max-width: 550px) {
-    .home-btn { font-size: 0 !important; }
-    .home-btn::before { content: '← Hub'; font-size: 0.75rem; }
+/* How to Play Overlay */
+.htp-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 14, 26, 0.96);
+    z-index: 9998;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
 }
-
-@media (max-width: 360px) {
-    .home-btn {
-        width: 40px;
-        overflow: hidden;
-        padding: 0.4rem 0;
-        justify-content: center;
-    }
-    .home-btn::before { content: '←'; }
-}
+.htp-overlay.active { display: flex; }
+.htp-card { max-width: 420px; width: 100%; }
+.htp-title { font-size: 1.4rem; color: var(--accent-color); text-align: center; margin-bottom: 18px; font-weight: 700; }
+.htp-row { display: flex; gap: 10px; margin-bottom: 14px; font-size: 0.9rem; color: rgba(255,255,255,0.75); }
+.htp-back { display: block; margin: 20px auto 0; padding: 12px 32px; border-radius: 12px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; }

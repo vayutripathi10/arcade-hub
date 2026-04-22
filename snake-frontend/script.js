@@ -15,7 +15,7 @@ const btnMute = document.getElementById('btn-mute');
 
 // Game Constants
 const gridSize = 20;
-const tileCount = canvas.width / gridSize;
+let tileCount = 20;
 
 // Game State
 let snake = [{ x: 10, y: 10 }];
@@ -29,7 +29,7 @@ let highScore = localStorage.getItem('snakeHighScore') || 0;
 let gameRunning = false;
 let isPaused = false;
 let gameLoopInterval;
-let speed = 200; // Slower initial speed
+let speed = 200;
 let survivalTimer = 0;
 const minSpeed = 50;
 
@@ -37,48 +37,40 @@ highScoreElement.textContent = highScore;
 
 // Initialize
 function init() {
-    startBtn.addEventListener('click', (e) => {
+    resize();
+    
+    // Hub Button Fix
+    document.getElementById('hub-btn')?.addEventListener('click', () => {
+        console.log('hub clicked');
+        window.location.href = '../index.html';
+    });
+
+    startBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         startGame();
     });
+    
     window.addEventListener('keydown', handleKeyPress);
     
-    // Mobile controls
-    document.getElementById('upBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowup'); });
-    document.getElementById('downBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowdown'); });
-    document.getElementById('leftBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowleft'); });
-    document.getElementById('rightBtn').addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection('arrowright'); });
-    
-    // Also support clicks for testing on desktop
-    document.getElementById('upBtn').addEventListener('click', () => handleDirection('arrowup'));
-    document.getElementById('downBtn').addEventListener('click', () => handleDirection('arrowdown'));
-    document.getElementById('leftBtn').addEventListener('click', () => handleDirection('arrowleft'));
-    document.getElementById('rightBtn').addEventListener('click', () => handleDirection('arrowright'));
+    // Mobile controls (using touchstart for instant response)
+    const setControl = (id, dir) => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); handleDirection(dir); }, {passive: false});
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); handleDirection(dir); });
+        }
+    };
+    setControl('upBtn', 'arrowup');
+    setControl('downBtn', 'arrowdown');
+    setControl('leftBtn', 'arrowleft');
+    setControl('rightBtn', 'arrowright');
 
-    pauseBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        togglePause();
-    });
-    btnResume?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        togglePause(false);
-    });
+    pauseBtn?.addEventListener('click', (e) => { e.stopPropagation(); togglePause(); });
+    btnResume?.addEventListener('click', (e) => { e.stopPropagation(); togglePause(false); });
+    
     btnQuit?.addEventListener('click', (e) => {
         e.stopPropagation();
-        gameRunning = false;
-        isPaused = false;
-        clearInterval(gameLoopInterval);
-        pauseMenu.classList.add('hidden');
-        overlayTitle.textContent = "Zen Snake";
-        overlayMessage.textContent = "Press any key to start";
-        startBtn.textContent = "Start Game";
-        document.getElementById('shareContainer')?.classList.add('hidden');
-        overlay.classList.remove('hidden');
-        pauseBtn?.classList.add('hidden');
-        snake = [{ x: 10, y: 10 }];
-        score = 0;
-        scoreElement.textContent = score;
-        draw();
+        quitToMenu();
     });
 
     btnMute?.addEventListener('click', (e) => {
@@ -89,33 +81,60 @@ function init() {
         }
     });
 
+    // How to Play
+    document.getElementById('htp-btn')?.addEventListener('click', () => {
+        document.getElementById('htpOverlay')?.classList.add('active');
+    });
+    document.getElementById('htp-close')?.addEventListener('click', () => {
+        document.getElementById('htpOverlay')?.classList.remove('active');
+    });
+
+    // Ad Observer
+    const adBox = document.getElementById('ad-box');
+    if (adBox) {
+        const observer = new MutationObserver(() => {
+            if (adBox.innerHTML.trim() !== '') {
+                adBox.classList.add('ad-loaded');
+                resize(); // Recalculate canvas space if ad appears
+            }
+        });
+        observer.observe(adBox, { childList: true, subtree: true });
+    }
+
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && gameRunning && !isPaused) togglePause(true);
     });
-    window.addEventListener('blur', () => {
-        if (gameRunning && !isPaused) togglePause(true);
-    });
 }
+
+function resize() {
+    const root = document.querySelector('.game-root');
+    const header = document.querySelector('.header');
+    const adBox = document.getElementById('ad-box');
+    
+    if (!root || !header) return;
+    
+    const availableW = root.clientWidth - 40;
+    const availableH = root.clientHeight - header.offsetHeight - (adBox?.classList.contains('ad-loaded') ? adBox.offsetHeight : 0) - 40;
+    
+    const side = Math.min(availableW, availableH, 400);
+    canvas.width = side;
+    canvas.height = side;
+    tileCount = Math.floor(side / gridSize);
+}
+window.addEventListener('resize', resize);
 
 function startGame() {
     if (gameRunning) return;
     
-    // Initialize AudioFX on user gesture
     if (window.audioFX) {
         window.audioFX.init();
         if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
     
-    // Reset state
-    snake = [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }]; // Start with 3 segments
+    snake = [{ x: 5, y: 10 }, { x: 4, y: 10 }, { x: 3, y: 10 }];
     generateFood();
-    dx = 1;
-    dy = 0;
-    nextDx = 1;
-    nextDy = 0;
-    score = 0;
-    speed = 200; // Reset to slow
-    survivalTimer = 0;
+    dx = 1; dy = 0; nextDx = 1; nextDy = 0;
+    score = 0; speed = 200; survivalTimer = 0;
     scoreElement.textContent = score;
     gameRunning = true;
     isPaused = false;
@@ -126,18 +145,31 @@ function startGame() {
     gameLoopInterval = setInterval(gameLoop, speed);
 }
 
+function quitToMenu() {
+    gameRunning = false;
+    isPaused = false;
+    clearInterval(gameLoopInterval);
+    pauseMenu.classList.add('hidden');
+    overlayTitle.textContent = "Zen Snake";
+    overlayMessage.textContent = "Press any key or Tap to start";
+    startBtn.textContent = "Start Game";
+    document.getElementById('shareContainer')?.classList.add('hidden');
+    overlay.classList.remove('hidden');
+    pauseBtn?.classList.add('hidden');
+    snake = [{ x: 10, y: 10 }];
+    score = 0;
+    scoreElement.textContent = score;
+    draw();
+}
+
 function handleKeyPress(e) {
     const key = e.key.toLowerCase();
     const gameKeys = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd', ' '];
     
-    if (gameKeys.includes(key)) {
-        e.preventDefault(); // Prevent scrolling
-    }
+    if (gameKeys.includes(key)) e.preventDefault();
 
     if (!gameRunning) {
-        if (key === ' ' || key === 'enter' || gameKeys.includes(key)) {
-            startGame();
-        }
+        if (key === ' ' || key === 'enter' || gameKeys.includes(key)) startGame();
         return;
     }
     if (isPaused) return;
@@ -148,19 +180,10 @@ function handleKeyPress(e) {
 function handleDirection(key) {
     if (!gameRunning || isPaused) return;
 
-    if ((key === 'arrowup' || key === 'w') && dy === 0) {
-        nextDx = 0;
-        nextDy = -1;
-    } else if ((key === 'arrowdown' || key === 's') && dy === 0) {
-        nextDx = 0;
-        nextDy = 1;
-    } else if ((key === 'arrowleft' || key === 'a') && dx === 0) {
-        nextDx = -1;
-        nextDy = 0;
-    } else if ((key === 'arrowright' || key === 'd') && dx === 0) {
-        nextDx = 1;
-        nextDy = 0;
-    }
+    if ((key === 'arrowup' || key === 'w') && dy === 0) { nextDx = 0; nextDy = -1; }
+    else if ((key === 'arrowdown' || key === 's') && dy === 0) { nextDx = 0; nextDy = 1; }
+    else if ((key === 'arrowleft' || key === 'a') && dx === 0) { nextDx = -1; nextDy = 0; }
+    else if ((key === 'arrowright' || key === 'd') && dx === 0) { nextDx = 1; nextDy = 0; }
 }
 
 function togglePause(forcePause) {
@@ -170,10 +193,8 @@ function togglePause(forcePause) {
     if (isPaused) {
         clearInterval(gameLoopInterval);
         pauseMenu.classList.remove('hidden');
-        if (pauseIcon) pauseIcon.textContent = "▶";
     } else {
         pauseMenu.classList.add('hidden');
-        if (pauseIcon) pauseIcon.textContent = "||";
         gameLoopInterval = setInterval(gameLoop, speed);
     }
 }
@@ -184,24 +205,17 @@ function gameLoop() {
 }
 
 function update() {
-    // Apply buffered direction
-    dx = nextDx;
-    dy = nextDy;
-
+    dx = nextDx; dy = nextDy;
     const head = { x: snake[0].x + dx, y: snake[0].y + dy };
 
-    // Wall collision check
     if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
-        console.log("Wall collision", head);
         gameOver();
         return;
     }
 
-    // Self collision check (only if moving)
     if (dx !== 0 || dy !== 0) {
         for (let i = 0; i < snake.length; i++) {
             if (head.x === snake[i].x && head.y === snake[i].y) {
-                console.log("Self collision", head, snake[i]);
                 gameOver();
                 return;
             }
@@ -210,39 +224,29 @@ function update() {
 
     snake.unshift(head);
 
-    // Food collision
     if (head.x === food.x && head.y === food.y) {
         score += 10;
         scoreElement.textContent = score;
-
-        // Achievement Checks
         if (window.achievements) {
             if (score === 10) window.achievements.unlock('snake', '10', 'Hungry Snake');
-            if (score === 100) window.achievements.unlock('snake', '25', 'Neon Predator'); // Wait, Snake 100 should be snake_25 or did I change it?
+            if (score === 100) window.achievements.unlock('snake', '25', 'Neon Predator');
             if (score === 200) window.achievements.unlock('snake', '50', 'Zen Dragon');
         }
-
         if (window.audioFX) window.audioFX.playEat();
         if (navigator.vibrate) navigator.vibrate(20);
-
         if (score > highScore) {
             highScore = score;
             highScoreElement.textContent = highScore;
             localStorage.setItem('snakeHighScore', highScore);
         }
         generateFood();
-        
-        // Noticeable speed increase per food
         increaseSpeed(5);
     } else {
         snake.pop();
     }
 
-    // Survival speed increase (every 100 frames ~ 10-15 seconds)
     survivalTimer++;
-    if (survivalTimer % 100 === 0) {
-        increaseSpeed(2);
-    }
+    if (survivalTimer % 100 === 0) increaseSpeed(2);
 }
 
 function increaseSpeed(amount) {
@@ -255,132 +259,79 @@ function increaseSpeed(amount) {
 }
 
 function draw() {
-    // Clear canvas
     ctx.fillStyle = '#0c0e14';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Grid (Subtle)
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.lineWidth = 1;
     for (let i = 0; i < tileCount; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * gridSize, 0);
-        ctx.lineTo(i * gridSize, canvas.height);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, i * gridSize);
-        ctx.lineTo(canvas.width, i * gridSize);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(i * gridSize, 0); ctx.lineTo(i * gridSize, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i * gridSize); ctx.lineTo(canvas.width, i * gridSize); ctx.stroke();
     }
 
-    // Draw Food
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#ff3366';
-    ctx.fillStyle = '#ff3366';
+    ctx.shadowBlur = 15; ctx.shadowColor = '#ff3366'; ctx.fillStyle = '#ff3366';
     ctx.beginPath();
-    ctx.arc(
-        food.x * gridSize + gridSize / 2,
-        food.y * gridSize + gridSize / 2,
-        gridSize / 2 - 4,
-        0,
-        Math.PI * 2
-    );
+    ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, gridSize / 2 - 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw Snake
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#00ffcc';
-    ctx.fillStyle = '#00ffcc';
-    
+    ctx.shadowBlur = 10; ctx.shadowColor = '#00ffcc';
     snake.forEach((part, index) => {
         const isHead = index === 0;
         const opacity = 1 - (index / snake.length) * 0.6;
         ctx.fillStyle = isHead ? '#00ffcc' : `rgba(0, 255, 204, ${opacity})`;
-        
         const size = isHead ? gridSize - 2 : gridSize - 4;
         const offset = (gridSize - size) / 2;
-        
         const x = part.x * gridSize + offset;
         const y = part.y * gridSize + offset;
         const radius = isHead ? 8 : 4;
 
         if (ctx.roundRect) {
-            ctx.beginPath();
-            ctx.roundRect(x, y, size, size, radius);
-            ctx.fill();
+            ctx.beginPath(); ctx.roundRect(x, y, size, size, radius); ctx.fill();
         } else {
-            // Fallback for very old browsers
             ctx.fillRect(x, y, size, size);
         }
     });
-    
     ctx.shadowBlur = 0;
 }
 
-// polyfill for roundRect
 if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-        if (w < 2 * r) r = w / 2;
-        if (h < 2 * r) r = h / 2;
-        this.beginPath();
-        this.moveTo(x + r, y);
-        this.arcTo(x + w, y, x + w, y + h, r);
-        this.arcTo(x + w, y + h, x, y + h, r);
-        this.arcTo(x, y + h, x, y, r);
-        this.arcTo(x, y, x + w, y, r);
-        this.closePath();
-        return this;
+        if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+        this.beginPath(); this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r);
+        this.closePath(); return this;
     };
 }
 
 function generateFood() {
-    food = {
-        x: Math.floor(Math.random() * tileCount),
-        y: Math.floor(Math.random() * tileCount)
-    };
-    // Ensure food doesn't teleport onto snake
-    for (let part of snake) {
-        if (part.x === food.x && part.y === food.y) {
-            generateFood();
-            break;
-        }
-    }
+    food = { x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount) };
+    for (let part of snake) { if (part.x === food.x && part.y === food.y) { generateFood(); break; } }
 }
 
 function gameOver() {
-    gameRunning = false;
-    isPaused = false;
+    gameRunning = false; isPaused = false;
     pauseBtn?.classList.add('hidden');
     clearInterval(gameLoopInterval);
-    
     if (window.audioFX) window.audioFX.playGameOver();
     if (navigator.vibrate) navigator.vibrate(50);
-
     overlayTitle.textContent = "Game Over";
     overlayMessage.textContent = `Final Score: ${score}`;
-    
-    // Show sharing options
     const shareContainer = document.getElementById('shareContainer');
     if (shareContainer) shareContainer.classList.remove('hidden');
-    
     startBtn.textContent = "Try Again";
     overlay.classList.remove('hidden');
 }
 
-// Share Logic
 function shareScore(platform) {
     const text = `I just scored ${score} points in Zen Snake 🐍 at Arcade Hub! Can you beat me?`;
     const url = 'https://arcadehubplay.com';
-    
-    if (platform === 'twitter') {
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-    } else if (platform === 'whatsapp') {
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
-    }
+    if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    else if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
 }
 
-// Add share listeners
 document.getElementById('tweetBtn')?.addEventListener('click', () => shareScore('twitter'));
 document.getElementById('waBtn')?.addEventListener('click', () => shareScore('whatsapp'));
 
 init();
+draw();
