@@ -1,3 +1,132 @@
+/**
+ * AudioFX - Custom Retro Racer Synthesizer
+ */
+class AudioFX {
+    constructor() {
+        this.ctx = null; this.masterGain = null; this.compressor = null;
+        this.enabled = true; this.isMuted = false;
+        try { this.isMuted = localStorage.getItem('arcadeHubMuted') === 'true'; } catch (e) {}
+        this.engineOsc = null; this.engineGain = null;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                this.ctx = new AudioCtx();
+                this.compressor = this.ctx.createDynamicsCompressor();
+                this.masterGain = this.ctx.createGain();
+                this.compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
+                this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 1.5, this.ctx.currentTime);
+                this.compressor.connect(this.masterGain);
+                this.masterGain.connect(this.ctx.destination);
+            }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        try { localStorage.setItem('arcadeHubMuted', this.isMuted); } catch (e) {}
+        if (this.masterGain && this.ctx) {
+            this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 1.5, this.ctx.currentTime, 0.05);
+        }
+    }
+
+    createOscillator(freq, type = 'square') {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(this.compressor || this.ctx.destination);
+        return { osc, gain };
+    }
+
+    playJump() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const { osc, gain } = this.createOscillator(150, 'triangle');
+        const now = this.ctx.currentTime;
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
+        osc.start(now); osc.stop(now + 0.25);
+    }
+
+    playEat() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const { osc, gain } = this.createOscillator(523.25, 'square');
+        const now = this.ctx.currentTime;
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+    }
+
+    playGameOver() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const { osc, gain } = this.createOscillator(300, 'sawtooth');
+        const now = this.ctx.currentTime;
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.6);
+        osc.frequency.linearRampToValueAtTime(50, now + 0.6);
+        osc.start(now); osc.stop(now + 0.6);
+    }
+
+    playVictory() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        notes.forEach((freq, i) => {
+            const { osc, gain } = this.createOscillator(freq, 'square');
+            gain.gain.setValueAtTime(0.3, now + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
+            osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.3);
+        });
+    }
+
+    playExplosion() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * 1;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.5);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+        noise.connect(filter); filter.connect(gain); gain.connect(this.masterGain);
+        noise.start(); noise.stop(this.ctx.currentTime + 0.5);
+    }
+
+    startEngine() {
+        if (!this.enabled) return; this.init(); if (!this.ctx || this.engineOsc) return;
+        const { osc, gain } = this.createOscillator(80, 'triangle');
+        this.engineOsc = osc; this.engineGain = gain;
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        this.engineOsc.start();
+    }
+
+    updateEngine(speed) {
+        if (!this.engineOsc || !this.ctx) return;
+        const pitch = 80 + (speed * 0.8);
+        this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.05);
+    }
+
+    stopEngine() {
+        if (this.engineOsc) {
+            this.engineGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.1);
+            const osc = this.engineOsc;
+            setTimeout(() => { try { osc.stop(); } catch(e){} }, 200);
+            this.engineOsc = null;
+        }
+    }
+}
+window.audioFX = new AudioFX();
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -151,6 +280,9 @@ function initUI() {
     });
 
     const btnMute = document.getElementById('btn-mute');
+    if (btnMute && window.audioFX) {
+        btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+    }
     btnMute.addEventListener('click', (e) => {
         e.stopPropagation();
         if (window.audioFX) {
