@@ -84,6 +84,10 @@ class AudioFX {
         });
     }
 
+    playLevelUp() {
+        this.playVictory();
+    }
+
     playExplosion() {
         if (!this.enabled) return; this.init(); if (!this.ctx) return;
         const bufferSize = this.ctx.sampleRate * 1;
