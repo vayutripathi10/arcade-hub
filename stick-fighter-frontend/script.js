@@ -6,9 +6,13 @@ const uiScore = document.getElementById('ui-score');
 const uiKills = document.getElementById('ui-kills');
 const uiCombo = document.getElementById('ui-combo');
 const comboSpan = uiCombo?.querySelector('span');
+
+// HP Elements
 const playerHealthBar = document.getElementById('player-health-bar');
+const playerHpVal = document.getElementById('player-hp-val');
 const bossHealthContainer = document.getElementById('boss-health-bar-container');
 const bossHealthBar = document.getElementById('boss-health-bar');
+const bossHpVal = document.getElementById('boss-hp-val');
 
 const mainMenu = document.getElementById('mainMenu');
 const pauseMenu = document.getElementById('pauseMenu');
@@ -149,7 +153,7 @@ function initGame() {
     shakeTime = 0;
     
     updateHUD();
-    bossHealthContainer.classList.add('hidden');
+    bossHealthContainer?.classList.add('hidden');
     
     gameState = 'playing';
     mainMenu.classList.add('hidden');
@@ -429,10 +433,12 @@ function update(dt) {
     
     let activeBoss = enemies.find(e => e.isBoss);
     if (activeBoss) {
-        bossHealthContainer.classList.remove('hidden');
-        bossHealthBar.style.width = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100) + "%";
+        bossHealthContainer?.classList.remove('hidden');
+        const bossPercent = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
+        if (bossHealthBar) bossHealthBar.style.width = bossPercent + "%";
+        if (bossHpVal) bossHpVal.textContent = `${Math.ceil(activeBoss.hp)}/${activeBoss.maxHp}`;
     } else {
-        bossHealthContainer.classList.add('hidden');
+        bossHealthContainer?.classList.add('hidden');
     }
 
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -499,8 +505,10 @@ function update(dt) {
 function updateHUD() {
     if (uiScore) uiScore.textContent = Math.floor(score);
     if (uiKills) uiKills.textContent = kills;
-    if (playerHealthBar) {
-        playerHealthBar.style.width = Math.max(0, (player.hp / player.maxHp) * 100) + "%";
+    if (playerHealthBar && player) {
+        const playerPercent = Math.max(0, (player.hp / player.maxHp) * 100);
+        playerHealthBar.style.width = playerPercent + "%";
+        if (playerHpVal) playerHpVal.textContent = `${Math.ceil(player.hp)}/${player.maxHp}`;
     }
 }
 

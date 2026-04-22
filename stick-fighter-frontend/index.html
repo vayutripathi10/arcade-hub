@@ -42,18 +42,26 @@
     </header>
 
     <div class="combat-row">
-        <div class="hp-section player">
-            <span class="hp-label">PLAYER</span>
-            <div class="hp-container">
-                <div id="player-health-bar"></div>
+        <div class="hp-card player">
+            <div class="hp-header">
+                <span class="hp-label">PLAYER</span>
+                <span id="player-hp-val" class="hp-value">100/100</span>
+            </div>
+            <div class="hp-track">
+                <div id="player-health-bar" class="hp-fill"></div>
             </div>
         </div>
-        <div id="boss-health-bar-container" class="hp-section boss hidden">
-            <span class="hp-label">BOSS</span>
-            <div class="hp-container">
-                <div id="boss-health-bar"></div>
+        
+        <div id="boss-health-bar-container" class="hp-card boss hidden">
+            <div class="hp-header">
+                <span class="hp-label">BOSS</span>
+                <span id="boss-hp-val" class="hp-value">600/600</span>
+            </div>
+            <div class="hp-track">
+                <div id="boss-health-bar" class="hp-fill"></div>
             </div>
         </div>
+
         <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
     </div>
 

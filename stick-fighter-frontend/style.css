@@ -8,7 +8,7 @@
     --text-secondary: rgba(255, 255, 255, 0.6);
     --header-h-desktop: 64px;
     --header-h-mobile: 56px;
-    --combat-h: 44px;
+    --combat-h: 60px; /* Increased for card layout */
 }
 
 * {
@@ -109,58 +109,70 @@ body {
 .combat-row {
     height: var(--combat-h);
     background: rgba(5, 5, 15, 1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     padding: 0 16px;
     z-index: 900;
     flex-shrink: 0;
 }
 
-.hp-section {
+.hp-card {
     flex: 1;
     display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0; /* Allow shrinking */
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
 }
 
-.hp-section.hidden { display: none !important; }
+.hp-card.hidden { display: none !important; }
+
+.hp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
 
 .hp-label {
     font-family: 'Press Start 2P', cursive;
     font-size: 8px;
-    flex-shrink: 0;
     letter-spacing: 1px;
 }
-.hp-section.player .hp-label { color: var(--primary); }
-.hp-section.boss .hp-label { color: var(--boss-color); }
+.player .hp-label { color: var(--primary); }
+.boss .hp-label { color: var(--boss-color); }
 
-.hp-container {
-    flex: 1;
-    height: 12px;
+.hp-value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.hp-track {
+    width: 100%;
+    height: 10px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
+    border-radius: 5px;
     overflow: hidden;
     position: relative;
 }
 
-#player-health-bar {
+.hp-fill {
     height: 100%;
-    width: 100%;
-    background: linear-gradient(90deg, #00cccc, #00ffff);
-    box-shadow: 0 0 10px var(--primary-glow);
-    transition: width 0.3s ease;
+    width: 100%; /* Default 100%, overridden by JS */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#boss-health-bar {
-    height: 100%;
-    width: 100%;
+.player .hp-fill {
+    background: linear-gradient(90deg, #00cccc, #00ffff);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.boss .hp-fill {
     background: linear-gradient(90deg, #ff0055, #ff3366);
     box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
-    transition: width 0.3s ease;
 }
 
 .combo-pill {
@@ -169,7 +181,7 @@ body {
     color: var(--secondary);
     text-shadow: 0 0 8px var(--secondary);
     white-space: nowrap;
-    margin-left: auto;
+    margin-left: 8px;
 }
 .combo-pill.hidden { display: none; }
 
@@ -300,9 +312,10 @@ body {
     
     .logo-title { font-size: 1.8rem; }
     
-    .combat-row { gap: 10px; padding: 0 10px; }
-    .hp-label { font-size: 7px; }
-    .hp-container { height: 10px; }
+    .combat-row { gap: 8px; padding: 0 10px; height: 50px; }
+    .hp-label { font-size: 6px; }
+    .hp-value { font-size: 8px; }
+    .hp-track { height: 8px; }
 }
 
 /* Shake Effect */
