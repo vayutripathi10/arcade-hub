@@ -175,27 +175,31 @@
 </div>
 
 <div id="gameArea">
-    <div class="header">
+    <header class="header">
         <div class="nav-left">
-            <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
         </div>
-        <div class="score-container">
-            <div class="stat-box">
-                <span class="stat-label">Best</span>
-                <span class="stat-val" id="hudBest">0</span>
-            </div>
-            <div class="stat-box">
-                <span class="stat-label">Score</span>
-                <span class="stat-val gold" id="hudScore">0</span>
+        <div class="header-center">
+            <div class="score-pills">
+                <div class="score-pill">
+                    <span class="pill-label">Score</span>
+                    <span id="hudScore" class="pill-value">0</span>
+                </div>
+                <div class="score-pill">
+                    <span class="pill-label">Best</span>
+                    <span id="hudBest" class="pill-value">0</span>
+                </div>
+                <div class="score-pill">
+                    <span class="pill-label">Boosts</span>
+                    <span id="hudBoosts" class="pill-value">3</span>
+                </div>
             </div>
         </div>
-        <div class="header-controls">
+        <div class="header-right">
             <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+            <button id="pauseBtnHUD" class="icon-btn" title="Pause Game">||</button>
         </div>
-    </div>
+    </header>
 
     <canvas id="gameCanvas"></canvas>
     <button id="pauseBtn" class="pause-btn hidden">

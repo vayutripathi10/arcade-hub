@@ -1,8 +1,7 @@
 // --- Canvas Setup ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let cw = canvas.width = window.innerWidth;
-let ch = canvas.height = window.innerHeight;
+let cw, ch;
 
 // --- DOM Elements ---
 const hudScore = document.getElementById('hudScore');
@@ -13,17 +12,25 @@ const gameOverOverlay = document.getElementById('gameOverOverlay');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 const goScore = document.getElementById('goScore');
-const pauseBtn = document.getElementById('pauseBtn');
+const pauseBtn = document.getElementById('pauseBtnHUD');
 const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
 
+// Navigation
+document.querySelectorAll('.btn-hub').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        console.log('hub clicked');
+        // window.location.href = '../index.html';
+    });
+});
+
 // --- Game State ---
 let highScore = parseInt(localStorage.getItem('neonRunnerBest') || '0');
 let totalCoins = parseInt(localStorage.getItem('neonRunnerTotalCoins') || '0');
-hudBest.textContent = highScore;
+if (hudBest) hudBest.textContent = highScore;
 
 let isRunning = false;
 let isPaused = false;
@@ -46,7 +53,7 @@ let bgBuildings = [];
 // --- Player Object ---
 let player = {
     laneIndex: 1,
-    x: cw * 0.2,
+    x: 0,
     y: 0,
     w: 30, h: 50,
     targetY: 0,
@@ -64,7 +71,11 @@ function calculateLanes() {
 }
 
 function initEnvironment() {
+    cw = canvas.width = window.innerWidth;
+    ch = canvas.height = window.innerHeight;
     calculateLanes();
+    
+    player.x = cw * 0.2;
     player.y = lanes[player.laneIndex];
     player.targetY = lanes[player.laneIndex];
     
@@ -82,10 +93,8 @@ function initEnvironment() {
 }
 
 window.addEventListener('resize', () => {
-    cw = canvas.width = window.innerWidth;
-    ch = canvas.height = window.innerHeight;
-    calculateLanes();
-    if (!isRunning) initEnvironment();
+    initEnvironment();
+    if (!isRunning) drawBase();
 });
 
 // --- Game Logic ---
@@ -123,8 +132,8 @@ function resetGame() {
 }
 
 function updateHUD() {
-    hudScore.textContent = Math.floor(score);
-    hudBoosts.textContent = player.boosts;
+    if (hudScore) hudScore.textContent = Math.floor(score);
+    if (hudBoosts) hudBoosts.textContent = player.boosts;
 }
 
 function gameOver() {
@@ -139,14 +148,13 @@ function gameOver() {
     if (Math.floor(score) > highScore) {
         highScore = Math.floor(score);
         localStorage.setItem('neonRunnerBest', highScore);
-        hudBest.textContent = highScore;
+        if (hudBest) hudBest.textContent = highScore;
     }
     
-    goScore.textContent = Math.floor(score);
+    if (goScore) goScore.textContent = Math.floor(score);
     gameOverOverlay.classList.remove('hidden');
     
-    spawnParticles(player.x, player.y, '--pink', 30);
-    drawBase(); 
+    spawnParticles(player.x, player.y, '--secondary', 30);
 }
 
 // --- Inputs ---
@@ -170,8 +178,8 @@ function triggerBoost() {
     player.invincible = true;
     player.invincTimer = 120; 
     updateHUD();
-    spawnParticles(player.x, player.y, '--cyan', 20);
-    if (window.audioFX) window.audioFX.playEat(); // Boost sound
+    spawnParticles(player.x, player.y, '--primary', 20);
+    if (window.audioFX) window.audioFX.playEat(); 
 }
 
 window.addEventListener('keydown', e => {
@@ -223,7 +231,7 @@ btnQuit?.addEventListener('click', (e) => {
     obstacles = [];
     coins = [];
     particles = [];
-    hudScore.textContent = '0';
+    if (hudScore) hudScore.textContent = '0';
     initEnvironment();
     drawBase();
 });
@@ -339,7 +347,7 @@ function update() {
 
         if (playerRight > obsLeft && playerLeft < obsRight && playerBot > obsTop && playerTop < obsBot) {
             if (player.invincible) {
-                spawnParticles(obs.x, obsY, '--pink');
+                spawnParticles(obs.x, obsY, '--secondary');
                 if (window.audioFX) window.audioFX.playJump(); 
                 obstacles.splice(i, 1);
                 score += 5; 
@@ -374,7 +382,7 @@ function update() {
             if (player.coinCounter >= 10) {
                 player.coinCounter = 0;
                 player.boosts = Math.min(3, player.boosts + 1);
-                spawnParticles(player.x, player.y, '--cyan', 10);
+                spawnParticles(player.x, player.y, '--primary', 10);
             }
             
             updateHUD();
