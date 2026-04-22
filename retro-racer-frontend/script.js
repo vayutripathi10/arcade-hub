@@ -582,7 +582,7 @@ function draw() {
     if (gameState === 'stage_clear' || gameState === 'stage_starting') {
         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#ffd700'; ctx.font = '20px "Press Start 2P"';
-        let msg = gameState === 'stage_clear' ? `STAGE ${currentStage} CLEAR!` : `STAGE ${currentStage+1} STARTING...`;
+        let msg = gameState === 'stage_clear' ? `STAGE ${currentStage} CLEAR!` : `STAGE ${currentStage} STARTING...`;
         ctx.fillText(msg, canvas.width/2, canvas.height/2);
     }
 }
