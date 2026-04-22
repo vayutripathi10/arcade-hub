@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="../favicon.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="description" content="Play Zen Dino - a free neon-themed dinosaur endless runner with double jump at Arcade Hub! Run, jump, and survive.">
     <meta name="keywords" content="zen dino, dinosaur game, runner game, browser game, arcade hub">
     <link rel="canonical" href="https://arcadehubplay.com/dino-frontend/index.html">
@@ -22,8 +22,6 @@
     <script>
     (function() {
         const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
-        
-        // 1. Intercept all global event bindings (how Popunders usually hijack)
         const originalAdd = EventTarget.prototype.addEventListener;
         EventTarget.prototype.addEventListener = function(type, listener, options) {
             if ((this === window || this === document || this === document.body) && 
@@ -32,7 +30,7 @@
             {
                 const wrappedListener = function(e) {
                     if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return; // Shield activated! Block the ad from receiving this interaction.
+                        return;
                     }
                     return listener.apply(this, arguments);
                 };
@@ -40,19 +38,15 @@
             }
             return originalAdd.call(this, type, listener, options);
         };
-
-        // 2. Prevent dynamic overlay hijacking (invisible divs)
         const observer = new MutationObserver(mutations => {
             mutations.forEach(mut => {
                 mut.addedNodes.forEach(node => {
                     if (node.tagName === 'DIV' && node.style) {
-                        // Check if it's acting like a full-screen overlay clickjacker
                         const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
                         const isMassive = parseInt(node.style.zIndex || 0) > 1000;
                         if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
-                            // Automatically push behind our UI
                             node.style.zIndex = '1';
-                            node.style.pointerEvents = 'none'; // Click through to game!
+                            node.style.pointerEvents = 'none';
                         }
                     }
                 });
@@ -64,7 +58,6 @@
     })();
     </script>
 
-    <!-- Google Analytics placeholder. Replace 'G-YOUR_MEASUREMENT_ID' with your actual Google Analytics Measurement ID -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -74,192 +67,73 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
-    <!-- Adsterra Global Popunder -->
-    
-
-    
-
-    <!-- Dark Mode Ad Formatting -->
-    <style>
-        .ad-container { background-color: transparent !important; }
-        .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
-    </style>
-
-    <!-- How to Play Overlay Styles -->
-    <style>
-        .htp-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(10, 14, 26, 0.96);
-            z-index: 9998;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(8px);
-            animation: htpFadeIn 0.3s ease;
-        }
-        .htp-overlay.active { display: flex; }
-        @keyframes htpFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .htp-card {
-            max-width: 420px;
-            width: 100%;
-            max-height: 80vh;
-            max-height: 80dvh;
-            overflow-y: auto;
-            text-align: left;
-            padding: 0 10px;
-        }
-        .htp-title {
-            font-size: 1.4rem;
-            color: #00ffcc;
-            text-align: center;
-            margin-bottom: 18px;
-            font-weight: 700;
-        }
-        .htp-row {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            margin-bottom: 14px;
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.75);
-            line-height: 1.6;
-        }
-        .htp-row-icon {
-            font-size: 1.2rem;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-        .htp-row b { color: #ffffff; }
-        .htp-back {
-            display: block;
-            margin: 20px auto 0;
-            padding: 12px 32px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.06);
-            color: #ffffff;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        .htp-back:hover { border-color: #00ffcc; color: #00ffcc; transform: translateY(-2px); }
-        .htp-open-btn {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 20px;
-            border-radius: 8px;
-            border: 1px solid rgba(0, 255, 204, 0.3);
-            background: rgba(0, 255, 204, 0.08);
-            color: #00ffcc;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 0.5px;
-        }
-        .htp-open-btn:hover { background: rgba(0, 255, 204, 0.15); transform: translateY(-1px); }
-    </style>
 </head>
 <body>
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-        <div class="header-controls">
-            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
-        </div>
-        <h1 class="title">ZEN DINO</h1>
-        <div class="score-container">
-            <div class="score-box">
-                <span class="score-label">Score</span>
-                <span id="score">0</span>
+    <div class="game-root">
+        <div class="header">
+            <div class="nav-left">
+                <button class="home-btn" id="hub-btn">← Arcade Hub</button>
             </div>
-            <div class="score-box">
-                <span class="score-label">High Score</span>
-                <span id="highScore">0</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="game-wrapper">
-        <canvas id="gameCanvas" width="800" height="300"></canvas>
-        <button id="pauseBtn" class="pause-btn hidden">
-            <span class="pause-icon">||</span>
-        </button>
-        <div id="overlay" class="overlay">
-            <div class="overlay-content">
-                <h2 id="overlayTitle">Zen Dino</h2>
-                <p id="overlayMessage">Press Space or Tap to jump.<br>Press again while in air to <b>Double Jump</b>!</p>
-<div class="share-container hidden" id="shareContainer">
-                    <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
-                    <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
+            <div class="header-center">
+                <div class="score-pills">
+                    <div class="score-pill">
+                        <span class="pill-label">Score</span>
+                        <span id="score" class="pill-value">0</span>
+                    </div>
+                    <div class="score-pill">
+                        <span class="pill-label">High Score</span>
+                        <span id="highScore" class="pill-value">0</span>
+                    </div>
                 </div>
-                <button id="startBtn" class="btn primary">Start Game</button>
-                <button class="htp-open-btn" onclick="event.stopPropagation(); document.getElementById('htpOverlay').classList.add('active')">📖 How to Play</button>
+            </div>
+            <div class="header-right">
+                <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+                <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">⏸</button>
             </div>
         </div>
 
-        <div id="pauseMenu" class="overlay hidden">
-            <div class="overlay-content">
-                <h2>Paused</h2>
-                <button id="btn-resume" class="btn primary" style="margin-bottom: 10px;">Resume</button>
-                <button id="btn-quit" class="btn share-btn">Quit to Menu</button>
+        <div class="game-wrapper">
+            <canvas id="gameCanvas" width="800" height="300"></canvas>
+            
+            <div id="hint-text" class="hint-overlay">
+                Press SPACE or Tap to jump. (Supports Double Jump)
+            </div>
 
+            <div id="overlay" class="overlay">
+                <div class="overlay-content">
+                    <h2 id="overlayTitle">Zen Dino</h2>
+                    <p id="overlayMessage">Run, jump, and survive the neon desert.</p>
+                    <div class="share-container hidden" id="shareContainer">
+                        <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
+                        <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="startBtn" class="btn primary">Start Game</button>
+                        <button id="htp-btn" class="btn secondary">How to Play</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pauseMenu" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2>Paused</h2>
+                    <div class="action-buttons">
+                        <button id="btn-resume" class="btn primary">Resume</button>
+                        <button id="btn-quit" class="btn secondary">Quit to Menu</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="controls-info">
-        <p>Press <b>SPACE</b> or <b>Tap/Click</b> to jump. (Supports <b>Double Jump</b>)</p>
-    </div>
-
-    
-    <!-- Adsterra Mobile Banner (320x50) - OUTSIDE GAME AREA -->
-    <div class="ad-container mobile-banner" style="margin: 20px auto; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
-        <script>
-        atOptions = {
-            'key' : '68ced95a589a3c37a8f41a8fff267340',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-        };
-        </script>
-        <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
-    </div>
-
-    <footer class="site-footer">
-        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy.html">Privacy Policy</a> | <a href="../contact.html">Contact Us</a> | <a href="../updates.html">News</a></p>
-    </footer>
 
     <!-- Force Landscape Prompt -->
     <div id="landscapePrompt" class="landscape-prompt">
         <div class="prompt-content">
             <span class="rotate-icon">↺</span>
             <h2>Rotate Your Device</h2>
-            <p>Please turn your device horizontally for the best Zen Dino experience.</p>
+            <p>Please turn your device horizontally for the best experience.</p>
         </div>
     </div>
-
-    <script src="../shared/audio-fx.js"></script>
-    <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
-    <script>
-        const wakeUpAudio = () => {
-            if (window.audioFX && typeof window.audioFX.init === 'function') {
-                window.audioFX.init();
-            }
-        };
-        window.addEventListener('click', wakeUpAudio, { once: true });
-        window.addEventListener('touchstart', wakeUpAudio, { once: true });
-    </script>
 
     <!-- How to Play Overlay -->
     <div class="htp-overlay" id="htpOverlay">
@@ -270,8 +144,21 @@
             <div class="htp-row"><span class="htp-row-icon">🌵</span><span><b>Avoid:</b> Dodge cacti on the ground and flying birds in the air.</span></div>
             <div class="htp-row"><span class="htp-row-icon">🌙</span><span><b>Day & Night:</b> The world cycles between day and night as you score higher.</span></div>
             <div class="htp-row"><span class="htp-row-icon">🏆</span><span><b>Goal:</b> Survive as long as possible and beat your high score!</span></div>
-            <button class="htp-back" onclick="document.getElementById('htpOverlay').classList.remove('active')">← Got it!</button>
+            <button class="htp-back" id="htp-close">← Got it!</button>
         </div>
     </div>
+
+    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js?v=ArcadeHub_Dino_Fix"></script>
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
+            }
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
 </body>
 </html>
