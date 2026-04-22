@@ -166,23 +166,34 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-        <div class="header-controls">
-            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
         </div>
-        <div class="score-container">
-            <div class="score-box">
-                <span class="score-label">Streak</span>
-                <span id="score">0</span>
+        <div class="header-center">
+            <div class="score-pills">
+                <div class="score-pill">
+                    <span class="pill-label">Streak</span>
+                    <span id="score" class="pill-value">0</span>
+                </div>
+                <div class="score-pill">
+                    <span class="pill-label">Best</span>
+                    <span id="highScore" class="pill-value">0</span>
+                </div>
             </div>
-            <div class="score-box">
-                <span class="score-label">Best</span>
-                <span id="highScore">0</span>
-            </div>
+        </div>
+        <div class="header-right">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="pauseBtnHUD" class="icon-btn" title="Pause Game">||</button>
+        </div>
+    </header>
+
+    <div class="lives-bar">
+        <span class="lives-label">LIVES</span>
+        <div id="livesContainer" class="lives-container">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
         </div>
     </div>
 

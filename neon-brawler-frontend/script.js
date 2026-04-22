@@ -8,12 +8,21 @@ const leftZone = document.getElementById('leftTouchZone');
 const rightZone = document.getElementById('rightTouchZone');
 const tweetBtn = document.getElementById('tweetBtn');
 const waBtn = document.getElementById('waBtn');
-const pauseBtn = document.getElementById('pauseBtn');
+const pauseBtn = document.getElementById('pauseBtnHUD');
 const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
+const livesContainer = document.getElementById('livesContainer');
+
+// Navigation
+document.querySelectorAll('.btn-hub').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        console.log('hub clicked');
+        // window.location.href = '../index.html';
+    });
+});
 
 let CANVAS_W = 800;
 let CANVAS_H = 400;
@@ -48,6 +57,7 @@ const STAGE_COLORS = ['#00ffcc', '#bc13fe', '#ff3366'];
 const HIT_RANGE = 140; 
 const KILL_RANGE = 35; 
 const BOSS_THRESHOLD = 100;
+
 function initGame() {
     score = 0;
     scoreEl.textContent = '0';
@@ -69,6 +79,9 @@ function initGame() {
     bossActive = false;
     boss = null;
     warningTimer = 0;
+    
+    updateLivesUI();
+
     if (window.audioFX) {
         window.audioFX.init();
         if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
@@ -81,9 +94,24 @@ function initGame() {
     loop(lastTime);
 }
 
+function updateLivesUI() {
+    if (!livesContainer) return;
+    let heartsHTML = '';
+    for (let i = 0; i < 3; i++) {
+        if (i < player.lives) {
+            heartsHTML += '<span class="heart">❤️</span>';
+        } else {
+            heartsHTML += '<span class="heart empty">❤️</span>';
+        }
+    }
+    livesContainer.innerHTML = heartsHTML;
+}
+
 function resizeCanvas() {
-    canvas.width = document.querySelector('.game-wrapper').clientWidth;
-    canvas.height = document.querySelector('.game-wrapper').clientHeight;
+    const wrapper = document.querySelector('.game-wrapper');
+    if (!wrapper) return;
+    canvas.width = wrapper.clientWidth;
+    canvas.height = wrapper.clientHeight;
     CANVAS_W = canvas.width;
     CANVAS_H = canvas.height;
     if (player) {
@@ -166,6 +194,7 @@ function takeDamage() {
     if (player.invulnerable || !gameRunning) return;
     
     player.lives--;
+    updateLivesUI();
     player.invulnerable = true;
     player.invulnTimer = 90; // 1.5s invulerability
     screenShake = 20;
@@ -524,25 +553,7 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
-    ctx.restore(); // end screen shake block
-    drawLives();  // always draw hearts at fixed position, outside shake
-}
-
-function drawLives() {
-    ctx.save();
-    ctx.font = '24px Arial';
-    ctx.textAlign = 'left';
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = '#ff4444';
-    
-    const isMobile = window.innerWidth <= 600;
-    const startX = isMobile ? 20 : 20;
-    const startY = isMobile ? 80 : 35; 
-
-    for (let i = 0; i < player.lives; i++) {
-        ctx.fillText('❤️', startX + (i * 35), startY);
-    }
-    ctx.restore();
+    ctx.restore(); 
 }
 
 let frameCount = 0;
@@ -599,7 +610,8 @@ btnQuit?.addEventListener('click', (e) => {
     overlay.classList.remove('hidden');
     pauseBtn?.classList.add('hidden');
     
-    player = { x: CANVAS_W / 2, y: CANVAS_H / 2 + 50, state: 'idle' };
+    player = { x: CANVAS_W / 2, y: CANVAS_H / 2 + 50, state: 'idle', lives: 3 };
+    updateLivesUI();
     enemies = [];
     particles = [];
     score = 0;
@@ -649,5 +661,6 @@ tweetBtn.addEventListener('click', () => shareScore('twitter'));
 waBtn.addEventListener('click', () => shareScore('whatsapp'));
 
 // Idle screen initialization
-player = { x: CANVAS_W / 2, y: CANVAS_H / 2 + 50, state: 'idle' };
+player = { x: CANVAS_W / 2, y: CANVAS_H / 2 + 50, state: 'idle', lives: 3 };
+updateLivesUI();
 draw();
