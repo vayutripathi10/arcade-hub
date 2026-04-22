@@ -74,11 +74,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 
-    <!-- Adsterra Global Popunder -->
-    
-
-    
-
     <!-- Dark Mode Ad Formatting -->
     <style>
         .ad-container { background-color: transparent !important; }
@@ -113,12 +108,6 @@
             <div class="combo-container" id="ui-combo-container">
                 <span id="ui-combo-text">COMBO x1</span>
             </div>
-        </div>
-
-        <div class="bottom-bar">
-            <div class="ammo-container" id="ui-ammo">🔫 6 / 6</div>
-            <button id="btn-reload" class="action-btn reload-btn">RELOAD</button>
-            <button id="btn-pause" class="icon-btn icon-btn-square">||</button>
         </div>
 
         <!-- Menus -->
@@ -157,8 +146,13 @@
             <h2>Paused</h2>
             <button id="btn-resume" class="play-btn">Resume</button>
             <button id="btn-quit" class="secondary-btn">Quit to Menu</button>
-
         </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="ammo-container" id="ui-ammo">🔫 6 / 6</div>
+        <button id="btn-reload" class="action-btn reload-btn">RELOAD</button>
+        <button id="btn-pause" class="icon-btn-square">||</button>
     </div>
 
     <!-- Scripts -->
@@ -173,6 +167,14 @@
         };
         window.addEventListener('click', wakeUpAudio, { once: true });
         window.addEventListener('touchstart', wakeUpAudio, { once: true });
+
+        // Navigation
+        document.querySelectorAll('.btn-hub').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                console.log('going to hub');
+                // window.location.href = '../index.html';
+            });
+        });
     </script>
 </body>
 </html>

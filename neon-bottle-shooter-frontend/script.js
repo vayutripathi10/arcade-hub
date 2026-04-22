@@ -9,7 +9,6 @@ const uiComboText = document.getElementById('ui-combo-text');
 const uiComboContainer = document.getElementById('ui-combo-container');
 const btnAmmoReload = document.getElementById('btn-reload');
 const btnPause = document.getElementById('btn-pause');
-const btnStandardPause = document.getElementById('pauseBtn');
 const btnMute = document.getElementById('btn-mute');
 
 // Menus
@@ -71,8 +70,8 @@ const colors = {
 // Canvas Sizing
 function resizeCanvas() {
     const wrapper = document.getElementById('gameWrapper');
+    if (!wrapper) return;
     const rect = wrapper.getBoundingClientRect();
-    const isMobile = window.innerWidth <= 768;
     
     // Fixed logical resolution based on aspect ratio
     const aspect = rect.height / rect.width;
@@ -409,9 +408,6 @@ function shoot() {
         if (gameMode === 'survival') {
             score -= 50; // penalty
             if (score < 0) score = 0;
-            // Survival ends if they miss 3 shots in a row? 
-            // Or survival ends if accuracy drops too low? Let's end if they run out of time (which doesn't exist)
-            // Actually let's track consecutive misses
         }
     }
 }
@@ -490,7 +486,7 @@ function update() {
         waveTimer = 0;
         currentWave++;
         if (currentWave === 3 && window.achievements) {
-            window.achievements.unlock('bottle', 'boss_1', 'Boss Breaker'); // Simulate surviving waves as boss breaker
+            window.achievements.unlock('bottle', 'boss_1', 'Boss Breaker'); 
         }
     }
 
@@ -515,25 +511,15 @@ function update() {
             if (timer <= 0) gameOver();
         }
     } else if (gameMode === 'survival') {
-        // Endless, but if you miss a bottle (it goes off screen), you lose a "life" or accuracy drops
         let missedCount = bottlesDestroyed === 0 ? 0 : shotsFired - shotsHit;
-        if (missedCount > 10) { // Limit to 10 total misses
+        if (missedCount > 10) { 
             gameOver();
         }
     } else if (gameMode === 'precision') {
-        // Ends when out of ammo and no target hit recently
         if (ammo <= 0 && isReloading === false) {
-             // In precision mode they can't reload freely? Actually precision mode restricts reloading.
-             // But simpler: just track if shots fired reaches high count and accuracy is low
              if (shotsFired > 30 && (shotsHit / shotsFired) < 0.5) gameOver();
         }
     }
-    
-    // Hide crosshair if idle
-    const dx = Math.abs(rawMouseX - crosshair.x);
-    const dy = Math.abs(rawMouseY - crosshair.y);
-    // Smooth crosshair follow (for touch bounds)
-    // Here we explicitly set it on move, so it stays responsive
 }
 
 function drawCrosshair() {
@@ -577,7 +563,6 @@ function drawShelves() {
     ctx.shadowBlur = 20;
     ctx.shadowColor = '#00ffff';
     
-    // Draw 3 distant lines
     for(let i=1; i<4; i++) {
         ctx.beginPath();
         ctx.moveTo(0, (canvas.height/4) * i);
@@ -595,7 +580,7 @@ function draw() {
         screenShake--;
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Use CSS background
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
     if (freezeTimer > 0) {
         ctx.fillStyle = 'rgba(170, 221, 255, 0.1)';
@@ -608,7 +593,6 @@ function draw() {
     particles.forEach(p => p.draw());
     floatingTexts.forEach(t => t.draw());
 
-    // Only draw crosshair if playing
     if (gameState === 'playing') {
         drawCrosshair();
     }
@@ -661,9 +645,9 @@ function initGame(mode) {
 
     uiTime.classList.remove('time-warning');
     if (gameMode === 'classic') {
-        uiTime.style.display = 'block';
+        uiTime.style.visibility = 'visible';
     } else {
-        uiTime.style.display = 'none'; // hide timer for survival
+        uiTime.style.visibility = 'hidden'; 
     }
 
     updateHUD();
@@ -677,10 +661,6 @@ function initGame(mode) {
     lastTime = performance.now();
     
     if (!animationFrameId) loop(lastTime);
-    if (window.audioFX) {
-        window.audioFX.init();
-        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
-    }
 }
 
 function updateHUD() {
@@ -692,7 +672,6 @@ function updateHUD() {
     if (shotsFired > 0) acc = Math.round((shotsHit / shotsFired) * 100);
     uiAccuracy.textContent = `${acc}%`;
 
-    // Achievement Checks
     if (acc >= 90 && shotsFired >= 20 && window.achievements) {
         window.achievements.unlock('bottle', 'sharp_90', 'Sharp Shooter');
     }
@@ -706,7 +685,6 @@ function gameOver() {
     canvas.classList.remove('playing');
     document.getElementById('hud').classList.add('hud-hidden');
     
-    // Save high score
     const bestKey = `bottleBest_${gameMode}`;
     let best = parseInt(localStorage.getItem(bestKey)) || 0;
     if (score > best) {
@@ -729,7 +707,7 @@ function gameOver() {
 
     setTimeout(() => {
         gameOverMenu.classList.remove('hidden');
-    }, 500); // short delay
+    }, 500); 
 }
 
 function togglePause() {
@@ -762,10 +740,7 @@ btnAmmoReload.addEventListener('click', () => {
 });
 
 btnPause.addEventListener('click', togglePause);
-btnStandardPause?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    togglePause();
-});
+
 document.getElementById('btn-resume').addEventListener('click', togglePause);
 
 document.getElementById('btn-restart').addEventListener('click', () => initGame(gameMode));
@@ -780,14 +755,6 @@ document.getElementById('btn-quit').addEventListener('click', () => {
     mainMenu.classList.remove('hidden');
     document.getElementById('hud').classList.add('hud-hidden');
     gameState = 'menu';
-});
-
-// Navigation
-document.querySelectorAll('.btn-hub').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        console.log('going to hub');
-        // window.location.href = '../index.html';
-    });
 });
 
 // Start loop empty for background menu drawing

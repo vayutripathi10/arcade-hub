@@ -38,17 +38,17 @@ body, html {
 /* ==================== TOP HUD BAR ==================== */
 .header {
     height: var(--header-h-desktop);
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.95);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     padding: 0 16px;
-    z-index: 10;
+    z-index: 100;
     flex-shrink: 0;
 }
 
-.nav-left { display: flex; align-items: center; min-width: 140px; }
+.nav-left { display: flex; align-items: center; min-width: 120px; }
 .home-btn {
     text-decoration: none;
     color: var(--text-secondary);
@@ -59,6 +59,7 @@ body, html {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.2s;
+    cursor: pointer;
 }
 .home-btn:hover { color: #fff; border-color: var(--primary); }
 
@@ -72,7 +73,7 @@ body, html {
     letter-spacing: 1px;
 }
 
-.header-right { display: flex; justify-content: flex-end; min-width: 140px; }
+.header-right { display: flex; justify-content: flex-end; min-width: 120px; }
 .icon-btn {
     width: 40px;
     height: 40px;
@@ -92,17 +93,17 @@ body, html {
 /* ==================== STATS BAR ==================== */
 .stats-bar {
     height: var(--stats-h-desktop);
-    background: rgba(255, 255, 255, 0.04);
-    border-bottom: 1px solid rgba(0, 229, 200, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
     flex-shrink: 0;
-    z-index: 9;
+    z-index: 90;
 }
 .stat-item {
-    font-size: clamp(12px, 2.5vw, 16px);
+    font-size: 14px;
     font-weight: 700;
     color: var(--secondary);
     text-shadow: 0 0 8px var(--secondary);
@@ -129,12 +130,13 @@ body, html {
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    /* User request: Add padding-bottom equal to bottom bar height */
+    padding-bottom: var(--bottom-h-desktop);
 }
 #gameCanvas {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    cursor: crosshair;
 }
 #gameCanvas.playing { cursor: none; }
 
@@ -155,22 +157,25 @@ body, html {
 
 /* ==================== BOTTOM BAR ==================== */
 .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: var(--bottom-h-desktop);
-    background: rgba(12, 14, 20, 0.95);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.95);
+    border-top: 1px solid rgba(0, 229, 200, 0.2);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
-    flex-shrink: 0;
-    z-index: 10;
+    z-index: 100;
 }
 .ammo-container {
-    font-size: 1.4rem;
+    font-size: 14px;
     font-weight: 700;
     color: var(--accent);
     text-shadow: 0 0 10px var(--accent);
-    min-width: 100px;
+    min-width: 80px;
 }
 .ammo-empty {
     color: var(--warn);
@@ -178,7 +183,7 @@ body, html {
 }
 
 .action-btn {
-    padding: 10px 24px;
+    padding: 8px 24px;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.6);
     border: 2px solid var(--primary);
@@ -188,6 +193,7 @@ body, html {
     cursor: pointer;
     transition: all 0.2s;
     text-transform: uppercase;
+    font-size: 0.9rem;
 }
 .action-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
 
@@ -205,44 +211,45 @@ body, html {
     font-size: 1rem;
     transition: all 0.2s;
 }
+.icon-btn-square:hover { border-color: var(--primary); background: rgba(255, 255, 255, 0.1); }
 
 /* ==================== MENUS & OVERLAYS ==================== */
 .menu-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(10, 10, 20, 0.9);
+    background: rgba(10, 10, 20, 0.95);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+    z-index: 200;
+    backdrop-filter: blur(15px);
     padding: 20px;
 }
 .hidden { display: none !important; }
-.menu-overlay h2 { font-size: 2.2rem; color: var(--secondary); margin-bottom: 30px; text-transform: uppercase; }
+.menu-overlay h2 { font-size: 2rem; color: var(--secondary); margin-bottom: 25px; text-transform: uppercase; }
 
-.mode-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px; }
+.mode-buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
 .mode-btn {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 16px;
+    padding: 14px;
     text-align: left;
     cursor: pointer;
     transition: 0.2s;
 }
-.mode-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
-.mode-btn h3 { color: var(--primary); margin-bottom: 4px; }
-.mode-btn p { font-size: 0.85rem; color: var(--text-secondary); }
+.mode-btn:hover { border-color: var(--primary); transform: translateY(-2px); background: rgba(255, 255, 255, 0.06); }
+.mode-btn h3 { color: var(--primary); margin-bottom: 2px; font-size: 1.1rem; }
+.mode-btn p { font-size: 0.8rem; color: var(--text-secondary); }
 
 .play-btn {
     background: var(--primary);
     color: #000;
-    padding: 14px 40px;
+    padding: 12px 36px;
     border-radius: 30px;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     border: none;
     cursor: pointer;
     text-transform: uppercase;
@@ -252,10 +259,11 @@ body, html {
     background: transparent;
     color: var(--text-secondary);
     border: 2px solid var(--text-secondary);
-    padding: 12px 30px;
+    padding: 10px 30px;
     border-radius: 30px;
     font-weight: 700;
     cursor: pointer;
+    font-size: 0.9rem;
 }
 
 /* ==================== MOBILE ==================== */
@@ -263,16 +271,14 @@ body, html {
     .header { height: var(--header-h-mobile); padding: 0 10px; }
     .nav-left, .header-right { min-width: 80px; }
     .home-btn { padding: 6px 10px; font-size: 0.75rem; }
-    .home-btn::before { content: '←'; }
-    .home-btn { font-size: 0; }
-    .home-btn::after { content: ' Hub'; font-size: 0.75rem; }
     .game-title { font-size: 0.9rem; }
     
     .stats-bar { height: var(--stats-h-mobile); padding: 0 12px; }
     
+    .game-wrapper { padding-bottom: var(--bottom-h-mobile); }
     .bottom-bar { height: var(--bottom-h-mobile); padding: 0 12px; }
-    .ammo-container { font-size: 1.1rem; min-width: 70px; }
-    .action-btn { padding: 8px 16px; font-size: 0.75rem; }
+    .ammo-container { font-size: 13px; min-width: 70px; }
+    .action-btn { padding: 6px 16px; font-size: 0.75rem; }
 }
 
 @keyframes pulse {
