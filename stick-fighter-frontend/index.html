@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <!-- Google Analytics placeholder -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
@@ -19,81 +19,104 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="header">
-        <div class="nav-left">
-            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
-        </div>
-        <div class="header-center">
-            <div class="score-pills">
-                <div class="score-pill">
-                    <span class="pill-label">Score</span>
-                    <span id="ui-score" class="pill-value">0</span>
-                </div>
-                <div class="score-pill">
-                    <span class="pill-label">Defeated</span>
-                    <span id="ui-kills" class="pill-value">0</span>
+    <div class="game-root">
+        <header class="header">
+            <div class="nav-left">
+                <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
+            </div>
+            <div class="header-center">
+                <div class="score-pills">
+                    <div class="score-pill">
+                        <span class="pill-label">Score</span>
+                        <span id="ui-score" class="pill-value">0</span>
+                    </div>
+                    <div class="score-pill">
+                        <span class="pill-label">Defeated</span>
+                        <span id="ui-kills" class="pill-value">0</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="header-right">
-            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="btn-pause-hud" class="icon-btn" title="Pause Game">⏸</button>
-        </div>
-    </header>
-
-    <!-- Health Strips -->
-    <div class="health-strip" id="player-health-strip">
-        <span class="strip-label">PLAYER</span>
-        <div class="strip-bar-container">
-            <div id="player-health-bar" class="strip-bar"></div>
-        </div>
-        <span id="player-hp-val" class="strip-val">100/100</span>
-    </div>
-
-    <div class="health-strip hidden" id="boss-health-strip">
-        <span class="strip-label boss-text">💀 BOSS</span>
-        <div class="strip-bar-container">
-            <div id="boss-health-bar" class="strip-bar boss-fill"></div>
-        </div>
-        <span id="boss-hp-val" class="strip-val">600/600</span>
-    </div>
-
-    <!-- Combo Overlay (Floating on Canvas) -->
-    <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
-
-    <div id="gameWrapper">
-        <canvas id="gameCanvas"></canvas>
-
-        <!-- Main Menu -->
-        <div id="mainMenu" class="menu-overlay">
-            <h1 class="logo-title" style="transform: skew(-10deg);">NEON<br><span style="color:#f0f;">FIGHTER</span></h1>
-            <p>Master the combo to survive the endless horde!</p>
-            <div class="controls-hint">
-                Desktop: &larr;/&rarr; Move | &darr; Attack<br>
-                Mobile: DPAD Move | Tap Right to Strike
+            <div class="header-right">
+                <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+                <button id="btn-pause-hud" class="icon-btn" title="Pause Game">⏸</button>
             </div>
-            <button id="btn-start" class="btn primary-btn">FIGHT!</button>
-            <button id="btn-howtoplay" class="btn secondary-btn">How to Play</button>
+        </header>
+
+        <!-- Health Strips -->
+        <div class="health-strip" id="player-health-strip">
+            <span class="strip-label">PLAYER</span>
+            <div class="strip-bar-container">
+                <div id="player-health-bar" class="strip-bar"></div>
+            </div>
+            <span id="player-hp-val" class="strip-val">100/100</span>
         </div>
 
-        <!-- Pause Menu -->
-        <div id="pauseMenu" class="menu-overlay hidden">
-            <h2 style="color: #ffd700; font-family: 'Press Start 2P', Courier;">PAUSED</h2>
-            <button id="btn-resume" class="btn primary-btn">Resume</button>
-            <button id="btn-quit" class="btn secondary-btn">Quit to Menu</button>
+        <div class="health-strip hidden" id="boss-health-strip">
+            <span class="strip-label boss-text">💀 BOSS</span>
+            <div class="strip-bar-container">
+                <div id="boss-health-bar" class="strip-bar boss-fill"></div>
+            </div>
+            <span id="boss-hp-val" class="strip-val">600/600</span>
         </div>
 
-        <!-- Game Over Menu -->
-        <div id="gameOverMenu" class="menu-overlay hidden">
-            <h2 style="color: #ff0055; font-family: 'Press Start 2P', Courier;">KNOCKED OUT</h2>
-            <p>Score: <span id="final-score">0</span></p>
-            <p>Enemies Defeated: <span id="final-kills">0</span></p>
-            <button id="btn-restart" class="btn primary-btn">Try Again</button>
-            <button id="btn-quit-end" class="btn secondary-btn">Menu</button>
+        <!-- Combo Overlay (Floating on Canvas) -->
+        <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
+
+        <div id="gameWrapper">
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- Main Menu -->
+            <div id="mainMenu" class="menu-overlay">
+                <h1 class="logo-title" style="transform: skew(-10deg);">NEON<br><span style="color:#f0f;">FIGHTER</span></h1>
+                <p>Master the combo to survive the endless horde!</p>
+                <div class="controls-hint">
+                    Desktop: &larr;/&rarr; Move | &darr; Attack<br>
+                    Mobile: DPAD Move | Tap Right to Strike
+                </div>
+                <button id="btn-start" class="btn primary-btn">FIGHT!</button>
+                <button id="btn-howtoplay" class="btn secondary-btn">How to Play</button>
+            </div>
+
+            <!-- Pause Menu -->
+            <div id="pauseMenu" class="menu-overlay hidden">
+                <h2 style="color: #ffd700; font-family: 'Press Start 2P', Courier;">PAUSED</h2>
+                <button id="btn-resume" class="btn primary-btn">Resume</button>
+                <button id="btn-quit" class="btn secondary-btn">Quit to Menu</button>
+            </div>
+
+            <!-- Game Over Menu -->
+            <div id="gameOverMenu" class="menu-overlay hidden">
+                <h2 style="color: #ff0055; font-family: 'Press Start 2P', Courier;">KNOCKED OUT</h2>
+                <p>Score: <span id="final-score">0</span></p>
+                <p>Enemies Defeated: <span id="final-kills">0</span></p>
+                <button id="btn-restart" class="btn primary-btn">Try Again</button>
+                <button id="btn-quit-end" class="btn secondary-btn">Menu</button>
+            </div>
+
+            <!-- How To Play Modal -->
+            <div id="howToPlayModal" class="menu-overlay hidden">
+                <h2 style="font-family: 'Press Start 2P', Courier; color: #0df;">HOW TO PLAY</h2>
+                <div class="rules-container" style="text-align:left; max-width:400px; color:#ddd; font-family:Outfit, sans-serif; font-size:14px; background:rgba(0,0,0,0.8); padding:20px; border:1px solid #0df; border-radius:10px;">
+                    <p><b>Movement:</b></p>
+                    <ul>
+                        <li><b>Desktop:</b> Left / Right Arrow Keys</li>
+                        <li><b>Mobile:</b> On-Screen D-Pad</li>
+                    </ul>
+                    <p><b>Combat System:</b></p>
+                    <ul>
+                        <li>Press <b>Down Arrow</b> (or STRIKE) to attack!</li>
+                        <li>Single press: Basic Kick.</li>
+                        <li>Rapid Presses: Chain Jab, Punch, and Roundhouse combos!</li>
+                    </ul>
+                    <p><b>Bosses:</b></p>
+                    <p>Every 10 enemies defeated summons a massive Boss!</p>
+                </div>
+                <button class="btn primary-btn close-btn" style="margin-top:20px;">Close</button>
+            </div>
         </div>
-        
-        <!-- Mobile Native Controls -->
-        <div id="mobile-controls" class="hidden">
+
+        <!-- Mobile Controls (Fixed Bottom Bar) -->
+        <div id="mobile-controls" class="bottom-controls hidden">
             <div class="dpad-left">
                 <button id="btn-left" class="m-btn">◀</button>
                 <button id="btn-right" class="m-btn">▶</button>
@@ -101,27 +124,6 @@
             <div class="dpad-right">
                 <button id="btn-attack" class="m-btn attack-btn">STRIKE</button>
             </div>
-        </div>
-
-        <!-- How To Play Modal -->
-        <div id="howToPlayModal" class="menu-overlay hidden">
-            <h2 style="font-family: 'Press Start 2P', Courier; color: #0df;">HOW TO PLAY</h2>
-            <div class="rules-container" style="text-align:left; max-width:400px; color:#ddd; font-family:Outfit, sans-serif; font-size:14px; background:rgba(0,0,0,0.8); padding:20px; border:1px solid #0df; border-radius:10px;">
-                <p><b>Movement:</b></p>
-                <ul>
-                    <li><b>Desktop:</b> Left / Right Arrow Keys</li>
-                    <li><b>Mobile:</b> On-Screen D-Pad</li>
-                </ul>
-                <p><b>Combat System:</b></p>
-                <ul>
-                    <li>Press <b>Down Arrow</b> (or STRIKE) to attack!</li>
-                    <li>Single press: Basic Kick.</li>
-                    <li>Rapid Presses: Chain Jab, Punch, and Roundhouse combos!</li>
-                </ul>
-                <p><b>Bosses:</b></p>
-                <p>Every 10 enemies defeated summons a massive Boss!</p>
-            </div>
-            <button class="btn primary-btn close-btn" style="margin-top:20px;">Close</button>
         </div>
     </div>
     

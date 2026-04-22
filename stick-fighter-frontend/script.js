@@ -110,20 +110,29 @@ document.getElementById('btn-attack').addEventListener('touchstart', (e) => { e.
 document.getElementById('btn-attack').addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; }, {passive:false});
 
 function resize() {
-    canvas.width = window.innerWidth;
-    const headerH = document.querySelector('.header')?.offsetHeight || 0;
-    const playerH = document.getElementById('player-health-strip')?.offsetHeight || 0;
-    const bossH = (bossHealthStrip && !bossHealthStrip.classList.contains('hidden')) ? bossHealthStrip.offsetHeight : 0;
-    canvas.height = window.innerHeight - headerH - playerH - bossH;
+    const root = document.querySelector('.game-root');
+    const header = document.querySelector('.header');
+    const pStrip = document.getElementById('player-health-strip');
+    const bStrip = document.getElementById('boss-health-strip');
     
-    if (window.innerWidth <= 600) {
+    // Total available height is root clientHeight
+    const totalH = root.clientHeight;
+    const headerH = header?.offsetHeight || 0;
+    const pStripH = pStrip?.offsetHeight || 0;
+    const bStripH = (bStrip && !bStrip.classList.contains('hidden')) ? bStrip.offsetHeight : 0;
+    
+    canvas.width = root.clientWidth;
+    canvas.height = totalH - headerH - pStripH - bStripH;
+    
+    if (window.innerWidth <= 800) {
         document.getElementById('mobile-controls').classList.remove('hidden');
     } else {
         document.getElementById('mobile-controls').classList.add('hidden');
     }
 }
 window.addEventListener('resize', resize);
-resize();
+// Initial call
+setTimeout(resize, 100);
 
 function spawnEnemy() {
     const cap = Math.min(6, 1 + Math.floor(kills / 5));
@@ -554,7 +563,7 @@ function draw() {
     });
     ctx.globalAlpha = 1.0;
     
-    ctx.font = 'bold 20px "Press Start 2P"';
+    ctx.font = 'bold 16px "Press Start 2P"';
     ctx.textAlign = 'center';
     floatingTexts.forEach(t => {
         ctx.fillStyle = t.color;
