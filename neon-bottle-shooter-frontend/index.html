@@ -86,36 +86,39 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-        <div class="header-controls">
-            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
         </div>
-        <h1 class="game-title">Neon Bottle Shooter</h1>
+        <div class="header-center">
+            <h1 class="game-title">Neon Bottle Shooter</h1>
+        </div>
+        <div class="header-right">
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+        </div>
+    </header>
+
+    <div class="stats-bar">
+        <div class="stat-item">SCORE: <span id="ui-score">0</span></div>
+        <div id="ui-time" class="stat-item">60</div>
+        <div class="stat-item">ACC: <span id="ui-accuracy">100%</span></div>
     </div>
 
     <!-- Main Game Wrapper -->
     <div class="game-wrapper" id="gameWrapper">
         <canvas id="gameCanvas"></canvas>
         
-        <!-- UI Overlays -->
+        <!-- UI Overlays (only combo stays as overlay) -->
         <div id="hud" class="overlay hud-hidden">
-            <div class="top-bar">
-                <div class="score-container">SCORE: <span id="ui-score">0</span></div>
-                <div class="time-container" id="ui-time">60</div>
-                <div class="accuracy-container">ACC: <span id="ui-accuracy">100%</span></div>
-            </div>
             <div class="combo-container" id="ui-combo-container">
                 <span id="ui-combo-text">COMBO x1</span>
             </div>
-            <div class="bottom-bar">
-                <div class="ammo-container" id="ui-ammo">🔫 6 / 6</div>
-                <button id="btn-reload" class="action-btn reload-btn">RELOAD</button>
-                <button id="btn-pause" class="action-btn pause-btn">||</button>
-            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="ammo-container" id="ui-ammo">🔫 6 / 6</div>
+            <button id="btn-reload" class="action-btn reload-btn">RELOAD</button>
+            <button id="btn-pause" class="icon-btn icon-btn-square">||</button>
         </div>
 
         <!-- Menus -->

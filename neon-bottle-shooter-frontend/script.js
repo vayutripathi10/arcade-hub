@@ -782,5 +782,13 @@ document.getElementById('btn-quit').addEventListener('click', () => {
     gameState = 'menu';
 });
 
+// Navigation
+document.querySelectorAll('.btn-hub').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        console.log('going to hub');
+        // window.location.href = '../index.html';
+    });
+});
+
 // Start loop empty for background menu drawing
 animationFrameId = requestAnimationFrame(loop);
