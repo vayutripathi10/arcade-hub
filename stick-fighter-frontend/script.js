@@ -64,7 +64,7 @@ class Entity {
         this.state = 'idle'; // idle, run, attack1, attack2, attack3, hit, dead
         this.stateFrame = 0;
         
-        this.maxHp = isBoss ? 600 : 30; // Player = 100, Boss = 600, Enemy = 30
+        this.maxHp = isBoss ? 600 : (color === '#0ff' ? 100 : 30); 
         this.hp = this.maxHp;
         this.isBoss = isBoss;
         
