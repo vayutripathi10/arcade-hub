@@ -10,7 +10,7 @@ const comboSpan = uiCombo?.querySelector('span');
 // HP Elements
 const playerHealthBar = document.getElementById('player-health-bar');
 const playerHpVal = document.getElementById('player-hp-val');
-const bossHealthContainer = document.getElementById('boss-health-bar-container');
+const bossHealthStrip = document.getElementById('boss-health-strip');
 const bossHealthBar = document.getElementById('boss-health-bar');
 const bossHpVal = document.getElementById('boss-hp-val');
 
@@ -112,8 +112,9 @@ document.getElementById('btn-attack').addEventListener('touchend', (e) => { e.pr
 function resize() {
     canvas.width = window.innerWidth;
     const headerH = document.querySelector('.header')?.offsetHeight || 0;
-    const combatH = document.querySelector('.combat-row')?.offsetHeight || 0;
-    canvas.height = window.innerHeight - headerH - combatH;
+    const playerH = document.getElementById('player-health-strip')?.offsetHeight || 0;
+    const bossH = (bossHealthStrip && !bossHealthStrip.classList.contains('hidden')) ? bossHealthStrip.offsetHeight : 0;
+    canvas.height = window.innerHeight - headerH - playerH - bossH;
     
     if (window.innerWidth <= 600) {
         document.getElementById('mobile-controls').classList.remove('hidden');
@@ -135,6 +136,13 @@ function spawnEnemy() {
         enemies.push(new Entity(x, '#f00', true));
         spawnFloatingText(canvas.width/2, 200, "WARNING: BOSS INCOMING", "#f00");
         playSound('heavy');
+        
+        // Show Boss Strip
+        if (bossHealthStrip) {
+            bossHealthStrip.classList.remove('hidden');
+            if (bossHealthBar) bossHealthBar.style.width = '100%';
+            resize();
+        }
     } else {
         enemies.push(new Entity(x, '#f0f', false));
     }
@@ -153,7 +161,8 @@ function initGame() {
     shakeTime = 0;
     
     updateHUD();
-    bossHealthContainer?.classList.add('hidden');
+    if (bossHealthStrip) bossHealthStrip.classList.add('hidden');
+    resize();
     
     gameState = 'playing';
     mainMenu.classList.add('hidden');
@@ -433,12 +442,14 @@ function update(dt) {
     
     let activeBoss = enemies.find(e => e.isBoss);
     if (activeBoss) {
-        bossHealthContainer?.classList.remove('hidden');
         const bossPercent = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
         if (bossHealthBar) bossHealthBar.style.width = bossPercent + "%";
         if (bossHpVal) bossHpVal.textContent = `${Math.ceil(activeBoss.hp)}/${activeBoss.maxHp}`;
     } else {
-        bossHealthContainer?.classList.add('hidden');
+        if (bossHealthStrip && !bossHealthStrip.classList.contains('hidden')) {
+            bossHealthStrip.classList.add('hidden');
+            resize();
+        }
     }
 
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -449,6 +460,15 @@ function update(dt) {
             score += e.isBoss ? 5000 : 500;
             if (e.isBoss && window.achievements) window.achievements.unlock('stickfighter', 'boss_kill', 'Giant Slayer');
             createHitSparks(e.x, e.y-40, e.color);
+            
+            if (e.isBoss && bossHealthStrip) {
+                if (bossHealthBar) bossHealthBar.style.width = '0%';
+                setTimeout(() => {
+                    bossHealthStrip.classList.add('hidden');
+                    resize();
+                }, 500);
+            }
+            
             enemies.splice(i, 1);
             updateHUD();
             continue;

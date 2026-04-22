@@ -37,33 +37,29 @@
         </div>
         <div class="header-right">
             <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="btn-pause-hud" class="icon-btn" title="Pause Game">||</button>
+            <button id="btn-pause-hud" class="icon-btn" title="Pause Game">⏸</button>
         </div>
     </header>
 
-    <div class="combat-row">
-        <div class="hp-card player">
-            <div class="hp-header">
-                <span class="hp-label">PLAYER</span>
-                <span id="player-hp-val" class="hp-value">100/100</span>
-            </div>
-            <div class="hp-track">
-                <div id="player-health-bar" class="hp-fill"></div>
-            </div>
+    <!-- Health Strips -->
+    <div class="health-strip" id="player-health-strip">
+        <span class="strip-label">PLAYER</span>
+        <div class="strip-bar-container">
+            <div id="player-health-bar" class="strip-bar"></div>
         </div>
-        
-        <div id="boss-health-bar-container" class="hp-card boss hidden">
-            <div class="hp-header">
-                <span class="hp-label">BOSS</span>
-                <span id="boss-hp-val" class="hp-value">600/600</span>
-            </div>
-            <div class="hp-track">
-                <div id="boss-health-bar" class="hp-fill"></div>
-            </div>
-        </div>
-
-        <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
+        <span id="player-hp-val" class="strip-val">100/100</span>
     </div>
+
+    <div class="health-strip hidden" id="boss-health-strip">
+        <span class="strip-label boss-text">💀 BOSS</span>
+        <div class="strip-bar-container">
+            <div id="boss-health-bar" class="strip-bar boss-fill"></div>
+        </div>
+        <span id="boss-hp-val" class="strip-val">600/600</span>
+    </div>
+
+    <!-- Combo Overlay (Floating on Canvas) -->
+    <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
 
     <div id="gameWrapper">
         <canvas id="gameCanvas"></canvas>
