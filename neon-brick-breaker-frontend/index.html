@@ -45,15 +45,36 @@
             <button id="btn-quit" class="btn">QUIT</button>
         </div>
 
-        <div id="gameOverMenu" class="overlay hidden">
-            <h1 id="end-title">GAME OVER</h1>
-            <div class="stat-pill" style="margin-bottom: 2rem;">
-                <span class="stat-label">FINAL SCORE</span><br>
-                <span id="end-score" class="stat-value" style="font-size: 1.5rem;">0</span>
+        <div id="gameOverMenu" class="go-overlay hidden">
+            <div class="go-card">
+                <h1 class="go-title">GAME OVER</h1>
+                <p class="go-score-text">Final Score: <span id="go-score">0</span></p>
+                <p class="go-best-text">Best: <span id="go-best">0</span></p>
+                
+                <div class="share-row">
+                    <button onclick="shareGame('twitter')" class="share-btn twitter">SHARE ON X</button>
+                    <button onclick="shareGame('whatsapp')" class="share-btn whatsapp">WHATSAPP</button>
+                </div>
+                
+                <button id="btn-restart-go" class="arcade-btn retry">PLAY AGAIN</button>
+                <button id="btn-howtoplay-go" class="arcade-btn-outline small">📖 How to Play</button>
             </div>
-            <button id="btn-restart" class="btn">PLAY AGAIN</button>
-            <button id="btn-home" class="btn">MAIN MENU</button>
         </div>
+
+        <!-- Stage Transition Overlay -->
+        <div id="stageTransition" class="overlay transition-overlay hidden">
+            <div class="transition-content">
+                <h2 id="trans-level-text">STAGE 1 COMPLETE!</h2>
+                <div id="trans-stars" class="stars-row">⭐⭐⭐</div>
+                <div class="mechanic-preview">
+                    <span id="trans-mechanic-label">NEW MECHANIC:</span>
+                    <p id="trans-mechanic-desc">MOVING BRICKS INCOMING!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combo Toast -->
+        <div id="comboToast" class="combo-toast hidden">COMBO x5!</div>
 
         <!-- How to Play Modal -->
         <div id="howToPlayModal" class="overlay hidden">

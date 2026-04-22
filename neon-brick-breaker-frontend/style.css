@@ -306,3 +306,195 @@ p {
     }
     .home-btn::before { content: '←'; }
 }
+/* --- GAME OVER OVERLAY --- */
+.go-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.go-card {
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    border-radius: 20px;
+    padding: 32px 24px;
+    min-width: 280px;
+    max-width: 90%;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0, 243, 255, 0.15);
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.go-title {
+    font-family: var(--font-arcade);
+    font-size: 28px;
+    color: #fff;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+}
+
+.go-score-text {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 4px;
+}
+
+.go-best-text {
+    font-size: 13px;
+    color: var(--primary);
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+
+.share-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.share-btn {
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    color: #fff;
+    font-family: var(--font-ui);
+    text-transform: uppercase;
+}
+
+.share-btn.twitter { background: #1DA1F2; }
+.share-btn.whatsapp { background: #25D366; }
+.share-btn:active { transform: scale(0.95); }
+
+.arcade-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-family: var(--font-ui);
+    transition: all 0.2s;
+}
+
+.arcade-btn.retry {
+    background: var(--primary);
+    color: #000;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+}
+
+.arcade-btn:active { transform: scale(0.98); }
+
+.arcade-btn-outline {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.arcade-btn-outline:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* --- TRANSITION OVERLAY --- */
+.transition-overlay {
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10001;
+}
+
+.transition-content {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.transition-content h2 {
+    font-family: var(--font-arcade);
+    color: var(--success);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stars-row {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    letter-spacing: 10px;
+}
+
+.mechanic-preview {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px 25px;
+    border-radius: 15px;
+    border-left: 4px solid var(--primary);
+}
+
+.mechanic-preview span {
+    font-size: 11px;
+    color: var(--primary);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.mechanic-preview p {
+    margin-bottom: 0;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* --- COMBO TOAST --- */
+.combo-toast {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--secondary);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-family: var(--font-arcade);
+    font-size: 0.8rem;
+    box-shadow: 0 0 20px var(--secondary);
+    z-index: 1000;
+    pointer-events: none;
+    animation: toastPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes toastPop {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    50% { transform: translateX(-50%) scale(1.2); }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+@media (max-width: 600px) {
+    .go-card { padding: 24px 16px; }
+    .go-title { font-size: 24px; }
+}
