@@ -96,10 +96,26 @@ let grassWidth = 50;
 function resize() {
     const wrapper = document.getElementById('gameWrapper');
     const rect = wrapper.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
     
-    roadWidth = canvas.width * 0.85; // Wider road for mobile
+    // Internal logical resolution (Fixed)
+    canvas.width = 400;
+    canvas.height = 700;
+    
+    // Display scaling (Maintain Aspect Ratio)
+    const containerRatio = rect.width / rect.height;
+    const gameRatio = canvas.width / canvas.height;
+    
+    if (containerRatio > gameRatio) {
+        // Container is wider than game
+        canvas.style.height = rect.height + "px";
+        canvas.style.width = (rect.height * gameRatio) + "px";
+    } else {
+        // Container is taller than game
+        canvas.style.width = rect.width + "px";
+        canvas.style.height = (rect.width / gameRatio) + "px";
+    }
+    
+    roadWidth = canvas.width * 0.85; 
     grassWidth = (canvas.width - roadWidth) / 2;
     
     if (gameState === 'menu' || gameState === 'loading') {
@@ -141,6 +157,9 @@ function initUI() {
             window.audioFX.init();
             window.audioFX.toggleMute();
             btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+            console.log('sound toggled, muted:', window.audioFX.isMuted);
+        } else {
+            console.warn('audioFX not found');
         }
     });
 

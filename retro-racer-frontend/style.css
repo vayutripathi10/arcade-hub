@@ -123,9 +123,6 @@ body {
 
 #gameCanvas {
     display: block;
-    width: 100% !important;
-    max-width: 480px;
-    height: 100% !important;
     margin: 0 auto;
     background: #444;
 }
