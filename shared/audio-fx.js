@@ -29,43 +29,39 @@ class AudioFX {
 
     init() {
         if (!this.ctx) {
-            console.log('AudioFX: Initializing AudioContext...');
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) {
-                this.ctx = new AudioCtx();
-                
-                // Create master chain: Compressor -> Master Gain -> Destination
-                this.compressor = this.ctx.createDynamicsCompressor();
-                this.masterGain = this.ctx.createGain();
-                
-                // Typical "loudness" compression settings
-                this.compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
-                this.compressor.knee.setValueAtTime(30, this.ctx.currentTime);
-                this.compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
-                this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
-                this.compressor.release.setValueAtTime(0.25, this.ctx.currentTime);
-                
-                if (this.isMuted) {
-                    this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
-                } else {
-                    this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime); // Boost overall volume
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) {
+                    this.ctx = new AudioCtx();
+                    this.masterGain = this.ctx.createGain();
+                    this.compressor = this.ctx.createDynamicsCompressor();
+                    
+                    // Setup initial chain
+                    this.compressor.connect(this.masterGain);
+                    this.masterGain.connect(this.ctx.destination);
+                    
+                    // Initial volume
+                    if (this.isMuted) {
+                        this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                    } else {
+                        this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime);
+                    }
+                    console.log('AudioFX: Initialized.');
                 }
-                
-                this.compressor.connect(this.masterGain);
-                this.masterGain.connect(this.ctx.destination);
-                
-                console.log('AudioFX: Context and master chain created. State:', this.ctx.state);
-            } else {
-                console.warn('AudioFX: Web Audio API not supported');
-                this.enabled = false;
-                return;
+            } catch (e) {
+                console.error('AudioFX: Failed to create context', e);
             }
         }
-        
+
         // Always try to resume if suspended (standard browser requirement)
         if (this.ctx && (this.ctx.state === 'suspended' || this.ctx.state === 'interrupted')) {
             this.ctx.resume().then(() => {
                 console.log('AudioFX: Context resumed. State:', this.ctx.state);
+                // Re-sync gain in case it was lost
+                if (this.masterGain) {
+                    const target = this.isMuted ? 0 : 1.5;
+                    this.masterGain.gain.setValueAtTime(target, this.ctx.currentTime);
+                }
             }).catch(e => console.warn('AudioFX: Resume failed', e));
         }
     }

@@ -124,7 +124,7 @@ body {
     border-radius: 50px;
     pointer-events: none;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    z-index: 1500 !important;
+    z-index: 50 !important;
 }
 
 .title {
@@ -325,7 +325,7 @@ body {
     }
 
     .score-container {
-        gap: 0.8rem;
+        gap: 0.5rem;
     }
 
     .score-box {
@@ -489,10 +489,10 @@ body {
         font-size: 0.75rem;
     }
     .score-container {
-        gap: 8px;
-        padding: 4px 12px;
-        top: calc(env(safe-area-inset-top) + 65px);
-        transform: translateX(-50%) scale(0.9);
+        gap: 6px;
+        padding: 4px 10px;
+        top: calc(env(safe-area-inset-top) + 10px);
+        transform: translateX(-50%) scale(0.85);
     }
 }
 
