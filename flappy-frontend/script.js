@@ -13,12 +13,19 @@ const scoreEl = document.getElementById('score');
 const highScoreEl = document.getElementById('highScore');
 const tweetBtn = document.getElementById('tweetBtn');
 const waBtn = document.getElementById('waBtn');
-const pauseBtn = document.getElementById('pauseBtn');
+const pauseBtn = document.getElementById('btn-pause');
 const pauseIcon = pauseBtn?.querySelector('.pause-icon');
 const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
+
+// Navigation
+document.querySelectorAll('.btn-hub').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        console.log('arcade hub clicked');
+    });
+});
 
 // ─── Canvas Sizing ──────────────────────────────────────────────────────────
 const CANVAS_W = 360;

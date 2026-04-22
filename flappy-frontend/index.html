@@ -166,32 +166,30 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-        <div class="header-controls">
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
+        </div>
+        <div class="header-center">
+            <div class="score-pills">
+                <div class="score-pill">
+                    <span class="pill-label">Score</span>
+                    <span id="score" class="pill-value">0</span>
+                </div>
+                <div class="score-pill">
+                    <span class="pill-label">Best</span>
+                    <span id="highScore" class="pill-value">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
             <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+            <button id="btn-pause" class="icon-btn" title="Pause Game">||</button>
         </div>
-        <h1 class="title">NEON FLAPPY</h1>
-        <div class="score-container">
-            <div class="score-box">
-                <span class="score-label">Score</span>
-                <span id="score">0</span>
-            </div>
-            <div class="score-box">
-                <span class="score-label">Best</span>
-                <span id="highScore">0</span>
-            </div>
-        </div>
-    </div>
+    </header>
 
     <div class="game-wrapper">
         <canvas id="gameCanvas"></canvas>
-        <button id="pauseBtn" class="pause-btn hidden">
-            <span class="pause-icon">||</span>
-        </button>
         <div id="overlay" class="overlay">
             <div class="overlay-content">
                 <h2 id="overlayTitle">Neon Flappy</h2>
