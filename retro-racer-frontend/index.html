@@ -2,86 +2,152 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retro Racer - Arcade Hub</title>
-    <!-- Use a retro pixel font -->
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Play Retro Racer at Arcade Hub! Dodge traffic, collect fuel, and survive in this high-speed neon racing game.">
+    <meta name="keywords" content="retro racer, racing game, car game, arcade hub, neon racer">
+    <link rel="canonical" href="https://arcadehubplay.com/retro-racer-frontend/index.html">
+    <meta property="og:title" content="Retro Racer | Arcade Hub">
+    <meta property="og:description" content="Play Retro Racer at Arcade Hub! Dodge traffic, collect fuel, and survive in this high-speed neon racing game.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/retro-racer-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Retro Racer | Arcade Hub">
+    <meta name="twitter:description" content="Play Retro Racer at Arcade Hub! Dodge traffic, collect fuel, and survive in this high-speed neon racing game.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    <title>Retro Racer | Arcade Hub</title>
+
+    <!-- Ultimate Network Ad Blocker Shield -->
+    <script>
+    (function() {
+        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container, .arcade-btn';
+        const originalAdd = EventTarget.prototype.addEventListener;
+        EventTarget.prototype.addEventListener = function(type, listener, options) {
+            if ((this === window || this === document || this === document.body) && 
+                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
+                typeof listener === 'function') 
+            {
+                const wrappedListener = function(e) {
+                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
+                        return;
+                    }
+                    return listener.apply(this, arguments);
+                };
+                return originalAdd.call(this, type, wrappedListener, options);
+            }
+            return originalAdd.call(this, type, listener, options);
+        };
+        const observer = new MutationObserver(mutations => {
+            mutations.forEach(mut => {
+                mut.addedNodes.forEach(node => {
+                    if (node.tagName === 'DIV' && node.style) {
+                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
+                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
+                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
+                            node.style.zIndex = '1';
+                            node.style.pointerEvents = 'none';
+                        }
+                    }
+                });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    })();
+    </script>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Background wrapper for mobile filling -->
-    <div id="gameWrapper">
-        <canvas id="gameCanvas"></canvas>
-        
-        <!-- UI Overlay -->
-        <div id="hud" class="hud-hidden">
-            <div class="hud-upper-cluster">
-                <div class="progress-wrapper">
-                    <div class="progress-container">
-                        <div id="ui-progress-fill" class="progress-fill"></div>
-                    </div>
+    <div class="game-root">
+        <header class="header">
+            <div class="nav-left">
+                <button class="home-btn" id="hub-btn">← Arcade Hub</button>
+            </div>
+            <div class="header-center">
+                <div class="hud-pill">
+                    <span class="pill-label">Score</span>
+                    <span id="ui-score" class="pill-value">0</span>
                 </div>
-                <div class="hud-top">
-                    <div class="score-box">SCORE: <span id="ui-score">0</span></div>
-                    <div class="lives-box">LIVES: <span id="ui-lives">3</span></div>
+                <div class="hud-pill">
+                    <span class="pill-label">Time</span>
+                    <span id="ui-time" class="pill-value">30</span>
                 </div>
             </div>
-            <div class="hud-bottom">
-                <div class="timer-box">TIME: <span id="ui-time">30</span></div>
-                <div class="speed-box"><span id="ui-speed">0</span> MPH</div>
+            <div class="header-right">
+                <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+                <button id="btn-pause" class="icon-btn hidden" title="Pause Game">⏸</button>
             </div>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stats-left">LIVES: <span id="ui-lives">3</span></div>
+            <div class="stats-center">
+                <div class="progress-container">
+                    <div id="ui-progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+            <div class="stats-right"><span id="ui-speed">0</span> MPH</div>
         </div>
 
-        <!-- Menus -->
-        <div id="mainMenu" class="menu-overlay">
-            <h1>RETRO RACER</h1>
-            <p>Dodge traffic. Collect Fuel. Survive!</p>
-            <div class="controls-info">
-                <span>💻 Arrow Keys</span> | <span>📱 Swipe Left/Right</span>
-            </div>
-            <button id="btn-start" class="arcade-btn">START RACE</button>
-            <button id="btn-howtoplay" class="arcade-btn outline">HOW TO PLAY</button>
-            <div class="header">
-                <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-            </div>
+        <div class="game-wrapper" id="gameWrapper">
+            <canvas id="gameCanvas"></canvas>
             
-            <!-- Adsterra Mobile Banner (320x50) in Main Menu -->
-            <div class="ad-container mobile-banner" style="margin-top: 30px; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
+            <div id="mainMenu" class="menu-overlay">
+                <h1>RETRO RACER</h1>
+                <p>Dodge traffic. Collect Fuel. Survive!</p>
+                <div class="controls-info">
+                    <span>💻 Arrow Keys</span> | <span>📱 Swipe Left/Right</span>
+                </div>
+                <div class="menu-actions">
+                    <button id="btn-start" class="arcade-btn">START RACE</button>
+                    <button id="btn-howtoplay" class="arcade-btn outline">HOW TO PLAY</button>
+                </div>
+            </div>
+
+            <div id="pauseMenu" class="menu-overlay hidden">
+                <h1>PAUSED</h1>
+                <div class="menu-actions">
+                    <button id="btn-resume" class="arcade-btn">RESUME</button>
+                    <button id="btn-quit" class="arcade-btn outline">QUIT</button>
+                </div>
+            </div>
+
+            <div id="gameOverMenu" class="menu-overlay hidden">
+                <h1 id="go-title">OUT OF TIME!</h1>
+                <div class="go-stats">
+                    <p>FINAL SCORE: <span id="go-score">0</span></p>
+                    <p>HIGH SCORE: <span id="go-best">0</span></p>
+                </div>
+                <div class="menu-actions">
+                    <button id="btn-restart" class="arcade-btn">RACE AGAIN</button>
+                    <button id="btn-menu" class="arcade-btn outline">MAIN MENU</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ad-container" id="ad-box">
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:320px;height:50px"
+                 data-ad-client="ca-pub-68ced95a589a3c37a8f41a8fff267340">
                 <script>
-                atOptions = {
-                    'key' : '68ced95a589a3c37a8f41a8fff267340',
-                    'format' : 'iframe',
-                    'height' : 50,
-                    'width' : 320,
-                    'params' : {}
-                };
+                (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
-                <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
-            </div>
+            </ins>
         </div>
-
-        <div id="pauseMenu" class="menu-overlay hidden">
-            <h1>PAUSED</h1>
-            <button id="btn-resume" class="arcade-btn">RESUME</button>
-            <button id="btn-quit" class="arcade-btn outline">QUIT</button>
-        </div>
-
-        <div id="gameOverMenu" class="menu-overlay hidden">
-            <h1 id="go-title">OUT OF TIME!</h1>
-            <div class="stats-box">
-                <p>FINAL SCORE: <span id="go-score">0</span></p>
-                <p>HIGH SCORE: <span id="go-best">0</span></p>
-            </div>
-            <button id="btn-restart" class="arcade-btn">RACE AGAIN</button>
-            <button id="btn-menu" class="arcade-btn outline">MAIN MENU</button>
-        </div>
-
-        <!-- Controls UI -->
-        <button id="btn-pause" class="icon-btn">⏸</button>
-        <button id="btn-mute" class="icon-btn">🔊</button>
     </div>
 
-    <!-- Modals -->
+    <!-- How to Play Overlay -->
     <div id="howToPlayModal" class="modal hidden">
         <div class="modal-content">
             <h2>HOW TO PLAY</h2>
@@ -91,179 +157,19 @@
                 <li>Hit the <b>Yellow Petrol Trucks</b> to replenish your Time!</li>
             </ul>
             <button id="btn-close-htp" class="arcade-btn">GOT IT</button>
-            
-            <!-- Adsterra Mobile Banner (320x50) in Instructions -->
-            <div class="ad-container mobile-banner" style="margin-top: 20px; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
-                <script>
-                atOptions = {
-                    'key' : '68ced95a589a3c37a8f41a8fff267340',
-                    'format' : 'iframe',
-                    'height' : 50,
-                    'width' : 320,
-                    'params' : {}
-                };
-                </script>
-                <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
-            </div>
         </div>
     </div>
 
     <script src="../shared/achievements.js"></script>
+    <script src="script.js?v=ArcadeHub_Racing_Fix"></script>
     <script>
-/**
- * AudioFX - A programmatic synthesizer for Arcade Hub
- */
-class AudioFX {
-    constructor() {
-        this.ctx = null; this.masterGain = null; this.compressor = null;
-        this.enabled = true; this.isMuted = false;
-        try { this.isMuted = localStorage.getItem('arcadeHubMuted') === 'true'; } catch (e) {}
-        this.engineOsc = null; this.engineGain = null;
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.injectMuteButton());
-        } else { this.injectMuteButton(); }
-    }
-
-    init() {
-        if (!this.ctx) {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) {
-                this.ctx = new AudioCtx();
-                this.compressor = this.ctx.createDynamicsCompressor();
-                this.masterGain = this.ctx.createGain();
-                this.compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
-                this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 1.5, this.ctx.currentTime);
-                this.compressor.connect(this.masterGain);
-                this.masterGain.connect(this.ctx.destination);
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
             }
-        }
-        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
-    }
-
-    injectMuteButton() {
-        if (document.getElementById('global-mute-btn') || document.getElementById('btn-mute')) return;
-        const btn = document.createElement('button');
-        btn.id = 'global-mute-btn'; btn.innerHTML = this.isMuted ? '🔇' : '🔊';
-        btn.style.cssText = `position:fixed;top:75px;right:20px;width:44px;height:44px;border-radius:50%;background:rgba(12,14,20,0.85);border:2px solid rgba(255,255,255,0.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1000;font-size:1.2rem;`;
-        btn.onclick = (e) => { e.preventDefault(); this.toggleMute(); this.init(); };
-        if (document.body) document.body.appendChild(btn);
-    }
-
-    toggleMute() {
-        this.isMuted = !this.isMuted;
-        try { localStorage.setItem('arcadeHubMuted', this.isMuted); } catch (e) {}
-        const btn = document.getElementById('global-mute-btn');
-        if (btn) btn.innerHTML = this.isMuted ? '🔇' : '🔊';
-        const retroBtn = document.getElementById('btn-mute');
-        if (retroBtn) retroBtn.innerHTML = this.isMuted ? '🔇' : '🔊';
-        if (this.masterGain && this.ctx) {
-            this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 1.5, this.ctx.currentTime, 0.05);
-        }
-    }
-
-    createOscillator(freq, type = 'square') {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(this.compressor || this.ctx.destination);
-        return { osc, gain };
-    }
-
-    playJump() {
-        if (!this.enabled) return; this.init(); if (!this.ctx) return;
-        const { osc, gain } = this.createOscillator(150, 'triangle');
-        const now = this.ctx.currentTime;
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
-        osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
-        osc.start(now); osc.stop(now + 0.25);
-    }
-
-    playEat() {
-        if (!this.enabled) return; this.init(); if (!this.ctx) return;
-        const { osc, gain } = this.createOscillator(523.25, 'square');
-        const now = this.ctx.currentTime;
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-        osc.start(now); osc.stop(now + 0.2);
-    }
-
-    playGameOver() {
-        if (!this.enabled) return; this.init(); if (!this.ctx) return;
-        const { osc, gain } = this.createOscillator(300, 'sawtooth');
-        const now = this.ctx.currentTime;
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.6);
-        osc.frequency.linearRampToValueAtTime(50, now + 0.6);
-        osc.start(now); osc.stop(now + 0.6);
-    }
-
-    playVictory() {
-        if (!this.enabled) return; this.init(); if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        const notes = [261.63, 329.63, 392.00, 523.25];
-        notes.forEach((freq, i) => {
-            const { osc, gain } = this.createOscillator(freq, 'square');
-            gain.gain.setValueAtTime(0.3, now + i * 0.15);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
-            osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 0.3);
-        });
-    }
-
-    playExplosion() {
-        if (!this.enabled) return; this.init(); if (!this.ctx) return;
-        const bufferSize = this.ctx.sampleRate * 1;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.5);
-        const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
-        noise.connect(filter); filter.connect(gain); gain.connect(this.masterGain);
-        noise.start(); noise.stop(this.ctx.currentTime + 0.5);
-    }
-
-    startEngine() {
-        if (!this.enabled) return; this.init(); if (!this.ctx || this.engineOsc) return;
-        const { osc, gain } = this.createOscillator(80, 'triangle');
-        this.engineOsc = osc; this.engineGain = gain;
-        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-        this.engineOsc.start();
-    }
-
-    updateEngine(speed) {
-        if (!this.engineOsc || !this.ctx) return;
-        const pitch = 80 + (speed * 0.8);
-        this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.05);
-    }
-
-    stopEngine() {
-        if (this.engineOsc) {
-            this.engineGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.1);
-            const osc = this.engineOsc;
-            setTimeout(() => { try { osc.stop(); } catch(e){} }, 200);
-            this.engineOsc = null;
-        }
-    }
-}
-window.audioFX = new AudioFX();
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
     </script>
-    <script src="script.js?v=ArcadeHub_GlobalUI"></script>
-<script>
-    const wakeUpAudio = () => {
-        if (window.audioFX && typeof window.audioFX.init === 'function') {
-            window.audioFX.init();
-        }
-    };
-    window.addEventListener('click', wakeUpAudio, { once: true });
-    window.addEventListener('touchstart', wakeUpAudio, { once: true });
-</script>
 </body>
 </html>

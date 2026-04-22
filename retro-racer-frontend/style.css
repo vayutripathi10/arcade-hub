@@ -1,166 +1,140 @@
 :root {
-    --bg-retro: #222;
-    --text-retro: #fff;
-    --accent: #ff0055;
+    --bg-color: #111;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.15);
+    --accent-color: #ff0055;
     --font-arcade: 'Press Start 2P', cursive;
-    --header-height: 80px;
+    --hud-h-desktop: 60px;
+    --hud-h-mobile: 52px;
+    --stats-h: 32px;
 }
 
 * {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none;
-}
-
-.header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    z-index: 1001;
-    pointer-events: none;
-    background: transparent;
-}
-
-.header-controls {
-    position: absolute;
-    right: 20px;
-    top: calc(env(safe-area-inset-top) + 20px);
-    display: flex;
-    gap: 10px;
-    pointer-events: auto;
-    z-index: 2000 !important;
-}
-
-.home-btn {
-    position: absolute;
-    left: 15px;
-    top: calc(env(safe-area-inset-top) + 15px);
-    text-decoration: none;
-    color: #aaa;
-    font-size: 10px;
-    padding: 8px 12px;
-    border-radius: 4px;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid #555;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-}
-
-.home-btn:hover {
-    color: #fff;
-    border-color: #888;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    background-color: #111;
-    color: var(--text-retro);
     font-family: var(--font-arcade);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    height: 100dvh;
+    background-color: #000;
+    color: #fff;
     overflow: hidden;
 }
 
-#gameWrapper {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    max-width: 600px;
-    background-color: var(--bg-retro);
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
-}
-
-#gameCanvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-/* UI Overlay */
-#hud {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+/* ==================== GAME ROOT ==================== */
+.game-root {
+    position: fixed;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 20px;
-    padding-bottom: calc(20px + env(safe-area-inset-bottom));
-    font-size: 14px;
-    text-shadow: 2px 2px 0 #000;
+    background: #111;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
-.hud-hidden {
-    opacity: 0;
-}
-
-.progress-wrapper {
+/* ==================== 1. HUD BAR (3-Column Grid) ==================== */
+.header {
+    height: var(--hud-h-desktop);
     width: 100%;
-    margin-bottom: 15px;
-    text-align: center;
+    background: rgba(0, 0, 0, 0.95);
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 1000;
+    flex-shrink: 0;
 }
+
+.nav-left { display: flex; align-items: center; min-width: 100px; }
+.home-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #444;
+    color: #888;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-arcade);
+}
+.home-btn:hover { color: #fff; border-color: var(--accent-color); }
+
+.header-center { display: flex; justify-content: center; gap: 15px; }
+.hud-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+.pill-label { font-size: 8px; color: #888; margin-bottom: 4px; text-transform: uppercase; }
+.pill-value { font-size: 14px; color: #ffd700; text-shadow: 2px 2px 0 #000; }
+
+.header-right { display: flex; gap: 8px; justify-content: flex-end; min-width: 100px; }
+.icon-btn {
+    width: 40px; height: 40px; border-radius: 4px; background: rgba(255, 255, 255, 0.05);
+    border: 2px solid #fff; color: #fff; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 1.1rem; transition: all 0.2s;
+}
+.icon-btn:hover { border-color: var(--accent-color); transform: scale(1.05); }
+.icon-btn.hidden { display: none !important; }
+
+/* ==================== 2. STATS BAR ==================== */
+.stats-bar {
+    height: var(--stats-h);
+    width: 100%;
+    background: rgba(20, 20, 20, 0.9);
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 10px;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+.stats-left { color: #ff3333; }
+.stats-right { text-align: right; color: #44aaff; }
 
 .progress-container {
     width: 100%;
-    height: 12px;
+    height: 10px;
     background: rgba(0, 0, 0, 0.6);
-    border: 2px solid #555;
-    border-radius: 6px;
-    position: relative;
+    border: 1px solid #444;
+    border-radius: 5px;
     overflow: hidden;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.8);
 }
-
 .progress-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, #ff0055, #ffd700, #00ffcc);
     transition: width 0.1s linear;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-.hud-top {
-    display: flex;
-    justify-content: space-between;
+/* ==================== 3. GAME AREA ==================== */
+.game-wrapper {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    background: #222;
+    overflow: hidden;
 }
 
-.hud-bottom {
-    display: flex;
-    justify-content: space-between;
+#gameCanvas {
+    display: block;
+    width: 100% !important;
+    max-width: 480px;
+    height: 100% !important;
+    margin: 0 auto;
+    background: #444;
 }
 
-.score-box, .timer-box { 
-    color: #ffd700;
-}
-
-.lives-box {
-    color: #ff3333;
-}
-
-.speed-box {
-    color: #44aaff;
-}
-
-/* Menus */
+/* ==================== 4. MENUS & OVERLAYS ==================== */
 .menu-overlay {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -169,131 +143,68 @@ body {
     padding: 20px;
     z-index: 10;
 }
+.menu-overlay.hidden { display: none !important; }
 
-.hidden {
-    display: none !important;
-}
+h1 { font-size: 24px; margin-bottom: 20px; color: var(--accent-color); }
+p { font-size: 12px; margin-bottom: 30px; line-height: 1.6; }
+.controls-info { font-size: 10px; color: #888; margin-bottom: 40px; }
 
-h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: var(--accent);
-    text-transform: uppercase;
-}
-
-p {
-    font-size: 12px;
-    line-height: 1.6;
-    margin-bottom: 30px;
-}
-
-.controls-info {
-    font-size: 10px;
-    color: #888;
-    margin-bottom: 40px;
-}
+.menu-actions { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 300px; }
 
 .arcade-btn {
-    background: var(--accent);
+    background: var(--accent-color);
     color: #fff;
     border: 4px solid #fff;
     padding: 15px 30px;
     font-family: var(--font-arcade);
     font-size: 14px;
     cursor: pointer;
-    margin: 10px 0;
-    width: 80%;
-    max-width: 300px;
     box-shadow: 4px 4px 0 #000;
+    width: 100%;
 }
+.arcade-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+.arcade-btn.outline { background: transparent; color: var(--accent-color); border-color: var(--accent-color); }
 
-.arcade-btn:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 #000;
-}
+.go-stats { background: #000; border: 2px solid #444; padding: 15px; margin-bottom: 20px; width: 100%; max-width: 300px; font-size: 12px; line-height: 1.8; }
 
-.arcade-btn.outline {
+/* ==================== 5. AD CONTAINER ==================== */
+.ad-container {
+    width: 100%;
+    max-width: 728px;
+    height: 90px;
+    margin: 0 auto;
+    overflow: hidden;
+    flex-shrink: 0;
     background: transparent;
-    color: var(--accent);
-    border-color: var(--accent);
-}
-
-.back-link {
-    color: #aaa;
-    text-decoration: none;
-    font-size: 10px;
-    margin-top: 30px;
-}
-
-/* Controls UI */
-.icon-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.5);
-    border: 2px solid #fff;
-    color: #fff;
-    font-size: 1.2rem;
-    display: flex;
+    display: none; /* Load via script */
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    z-index: 5;
-    bottom: 60px;
-    bottom: calc(60px + env(safe-area-inset-bottom));
-    font-family: Arial, sans-serif;
-    transition: all 0.3s ease;
-    position: absolute;
+    border-top: 1px solid #333;
 }
+.ad-container.ad-loaded { display: flex; }
 
-.icon-btn:hover {
-    border-color: var(--accent);
-    transform: scale(1.1);
+/* ==================== MOBILE ==================== */
+@media (max-width: 600px) {
+    .header { height: var(--hud-h-mobile); padding: 0 10px; }
+    .nav-left, .header-right { min-width: 80px; }
+    .home-btn { padding: 6px 10px; font-size: 0; }
+    .home-btn::after { content: '← Hub'; font-size: 0.8rem; }
+    .stats-bar { grid-template-columns: 70px 1fr 70px; padding: 0 10px; }
+    .ad-container { height: 50px; max-width: 320px; }
 }
-
-#btn-pause { right: 20px; }
-#btn-mute { right: 70px; }
 
 /* Modals */
 .modal {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 20;
+    z-index: 100;
     padding: 20px;
 }
-
-.modal-content {
-    background: #222;
-    border: 4px solid var(--accent);
-    padding: 20px;
-    text-align: left;
-    width: 100%;
-    max-width: 400px;
-    font-size: 12px;
-}
-
-.modal-content h2 {
-    color: var(--accent);
-    text-align: center;
-}
-
-.modal-content ul {
-    list-style-type: square;
-    padding-left: 20px;
-    line-height: 2;
-}
-
-.stats-box {
-    background: #000;
-    border: 2px solid #555;
-    padding: 10px;
-    margin-bottom: 20px;
-    width: 80%;
-    max-width: 300px;
-    font-size: 12px;
-}
+.modal.hidden { display: none !important; }
+.modal-content { background: #222; border: 4px solid var(--accent-color); padding: 25px; width: 100%; max-width: 400px; }
+.modal-content h2 { color: var(--accent-color); font-size: 18px; margin-bottom: 20px; text-align: center; }
+.modal-content ul { list-style: square; padding-left: 20px; line-height: 1.8; font-size: 11px; margin-bottom: 20px; }
