@@ -682,4 +682,13 @@ function togglePause(forcePause) {
     }
 }
 
+// Navigation
+document.querySelectorAll('.btn-hub').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        console.log('navigating to hub');
+        // If it's an <a> tag, the href will handle it, but we can force it just in case
+        // window.location.href = '../index.html'; 
+    });
+});
+
 buildMenu(); showScreen('menu'); resizeCanvas(); loop();

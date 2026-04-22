@@ -89,9 +89,15 @@
 
 <!-- ── Level Select Screen ───────────────────── -->
 <div id="screenMenu" class="screen active">
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-    </div>
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
+        </div>
+        <div class="header-center">
+            <div class="header-title">Level Select</div>
+        </div>
+        <div class="header-right"></div>
+    </header>
     <h1 class="game-title">NEON DRAW<br><span>BRIDGE</span></h1>
     <p class="subtitle">Draw bridges. Defy gravity. Reach the portal.</p>
     <div id="levelGrid" class="level-grid"></div>
@@ -100,31 +106,32 @@
 
 <!-- ── Game Screen ───────────────────────────── -->
 <div id="screenGame" class="screen">
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn btn-hub">← Arcade Hub</a>
+        </div>
+        
+        <div class="header-center">
+            <div class="level-ink-stack">
+                <div class="level-info">
+                    <span class="level-label">LEVEL</span>
+                    <span id="levelName">Level 1</span>
+                </div>
+                <div class="ink-info">
+                    <span class="ink-label">INK</span>
+                    <div class="ink-bar-bg"><div id="inkBar" class="ink-bar"></div></div>
+                </div>
+            </div>
+        </div>
+
         <div class="header-controls">
             <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game"><span class="pause-icon">||</span></button>
         </div>
-        <div class="score-container">
-            <div class="score-box">
-                <span class="score-label">Level</span>
-                <span id="levelName">Level 1</span>
-            </div>
-            <div class="score-box ink-box">
-                <span class="score-label">INK</span>
-                <div class="ink-bar-bg"><div id="inkBar" class="ink-bar"></div></div>
-            </div>
-        </div>
-    </div>
+    </header>
 
     <div class="canvas-wrapper">
         <canvas id="gameCanvas"></canvas>
-        <button id="pauseBtn" class="pause-btn hidden">
-            <span class="pause-icon">||</span>
-        </button>
     </div>
 
     <!-- Pause Menu -->
