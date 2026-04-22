@@ -106,16 +106,20 @@ class AudioFX {
     }
 
     toggleMute() {
+        this.init(); // Ensure initialized on user interaction
         this.isMuted = !this.isMuted;
         try {
             localStorage.setItem('arcadeHubMuted', this.isMuted);
         } catch (e) {}
         
-        const btn = document.getElementById('global-mute-btn');
-        if (btn) btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+        // Sync all possible mute button IDs across the platform
+        const icons = this.isMuted ? ['\u{1F507}', '🔇'] : ['\u{1F50A}', '🔊'];
+        const targetIds = ['global-mute-btn', 'btn-mute', 'mute-btn'];
         
-        const retroBtn = document.getElementById('btn-mute');
-        if (retroBtn) retroBtn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+        targetIds.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) btn.innerHTML = icons[0];
+        });
 
         // Update master volume if initialized
         if (this.masterGain && this.ctx) {

@@ -457,6 +457,7 @@ let screenShake = { x:0, y:0, timer:0 };
 let slowMo = { active:false, timer:0 };
 let lastHitType = ''; // 'headshot', 'body', 'miss'
 let animFrame = 0;
+let frameCounter = 0;
 let isPaused = false;
 let aiThinking = false;
 let aiTimer = 0;
@@ -1512,6 +1513,7 @@ function playGrowSound() {
 let lastTime = 0;
 function gameLoop(timestamp) {
     animFrame = requestAnimationFrame(gameLoop);
+    frameCounter++;
     if (gameState !== 'playing') return;
 
     const rawDt = timestamp - (lastTime || timestamp);
@@ -1564,7 +1566,7 @@ function gameLoop(timestamp) {
     if (stickState === 'growing' && isHolding) {
         stickLength = Math.min(stickLength + STICK_GROW_SPEED * (dt / 16), MAX_STICK_LENGTH);
         document.getElementById('powerFill').style.width = (stickLength / MAX_STICK_LENGTH * 100) + '%';
-        if (animFrame % 4 === 0) playGrowSound();
+        if (frameCounter % 4 === 0) playGrowSound();
     }
 
     // Stick falling animation
@@ -1909,8 +1911,8 @@ document.getElementById('btnShareWA').addEventListener('click', () => shareResul
 
 // Mute button
 document.getElementById('btn-mute')?.addEventListener('click', (e) => {
-    e.stopPropagation();
     if (window.audioFX) {
+        window.audioFX.init();
         window.audioFX.toggleMute();
         e.currentTarget.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
