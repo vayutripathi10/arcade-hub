@@ -41,20 +41,20 @@
         </div>
     </header>
 
-    <div class="stats-bar">
-        <div class="player-health-bar-wrapper">
-            <div id="player-health-bar-container">
+    <div class="combat-row">
+        <div class="hp-section player">
+            <span class="hp-label">PLAYER</span>
+            <div class="hp-container">
                 <div id="player-health-bar"></div>
             </div>
-            <span class="player-hp-label">HEALTH</span>
+        </div>
+        <div id="boss-health-bar-container" class="hp-section boss hidden">
+            <span class="hp-label">BOSS</span>
+            <div class="hp-container">
+                <div id="boss-health-bar"></div>
+            </div>
         </div>
         <div id="ui-combo" class="combo-pill hidden">COMBO x<span>0</span></div>
-    </div>
-
-    <!-- Boss Bar Overlay -->
-    <div id="boss-health-bar-container" class="boss-bar hidden">
-        <span class="boss-label">BOSS</span>
-        <div id="boss-health-bar"></div>
     </div>
 
     <div id="gameWrapper">

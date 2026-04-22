@@ -20,8 +20,7 @@ const btnPauseHUD = document.getElementById('btn-pause-hud');
 // Navigation
 document.querySelectorAll('.btn-hub').forEach(btn => {
     btn.addEventListener('click', (e) => {
-        console.log('hub clicked');
-        // window.location.href = '../index.html';
+        console.log('arcade hub clicked');
     });
 });
 
@@ -108,7 +107,9 @@ document.getElementById('btn-attack').addEventListener('touchend', (e) => { e.pr
 
 function resize() {
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight - (document.querySelector('.header')?.offsetHeight || 0) - (document.querySelector('.stats-bar')?.offsetHeight || 0);
+    const headerH = document.querySelector('.header')?.offsetHeight || 0;
+    const combatH = document.querySelector('.combat-row')?.offsetHeight || 0;
+    canvas.height = window.innerHeight - headerH - combatH;
     
     if (window.innerWidth <= 600) {
         document.getElementById('mobile-controls').classList.remove('hidden');
@@ -137,8 +138,6 @@ function spawnEnemy() {
 
 function initGame() {
     player = new Entity(canvas.width/2, '#0ff', false);
-    player.maxHp = 100;
-    player.hp = 100;
     
     enemies = [];
     particles = [];
@@ -502,8 +501,6 @@ function updateHUD() {
     if (uiKills) uiKills.textContent = kills;
     if (playerHealthBar) {
         playerHealthBar.style.width = Math.max(0, (player.hp / player.maxHp) * 100) + "%";
-        if (player.hp < 30) playerHealthBar.style.background = '#ff0055';
-        else playerHealthBar.style.background = '#00ffff';
     }
 }
 
@@ -580,7 +577,6 @@ btnMute?.addEventListener('click', (e) => {
 
 // Idle initialization
 player = new Entity(window.innerWidth/2, '#0ff', false);
-player.hp = 100;
 updateHUD();
 resize();
 draw();
