@@ -167,26 +167,29 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-        <h1 class="title">NEON SPACE</h1>
+    <header class="header">
+        <div class="nav-left">
+            <a href="../index.html" class="home-btn">← Hub</a>
+        </div>
+        
+        <div class="header-center">
+            <div class="score-container">
+                <div class="score-box">
+                    <span class="score-label">Score</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="score-box">
+                    <span class="score-label h-score-label">High Score</span>
+                    <span id="highScore">0</span>
+                </div>
+            </div>
+        </div>
+
         <div class="header-controls">
             <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">
-                <span class="pause-icon">||</span>
-            </button>
+            <button id="pauseBtn" class="icon-btn hidden" title="Pause Game"><span class="pause-icon">||</span></button>
         </div>
-        <div class="score-container">
-            <div class="score-box">
-                <span class="score-label">Score</span>
-                <span id="score">0</span>
-            </div>
-            <div class="score-box">
-                <span class="score-label">High Score</span>
-                <span id="highScore">0</span>
-            </div>
-        </div>
-    </div>
+    </header>
 
     <div class="game-wrapper">
         <canvas id="gameCanvas" width="800" height="500"></canvas>
