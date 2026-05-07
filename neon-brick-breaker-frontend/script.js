@@ -526,7 +526,14 @@ function applyPowerUp(type) {
         case 'multi':    const b = balls[0] || {x:paddle.x+paddle.w/2, y:paddle.y-20, speed:6};
                          balls.push(new Ball(b.x, b.y, b.speed), new Ball(b.x, b.y, b.speed)); break;
         case 'shield':   paddle.hasShield = true; break;
-        case 'bomb':     triggerBomb({x: paddle.x + paddle.w/2 - 50, y: paddle.y - 100, w: 100, h: 100}); break;
+        case 'bomb':     
+            spawnParticles(paddle.x + paddle.w/2, paddle.y + paddle.h/2, '#ffaa00', 50);
+            if (paddle.hasShield) {
+                paddle.hasShield = false;
+            } else {
+                balls = [];
+            }
+            break;
         case 'life':     lives++; updateHUD(); break;
     }
 }
