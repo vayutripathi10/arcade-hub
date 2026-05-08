@@ -194,7 +194,12 @@ class AchievementSystem {
             { id: 'stickduel_unstoppable', game: 'stickduel', title: 'Unstoppable', desc: 'Win 5 rounds in Endless Challenge mode', icon: '💪' },
             { id: 'stickduel_tournament_winner', game: 'stickduel', title: 'Tournament Winner', desc: 'Win a Tournament (3/5 matches)', icon: '🏆' },
             { id: 'stickduel_headshot_master', game: 'stickduel', title: 'Headshot Master', desc: 'Land 5 headshots in a single session', icon: '💀' },
-            { id: 'stickduel_survival_expert', game: 'stickduel', title: 'Survival Expert', desc: 'Win 10 rounds in Endless Challenge mode', icon: '🛡️' }
+            { id: 'stickduel_survival_expert', game: 'stickduel', title: 'Survival Expert', desc: 'Win 10 rounds in Endless Challenge mode', icon: '🛡️' },
+            // Cyber Survivor
+            { id: 'survivor_first_blood', game: 'survivor', title: 'First Blood', desc: 'Defeat your first enemy in Cyber Survivor', icon: '🔫' },
+            { id: 'survivor_level_10', game: 'survivor', title: 'Survivor Level 10', desc: 'Reach Level 10 in a single run', icon: '🌟' },
+            { id: 'survivor_survive_5m', game: 'survivor', title: 'Survived 5 Minutes', desc: 'Survive for 5 minutes in Cyber Survivor', icon: '⏱️' },
+            { id: 'survivor_boss_slayer', game: 'survivor', title: 'Boss Slayer', desc: 'Defeat the 2-minute Boss', icon: '👹' }
         ];
     }
 
