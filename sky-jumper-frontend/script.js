@@ -110,6 +110,10 @@ window.addEventListener('keydown', e => {
         keys.up = true;
         if (gameState === 'PLAYING') player.jump();
     }
+    if (e.code === 'KeyP' || e.code === 'Escape') {
+        if (gameState === 'PLAYING') pauseGame();
+        else if (gameState === 'PAUSED') resumeGame();
+    }
 });
 window.addEventListener('keyup', e => {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
@@ -125,12 +129,10 @@ canvas.addEventListener('touchstart', e => {
     const rect = canvas.getBoundingClientRect();
     const x = touch.clientX - rect.left;
     
-    // Tap to jump
-    player.jump();
-    
-    // Hold sides to move
-    if (x < cw / 2) { keys.left = true; keys.right = false; }
-    else { keys.right = true; keys.left = false; }
+    // Left/Right thirds for movement, Center third for double jump
+    if (x < cw / 3) { keys.left = true; keys.right = false; }
+    else if (x > cw * 2 / 3) { keys.right = true; keys.left = false; }
+    else { player.jump(); }
 });
 canvas.addEventListener('touchend', e => {
     keys.left = false;
@@ -165,9 +167,9 @@ class Player {
         this.y = ch - 150;
         this.vx = 0;
         this.vy = 0;
-        this.speed = 6;
-        this.gravity = 0.5;
-        this.jumpPower = -12;
+        this.speed = 7;
+        this.gravity = 0.45;
+        this.jumpPower = -14;
         this.jumpsLeft = 2;
         this.trail = [];
         this.invincible = 0;
@@ -471,12 +473,19 @@ function update() {
     if (gameState !== 'PLAYING') return;
     frames++;
 
-    // Difficulty Scaling
+    // Difficulty Scaling (increase level every 10 seconds / 600 frames)
     if (frames % 600 === 0) {
         level++;
         sfx.levelup();
         spawnParticles(player.x + player.w/2, player.y, 50, '#39ff14');
         updateHUD();
+        
+        // Show Level Up Flash
+        comboFlash.innerText = `LEVEL ${level}!`;
+        comboFlash.classList.remove('hidden');
+        comboFlash.classList.remove('active');
+        void comboFlash.offsetWidth;
+        comboFlash.classList.add('active');
     }
 
     // Combo
@@ -522,16 +531,16 @@ function update() {
             
             if (p.type === 'break') {
                 p.broken = true;
-                player.jumpPower = -10; // weak jump
+                player.jumpPower = -12; // weak jump
                 player.jump();
                 spawnParticles(p.x + p.w/2, p.y + p.h/2, 20, p.color);
                 sfx.hit(); // crack sound
             } else if (p.type === 'spring') {
-                player.jumpPower = -18; // super jump
+                player.jumpPower = -20; // super jump
                 player.jump();
                 sfx.jump();
             } else {
-                player.jumpPower = -12; // normal
+                player.jumpPower = -14; // normal
                 player.jump();
             }
         }
@@ -680,18 +689,37 @@ btnRetry.addEventListener('click', () => {
     gameState = 'PLAYING';
 });
 
-btnPause.addEventListener('click', () => {
+function pauseGame() {
     if (gameState === 'PLAYING') {
         gameState = 'PAUSED';
         screenPause.classList.remove('hidden');
+        btnPause.innerText = '▶️';
     }
-});
+}
 
-btnResume.addEventListener('click', () => {
+function resumeGame() {
     if (gameState === 'PAUSED') {
         gameState = 'PLAYING';
         screenPause.classList.add('hidden');
+        btnPause.innerText = '⏸️';
     }
+}
+
+btnPause.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (gameState === 'PLAYING') pauseGame();
+    else resumeGame();
+});
+
+// Also bind touchstart to prevent issues on mobile
+btnPause.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (gameState === 'PLAYING') pauseGame();
+    else resumeGame();
+});
+
+btnResume.addEventListener('click', () => {
+    resumeGame();
 });
 
 btnSound.addEventListener('click', () => {
