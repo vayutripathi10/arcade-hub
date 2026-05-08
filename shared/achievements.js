@@ -199,7 +199,10 @@ class AchievementSystem {
             { id: 'survivor_first_blood', game: 'survivor', title: 'First Blood', desc: 'Defeat your first enemy in Cyber Survivor', icon: '🔫' },
             { id: 'survivor_level_10', game: 'survivor', title: 'Survivor Level 10', desc: 'Reach Level 10 in a single run', icon: '🌟' },
             { id: 'survivor_survive_5m', game: 'survivor', title: 'Survived 5 Minutes', desc: 'Survive for 5 minutes in Cyber Survivor', icon: '⏱️' },
-            { id: 'survivor_boss_slayer', game: 'survivor', title: 'Boss Slayer', desc: 'Defeat the 2-minute Boss', icon: '👹' }
+            { id: 'survivor_boss_slayer', game: 'survivor', title: 'Boss Slayer', desc: 'Defeat the 2-minute Boss', icon: '👹' },
+            // Sky Jumper
+            { id: 'skyjumper_lvl5', game: 'skyjumper', title: 'Stratosphere', desc: 'Reach Level 5 in Sky Jumper', icon: '☁️' },
+            { id: 'skyjumper_score1000', game: 'skyjumper', title: 'Sky Legend', desc: 'Score 1,000 points in Sky Jumper', icon: '🌌' }
         ];
     }
 

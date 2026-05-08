@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>Sky Jumper - ArcadeHub</title>
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="../shared/achievements.js" defer></script>
+</head>
+<body>
+    <div id="game-root">
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-left">
+                <a href="../index.html" id="btn-hub" class="hud-btn" title="Return to ArcadeHub">🏠 HUB</a>
+            </div>
+            <div class="hud-center">
+                <div id="score-display">0</div>
+                <div id="level-display">LVL 1</div>
+            </div>
+            <div class="hud-right">
+                <button id="btn-sound" class="hud-btn">🔊</button>
+                <button id="btn-pause" class="hud-btn">⏸️</button>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div id="canvas-wrap">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div id="combo-flash" class="hidden">COMBO!</div>
+
+            <!-- Overlays -->
+            <div id="screen-start" class="screen-overlay">
+                <h1 class="game-title">SKY JUMPER</h1>
+                <p class="subtitle">Reach the stars!</p>
+                <div class="controls-hint">
+                    <p><b>Move:</b> Arrow Keys / A D / Tap Sides</p>
+                    <p><b>Jump:</b> Space / Up / W / Tap</p>
+                    <p><i>Double Jump enabled!</i></p>
+                </div>
+                <button id="btn-start" class="action-btn">PLAY</button>
+            </div>
+
+            <div id="screen-gameover" class="screen-overlay hidden">
+                <h1 class="game-over-title">GAME OVER</h1>
+                <div class="score-board">
+                    <p>SCORE</p>
+                    <h2 id="final-score">0</h2>
+                    <p>BEST: <span id="best-score">0</span></p>
+                </div>
+                <button id="btn-retry" class="action-btn">RETRY</button>
+            </div>
+
+            <div id="screen-pause" class="screen-overlay hidden">
+                <h1 class="pause-title">PAUSED</h1>
+                <button id="btn-resume" class="action-btn">RESUME</button>
+            </div>
+        </div>
+
+        <!-- Ad Banner Placeholder -->
+        <div id="ad-banner">
+            <div class="ad-placeholder-text">ADVERTISEMENT</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
