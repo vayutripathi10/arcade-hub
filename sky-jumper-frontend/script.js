@@ -127,22 +127,45 @@ window.addEventListener('keyup', e => {
 });
 
 // Touch controls
+function evaluateTouches(e) {
+    if (gameState !== 'PLAYING') return;
+    const rect = canvas.getBoundingClientRect();
+    let left = false;
+    let right = false;
+    
+    for (let i = 0; i < e.touches.length; i++) {
+        const x = e.touches[i].clientX - rect.left;
+        if (x < cw / 3) left = true;
+        else if (x > cw * 2 / 3) right = true;
+    }
+    
+    keys.left = left;
+    keys.right = right;
+}
+
 canvas.addEventListener('touchstart', e => {
     if (gameState !== 'PLAYING') return;
     initAudio();
-    const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
     
-    // Left/Right thirds for movement, Center third for double jump
-    if (x < cw / 3) { keys.left = true; keys.right = false; }
-    else if (x > cw * 2 / 3) { keys.right = true; keys.left = false; }
-    else { player.jump(); }
-});
-canvas.addEventListener('touchend', e => {
-    keys.left = false;
-    keys.right = false;
-});
+    // Evaluate for jumps on NEW touches only
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const x = e.changedTouches[i].clientX - rect.left;
+        if (x >= cw / 3 && x <= cw * 2 / 3) {
+            player.jump();
+        }
+    }
+    
+    evaluateTouches(e);
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+    if (e.cancelable) e.preventDefault(); 
+    evaluateTouches(e);
+}, { passive: false });
+
+canvas.addEventListener('touchend', evaluateTouches);
+canvas.addEventListener('touchcancel', evaluateTouches);
 
 // Stars Background
 const stars = Array.from({length: 180}, () => ({
