@@ -435,16 +435,16 @@ function resetGame() {
 
     // Initial platforms
     platforms.push(new Platform(cw / 2 - 50, ch - 50, 'normal'));
-    generateWorld(0);
+    generateWorld();
     
     updateHUD();
 }
 
-let highestPlatformY = ch;
-
-function generateWorld(targetY) {
-    while (highestPlatformY > targetY - ch) {
-        highestPlatformY -= Math.max(75, 110 - (10 - Math.min(level, 10)) * 2); // Gap increases with level
+function generateWorld() {
+    let topPlat = platforms.length > 0 ? platforms.reduce((min, p) => Math.min(min, p.y), Infinity) : ch;
+    
+    while (topPlat > -camY - ch) {
+        topPlat -= Math.max(75, 110 - (10 - Math.min(level, 10)) * 2); // Gap increases with level
         
         const x = Math.random() * (cw - 120);
         
@@ -453,22 +453,22 @@ function generateWorld(targetY) {
         if (level >= 2 && Math.random() < 0.3) type = 'moving';
         if (level >= 2 && Math.random() < 0.2) type = 'break';
         if (Math.random() < 0.05) type = 'spring';
-        
-        platforms.push(new Platform(x, highestPlatformY, type));
+        const np = new Platform(x, topPlat, type);
+        platforms.push(np);
 
         // Hazards
         if (level >= 2 && type === 'normal' && Math.random() < 0.25) {
-            hazards.push(new Hazard(x + Math.random() * (120 - 20), highestPlatformY, 'spike'));
+            hazards.push(new Hazard(x + Math.random() * (120 - 20), topPlat, 'spike'));
         }
         if (level >= 3 && Math.random() < 0.15) {
-            hazards.push(new Hazard(cw, highestPlatformY - 50, 'rocket'));
+            hazards.push(new Hazard(cw, topPlat - 50, 'rocket'));
         }
 
         // Coins
         if (type !== 'break' && Math.random() < 0.6) {
             const numCoins = Math.floor(Math.random() * 3) + 1;
             for (let i = 0; i < numCoins; i++) {
-                coins.push(new Coin(x + 20 + (i * 25), highestPlatformY - 30));
+                coins.push(new Coin(x + 20 + (i * 25), topPlat - 30));
             }
         }
     }
@@ -506,14 +506,18 @@ function update() {
     if (targetCamY > camY) {
         camY = targetCamY;
         // Update Score based on height
-        const heightScore = Math.floor(camY / 10);
-        if (heightScore > score) {
-            score = heightScore;
+        const newScore = Math.max(score, Math.floor(camY / 10));
+        if (newScore > score) {
+            score = newScore;
             updateHUD();
         }
     }
 
-    generateWorld(-camY);
+    // Temporary debug log as requested
+    const topPlat = platforms.length > 0 ? platforms.reduce((min, p) => Math.min(min, p.y), Infinity) : ch;
+    console.log('camY:', camY, 'topPlat:', topPlat, 'platforms:', platforms.length);
+
+    generateWorld();
 
     // Platform Collisions
     for (let i = platforms.length - 1; i >= 0; i--) {
@@ -521,7 +525,7 @@ function update() {
         p.update();
         
         // Remove off-screen
-        if (p.y > -camY + ch + 100) {
+        if (p.y > -camY + ch + 300) {
             platforms.splice(i, 1);
             continue;
         }
@@ -532,21 +536,21 @@ function update() {
             
             player.y = p.y - player.h;
             player.jumpsLeft = 2; // reset double jump
+            player.vy = 0; // Stand manually
             sfx.land();
+            
+            if (p.type === 'moving') {
+                player.x += p.vx;
+            }
             
             if (p.type === 'break') {
                 p.broken = true;
-                player.jumpPower = -12; // weak jump
-                player.jump();
                 spawnParticles(p.x + p.w/2, p.y + p.h/2, 20, p.color);
                 sfx.hurdle(); // crack sound
             } else if (p.type === 'spring') {
                 player.jumpPower = -20; // super jump
-                player.jump();
-                sfx.jump();
             } else {
                 player.jumpPower = -14; // normal
-                player.jump();
             }
         }
     }
@@ -555,7 +559,7 @@ function update() {
     for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
         c.update();
-        if (c.y > -camY + ch + 100) { coins.splice(i, 1); continue; }
+        if (c.y > -camY + ch + 300) { coins.splice(i, 1); continue; }
         
         if (!c.collected && 
             player.x < c.x + c.r && player.x + player.w > c.x - c.r &&
@@ -587,7 +591,7 @@ function update() {
     for (let i = hazards.length - 1; i >= 0; i--) {
         const h = hazards[i];
         h.update();
-        if (h.y > -camY + ch + 100 || h.x < -100) { hazards.splice(i, 1); continue; }
+        if (h.y > -camY + ch + 300 || h.x < -100) { hazards.splice(i, 1); continue; }
         
         if (player.x < h.x + h.w && player.x + player.w > h.x &&
             player.y < h.y + (h.type==='spike'?0:h.h) && player.y + player.h > h.y - (h.type==='spike'?h.h:0)) {
