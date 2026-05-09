@@ -69,6 +69,9 @@ function initAudio() {
         audioCtx.resume();
     }
 }
+window.addEventListener('keydown', initAudio, { once: true });
+window.addEventListener('mousedown', initAudio, { once: true });
+window.addEventListener('touchstart', initAudio, { once: true });
 
 function playTone(freq, type, duration, vol = 0.1, slideFreq = null) {
     if (!soundEnabled || !audioCtx) return;
@@ -96,7 +99,7 @@ const sfx = {
     land: () => playTone(150, 'triangle', 0.1, 0.2, 100),
     coin: () => { playTone(800, 'sine', 0.1, 0.05); setTimeout(() => playTone(1200, 'sine', 0.1, 0.05), 50); },
     combo: () => { playTone(400, 'sine', 0.1, 0.1); setTimeout(() => playTone(600, 'sine', 0.1, 0.1), 100); setTimeout(() => playTone(800, 'sine', 0.2, 0.1), 200); },
-    hit: () => playTone(200, 'sawtooth', 0.3, 0.1, 50),
+    hurdle: () => playTone(200, 'sawtooth', 0.3, 0.1, 50),
     die: () => { playTone(300, 'sawtooth', 0.2, 0.1, 100); setTimeout(() => playTone(200, 'sawtooth', 0.3, 0.1, 50), 200); },
     levelup: () => { playTone(440, 'sine', 0.1, 0.1); setTimeout(() => playTone(554, 'sine', 0.1, 0.1), 100); setTimeout(() => playTone(659, 'sine', 0.1, 0.1), 200); setTimeout(() => playTone(880, 'sine', 0.4, 0.1), 300); }
 };
@@ -220,7 +223,7 @@ class Player {
         this.invincible = 80;
         this.vy = -8; // knockback up
         score = Math.max(0, score - 20);
-        sfx.hit();
+        sfx.hurdle();
         spawnParticles(this.x + this.w/2, this.y + this.h/2, 20, '#ff2d78');
         updateHUD();
     }
@@ -236,7 +239,9 @@ class Player {
             const t = this.trail[i];
             const alpha = i / this.trail.length * 0.5;
             ctx.fillStyle = `rgba(0, 245, 255, ${alpha})`;
-            ctx.fillRect(t.x, t.y, this.w, this.h);
+            ctx.beginPath();
+            ctx.arc(t.x + this.w / 2, t.y + this.h / 2, this.w / 2 * (i / this.trail.length), 0, Math.PI * 2);
+            ctx.fill();
         }
 
         // Astronaut Body
@@ -534,7 +539,7 @@ function update() {
                 player.jumpPower = -12; // weak jump
                 player.jump();
                 spawnParticles(p.x + p.w/2, p.y + p.h/2, 20, p.color);
-                sfx.hit(); // crack sound
+                sfx.hurdle(); // crack sound
             } else if (p.type === 'spring') {
                 player.jumpPower = -20; // super jump
                 player.jump();
@@ -562,7 +567,7 @@ function update() {
             score += 5 * comboCount;
             updateHUD();
             
-            if (comboCount > 1) {
+            if (comboCount >= 3) {
                 sfx.combo();
                 comboFlash.innerText = `${comboCount}x COMBO!`;
                 comboFlash.classList.remove('hidden');
@@ -600,9 +605,25 @@ function update() {
     }
 }
 
+function lerpColor(c1, c2, t) {
+    const hex2rgb = h => [parseInt(h.slice(1,3), 16), parseInt(h.slice(3,5), 16), parseInt(h.slice(5,7), 16)];
+    const [r1, g1, b1] = hex2rgb(c1);
+    const [r2, g2, b2] = hex2rgb(c2);
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
 function draw() {
     // BG
-    ctx.fillStyle = varColor('--bg-color', '#07080f');
+    const t = Math.min(1, score / 2000);
+    const topColor = lerpColor('#02020a', '#0a001a', t);
+    const bottomColor = lerpColor('#07080f', '#140024', t);
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, ch);
+    bgGrad.addColorStop(0, topColor);
+    bgGrad.addColorStop(1, bottomColor);
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, cw, ch);
 
     // Stars
