@@ -359,3 +359,61 @@ html, body {
 .x-btn:hover {
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
+
+/* Virtual Mobile Controls */
+#mobile-controls {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.v-btn {
+    width: 65px;
+    height: 65px;
+    background: rgba(0, 245, 255, 0.15);
+    border: 2px solid rgba(0, 245, 255, 0.4);
+    border-radius: 50%;
+    color: var(--cyan);
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    transition: all 0.1s;
+    backdrop-filter: blur(4px);
+}
+
+.v-btn:active {
+    background: rgba(0, 245, 255, 0.5);
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--cyan);
+}
+
+.v-btn-main {
+    width: 80px;
+    height: 80px;
+    border-color: var(--pink);
+    color: var(--pink);
+    font-size: 36px;
+}
+
+.v-btn-main:active {
+    background: rgba(255, 45, 120, 0.5);
+    box-shadow: 0 0 20px var(--pink);
+}
+
+@media (max-width: 768px) {
+    #mobile-controls {
+        display: flex;
+        align-items: flex-end;
+    }
+}

@@ -48,6 +48,11 @@ const comboFlash = document.getElementById('combo-flash');
 const btnShareWA = document.getElementById('btn-share-wa');
 const btnShareX = document.getElementById('btn-share-x');
 
+// Virtual Buttons
+const vbtnLeft = document.getElementById('vbtn-left');
+const vbtnRight = document.getElementById('vbtn-right');
+const vbtnJump = document.getElementById('vbtn-jump');
+
 // Game State
 let gameState = 'START'; // START, PLAYING, PAUSED, GAMEOVER
 let score = 0;
@@ -126,46 +131,44 @@ window.addEventListener('keyup', e => {
     if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') keys.up = false;
 });
 
-// Touch controls
-function evaluateTouches(e) {
+// Touch controls (Virtual Buttons)
+vbtnLeft.addEventListener('touchstart', (e) => {
     if (gameState !== 'PLAYING') return;
-    const rect = canvas.getBoundingClientRect();
-    let left = false;
-    let right = false;
-    
-    for (let i = 0; i < e.touches.length; i++) {
-        const x = e.touches[i].clientX - rect.left;
-        if (x < cw / 3) left = true;
-        else if (x > cw * 2 / 3) right = true;
-    }
-    
-    keys.left = left;
-    keys.right = right;
-}
+    e.preventDefault();
+    keys.left = true;
+}, { passive: false });
+vbtnLeft.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys.left = false;
+}, { passive: false });
+vbtnLeft.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    keys.left = false;
+}, { passive: false });
 
-canvas.addEventListener('touchstart', e => {
+vbtnRight.addEventListener('touchstart', (e) => {
     if (gameState !== 'PLAYING') return;
+    e.preventDefault();
+    keys.right = true;
+}, { passive: false });
+vbtnRight.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keys.right = false;
+}, { passive: false });
+vbtnRight.addEventListener('touchcancel', (e) => {
+    e.preventDefault();
+    keys.right = false;
+}, { passive: false });
+
+vbtnJump.addEventListener('touchstart', (e) => {
+    if (gameState !== 'PLAYING') return;
+    e.preventDefault();
     initAudio();
-    const rect = canvas.getBoundingClientRect();
-    
-    // Evaluate for jumps on NEW touches only
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        const x = e.changedTouches[i].clientX - rect.left;
-        if (x >= cw / 3 && x <= cw * 2 / 3) {
-            player.jump();
-        }
-    }
-    
-    evaluateTouches(e);
+    player.jump();
 }, { passive: false });
 
-canvas.addEventListener('touchmove', e => {
-    if (e.cancelable) e.preventDefault(); 
-    evaluateTouches(e);
-}, { passive: false });
-
-canvas.addEventListener('touchend', evaluateTouches);
-canvas.addEventListener('touchcancel', evaluateTouches);
+// Global touch for audio wake-up
+window.addEventListener('touchstart', initAudio, { once: true });
 
 // Stars Background
 const stars = Array.from({length: 180}, () => ({
