@@ -317,3 +317,45 @@ html, body {
     50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
     100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
 }
+
+/* Share Buttons */
+.share-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.share-btn {
+    padding: 10px 20px;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.share-btn:hover {
+    transform: scale(1.05);
+}
+
+.wa-btn {
+    background-color: #25D366;
+    box-shadow: 0 0 10px rgba(37, 211, 102, 0.4);
+}
+
+.wa-btn:hover {
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.8);
+}
+
+.x-btn {
+    background-color: #000000;
+    border: 1px solid #333;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.x-btn:hover {
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}

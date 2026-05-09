@@ -45,6 +45,8 @@ const levelDisplay = document.getElementById('level-display');
 const finalScoreEl = document.getElementById('final-score');
 const bestScoreEl = document.getElementById('best-score');
 const comboFlash = document.getElementById('combo-flash');
+const btnShareWA = document.getElementById('btn-share-wa');
+const btnShareX = document.getElementById('btn-share-x');
 
 // Game State
 let gameState = 'START'; // START, PLAYING, PAUSED, GAMEOVER
@@ -751,6 +753,17 @@ btnSound.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
     btnSound.innerText = soundEnabled ? '🔊' : '🔇';
     btnSound.style.opacity = soundEnabled ? '1' : '0.5';
+});
+
+btnShareWA.addEventListener('click', () => {
+    const text = encodeURIComponent(`I just scored ${Math.floor(score)} in Sky Jumper! Can you beat my score? Play at arcadehubplay.com/sky-jumper-frontend/`);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+});
+
+btnShareX.addEventListener('click', () => {
+    const text = encodeURIComponent(`I just scored ${Math.floor(score)} in Sky Jumper! Can you beat my score? #SkyJumper #ArcadeHub`);
+    const url = encodeURIComponent('http://arcadehubplay.com/sky-jumper-frontend/');
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 });
 
 // Init
