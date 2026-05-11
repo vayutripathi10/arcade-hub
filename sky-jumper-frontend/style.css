@@ -12,6 +12,8 @@
     --green: #39ff14;
     --bg-color: #07080f;
     --hud-bg: rgba(0, 0, 0, 0.85);
+    --hud-height: 60px;
+    --ad-height: 90px;
 }
 
 html, body {
@@ -39,7 +41,7 @@ html, body {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    height: 60px; /* 48px on mobile */
+    height: var(--hud-height);
     padding: 0 12px;
     background: rgba(0,0,0,0.85);
     border-bottom: 1px solid #00f5ff;
@@ -49,8 +51,12 @@ html, body {
 }
 
 @media (max-width: 600px) {
+    :root {
+        --hud-height: 48px;
+        --ad-height: 50px;
+    }
     #hud {
-        height: 48px;
+        height: var(--hud-height);
         padding: 0 10px;
     }
 }
@@ -87,7 +93,14 @@ html, body {
     color: #aaa;
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-top: 2px;
+    margin-top: 1px;
+}
+
+.lives {
+    font-size: 14px;
+    margin-bottom: 2px;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 5px var(--pink));
 }
 
 .hud-btn {
@@ -127,6 +140,7 @@ html, body {
     flex: 1 1 0;
     position: relative;
     overflow: hidden;
+    height: calc(100dvh - var(--hud-height) - var(--ad-height));
 }
 
 #gameCanvas {
@@ -138,7 +152,7 @@ html, body {
 /* Ad Banner */
 #ad-banner {
     flex-shrink: 0;
-    height: 90px; /* 50px on mobile */
+    height: var(--ad-height);
     padding-bottom: env(safe-area-inset-bottom);
     background: #0a0a14;
     border-top: 1px solid #1a1a2e;
@@ -148,8 +162,8 @@ html, body {
 }
 
 @media (max-width: 600px) {
-    #ad-banner { height: 50px; }
-    #hud { height: 48px; }
+    #ad-banner { height: var(--ad-height); }
+    #hud { height: var(--hud-height); }
 }
 
 .ad-placeholder-text {
@@ -242,6 +256,14 @@ html, body {
     background: linear-gradient(45deg, rgba(0,245,255,0.4), rgba(255,45,120,0.4));
     box-shadow: 0 0 30px rgba(0, 245, 255, 0.6), inset 0 0 15px rgba(0, 245, 255, 0.4);
     text-shadow: 0 0 10px #fff;
+}
+
+.btn-hub-over {
+    font-size: 18px;
+    padding: 10px 30px;
+    border-color: #888;
+    text-decoration: none;
+    margin-top: -5px;
 }
 
 .game-over-title {

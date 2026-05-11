@@ -23,10 +23,22 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let cw, ch;
 
+// Layout Constants
+const HUD_HEIGHT_DESKTOP = 60;
+const HUD_HEIGHT_MOBILE = 48;
+const AD_HEIGHT_DESKTOP = 90;
+const AD_HEIGHT_MOBILE = 50;
+let HUD_HEIGHT = HUD_HEIGHT_DESKTOP;
+let AD_HEIGHT = AD_HEIGHT_DESKTOP;
+
 function resize() {
     const rect = canvas.parentElement.getBoundingClientRect();
     cw = canvas.width = rect.width;
     ch = canvas.height = rect.height;
+    
+    // Update active heights
+    HUD_HEIGHT = cw > 600 ? HUD_HEIGHT_DESKTOP : HUD_HEIGHT_MOBILE;
+    AD_HEIGHT = cw > 600 ? AD_HEIGHT_DESKTOP : AD_HEIGHT_MOBILE;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -42,6 +54,7 @@ const btnResume = document.getElementById('btn-resume');
 const btnSound = document.getElementById('btn-sound');
 const scoreDisplay = document.getElementById('score-display');
 const levelDisplay = document.getElementById('level-display');
+const livesDisplay = document.getElementById('lives-display');
 const finalScoreEl = document.getElementById('final-score');
 const bestScoreEl = document.getElementById('best-score');
 const comboFlash = document.getElementById('combo-flash');
@@ -182,6 +195,7 @@ const stars = Array.from({length: 180}, () => ({
 // Game Entities
 let player;
 let platforms = [];
+let lastPlatformX = 0;
 let coins = [];
 let hazards = [];
 let particles = [];
@@ -204,6 +218,7 @@ class Player {
         this.jumpsLeft = 2;
         this.trail = [];
         this.invincible = 0;
+        this.lives = 3;
         this.color = '#00f5ff';
     }
 
@@ -233,8 +248,11 @@ class Player {
 
         // Death by falling below camera
         if (this.y > Math.abs(camY) + ch + 100) {
+            this.lives = 0; // Trigger instant game over
+            updateHUD();
             gameOver();
         }
+    }
     }
 
     jump() {
@@ -247,13 +265,15 @@ class Player {
     }
 
     hit() {
-        if (this.invincible > 0) return;
+        if (this.invincible > 0 || this.lives <= 0) return;
+        this.lives--;
         this.invincible = 80;
         this.vy = -8; // knockback up
         score = Math.max(0, score - 20);
         sfx.hurdle();
         spawnParticles(this.x + this.w/2, this.y + this.h/2, 20, '#ff2d78');
         updateHUD();
+        if (this.lives <= 0) gameOver();
     }
 
     draw() {
@@ -461,20 +481,40 @@ function resetGame() {
     comboCount = 0;
     comboTimer = 0;
 
-    // Initial platforms
-    platforms.push(new Platform(cw / 2 - 50, ch - 50, 'normal'));
-    generateWorld();
+    // Initial platform - ensure it's above the ad zone
+    const startX = cw / 2 - 50;
+    const startY = ch - AD_HEIGHT - 70;
+    lastPlatformX = startX;
+    platforms.push(new Platform(startX, startY, 'normal'));
+    player.x = startX + 10;
+    player.y = startY - player.h - 10;
     
     updateHUD();
 }
 
 function generateWorld() {
-    let topPlat = platforms.length > 0 ? platforms.reduce((min, p) => Math.min(min, p.y), Infinity) : ch;
+    let topPlat = platforms.length > 0 ? platforms.reduce((min, p) => Math.min(min, p.y), Infinity) : ch - AD_HEIGHT - 20;
+    const isMobile = cw <= 768;
     
     while (topPlat > -camY - ch) {
-        topPlat -= Math.max(75, 110 - (10 - Math.min(level, 10)) * 2); // Gap increases with level
+        topPlat -= Math.max(75, 110 - (10 - Math.min(level, 10)) * 2); 
         
-        const x = Math.random() * (cw - 120);
+        let x;
+        if (isMobile) {
+            // Increase horizontal spread on mobile: 35-45% of cw gap
+            const minGap = cw * 0.38; 
+            const maxGap = cw * 0.55;
+            const gap = minGap + Math.random() * (maxGap - minGap);
+            const direction = lastPlatformX > cw / 2 ? -1 : 1;
+            x = lastPlatformX + (direction * gap);
+            
+            // Boundary check
+            if (x < 20) x = 20 + Math.random() * 40;
+            if (x > cw - 120) x = cw - 120 - Math.random() * 40;
+        } else {
+            x = Math.random() * (cw - 120);
+        }
+        lastPlatformX = x;
         
         // Platform Type
         let type = 'normal';
@@ -530,7 +570,13 @@ function update() {
     player.update();
 
     // Camera follow
-    const targetCamY = -player.y + ch * 0.4;
+    let targetCamY = -player.y + ch * 0.4;
+    
+    // Clamp camera so we don't see below the starting ad zone
+    // Play area bottom is effectively ch - AD_HEIGHT
+    const maxCamY = 0; 
+    if (targetCamY < maxCamY) targetCamY = maxCamY; 
+
     if (targetCamY > camY) {
         camY = targetCamY;
         // Update Score based on height
@@ -704,6 +750,7 @@ function gameLoop() {
 function updateHUD() {
     scoreDisplay.innerText = Math.floor(score);
     levelDisplay.innerText = `LVL ${level}`;
+    livesDisplay.innerText = '❤️'.repeat(Math.max(0, player.lives));
 }
 
 function gameOver() {
