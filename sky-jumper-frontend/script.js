@@ -253,7 +253,6 @@ class Player {
             gameOver();
         }
     }
-    }
 
     jump() {
         if (this.jumpsLeft > 0) {
@@ -489,6 +488,7 @@ function resetGame() {
     player.x = startX + 10;
     player.y = startY - player.h - 10;
     
+    generateWorld();
     updateHUD();
 }
 
