@@ -297,9 +297,8 @@ function drawTower() {
 function resize() {
     const container = document.getElementById('game-container');
     const hud = document.getElementById('hud');
-    const adPlaceholder = document.querySelector('.ad-footer-placeholder');
     
-    const availableHeight = container.clientHeight - hud.clientHeight - adPlaceholder.clientHeight;
+    const availableHeight = container.clientHeight - hud.clientHeight;
     
     // Maintain aspect ratio or fill width
     canvas.width = container.clientWidth;
