@@ -15,6 +15,76 @@ const COLORS = {
     ring: '#1a1a1a'
 };
 
+// Web Audio API Sound Engine
+class SoundManager {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+    }
+
+    init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    setMuted(muted) {
+        this.muted = muted;
+    }
+
+    play(type) {
+        if (!this.ctx || this.muted) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        const now = this.ctx.currentTime;
+
+        switch(type) {
+            case 'bounce':
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+                break;
+            case 'pass':
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+            case 'crash':
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.5);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+                break;
+            case 'click':
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+                break;
+        }
+    }
+}
+
+const soundManager = new SoundManager();
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
@@ -26,6 +96,7 @@ const nextLevelEl = document.getElementById('next-level-label');
 // Game State
 let gameState = 'START';
 let isPaused = false;
+let isMuted = false;
 let score = 0;
 let bestScore = localStorage.getItem('helixBestScore') || 0;
 let level = 1;
@@ -118,6 +189,7 @@ class Ball {
                             this.x = ring.x + nx * -innerLimit;
                             this.y = ring.y + ny * -innerLimit;
                             createParticles(this.x, this.y, ring.color);
+                            soundManager.play('bounce');
                         }
                     }
                 }
@@ -130,6 +202,7 @@ class Ball {
                     this.isExiting = false;
                     score += 10;
                     updateScore();
+                    soundManager.play('pass');
                     level++;
                     currentLevelEl.textContent = level;
                     nextLevelEl.textContent = level + 1;
@@ -226,6 +299,7 @@ function updateScore() {
 
 function gameOver() {
     gameState = 'GAMEOVER';
+    soundManager.play('crash');
     document.getElementById('game-over').classList.remove('hidden');
     document.getElementById('final-score').textContent = Math.floor(score);
     document.getElementById('final-best').textContent = Math.floor(bestScore);
@@ -256,6 +330,13 @@ function togglePause() {
     if (gameState !== 'PLAYING') return;
     isPaused = !isPaused;
     document.getElementById('btn-pause').textContent = isPaused ? '▶️' : '⏸';
+    soundManager.play('click');
+}
+
+function toggleSound() {
+    isMuted = !isMuted;
+    document.getElementById('btn-sound').textContent = isMuted ? '🔇' : '🔊';
+    soundManager.setMuted(isMuted);
 }
 
 function toggleHelp(show) {
@@ -314,11 +395,12 @@ window.addEventListener('touchstart', handleDown, { passive: false });
 window.addEventListener('touchmove', handleMove, { passive: false });
 window.addEventListener('touchend', handleUp);
 
-document.getElementById('btn-start').addEventListener('click', restartGame);
+document.getElementById('btn-start').addEventListener('click', () => { soundManager.init(); restartGame(); });
 document.getElementById('btn-restart').addEventListener('click', restartGame);
 document.getElementById('btn-pause').addEventListener('click', togglePause);
-document.getElementById('btn-help').addEventListener('click', () => toggleHelp(true));
-document.getElementById('btn-close-help').addEventListener('click', () => toggleHelp(false));
+document.getElementById('btn-sound').addEventListener('click', toggleSound);
+document.getElementById('btn-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(true); });
+document.getElementById('btn-close-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(false); });
 document.getElementById('share-wa').addEventListener('click', shareWA);
 document.getElementById('share-x').addEventListener('click', shareX);
 
