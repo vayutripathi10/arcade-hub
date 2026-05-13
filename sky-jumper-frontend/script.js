@@ -246,9 +246,9 @@ class Player {
         // Invincibility
         if (this.invincible > 0) this.invincible--;
 
-        // Death by falling below camera
-        if (this.y > Math.abs(camY) + ch + 100) {
-            this.lives = 0; // Trigger instant game over
+        // Death by falling below camera (Instant death at screen edge)
+        if (this.y > Math.abs(camY) + ch + 10) {
+            this.lives = 0;
             updateHUD();
             gameOver();
         }
@@ -599,7 +599,7 @@ function update() {
         p.update();
         
         // Remove off-screen
-        if (p.y > -camY + ch + 300) {
+        if (p.y > -camY + ch + 10) {
             platforms.splice(i, 1);
             continue;
         }
@@ -633,7 +633,7 @@ function update() {
     for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
         c.update();
-        if (c.y > -camY + ch + 300) { coins.splice(i, 1); continue; }
+        if (c.y > -camY + ch + 10) { coins.splice(i, 1); continue; }
         
         if (!c.collected && 
             player.x < c.x + c.r && player.x + player.w > c.x - c.r &&
@@ -665,7 +665,7 @@ function update() {
     for (let i = hazards.length - 1; i >= 0; i--) {
         const h = hazards[i];
         h.update();
-        if (h.y > -camY + ch + 300 || h.x < -100) { hazards.splice(i, 1); continue; }
+        if (h.y > -camY + ch + 10 || h.x < -100) { hazards.splice(i, 1); continue; }
         
         if (player.x < h.x + h.w && player.x + player.w > h.x &&
             player.y < h.y + (h.type==='spike'?0:h.h) && player.y + player.h > h.y - (h.type==='spike'?h.h:0)) {
