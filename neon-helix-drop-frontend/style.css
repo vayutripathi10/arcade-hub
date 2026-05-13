@@ -5,12 +5,12 @@
     --bg: #050505;
     --text: #ffffff;
     --hud-height: 70px;
-    --ad-height: 90px;
+    --ad-height: 0px;
 }
 
 @media (max-width: 600px) {
     :root {
-        --ad-height: 50px;
+        --ad-height: 0px;
     }
 }
 

@@ -124,8 +124,8 @@ class Ball {
 
     draw() {
         ctx.save();
-        // Offset the ball to sit on the ring radius (TOWER_RADIUS + 20)
-        ctx.translate(canvas.width / 2 + TOWER_RADIUS + 20, towerY + this.y);
+        // Offset the ball to sit centered on the ring (TOWER_RADIUS + 18)
+        ctx.translate(canvas.width / 2 + TOWER_RADIUS + 18, towerY + this.y);
         
         // Glow
         ctx.shadowBlur = 15;
@@ -248,7 +248,7 @@ function restartGame() {
 function createParticles(y, color) {
     for (let i = 0; i < 8; i++) {
         particles.push({
-            x: canvas.width / 2 + TOWER_RADIUS + 20 + (Math.random() - 0.5) * 20,
+            x: canvas.width / 2 + TOWER_RADIUS + 18 + (Math.random() - 0.5) * 20,
             y: y,
             vx: (Math.random() - 0.5) * 4,
             vy: (Math.random() - 0.5) * 4,
