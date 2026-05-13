@@ -79,14 +79,20 @@ class Ball {
         platforms.forEach(p => {
             // Ball just passed the platform plane
             if (this.prevY < p.y && this.y >= p.y) {
-                const angle = (Math.atan2(0, 1) - towerRotation) % (Math.PI * 2);
-                const normalizedAngle = (angle < 0 ? angle + Math.PI * 2 : angle);
+                // Calculate which slice the ball is over
+                // The ball is at screen angle 0 relative to the tower center
+                // Since the tower is rotated by towerRotation, the ball is at angle -towerRotation relative to the tower
+                let normalizedRotation = towerRotation % (Math.PI * 2);
+                if (normalizedRotation < 0) normalizedRotation += Math.PI * 2;
+                
+                // Angle of the ball relative to the platform's local coordinates
+                let angleOfBall = (Math.PI * 2 - normalizedRotation) % (Math.PI * 2);
                 
                 let hitPlatform = false;
                 let hitHazard = false;
 
                 p.slices.forEach(s => {
-                    if (normalizedAngle >= s.start && normalizedAngle <= s.end) {
+                    if (angleOfBall >= s.start && angleOfBall <= s.end) {
                         if (s.type === 'hazard') hitHazard = true;
                         hitPlatform = true;
                     }
@@ -118,7 +124,8 @@ class Ball {
 
     draw() {
         ctx.save();
-        ctx.translate(canvas.width / 2, towerY + this.y);
+        // Offset the ball to sit on the ring radius (TOWER_RADIUS + 20)
+        ctx.translate(canvas.width / 2 + TOWER_RADIUS + 20, towerY + this.y);
         
         // Glow
         ctx.shadowBlur = 15;
@@ -241,7 +248,7 @@ function restartGame() {
 function createParticles(y, color) {
     for (let i = 0; i < 8; i++) {
         particles.push({
-            x: canvas.width / 2 + (Math.random() - 0.5) * 40,
+            x: canvas.width / 2 + TOWER_RADIUS + 20 + (Math.random() - 0.5) * 20,
             y: y,
             vx: (Math.random() - 0.5) * 4,
             vy: (Math.random() - 0.5) * 4,
