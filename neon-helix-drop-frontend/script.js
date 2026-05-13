@@ -123,6 +123,13 @@ class Ball {
         this.isExiting = false;
     }
 
+    jump() {
+        if (gameState !== 'PLAYING' || isPaused) return;
+        // Apply upward impulse
+        this.vy = -7;
+        soundManager.play('click');
+    }
+
     update() {
         if (gameState !== 'PLAYING' || isPaused) return;
 
@@ -376,6 +383,9 @@ function shareX() {
 
 // Input Events
 function handleDown(e) {
+    if (gameState === 'PLAYING') {
+        ball.jump();
+    }
     isDragging = true;
     lastMouseX = e.clientX || (e.touches && e.touches[0].clientX);
 }
