@@ -363,12 +363,14 @@ function createParticles(x, y, color) {
 
 // Social Sharing
 function shareWA() {
-    const text = `I just scored ${score} in Neon Helix Drop! Can you beat me? 🌀 Play here: ${window.location.href}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    const roundedScore = Math.floor(score);
+    const text = `I just scored ${roundedScore} in Neon Helix Drop! Can you beat me? 🌀 Play here: ${window.location.href}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function shareX() {
-    const text = `I just scored ${score} in Neon Helix Drop! Can you beat me? 🌀 #ArcadeHub #Gaming`;
+    const roundedScore = Math.floor(score);
+    const text = `I just scored ${roundedScore} in Neon Helix Drop! Can you beat me? 🌀 #ArcadeHub #Gaming`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
 }
 
