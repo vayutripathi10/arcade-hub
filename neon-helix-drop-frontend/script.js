@@ -333,6 +333,20 @@ window.addEventListener('touchend', handleUp);
 document.getElementById('btn-start').addEventListener('click', restartGame);
 document.getElementById('btn-restart').addEventListener('click', restartGame);
 document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-help').addEventListener('click', () => toggleHelp(true));
+document.getElementById('btn-close-help').addEventListener('click', () => toggleHelp(false));
+
+function toggleHelp(show) {
+    const helpOverlay = document.getElementById('how-to-play');
+    if (show) {
+        helpOverlay.classList.remove('hidden');
+        if (gameState === 'PLAYING' && !isPaused) {
+            togglePause();
+        }
+    } else {
+        helpOverlay.classList.add('hidden');
+    }
+}
 
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);

@@ -46,7 +46,13 @@ Every new game page MUST include:
 - [ ] **No "Ad-Free" Claims**: Do not mention "no ads" in descriptions if the page will serve ads.
 - [ ] **Policy Check**: Ensure game content adheres to Google AdSense program policies.
 
-## 6. Verify & Push
+## 6. UI/HUD Standards
+- [ ] **3-Column Grid**: HUD must use `display: grid` with `1fr auto 1fr`.
+- [ ] **Alignment**: Left (HUB), Center (Score/Level), Right (Help/Sound/Pause).
+- [ ] **Help Overlay**: Every game MUST have a ❓ button and an instructional overlay.
+- [ ] **Responsiveness**: Canvas height must account for HUD and Ad Footer.
+
+## 7. Verify & Push
 - Run `git add .`
 - Run `git commit -m "Added [Game Name] and updated SEO/Sitemap/AdSense"`
 - Run `git push`

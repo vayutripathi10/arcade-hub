@@ -36,6 +36,7 @@
                 </div>
             </div>
             <div class="hud-right">
+                <button id="btn-help" class="icon-btn" title="How to Play">❓</button>
                 <button id="btn-sound" class="icon-btn">🔊</button>
                 <button id="btn-pause" class="icon-btn">⏸</button>
             </div>
@@ -52,6 +53,26 @@
         <canvas id="gameCanvas"></canvas>
 
         <!-- Overlays -->
+        <div id="how-to-play" class="overlay hidden">
+            <h2 class="overlay-title">HOW TO PLAY</h2>
+            <div class="instruction-box">
+                <div class="instruction-item">
+                    <span class="icon">🌀</span>
+                    <p>Rotate the tower to find the gaps!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">🚀</span>
+                    <p>Drop through multiple gaps for <b>Fever Mode</b>!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">⚠️</span>
+                    <p>Avoid the <span style="color: var(--danger)">red deadly</span> zones!</p>
+                </div>
+            </div>
+            <p class="control-text"><b>PC:</b> Drag Mouse or use Arrows<br><b>Mobile:</b> Touch & Drag</p>
+            <button id="btn-close-help" class="primary-btn">GOT IT!</button>
+        </div>
+
         <div id="start-screen" class="overlay">
             <h1 class="game-title">NEON<br>HELIX DROP</h1>
             <p class="instruction">DRAG TO ROTATE TOWER</p>
