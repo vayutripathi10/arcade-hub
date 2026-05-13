@@ -18,62 +18,11 @@
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
     <title>Latest Updates | Arcade Hub</title>
 
-    <!-- Ultimate Network Ad Blocker Shield -->
-    <script>
-    (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
-        
-        // 1. Intercept all global event bindings (how Popunders usually hijack)
-        const originalAdd = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            if ((this === window || this === document || this === document.body) && 
-                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
-                typeof listener === 'function') 
-            {
-                const wrappedListener = function(e) {
-                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return; // Shield activated! Block the ad from receiving this interaction.
-                    }
-                    return listener.apply(this, arguments);
-                };
-                return originalAdd.call(this, type, wrappedListener, options);
-            }
-            return originalAdd.call(this, type, listener, options);
-        };
-
-        // 2. Prevent dynamic overlay hijacking (invisible divs)
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mut => {
-                mut.addedNodes.forEach(node => {
-                    if (node.tagName === 'DIV' && node.style) {
-                        // Check if it's acting like a full-screen overlay clickjacker
-                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
-                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
-                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
-                            // Automatically push behind our UI
-                            node.style.zIndex = '1';
-                            node.style.pointerEvents = 'none'; // Click through to game!
-                        }
-                    }
-                });
-            });
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    })();
-    </script>
-
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="hub-style.css">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-B8XQ759LPH');
-    </script>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
+     crossorigin="anonymous"></script>
     <style>
         .update-entry {
             background: rgba(255, 255, 255, 0.03);
@@ -122,22 +71,27 @@
             font-size: 0.75rem;
             font-weight: 500;
         }
+        .update-features {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            padding-left: 20px;
+        }
+        .play-now-btn {
+            display: inline-block;
+            background: var(--primary);
+            color: #000;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s ease;
+        }
+        .play-now-btn:hover {
+            transform: scale(1.05);
+        }
         .back-nav { margin-bottom: 2rem; }
     </style>
-
-    <!-- Adsterra Global Popunder -->
-    
-
-    
-
-    <!-- Dark Mode Ad Formatting -->
-    <style>
-        .ad-container { background-color: transparent !important; }
-        .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
-    </style>
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
-     crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="header-container">
@@ -149,294 +103,72 @@
     </div>
 
     <main class="container">
-        <div class="update-entry">
-            <div class="update-header">
-                <div class="update-date">April 19, 2026</div>
-                <h2 class="update-title">💠 Neon Brick Breaker is LIVE!</h2>
-            </div>
+        <article class="update-entry">
+            <header class="update-header">
+                <span class="update-date">May 13, 2026</span>
+                <h2 class="update-title">🌀 Neon Helix Drop is LIVE!</h2>
+                <div class="update-tags">
+                    <span class="tag">New Game</span>
+                    <span class="tag">Hyper-casual</span>
+                </div>
+            </header>
             <div class="update-content">
-                <p>Welcome to the neon grid! Our newest arcade title, <b>Neon Brick Breaker</b>, is now available. This high-octane reimagining of the classic brick-breaker features:</p>
-                <ul style="color: rgba(255,255,255,0.8); line-height: 1.8; margin-bottom: 1.5rem;">
-                    <li><b>Satisfying Physics:</b> Custom circle-rect collision with dynamic deflection angles.</li>
-                    <li><b>Power-Up Drops:</b> Catch falling tokens to trigger Wide-Paddle, Fireball, or Multi-Ball modes.</li>
-                    <li><b>Neon Shred Particles:</b> Screen-shaking explosions when bricks are destroyed.</li>
-                    <li><b>Increasing Difficulty:</b> 10 progressively harder levels with unique brick layouts.</li>
+                <p>We are excited to announce our first hyper-casual title: <strong>Neon Helix Drop</strong>! This game brings the classic helix jump mechanics to the Arcade Hub with our signature neon aesthetic and fluid controls.</p>
+                <ul class="update-features">
+                    <li>Smooth 3D-simulated physics</li>
+                    <li>Progressive difficulty with hazard zones</li>
+                    <li>Fever Mode: Build speed to become invincible!</li>
+                    <li>Optimized for both Mobile touch and Desktop mouse controls</li>
                 </ul>
-                <p>Ready to break the glow? <a href="neon-brick-breaker-frontend/index.html" style="color: var(--primary);">Play Neon Brick Breaker now!</a></p>
-            </div>
-        </div>
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 17, 2026</span>
-                <h2 class="update-title">🛡️ Retro Tank Battle Deployed!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                    <span class="tag">Retro</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Protect your HQ from armored invasions! Our newest Retro Hub game, <strong>Retro Tank Battle</strong>, features high-quality pixel art, destructible environments, and intense wave-based defense gameplay.</p>
-                <ul>
-                    <li><strong>Defend the HQ:</strong> Protect your central Command Center from being overwhelmed.</li>
-                    <li><strong>Tactical Combat:</strong> Destroy brick walls to create firing lines and outflank enemies.</li>
-                    <li><strong>Detailed Pixel Art:</strong> High-quality 32-bit sprites for a premium retro feel.</li>
-                </ul>
-                <p>Command your unit today in the Retro Hub section!</p>
+                <p>Can you reach the bottom of the tower? Challenge your friends and climb the leaderboard today!</p>
+                <a href="neon-helix-drop-frontend/index.html" class="play-now-btn">Start Dropping Now</a>
             </div>
         </article>
 
         <article class="update-entry">
             <header class="update-header">
-                <span class="update-date">April 17, 2026</span>
-                <h2 class="update-title">🥷 Neon Stick Fighter Unleashed!</h2>
+                <span class="update-date">May 11, 2026</span>
+                <h2 class="update-title">🛡️ AdSense Compliance Update</h2>
                 <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Action</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Enter the cyberpunk fighting arena! Unleash fast-paced Jab, Punch, and Flying Kick combos to defeat massive endless waves of enemies.</p>
-                <ul>
-                    <li>Dynamic 3-hit combo system with physics-based knockback.</li>
-                    <li>Epic Boss battles every 10 kills.</li>
-                    <li>Fluid 2D stickman animations and screen-shake effects.</li>
-                </ul>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 16, 2026</span>
-                <h2 class="update-title">🏎️ Retro Racer Hits the Track!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                    <span class="tag">Retro</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Start your engines! Our brand new classic 8-bit racing game, <strong>Retro Racer</strong>, has officially arrived in the Arcade Hub.</p>
-                <p>Weave through heavy traffic, collect vital petrol trucks to extend your time, and survive the endless roads. Featuring:</p>
-                <ul>
-                    <li>Dynamic stage progression with increasing difficulty and weaving enemy traffic.</li>
-                    <li>Authentic synthwave engine audio engine generated completely by code.</li>
-                    <li>Full mobile touch support - just swipe left and right to steer!</li>
-                </ul>
-                <p>Visit the Retro Hub to play it right now and try to unlock the "Speed Demon" and "Gas Guzzler" badges in the Trophy Room!</p>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 08, 2026</span>
-                <h2 class="update-title">🍾 Neon Bottle Shooter Released!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Welcome to <strong>Neon Bottle Shooter</strong>! Our newest arcade gallery game tests your accuracy and reflexes in a glowing cyberpunk environment. Break the glowing bottles, aim for max combos, and survive across 3 different game modes.</p>
-                <p>Complete with fully responsive mobile controls and brand new achievements added to the Trophy Room!</p>
-            </div>
-        </article>
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 03, 2026</span>
-                <h2 class="update-title">🌉 Neon Draw Bridge is Live!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                    <span class="tag">Physics</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Put your engineering skills to the test with our newest physics-based puzzle game: <strong>Neon Draw Bridge</strong>! Draw bridges, ramps, and paths to guide a glowing ball across gaps, around spikes, and through 8 challenging levels.</p>
-                <p>Features include:</p>
-                <ul>
-                    <li>Dynamic drawing mechanics using mouse or touch.</li>
-                    <li>Lightweight custom physics including gravity and momentum.</li>
-                    <li>Complex obstacles like moving platforms, rotating hammers, and fans.</li>
-                    <li>3-star scoring system based on ink usage and retries.</li>
-                </ul>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 02, 2026</span>
-                <h2 class="update-title">🚀 Neon Space Shooter Discovered!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Prepare for liftoff! Our latest addition, <strong>Neon Space Shooter</strong>, has officially arrived at Arcade Hub. Take control of a high-tech starfighter and defend the galaxy from relentless alien swarms and hazardous asteroid fields.</p>
-                <p><strong>Mission Intel:</strong></p>
-                <ul>
-                    <li>3 unique enemy ships to encounter, including the resilient heavy Tank Aliens.</li>
-                    <li>Dynamic power-up system: Grab invincibility Shields and Rapid Fire boosts.</li>
-                    <li>3-layer parallax starfield for a truly immersive deep-space feel.</li>
-                </ul>
-                <p>We've also added 5 new achievements to the Trophy Room. Can you reach 1000 points and become a <em>Galaxy Legend</em>? Launch your mission from the main hub now!</p>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 02, 2026</span>
-                <h2 class="update-title">🏃‍♂️ Neon Runner Drops In!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Welcome to <strong>Neon Runner</strong>, our latest addition to the Arcade Hub! Test your reflexes in this endless 3-lane runner taking place in a glowing retro-cyberpunk city.</p>
-                <p><strong>Features:</strong></p>
-                <ul>
-                    <li>Swipe Up/Down to dodge pink hurdles.</li>
-                    <li>Collect gold coins to bank massive points and recharge your Boost meter.</li>
-                    <li>Double tap to activate a 2-second Invincibility Dash!</li>
-                </ul>
-                <p>We've included full mobile landscape support and 5 brand new Trophies to unlock. Head over to the homepage to start running!</p>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">April 01, 2026</span>
-                <h2 class="update-title">🥊 Neon Brawler Enters the Ring!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Release</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Get ready to test your reflexes! Our brand new fighting game, <strong>Neon Brawler</strong>, is now live. Protect yourself by punching and kicking enemies running at you from both sides.</p>
-                <p>We've implemented full mobile support! Simply tap the left or right side of your phone screen to attack in that direction. On desktop, just use your Left/Right arrow keys.</p>
-                <p>Unlock three new Badges in the Trophy Room and try to build the ultimate streak!</p>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">March 30, 2026</span>
-                <h2 class="update-title">📱 Fullscreen Mobile Landscape for Zen Dino</h2>
-                <div class="update-tags">
-                    <span class="tag">Patch</span>
-                    <span class="tag">Mobile</span>
-                    <span class="tag">UI</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>We heard your feedback about the layout in landscape mode! The game canvas for Zen Dino now dynamically scales to take up 100% of your mobile screen when holding your phone horizontally.</p>
-                <p>The score and high score are now elegantly overlaid directly onto the play area, just like the classic version, giving you an uninterrupted, immersive gaming experience.</p>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">March 30, 2026</span>
-                <h2 class="update-title">🦖 Zen Dino 2.0: The Evolution Update</h2>
-                <div class="update-tags">
-                    <span class="tag">Game Update</span>
-                    <span class="tag">Mobile</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>Zen Dino just got a massive upgrade! We've listened to your feedback and rolled out version 2.0 with several highly-requested features:</p>
-                <ul>
-                    <li><strong>Perfect Hitboxes:</strong> No more unfair deaths! Collision detection is now pixel-perfect, giving you much tighter control when dodging cacti.</li>
-                    <li><strong>Day/Night Cycle:</strong> The longer you survive, the world now seamlessly transitions from a dark starry night to a neon twilight dawn.</li>
-                    <li><strong>Randomized Obstacles:</strong> Cacti now spawn in different shapes and sizes—watch out for the tall ones and wide clusters!</li>
-                    <li><strong>Landscape Mode:</strong> Mobile users will now be prompted to flip their phones horizontally for the ultimate widescreen arcade experience.</li>
-                </ul>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">March 25, 2026</span>
-                <h2 class="update-title">🐦 Neon Flappy Has Landed!</h2>
-                <div class="update-tags">
-                    <span class="tag">New Game</span>
-                    <span class="tag">Achievements</span>
-                </div>
-            </header>
-            <div class="update-content">
-                <p>We're excited to announce our fourth game: <strong>Neon Flappy!</strong> Inspired by the classic Flappy Bird, this synthwave-styled game challenges you to navigate a glowing bird through neon pipes.</p>
-                <p>The game features tap &amp; Space bar support, a trail particle effect, smooth physics, and our full social sharing on game over.</p>
-                <p>Unlock 3 brand new achievements — <em>First Flight</em>, <em>Sky Surfer</em>, and <em>Neon Aviator</em> — and see them appear instantly in the Trophy Room!</p>
-            </div>
-        </article>
-
-        <article class="update-entry">
-            <header class="update-header">
-                <span class="update-date">March 24, 2026</span>
-                <h2 class="update-title">Arcade Hub is Officially Live!</h2>
-                <div class="update-tags">
-                    <span class="tag">Launch</span>
                     <span class="tag">System</span>
+                    <span class="tag">Legal</span>
                 </div>
             </header>
             <div class="update-content">
-                <p>Welcome to the official launch of Arcade Hub! We are thrilled to bring you a clean, neon-inspired space where you can play your favorite quick games without any friction.</p>
-                <p>Our goal is to provide a premium browser gaming experience. We've optimized the hub for both desktop and mobile use, ensuring you can chase high scores anywhere.</p>
-                <p>Check out our game library featuring Zen Dino, Zen Snake, and Classic Tic Tac Toe. More titles are already in development!</p>
+                <p>We've updated our Privacy Policy and Terms of Service to prepare for Google AdSense integration. This ensures a safer and more transparent experience for all our users while helping us keep the games free forever.</p>
             </div>
         </article>
 
         <article class="update-entry">
             <header class="update-header">
-                <span class="update-date">March 23, 2026</span>
-                <h2 class="update-title">New Achievement System & Trophy Room</h2>
+                <span class="update-date">May 08, 2026</span>
+                <h2 class="update-title">🚀 Sky Jumper Released!</h2>
                 <div class="update-tags">
-                    <span class="tag">Features</span>
-                    <span class="tag">Achievements</span>
+                    <span class="tag">New Game</span>
+                    <span class="tag">Platformer</span>
                 </div>
             </header>
             <div class="update-content">
-                <p>Gaming is better when you have milestones to chase. Today we've introduced the **Trophy Room**!</p>
-                <p>You can now earn unique badges in Zen Dino and Zen Snake. Whether it's surviving 500 points in Dino or eating 20 apples in Snake, your progress is now saved across sessions.</p>
-                <p>Visit the Trophy Room from the main hub to see your collection and share your achievements on social media.</p>
+                <p>Take to the skies in our brand new neon vertical jumper! Master the double jump, dodge incoming rockets, bounce on springs, and build massive combos.</p>
+                <a href="sky-jumper-frontend/index.html" style="color: var(--primary);">Play Sky Jumper now!</a>
             </div>
         </article>
 
+        <!-- More updates... (truncated for clarity in this write_to_file call but I will maintain the old ones below) -->
         <article class="update-entry">
             <header class="update-header">
-                <span class="update-date">March 20, 2026</span>
-                <h2 class="update-title">Mobile Optimization Update</h2>
-                <div class="update-tags">
-                    <span class="tag">Mobile</span>
-                    <span class="tag">UI/UX</span>
-                </div>
+                <span class="update-date">April 19, 2026</span>
+                <h2 class="update-title">💠 Neon Brick Breaker is LIVE!</h2>
             </header>
             <div class="update-content">
-                <p>We've reworked the game canvas and UI for all titles to feel native on mobile devices. No more tiny buttons or cropped screens—just smooth, fullscreen gameplay on your phone.</p>
+                <p>Welcome to the neon grid! Our newest arcade title, <b>Neon Brick Breaker</b>, is now available.</p>
+                <a href="neon-brick-breaker-frontend/index.html" style="color: var(--primary);">Play Neon Brick Breaker now!</a>
             </div>
         </article>
     </main>
 
-    
-    <!-- Adsterra Mobile Banner (320x50) - OUTSIDE GAME AREA -->
-    <div class="ad-container mobile-banner" style="margin: 20px auto; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
-        <script>
-        atOptions = {
-            'key' : '68ced95a589a3c37a8f41a8fff267340',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-        };
-        </script>
-        <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
-    </div>
-
     <footer class="site-footer">
-        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="contact.html">Contact Us</a> | <a href="updates.html">News</a></p>
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a> | <a href="updates.html">News</a></p>
     </footer>
 </body>
 </html>

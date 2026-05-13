@@ -40,7 +40,13 @@ Add a new game card to the `.games-grid` section in the root `index.html`.
 ## 4. News Section (updates.html & index.html)
 Add a new `<article>` entry to the `updates.html` file to announce the release, AND add a shorter `<div class="news-item">` entry to the `.news-feed` section in `index.html` to ensure the updates stay synced.
 
-## 5. Verify & Push
+## 5. AdSense Compliance
+Every new game page MUST include:
+- [ ] **AdSense Script**: The `<script>` tag with the publisher ID `ca-pub-5174002360692771` in the `<head>`.
+- [ ] **No "Ad-Free" Claims**: Do not mention "no ads" in descriptions if the page will serve ads.
+- [ ] **Policy Check**: Ensure game content adheres to Google AdSense program policies.
+
+## 6. Verify & Push
 - Run `git add .`
-- Run `git commit -m "Added [Game Name] and updated SEO/Sitemap"`
+- Run `git commit -m "Added [Game Name] and updated SEO/Sitemap/AdSense"`
 - Run `git push`

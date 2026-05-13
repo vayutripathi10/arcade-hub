@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Helix Drop | Arcade Hub</title>
+    <meta name="description" content="Drop through the neon tower in Neon Helix Drop! An addictive hyper-casual arcade game where you rotate the tower to guide your ball to the bottom. Play for free on Arcade Hub.">
+    <meta name="keywords" content="neon helix drop, helix jump, hyper-casual, neon game, arcade hub, browser games">
+    <link rel="canonical" href="https://arcadehubplay.com/neon-helix-drop-frontend/index.html">
+    
+    <!-- Social Sharing -->
+    <meta property="og:title" content="Neon Helix Drop | Arcade Hub">
+    <meta property="og:description" content="Can you reach the bottom of the neon tower? High-speed helix action. No downloads, just play.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-helix-drop-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
+     crossorigin="anonymous"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <header id="hud">
+            <div class="hud-left">
+                <a href="../index.html" class="hub-btn">🏠 HUB</a>
+            </div>
+            <div class="hud-center">
+                <div id="score-container">
+                    <span id="score">0</span>
+                    <div id="best-container">BEST: <span id="best-score">0</span></div>
+                </div>
+            </div>
+            <div class="hud-right">
+                <button id="btn-sound" class="icon-btn">🔊</button>
+            </div>
+        </header>
+
+        <div id="progress-bar-container">
+            <div id="current-level-label">1</div>
+            <div id="progress-track">
+                <div id="progress-fill"></div>
+            </div>
+            <div id="next-level-label">2</div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Overlays -->
+        <div id="start-screen" class="overlay">
+            <h1 class="game-title">NEON<br>HELIX DROP</h1>
+            <p class="instruction">DRAG TO ROTATE TOWER</p>
+            <button id="btn-start" class="primary-btn">START DROP</button>
+        </div>
+
+        <div id="game-over" class="overlay hidden">
+            <h2 class="overlay-title">CRASHED!</h2>
+            <div class="stat-row">
+                <span>SCORE</span>
+                <span id="final-score">0</span>
+            </div>
+            <div class="stat-row">
+                <span>BEST</span>
+                <span id="final-best">0</span>
+            </div>
+            <button id="btn-restart" class="primary-btn">RETRY</button>
+            <a href="../index.html" class="secondary-btn">BACK TO HUB</a>
+        </div>
+
+        <!-- Ad Container for clearance -->
+        <div class="ad-footer-placeholder">
+            ADVERTISEMENT
+        </div>
+    </div>
+
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
