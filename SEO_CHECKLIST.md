@@ -50,6 +50,7 @@ Every new game page MUST include:
 - [ ] **3-Column Grid**: HUD must use `display: grid` with `1fr auto 1fr`.
 - [ ] **Alignment**: Left (HUB), Center (Score/Level), Right (Help/Sound/Pause).
 - [ ] **Help Overlay**: Every game MUST have a ❓ button and an instructional overlay.
+- [ ] **Social Sharing**: Every game MUST have WhatsApp and X buttons on the Game Over screen.
 - [ ] **Responsiveness**: Canvas height must account for HUD and Ad Footer.
 
 ## 7. Verify & Push

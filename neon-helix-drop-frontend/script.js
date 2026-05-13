@@ -73,81 +73,66 @@ class Ball {
             const dy = this.y - ring.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
-            // Proximity check: Only check collisions if vertically near the ring
-            if (Math.abs(dy) > RING_RADIUS + 50) return;
+            // 1. Collision / Bounce Logic (Proximity Gated)
+            if (Math.abs(dy) < RING_RADIUS + 50) {
+                const innerLimit = RING_RADIUS - BALL_RADIUS;
 
-            const innerLimit = RING_RADIUS - BALL_RADIUS;
+                // If the ball hits the inner wall
+                if (dist >= innerLimit) {
+                    // Calculate angle of the ball relative to ring center
+                    let angle = Math.atan2(dy, dx) - levelRotation;
+                    angle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
 
-            // If the ball hits the inner wall
-            if (dist >= innerLimit) {
-                // Calculate angle of the ball relative to ring center
-                let angle = Math.atan2(dy, dx) - levelRotation;
-                angle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-
-                // Check if we are in the gap
-                let inGap = false;
-                ring.slices.forEach(s => {
-                    if (s.type === 'gap' && angle >= s.start && angle <= s.end) {
-                        inGap = true;
-                    }
-                });
-
-                if (inGap) {
-                    // Ball is passing through the gap
-                    if (!this.isExiting) {
-                        // We are falling to the next level
-                        this.isExiting = true;
-                        // Score for passing through
-                    }
-                } else {
-                    // We hit a wall or hazard
-                    // Check for hazard
-                    let hitHazard = false;
+                    // Check if we are in the gap
+                    let inGap = false;
                     ring.slices.forEach(s => {
-                        if (s.type === 'hazard' && angle >= s.start && angle <= s.end) {
-                            hitHazard = true;
+                        if (s.type === 'gap' && angle >= s.start && angle <= s.end) {
+                            inGap = true;
                         }
                     });
 
-                    if (hitHazard) {
-                        gameOver();
-                        return;
-                    }
+                    if (inGap) {
+                        this.isExiting = true;
+                    } else {
+                        // We hit a wall or hazard
+                        let hitHazard = false;
+                        ring.slices.forEach(s => {
+                            if (s.type === 'hazard' && angle >= s.start && angle <= s.end) {
+                                hitHazard = true;
+                            }
+                        });
 
-                    // Perform Reflection (Bounce Inside)
-                    // Normal points toward center: n = (-dx/dist, -dy/dist)
-                    const nx = -dx / dist;
-                    const ny = -dy / dist;
+                        if (hitHazard) {
+                            gameOver();
+                            return;
+                        }
 
-                    // Reflect velocity: v' = v - 2(v . n)n
-                    const dot = this.vx * nx + this.vy * ny;
-                    
-                    // Only reflect if moving toward the wall
-                    if (dot < 0) {
-                        this.vx = (this.vx - 2 * dot * nx) * BOUNCE_DAMPING;
-                        this.vy = (this.vy - 2 * dot * ny) * BOUNCE_DAMPING;
-
-                        // Reposition ball inside boundary
-                        this.x = ring.x + nx * -innerLimit;
-                        this.y = ring.y + ny * -innerLimit;
-
-                        createParticles(this.x, this.y, ring.color);
+                        // Reflection (Bounce Inside)
+                        const nx = -dx / dist;
+                        const ny = -dy / dist;
+                        const dot = this.vx * nx + this.vy * ny;
+                        
+                        if (dot < 0) {
+                            this.vx = (this.vx - 2 * dot * nx) * BOUNCE_DAMPING;
+                            this.vy = (this.vy - 2 * dot * ny) * BOUNCE_DAMPING;
+                            this.x = ring.x + nx * -innerLimit;
+                            this.y = ring.y + ny * -innerLimit;
+                            createParticles(this.x, this.y, ring.color);
+                        }
                     }
                 }
             }
 
-            // Check if passed completely through to next level
-            if (this.isExiting && dist > RING_RADIUS + 50) {
-                this.isExiting = false;
-                score += 10;
-                updateScore();
-                
-                // If we passed the current target level, increment
+            // 2. Progression Logic (Always checked once we start exiting)
+            if (this.isExiting && this.y > ring.y + RING_RADIUS) {
+                // If this is the current ring we are supposed to clear
                 if (index === level - 1) {
+                    this.isExiting = false;
+                    score += 10;
+                    updateScore();
                     level++;
                     currentLevelEl.textContent = level;
                     nextLevelEl.textContent = level + 1;
-                    // Add more rings if needed
                     if (rings.length < level + 5) {
                         addRing(rings.length);
                     }
