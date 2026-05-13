@@ -25,6 +25,7 @@ const nextLevelEl = document.getElementById('next-level-label');
 
 // Game State
 let gameState = 'START';
+let isPaused = false;
 let score = 0;
 let bestScore = localStorage.getItem('helixBestScore') || 0;
 let level = 1;
@@ -227,6 +228,8 @@ function restartGame() {
     score = 0;
     level = 1;
     towerY = 0;
+    isPaused = false;
+    document.getElementById('btn-pause').textContent = '⏸';
     ball.reset();
     generateLevel();
     updateScore();
@@ -314,6 +317,12 @@ function handleUp() {
     isDragging = false;
 }
 
+function togglePause() {
+    if (gameState !== 'PLAYING') return;
+    isPaused = !isPaused;
+    document.getElementById('btn-pause').textContent = isPaused ? '▶️' : '⏸';
+}
+
 window.addEventListener('mousedown', handleDown);
 window.addEventListener('mousemove', handleMove);
 window.addEventListener('mouseup', handleUp);
@@ -323,19 +332,22 @@ window.addEventListener('touchend', handleUp);
 
 document.getElementById('btn-start').addEventListener('click', restartGame);
 document.getElementById('btn-restart').addEventListener('click', restartGame);
+document.getElementById('btn-pause').addEventListener('click', togglePause);
 
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
-        // Momentum
-        if (!isDragging) {
-            rotationVelocity *= 0.95;
-        }
-        towerRotation += rotationVelocity;
+        if (!isPaused || gameState === 'GAMEOVER') {
+            // Momentum
+            if (!isDragging) {
+                rotationVelocity *= 0.95;
+            }
+            towerRotation += rotationVelocity;
 
-        ball.update();
-        updateParticles();
+            ball.update();
+            updateParticles();
+        }
 
         drawTower();
         platforms.forEach(p => p.draw());

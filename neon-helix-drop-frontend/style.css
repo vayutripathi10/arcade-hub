@@ -40,14 +40,32 @@ body {
 
 #hud {
     height: var(--hud-height);
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    padding: 0 20px;
-    background: rgba(0, 0, 0, 0.5);
+    padding: 0 15px;
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
     z-index: 10;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hud-left {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.hud-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 100px;
+}
+
+.hud-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
 }
 
 .hub-btn {
