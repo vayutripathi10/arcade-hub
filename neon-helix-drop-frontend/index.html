@@ -4,17 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Neon Helix Drop | Arcade Hub</title>
-    <meta name="description" content="Drop through the neon tower in Neon Helix Drop! An addictive hyper-casual arcade game where you rotate the tower to guide your ball to the bottom. Play for free on Arcade Hub.">
-    <meta name="keywords" content="neon helix drop, helix jump, hyper-casual, neon game, arcade hub, browser games">
-    <link rel="canonical" href="https://arcadehubplay.com/neon-helix-drop-frontend/index.html">
+    <meta name="description" content="Bounce inside the neon circles in Neon Helix Drop! Reimagined physics: stay inside the rotating ring and find the gap to drop. Play for free on Arcade Hub.">
     
     <!-- Social Sharing -->
     <meta property="og:title" content="Neon Helix Drop | Arcade Hub">
-    <meta property="og:description" content="Can you reach the bottom of the neon tower? High-speed helix action. No downloads, just play.">
+    <meta property="og:description" content="Can you stay inside the neon ring? New physics overhaul. No downloads, just play.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://arcadehubplay.com/neon-helix-drop-frontend/index.html">
     <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
-    <meta name="twitter:card" content="summary">
 
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
@@ -57,16 +54,16 @@
             <h2 class="overlay-title">HOW TO PLAY</h2>
             <div class="instruction-box">
                 <div class="instruction-item">
-                    <span class="icon">🌀</span>
-                    <p>Rotate the tower to find the gaps!</p>
+                    <span class="icon">🏀</span>
+                    <p>Bounce <b>inside</b> the rotating neon circle!</p>
                 </div>
                 <div class="instruction-item">
-                    <span class="icon">🚀</span>
-                    <p>Drop through multiple gaps for <b>Fever Mode</b>!</p>
+                    <span class="icon">🌀</span>
+                    <p>Rotate the gap to the bottom to drop out!</p>
                 </div>
                 <div class="instruction-item">
                     <span class="icon">⚠️</span>
-                    <p>Avoid the <span style="color: var(--danger)">red deadly</span> zones!</p>
+                    <p>Avoid hitting <span style="color: var(--danger)">red deadly</span> segments!</p>
                 </div>
             </div>
             <p class="control-text"><b>PC:</b> Drag Mouse or use Arrows<br><b>Mobile:</b> Touch & Drag</p>
@@ -75,7 +72,7 @@
 
         <div id="start-screen" class="overlay">
             <h1 class="game-title">NEON<br>HELIX DROP</h1>
-            <p class="instruction">DRAG TO ROTATE TOWER</p>
+            <p class="instruction">BOUNCE INSIDE. FIND THE GAP.</p>
             <button id="btn-start" class="primary-btn">START DROP</button>
         </div>
 
@@ -89,6 +86,15 @@
                 <span>BEST</span>
                 <span id="final-best">0</span>
             </div>
+            
+            <div class="share-section">
+                <p>SHARE SCORE</p>
+                <div class="share-btns">
+                    <button id="share-wa" class="share-btn wa">WhatsApp</button>
+                    <button id="share-x" class="share-btn x">X (Twitter)</button>
+                </div>
+            </div>
+
             <button id="btn-restart" class="primary-btn">RETRY</button>
             <a href="../index.html" class="secondary-btn">BACK TO HUB</a>
         </div>

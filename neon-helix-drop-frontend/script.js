@@ -1,18 +1,18 @@
 // Game Constants
-const CANVAS_WIDTH = 400;
-const CANVAS_HEIGHT = 700;
-const TOWER_RADIUS = 60;
-const PLATFORM_GAP = 180;
-const BALL_RADIUS = 8;
-const GRAVITY = 0.35;
-const BOUNCE_FORCE = -8;
-const ROTATION_SPEED = 0.005;
+const BALL_RADIUS = 10;
+const RING_RADIUS = 100;
+const RING_THICKNESS = 15;
+const GRAVITY = 0.4;
+const BOUNCE_DAMPING = 0.8;
+const ROTATION_MOMENTUM = 0.95;
+const GAP_SIZE = 0.8; // Radians
+
 const COLORS = {
     primary: '#00f3ff',
     secondary: '#ff00ea',
     danger: '#ff3c00',
     bg: '#050505',
-    tower: '#1a1a1a'
+    ring: '#1a1a1a'
 };
 
 const canvas = document.getElementById('gameCanvas');
@@ -29,109 +29,141 @@ let isPaused = false;
 let score = 0;
 let bestScore = localStorage.getItem('helixBestScore') || 0;
 let level = 1;
-let towerRotation = 0;
-let rotationVelocity = 0;
-let towerY = 0; // Camera scroll
-let platforms = [];
+let cameraY = 0;
+let rings = [];
 let particles = [];
-let feverMode = 0; // Invincibility progress
 
 // Input Handling
 let isDragging = false;
 let lastMouseX = 0;
+let rotationVelocity = 0;
+let levelRotation = 0;
 
 class Ball {
     constructor() {
-        this.reset();
+        this.reset(0, 0);
     }
 
-    reset() {
-        this.y = 100;
+    reset(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
         this.vy = 0;
-        this.prevY = 100;
-        this.isInvincible = false;
+        this.isExiting = false;
     }
 
     update() {
-        if (gameState !== 'PLAYING') return;
+        if (gameState !== 'PLAYING' || isPaused) return;
 
-        this.prevY = this.y;
+        // Apply Gravity
         this.vy += GRAVITY;
+        this.x += this.vx;
         this.y += this.vy;
 
-        // Fever mode update
-        if (feverMode >= 3) {
-            this.isInvincible = true;
-            this.vy = 15; // Fast drop
-        } else {
-            this.isInvincible = false;
-        }
+        // Friction / Air resistance
+        this.vx *= 0.99;
 
-        // Check collisions
         this.checkCollisions();
-
-        // Update Camera
-        const targetTowerY = -this.y + 250;
-        towerY += (targetTowerY - towerY) * 0.1;
     }
 
     checkCollisions() {
-        platforms.forEach(p => {
-            // Ball just passed the platform plane
-            if (this.prevY < p.y && this.y >= p.y) {
-                // Calculate which slice the ball is over
-                // The ball is at screen angle 0 relative to the tower center
-                // Since the tower is rotated by towerRotation, the ball is at angle -towerRotation relative to the tower
-                let normalizedRotation = towerRotation % (Math.PI * 2);
-                if (normalizedRotation < 0) normalizedRotation += Math.PI * 2;
-                
-                // Angle of the ball relative to the platform's local coordinates
-                let angleOfBall = (Math.PI * 2 - normalizedRotation) % (Math.PI * 2);
-                
-                let hitPlatform = false;
-                let hitHazard = false;
+        // Find the ring the ball is currently inside or near
+        rings.forEach((ring, index) => {
+            const dx = this.x - ring.x;
+            const dy = this.y - ring.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            const innerLimit = RING_RADIUS - BALL_RADIUS;
 
-                p.slices.forEach(s => {
-                    if (angleOfBall >= s.start && angleOfBall <= s.end) {
-                        if (s.type === 'hazard') hitHazard = true;
-                        hitPlatform = true;
+            // If the ball hits the inner wall
+            if (dist >= innerLimit) {
+                // Calculate angle of the ball relative to ring center
+                let angle = Math.atan2(dy, dx) - levelRotation;
+                angle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+
+                // Check if we are in the gap
+                let inGap = false;
+                ring.slices.forEach(s => {
+                    if (s.type === 'gap' && angle >= s.start && angle <= s.end) {
+                        inGap = true;
                     }
                 });
 
-                if (hitPlatform) {
-                    if (hitHazard && !this.isInvincible) {
-                        gameOver();
-                    } else {
-                        this.y = p.y;
-                        this.vy = BOUNCE_FORCE;
-                        feverMode = 0;
-                        createParticles(this.y, p.color);
+                if (inGap) {
+                    // Ball is passing through the gap
+                    if (!this.isExiting) {
+                        // We are falling to the next level
+                        this.isExiting = true;
+                        // Score for passing through
                     }
                 } else {
-                    // Passed through gap
-                    score += 10;
-                    feverMode += 0.5;
-                    updateScore();
+                    // We hit a wall or hazard
+                    // Check for hazard
+                    let hitHazard = false;
+                    ring.slices.forEach(s => {
+                        if (s.type === 'hazard' && angle >= s.start && angle <= s.end) {
+                            hitHazard = true;
+                        }
+                    });
+
+                    if (hitHazard) {
+                        gameOver();
+                        return;
+                    }
+
+                    // Perform Reflection (Bounce Inside)
+                    // Normal points toward center: n = (-dx/dist, -dy/dist)
+                    const nx = -dx / dist;
+                    const ny = -dy / dist;
+
+                    // Reflect velocity: v' = v - 2(v . n)n
+                    const dot = this.vx * nx + this.vy * ny;
                     
-                    // Check level progress
-                    if (p.isEnd) {
-                        nextLevel();
+                    // Only reflect if moving toward the wall
+                    if (dot < 0) {
+                        this.vx = (this.vx - 2 * dot * nx) * BOUNCE_DAMPING;
+                        this.vy = (this.vy - 2 * dot * ny) * BOUNCE_DAMPING;
+
+                        // Reposition ball inside boundary
+                        this.x = ring.x + nx * -innerLimit;
+                        this.y = ring.y + ny * -innerLimit;
+
+                        createParticles(this.x, this.y, ring.color);
+                    }
+                }
+            }
+
+            // Check if passed completely through to next level
+            if (this.isExiting && dist > RING_RADIUS + 50) {
+                this.isExiting = false;
+                score += 10;
+                updateScore();
+                
+                // If we passed the current target level, increment
+                if (index === level - 1) {
+                    level++;
+                    currentLevelEl.textContent = level;
+                    nextLevelEl.textContent = level + 1;
+                    // Add more rings if needed
+                    if (rings.length < level + 5) {
+                        addRing(rings.length);
                     }
                 }
             }
         });
+
+        // Update Camera to follow ball
+        const targetY = -this.y + canvas.height * 0.4;
+        cameraY += (targetY - cameraY) * 0.1;
     }
 
     draw() {
         ctx.save();
-        // Offset the ball to sit centered on the ring (TOWER_RADIUS + 18)
-        ctx.translate(canvas.width / 2 + TOWER_RADIUS + 18, towerY + this.y);
+        ctx.translate(this.x, cameraY + this.y);
         
-        // Glow
         ctx.shadowBlur = 15;
-        ctx.shadowColor = this.isInvincible ? COLORS.secondary : COLORS.primary;
-        
-        ctx.fillStyle = this.isInvincible ? COLORS.secondary : COLORS.primary;
+        ctx.shadowColor = COLORS.primary;
+        ctx.fillStyle = COLORS.primary;
         ctx.beginPath();
         ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
         ctx.fill();
@@ -139,55 +171,49 @@ class Ball {
     }
 }
 
-class Platform {
-    constructor(y, levelNum, isEnd = false) {
+class Ring {
+    constructor(y, levelIdx) {
+        this.x = canvas.width / 2;
         this.y = y;
-        this.isEnd = isEnd;
+        this.color = (levelIdx % 2 === 0) ? COLORS.primary : COLORS.secondary;
         this.slices = [];
-        this.color = isEnd ? COLORS.secondary : COLORS.primary;
+        this.generateSlices(levelIdx);
+    }
+
+    generateSlices(levelIdx) {
+        const numSlices = 12;
+        const sliceAngle = (Math.PI * 2) / numSlices;
+        const gapIdx = Math.floor(Math.random() * numSlices);
         
-        if (isEnd) {
-            this.slices.push({ start: 0, end: Math.PI * 2, type: 'normal' });
-        } else {
-            const gapSize = Math.max(0.5, 1.2 - levelNum * 0.05);
-            const numSlices = 8;
-            const sliceAngle = (Math.PI * 2) / numSlices;
+        for (let i = 0; i < numSlices; i++) {
+            const start = i * sliceAngle;
+            const end = (i + 1) * sliceAngle;
             
-            // Randomly pick a gap
-            const gapIndex = Math.floor(Math.random() * numSlices);
-            
-            for (let i = 0; i < numSlices; i++) {
-                if (i === gapIndex) continue;
-                
-                const type = (Math.random() < 0.15 + levelNum * 0.02) ? 'hazard' : 'normal';
-                this.slices.push({
-                    start: i * sliceAngle,
-                    end: (i + 1) * sliceAngle,
-                    type: type
-                });
+            if (i === gapIdx) {
+                this.slices.push({ start, end, type: 'gap' });
+            } else {
+                const isHazard = Math.random() < (0.1 + levelIdx * 0.02);
+                this.slices.push({ start, end, type: isHazard ? 'hazard' : 'normal' });
             }
         }
     }
 
     draw() {
-        const screenY = towerY + this.y;
-        if (screenY < -100 || screenY > canvas.height + 100) return;
-
         ctx.save();
-        ctx.translate(canvas.width / 2, screenY);
-        ctx.rotate(towerRotation);
+        ctx.translate(this.x, cameraY + this.y);
+        ctx.rotate(levelRotation);
 
         this.slices.forEach(s => {
+            if (s.type === 'gap') return;
+
             ctx.beginPath();
-            ctx.lineWidth = 15;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = s.type === 'hazard' ? COLORS.danger : this.color;
-            
-            // Neon Glow
+            ctx.lineWidth = RING_THICKNESS;
+            ctx.strokeStyle = (s.type === 'hazard') ? COLORS.danger : this.color;
             ctx.shadowBlur = 10;
             ctx.shadowColor = ctx.strokeStyle;
             
-            ctx.arc(0, 0, TOWER_RADIUS + 20, s.start + 0.1, s.end - 0.1);
+            // Draw inner arc
+            ctx.arc(0, 0, RING_RADIUS, s.start + 0.05, s.end - 0.05);
             ctx.stroke();
         });
 
@@ -197,14 +223,8 @@ class Platform {
 
 const ball = new Ball();
 
-function generateLevel() {
-    platforms = [];
-    const numPlatforms = 10 + level * 2;
-    for (let i = 0; i < numPlatforms; i++) {
-        platforms.push(new Platform(300 + i * PLATFORM_GAP, level, i === numPlatforms - 1));
-    }
-    currentLevelEl.textContent = level;
-    nextLevelEl.textContent = level + 1;
+function addRing(i) {
+    rings.push(new Ring(300 + i * 400, i));
 }
 
 function updateScore() {
@@ -214,14 +234,6 @@ function updateScore() {
         bestScoreEl.textContent = Math.floor(bestScore);
         localStorage.setItem('helixBestScore', bestScore);
     }
-}
-
-function nextLevel() {
-    level++;
-    score += 100;
-    ball.reset();
-    generateLevel();
-    updateScore();
 }
 
 function gameOver() {
@@ -234,93 +246,22 @@ function gameOver() {
 function restartGame() {
     score = 0;
     level = 1;
-    towerY = 0;
-    isPaused = false;
-    document.getElementById('btn-pause').textContent = '⏸';
-    ball.reset();
-    generateLevel();
+    cameraY = 0;
+    rings = [];
+    levelRotation = 0;
+    rotationVelocity = 0;
+    
+    for (let i = 0; i < 5; i++) addRing(i);
+    
+    ball.reset(canvas.width / 2, rings[0].y);
+    
     updateScore();
+    currentLevelEl.textContent = level;
+    nextLevelEl.textContent = level + 1;
+    
     gameState = 'PLAYING';
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over').classList.add('hidden');
-}
-
-function createParticles(y, color) {
-    for (let i = 0; i < 8; i++) {
-        particles.push({
-            x: canvas.width / 2 + TOWER_RADIUS + 18 + (Math.random() - 0.5) * 20,
-            y: y,
-            vx: (Math.random() - 0.5) * 4,
-            vy: (Math.random() - 0.5) * 4,
-            life: 1.0,
-            color: color
-        });
-    }
-}
-
-function updateParticles() {
-    particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 0.02;
-        if (p.life <= 0) particles.splice(i, 1);
-    });
-}
-
-function drawParticles() {
-    particles.forEach(p => {
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, towerY + p.y, 3, 0, Math.PI * 2);
-        ctx.fill();
-    });
-    ctx.globalAlpha = 1.0;
-}
-
-function drawTower() {
-    ctx.fillStyle = COLORS.tower;
-    ctx.fillRect(canvas.width / 2 - TOWER_RADIUS, 0, TOWER_RADIUS * 2, canvas.height);
-    
-    // Tower highlights for rotation feel
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 4; i++) {
-        const x = canvas.width / 2 - TOWER_RADIUS + (i * TOWER_RADIUS * 0.5) + (towerRotation * 20) % (TOWER_RADIUS * 0.5);
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-}
-
-function resize() {
-    const container = document.getElementById('game-container');
-    const hud = document.getElementById('hud');
-    
-    const availableHeight = container.clientHeight - hud.clientHeight;
-    
-    // Maintain aspect ratio or fill width
-    canvas.width = container.clientWidth;
-    canvas.height = availableHeight;
-}
-
-// Input Events
-function handleDown(e) {
-    isDragging = true;
-    lastMouseX = e.clientX || e.touches[0].clientX;
-}
-
-function handleMove(e) {
-    if (!isDragging) return;
-    const x = e.clientX || e.touches[0].clientX;
-    const deltaX = x - lastMouseX;
-    rotationVelocity = deltaX * 0.01;
-    lastMouseX = x;
-}
-
-function handleUp() {
-    isDragging = false;
 }
 
 function togglePause() {
@@ -329,11 +270,60 @@ function togglePause() {
     document.getElementById('btn-pause').textContent = isPaused ? '▶️' : '⏸';
 }
 
+function toggleHelp(show) {
+    const helpOverlay = document.getElementById('how-to-play');
+    if (show) {
+        helpOverlay.classList.remove('hidden');
+        if (gameState === 'PLAYING' && !isPaused) togglePause();
+    } else {
+        helpOverlay.classList.add('hidden');
+    }
+}
+
+function createParticles(x, y, color) {
+    for (let i = 0; i < 5; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 1.0,
+            color
+        });
+    }
+}
+
+// Social Sharing
+function shareWA() {
+    const text = `I just scored ${score} in Neon Helix Drop! Can you beat me? 🌀 Play here: ${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+}
+
+function shareX() {
+    const text = `I just scored ${score} in Neon Helix Drop! Can you beat me? 🌀 #ArcadeHub #Gaming`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+}
+
+// Input Events
+function handleDown(e) {
+    isDragging = true;
+    lastMouseX = e.clientX || (e.touches && e.touches[0].clientX);
+}
+
+function handleMove(e) {
+    if (!isDragging) return;
+    const x = e.clientX || (e.touches && e.touches[0].clientX);
+    const deltaX = x - lastMouseX;
+    rotationVelocity = deltaX * 0.005;
+    lastMouseX = x;
+}
+
+function handleUp() { isDragging = false; }
+
 window.addEventListener('mousedown', handleDown);
 window.addEventListener('mousemove', handleMove);
 window.addEventListener('mouseup', handleUp);
-window.addEventListener('touchstart', handleDown);
-window.addEventListener('touchmove', handleMove);
+window.addEventListener('touchstart', handleDown, { passive: false });
+window.addEventListener('touchmove', handleMove, { passive: false });
 window.addEventListener('touchend', handleUp);
 
 document.getElementById('btn-start').addEventListener('click', restartGame);
@@ -341,17 +331,16 @@ document.getElementById('btn-restart').addEventListener('click', restartGame);
 document.getElementById('btn-pause').addEventListener('click', togglePause);
 document.getElementById('btn-help').addEventListener('click', () => toggleHelp(true));
 document.getElementById('btn-close-help').addEventListener('click', () => toggleHelp(false));
+document.getElementById('share-wa').addEventListener('click', shareWA);
+document.getElementById('share-x').addEventListener('click', shareX);
 
-function toggleHelp(show) {
-    const helpOverlay = document.getElementById('how-to-play');
-    if (show) {
-        helpOverlay.classList.remove('hidden');
-        if (gameState === 'PLAYING' && !isPaused) {
-            togglePause();
-        }
-    } else {
-        helpOverlay.classList.add('hidden');
-    }
+function resize() {
+    const container = document.getElementById('game-container');
+    const hud = document.getElementById('hud');
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight - hud.clientHeight;
+    // Update ring X positions
+    rings.forEach(r => r.x = canvas.width / 2);
 }
 
 function loop() {
@@ -359,25 +348,31 @@ function loop() {
     
     if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
         if (!isPaused || gameState === 'GAMEOVER') {
-            // Momentum
-            if (!isDragging) {
-                rotationVelocity *= 0.95;
-            }
-            towerRotation += rotationVelocity;
-
+            if (!isDragging) rotationVelocity *= ROTATION_MOMENTUM;
+            levelRotation += rotationVelocity;
             ball.update();
-            updateParticles();
+            
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                if (p.life <= 0) particles.splice(i, 1);
+            });
         }
 
-        drawTower();
-        platforms.forEach(p => p.draw());
-        drawParticles();
+        rings.forEach(r => r.draw());
+        
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, cameraY + p.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+        
         ball.draw();
 
-        // Update progress bar
-        const startY = 300;
-        const endY = platforms[platforms.length - 1].y;
-        const progress = Math.min(100, Math.max(0, ((ball.y - startY) / (endY - startY)) * 100));
+        // Update progress bar based on level index
+        const progress = Math.min(100, ((level - 1) % 10) * 10);
         progressFill.style.width = progress + '%';
     }
     
@@ -386,6 +381,5 @@ function loop() {
 
 window.addEventListener('resize', resize);
 resize();
-generateLevel();
 bestScoreEl.textContent = Math.floor(bestScore);
 loop();
