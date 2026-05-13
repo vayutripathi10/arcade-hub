@@ -73,6 +73,9 @@ class Ball {
             const dy = this.y - ring.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             
+            // Proximity check: Only check collisions if vertically near the ring
+            if (Math.abs(dy) > RING_RADIUS + 50) return;
+
             const innerLimit = RING_RADIUS - BALL_RADIUS;
 
             // If the ball hits the inner wall
