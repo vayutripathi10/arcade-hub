@@ -13,7 +13,7 @@
     --bg-color: #07080f;
     --hud-bg: rgba(0, 0, 0, 0.85);
     --hud-height: 60px;
-    --ad-height: 90px;
+    --ad-height: 0px;
 }
 
 html, body {
@@ -53,7 +53,7 @@ html, body {
 @media (max-width: 600px) {
     :root {
         --hud-height: 48px;
-        --ad-height: 50px;
+        --ad-height: 0px;
     }
     #hud {
         height: var(--hud-height);

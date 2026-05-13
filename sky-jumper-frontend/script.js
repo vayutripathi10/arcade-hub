@@ -26,8 +26,8 @@ let cw, ch;
 // Layout Constants
 const HUD_HEIGHT_DESKTOP = 60;
 const HUD_HEIGHT_MOBILE = 48;
-const AD_HEIGHT_DESKTOP = 90;
-const AD_HEIGHT_MOBILE = 50;
+const AD_HEIGHT_DESKTOP = 0;
+const AD_HEIGHT_MOBILE = 0;
 let HUD_HEIGHT = HUD_HEIGHT_DESKTOP;
 let AD_HEIGHT = AD_HEIGHT_DESKTOP;
 
