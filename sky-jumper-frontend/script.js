@@ -60,6 +60,9 @@ const bestScoreEl = document.getElementById('best-score');
 const comboFlash = document.getElementById('combo-flash');
 const btnShareWA = document.getElementById('btn-share-wa');
 const btnShareX = document.getElementById('btn-share-x');
+const btnHelp = document.getElementById('btn-help');
+const btnCloseHelp = document.getElementById('btn-close-help');
+const screenHelp = document.getElementById('how-to-play');
 
 // Virtual Buttons
 const vbtnLeft = document.getElementById('vbtn-left');
@@ -801,7 +804,18 @@ function resumeGame() {
     if (gameState === 'PAUSED') {
         gameState = 'PLAYING';
         screenPause.classList.add('hidden');
+        screenHelp.classList.add('hidden');
         btnPause.innerText = '⏸️';
+    }
+}
+
+function toggleHelp(show) {
+    if (show) {
+        screenHelp.classList.remove('hidden');
+        if (gameState === 'PLAYING') pauseGame();
+    } else {
+        screenHelp.classList.add('hidden');
+        // Do NOT auto-resume because user might have paused manually before clicking help
     }
 }
 
@@ -838,6 +852,9 @@ btnShareX.addEventListener('click', () => {
     const url = encodeURIComponent('http://arcadehubplay.com/sky-jumper-frontend/');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 });
+
+btnHelp.addEventListener('click', () => toggleHelp(true));
+btnCloseHelp.addEventListener('click', () => toggleHelp(false));
 
 // Init
 resetGame();

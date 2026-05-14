@@ -37,6 +37,7 @@
                 <div id="level-display" class="level-tag">LVL 1</div>
             </div>
             <div class="hud-right">
+                <button id="btn-help" class="hud-btn" title="How to Play">❓</button>
                 <button id="btn-sound" class="hud-btn">🔊</button>
                 <button id="btn-pause" class="hud-btn">⏸️</button>
             </div>
@@ -85,6 +86,27 @@
             <div id="screen-pause" class="overlay hidden">
                 <h1 class="pause-title">PAUSED</h1>
                 <button id="btn-resume" class="action-btn">RESUME</button>
+            </div>
+
+            <!-- How to Play Overlay -->
+            <div id="how-to-play" class="overlay hidden">
+                <h2 class="overlay-title">HOW TO PLAY</h2>
+                <div class="instruction-box">
+                    <div class="instruction-item">
+                        <span class="icon">🚀</span>
+                        <p><b>Jump</b> to reach new heights!</p>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="icon">✨</span>
+                        <p>Collect <b>Coins</b> for huge combos!</p>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="icon">⚠️</span>
+                        <p>Avoid <b>Rockets & Spikes</b>!</p>
+                    </div>
+                </div>
+                <p class="control-text"><b>PC:</b> Arrows to Move | Space to Jump<br><b>Mobile:</b> Tap sides to Move/Jump</p>
+                <button id="btn-close-help" class="action-btn">GOT IT!</button>
             </div>
         </div>
 
