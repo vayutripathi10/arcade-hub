@@ -24,25 +24,30 @@
 </head>
 <body>
     <div id="gameWrapper">
-        <header class="header">
-            <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
-            <div class="hud-pill">
-                <div class="hud-stat">
-                    <span class="hud-label">TIME</span>
-                    <span id="ui-time" class="hud-value">00:00</span>
-                </div>
-                <div class="hud-divider"></div>
-                <div class="hud-stat">
-                    <span class="hud-label">LEVEL</span>
-                    <span id="ui-level" class="hud-value">1</span>
-                </div>
-                <div class="hud-divider"></div>
-                <div class="hud-stat">
-                    <span class="hud-label">KILLS</span>
-                    <span id="ui-kills" class="hud-value">0</span>
+        <header id="hud">
+            <div class="hud-left">
+                <a href="../index.html" class="hub-btn">🏠 HUB</a>
+            </div>
+            <div class="hud-center">
+                <div class="hud-pill">
+                    <div class="hud-stat">
+                        <span class="hud-label">TIME</span>
+                        <span id="ui-time" class="hud-value">00:00</span>
+                    </div>
+                    <div class="hud-divider"></div>
+                    <div class="hud-stat">
+                        <span class="hud-label">LVL</span>
+                        <span id="ui-level" class="hud-value">1</span>
+                    </div>
+                    <div class="hud-divider"></div>
+                    <div class="hud-stat">
+                        <span class="hud-label">KILLS</span>
+                        <span id="ui-kills" class="hud-value">0</span>
+                    </div>
                 </div>
             </div>
-            <div class="header-controls">
+            <div class="hud-right">
+                <button id="btn-help" class="icon-btn" title="How to Play">❓</button>
                 <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
                 <button id="btn-pause" class="icon-btn" title="Pause Game">⏸</button>
             </div>
@@ -58,10 +63,31 @@
             <button id="btn-how" class="btn">HOW TO PLAY</button>
         </div>
 
-        <div id="pauseMenu" class="overlay hidden">
+        <div id="pauseOverlay" class="overlay hidden">
             <h1>PAUSED</h1>
+            <p>Mission suspended.</p>
             <button id="btn-resume" class="btn">RESUME</button>
-            <button id="btn-quit" class="btn">QUIT RUN</button>
+        </div>
+
+        <!-- How to Play Overlay -->
+        <div id="how-to-play" class="overlay hidden">
+            <h2 class="overlay-title">HOW TO PLAY</h2>
+            <div class="instruction-box">
+                <div class="instruction-item">
+                    <span class="icon">🕹️</span>
+                    <p><b>Move</b> to dodge enemies and collect XP!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">🔫</span>
+                    <p>Your weapon fires <b>Automatically</b>!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">⬆️</span>
+                    <p><b>Level Up</b> to choose powerful upgrades!</p>
+                </div>
+            </div>
+            <p class="control-text"><b>PC:</b> WASD / Arrows to Move<br><b>Mobile:</b> Drag Virtual Joystick</p>
+            <button id="btn-close-help" class="btn">GOT IT!</button>
         </div>
 
         <div id="gameOverMenu" class="go-overlay hidden">

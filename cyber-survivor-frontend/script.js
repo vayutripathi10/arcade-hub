@@ -16,8 +16,36 @@ const howToPlayModal = document.getElementById('howToPlayModal');
 document.getElementById('btn-start').addEventListener('click', startGame);
 document.getElementById('btn-how').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
 document.getElementById('btn-close-how').addEventListener('click', () => howToPlayModal.classList.add('hidden'));
-document.getElementById('btn-pause').addEventListener('click', togglePause);
-document.getElementById('btn-resume').addEventListener('click', togglePause);
+const btnPause = document.getElementById('btn-pause');
+const btnResume = document.getElementById('btn-resume');
+const btnHelp = document.getElementById('btn-help');
+const btnCloseHelp = document.getElementById('btn-close-help');
+const howToPlayOverlay = document.getElementById('how-to-play');
+
+btnPause.addEventListener('click', () => {
+    if (gameState === 'playing') pauseGame();
+});
+
+btnResume.addEventListener('click', () => {
+    resumeGame();
+});
+
+btnHelp.addEventListener('click', () => {
+    toggleHelp(true);
+});
+
+btnCloseHelp.addEventListener('click', () => {
+    toggleHelp(false);
+});
+
+function toggleHelp(show) {
+    if (show) {
+        howToPlayOverlay.classList.remove('hidden');
+        if (gameState === 'playing') pauseGame();
+    } else {
+        howToPlayOverlay.classList.add('hidden');
+    }
+}
 document.getElementById('btn-quit').addEventListener('click', quitGame);
 document.getElementById('btn-restart-go').addEventListener('click', startGame);
 document.getElementById('btn-mute').addEventListener('click', () => window.audioFX && window.audioFX.toggleMute());
