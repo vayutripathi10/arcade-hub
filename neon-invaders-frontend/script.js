@@ -444,7 +444,6 @@ canvas.addEventListener('mousedown', e => {
     if (gameState === 'PLAYING') {
         isDragging = true;
         player.targetX = e.clientX;
-        firePlayer();
     }
 });
 canvas.addEventListener('mousemove', e => {
@@ -456,7 +455,6 @@ canvas.addEventListener('touchstart', e => {
     if (gameState === 'PLAYING') {
         isDragging = true;
         player.targetX = e.touches[0].clientX;
-        firePlayer();
     }
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
@@ -470,6 +468,14 @@ document.getElementById('btn-pause').addEventListener('click', togglePause);
 document.getElementById('btn-sound').addEventListener('click', toggleSound);
 document.getElementById('btn-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(true); });
 document.getElementById('btn-close-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(false); });
+
+const btnFire = document.getElementById('btn-fire');
+const handleFire = (e) => {
+    e.preventDefault();
+    firePlayer();
+};
+btnFire.addEventListener('touchstart', handleFire, { passive: false });
+btnFire.addEventListener('mousedown', handleFire);
 
 // Social
 document.getElementById('share-wa').addEventListener('click', () => {
