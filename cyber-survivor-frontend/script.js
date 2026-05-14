@@ -6,28 +6,27 @@ const uiTime = document.getElementById('ui-time');
 const uiLevel = document.getElementById('ui-level');
 const uiKills = document.getElementById('ui-kills');
 const mainMenu = document.getElementById('mainMenu');
-const pauseMenu = document.getElementById('pauseMenu');
+const pauseMenu = document.getElementById('pauseOverlay');
 const gameOverMenu = document.getElementById('gameOverMenu');
 const levelUpMenu = document.getElementById('levelUpMenu');
 const upgradeOptionsContainer = document.getElementById('upgradeOptions');
-const howToPlayModal = document.getElementById('howToPlayModal');
+const howToPlayModal = document.getElementById('how-to-play');
 
 // Buttons
 document.getElementById('btn-start').addEventListener('click', startGame);
-document.getElementById('btn-how').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
-document.getElementById('btn-close-how').addEventListener('click', () => howToPlayModal.classList.add('hidden'));
+document.getElementById('btn-how').addEventListener('click', () => toggleHelp(true));
+
 const btnPause = document.getElementById('btn-pause');
 const btnResume = document.getElementById('btn-resume');
 const btnHelp = document.getElementById('btn-help');
 const btnCloseHelp = document.getElementById('btn-close-help');
-const howToPlayOverlay = document.getElementById('how-to-play');
 
 btnPause.addEventListener('click', () => {
-    if (gameState === 'playing') pauseGame();
+    togglePause();
 });
 
 btnResume.addEventListener('click', () => {
-    resumeGame();
+    togglePause();
 });
 
 btnHelp.addEventListener('click', () => {
@@ -40,10 +39,13 @@ btnCloseHelp.addEventListener('click', () => {
 
 function toggleHelp(show) {
     if (show) {
-        howToPlayOverlay.classList.remove('hidden');
-        if (gameState === 'playing') pauseGame();
+        howToPlayModal.classList.remove('hidden');
+        if (gameState === 'PLAYING') {
+            gameState = 'PAUSED';
+            pauseMenu.classList.remove('hidden');
+        }
     } else {
-        howToPlayOverlay.classList.add('hidden');
+        howToPlayModal.classList.add('hidden');
     }
 }
 document.getElementById('btn-quit').addEventListener('click', quitGame);
@@ -99,8 +101,9 @@ function updateJoystick(clientX, clientY) {
 
 // Resize
 function resize() {
+    const hud = document.getElementById('hud');
     canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.height = window.innerHeight - (hud ? hud.clientHeight : 0);
 }
 window.addEventListener('resize', resize);
 resize();
@@ -795,6 +798,18 @@ function gameOver() {
     
     gameOverMenu.classList.remove('hidden');
 }
+
+// Sharing
+document.getElementById('btn-share-wa').addEventListener('click', () => {
+    const text = `I survived ${formatTime(gameTime)} and reached Level ${player.level} in Cyber Survivor! 👾 Can you beat my score? #CyberSurvivor #ArcadeHub`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+});
+
+document.getElementById('btn-share-x').addEventListener('click', () => {
+    const text = `I survived ${formatTime(gameTime)} and reached Level ${player.level} in Cyber Survivor! 👾 #CyberSurvivor #ArcadeHub`;
+    const url = window.location.href;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+});
 
 // Initial draw
 ctx.fillStyle = 'rgba(5, 5, 16, 1.0)';

@@ -71,6 +71,7 @@
             <h1>PAUSED</h1>
             <p>Mission suspended.</p>
             <button id="btn-resume" class="btn">RESUME</button>
+            <button id="btn-quit" class="btn">QUIT RUN</button>
         </div>
 
         <!-- How to Play Overlay -->
@@ -101,8 +102,8 @@
                 <p class="go-best-text">Kills: <span id="go-kills">0</span> | Level: <span id="go-level">1</span></p>
                 
                 <div class="share-row">
-                    <button onclick="shareGame('twitter')" class="share-btn twitter">SHARE ON X</button>
-                    <button onclick="shareGame('whatsapp')" class="share-btn whatsapp">WHATSAPP</button>
+                    <button id="btn-share-wa" class="share-btn whatsapp">WHATSAPP</button>
+                    <button id="btn-share-x" class="share-btn twitter">SHARE ON X</button>
                 </div>
                 
                 <button id="btn-restart-go" class="arcade-btn retry">NEW RUN</button>
@@ -118,23 +119,6 @@
             </div>
         </div>
 
-        <!-- How to Play Modal -->
-        <div id="howToPlayModal" class="overlay hidden">
-            <div class="modal-content">
-                <h2 style="font-family: var(--font-arcade); color: var(--secondary); margin-bottom: 20px;">HOW TO PLAY</h2>
-                <p>Move your character to avoid enemies. You shoot automatically!</p>
-                <br>
-                <div class="powerup-hint">
-                    <div class="pu-icon" style="background: #0ff;">💠</div>
-                    <span><b>XP Gems:</b> Dropped by enemies. Collect to level up!</span>
-                </div>
-                <div class="powerup-hint">
-                    <div class="pu-icon" style="background: #f0f;">⚔️</div>
-                    <span><b>Upgrades:</b> Choose a new weapon or stat boost when you level up.</span>
-                </div>
-                <button id="btn-close-how" class="btn" style="width: 100%; margin-top: 20px;">GOT IT</button>
-            </div>
-        </div>
 
         <div class="control-hint" id="control-hint">
             WASD / ARROWS / DRAG TO MOVE
