@@ -283,6 +283,16 @@ function toggleSound() {
     soundManager.setMuted(isMuted);
 }
 
+function toggleHelp(show) {
+    const helpOverlay = document.getElementById('how-to-play');
+    if (show) {
+        helpOverlay.classList.remove('hidden');
+        if (gameState === 'PLAYING' && !isPaused) togglePause();
+    } else {
+        helpOverlay.classList.add('hidden');
+    }
+}
+
 function firePlayer() {
     if (gameState !== 'PLAYING' || isPaused) return;
     // Limit bullets to 3 on screen
@@ -327,8 +337,8 @@ document.getElementById('btn-start').addEventListener('click', () => { soundMana
 document.getElementById('btn-restart').addEventListener('click', restartGame);
 document.getElementById('btn-pause').addEventListener('click', togglePause);
 document.getElementById('btn-sound').addEventListener('click', toggleSound);
-document.getElementById('btn-help').addEventListener('click', () => { soundManager.play('click'); document.getElementById('how-to-play').classList.remove('hidden'); });
-document.getElementById('btn-close-help').addEventListener('click', () => document.getElementById('how-to-play').classList.add('hidden'));
+document.getElementById('btn-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(true); });
+document.getElementById('btn-close-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(false); });
 
 // Social
 document.getElementById('share-wa').addEventListener('click', () => {
