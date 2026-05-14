@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Invaders | Arcade Hub</title>
+    <meta name="description" content="Defend the grid in Neon Invaders! A high-polish retro space shooter with glowing neon graphics. Play for free on Arcade Hub.">
+    
+    <!-- Social Sharing -->
+    <meta property="og:title" content="Neon Invaders | Arcade Hub">
+    <meta property="og:description" content="Retro space shooting reimagined with neon glow. Can you survive the pulse?">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-invaders-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
+     crossorigin="anonymous"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <header id="hud">
+            <div class="hud-left">
+                <a href="../index.html" class="hub-btn">🏠 HUB</a>
+            </div>
+            <div class="hud-center">
+                <div id="score-container">
+                    <span id="score">0</span>
+                    <div id="best-container">BEST: <span id="best-score">0</span></div>
+                </div>
+            </div>
+            <div class="hud-right">
+                <button id="btn-help" class="icon-btn" title="How to Play">❓</button>
+                <button id="btn-sound" class="icon-btn">🔊</button>
+                <button id="btn-pause" class="icon-btn">⏸</button>
+            </div>
+        </header>
+
+        <div id="level-tag">WAVE 1</div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Overlays -->
+        <div id="how-to-play" class="overlay hidden">
+            <h2 class="overlay-title">HOW TO PLAY</h2>
+            <div class="instruction-box">
+                <div class="instruction-item">
+                    <span class="icon">🚀</span>
+                    <p><b>Move</b> to dodge enemy pulses!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">🔫</span>
+                    <p><b>Shoot</b> to clear the neon grid!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="icon">⚡</span>
+                    <p>Don't let them reach the <b>bottom</b>!</p>
+                </div>
+            </div>
+            <p class="control-text"><b>PC:</b> Arrows/AD to Move | Space to Fire<br><b>Mobile:</b> Drag to Move & Fire</p>
+            <button id="btn-close-help" class="primary-btn">GOT IT!</button>
+        </div>
+
+        <div id="start-screen" class="overlay">
+            <h1 class="game-title">NEON<br>INVADERS</h1>
+            <p class="instruction">DEFEND THE GRID. SURVIVE THE PULSE.</p>
+            <button id="btn-start" class="primary-btn">INITIALIZE</button>
+        </div>
+
+        <div id="game-over" class="overlay hidden">
+            <h2 class="overlay-title">SYSTEM FAILURE</h2>
+            <div class="stat-row">
+                <span>WAVES CLEARED</span>
+                <span id="final-level">0</span>
+            </div>
+            <div class="stat-row">
+                <span>FINAL SCORE</span>
+                <span id="final-score">0</span>
+            </div>
+            
+            <div class="share-section">
+                <p>SHARE DATA</p>
+                <div class="share-btns">
+                    <button id="share-wa" class="share-btn wa">WhatsApp</button>
+                    <button id="share-x" class="share-btn x">X (Twitter)</button>
+                </div>
+            </div>
+
+            <button id="btn-restart" class="primary-btn">REBOOT</button>
+            <a href="../index.html" class="secondary-btn">BACK TO HUB</a>
+        </div>
+    </div>
+
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
