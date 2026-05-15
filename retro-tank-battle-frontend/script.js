@@ -73,6 +73,7 @@ let currentStage = 1;
 let enemiesInStageRemaining = 0;
 let enemiesSpawnedInStage = 0;
 let totalEnemiesInStage = 5;
+let gameLoopId = null; // To track and cancel the loop
 
 let enemies = [];
 let bullets = [];
@@ -648,12 +649,64 @@ function startNextStage() {
     gameState = 'playing';
 }
 
+function gameLoop(timestamp) {
+    if (gameState === 'gameover' || gameState === 'paused' || gameState === 'menu') {
+        gameLoopId = null;
+        return;
+    }
+    
+    if (gameState === 'playing' || gameState === 'stage_intro' || gameState === 'stage_clear' || gameState === 'death_sequence') {
+        // Continue
+    } else {
+        gameLoopId = null;
+        return;
+    }
+
+    if (!lastTime) lastTime = timestamp;
+    let dt = timestamp - lastTime;
+    lastTime = timestamp;
+    
+    // Cap DT to prevent large jumps after tab switching
+    if (dt > 100) dt = 16; 
+    if (dt < 0) dt = 0;
+
+    if (gameState === 'stage_intro' || gameState === 'stage_clear') {
+        stageOverlayTimer -= dt;
+        if (stageOverlayTimer <= 0) {
+            if (gameState === 'stage_intro') {
+                gameState = 'playing';
+                stageOverlay.classList.add('hidden');
+            } else {
+                startNextStage();
+            }
+        }
+        draw(); 
+    } else {
+        update(dt); 
+        draw();
+    }
+    
+    gameLoopId = requestAnimationFrame(gameLoop);
+}
+
 function initGame() {
+    // Stop any existing loops
+    if (gameLoopId) {
+        cancelAnimationFrame(gameLoopId);
+        gameLoopId = null;
+    }
+
     if (window.audioFX) {
         window.audioFX.init();
+        // FORCE RESUME for Safari
+        if (window.audioFX.ctx && window.audioFX.ctx.state === 'suspended') {
+            window.audioFX.ctx.resume();
+        }
+        
         const muteBtn = document.getElementById('btn-mute');
         if (muteBtn) muteBtn.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
+    
     canvas.width = 800;
     canvas.height = 576;
     currentStage = 1;
@@ -687,7 +740,6 @@ function initGame() {
     gameOverMenu.classList.add('hidden');
     
     if (window.audioFX) {
-        window.audioFX.init();
         if (typeof window.audioFX.startEngine === 'function') {
             window.audioFX.startEngine();
         }
@@ -695,11 +747,10 @@ function initGame() {
 
     showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
     
-    // Mobile Stability: Start the loop immediately
     stageOverlayTimer = 2000;
     gameState = 'stage_intro';
     lastTime = 0;
-    requestAnimationFrame(gameLoop);
+    gameLoopId = requestAnimationFrame(gameLoop);
 }
 
 function handleTankCollision(e, idx) {
@@ -743,40 +794,6 @@ function handleTankCollision(e, idx) {
         }
         return true;
     }
-}
-
-function gameLoop(timestamp) {
-    if (gameState === 'gameover' || gameState === 'paused' || gameState === 'menu') return;
-    if (gameState === 'playing' || gameState === 'stage_intro' || gameState === 'stage_clear' || gameState === 'death_sequence') {
-        // Continue
-    } else {
-        return;
-    }
-
-    if (!lastTime) lastTime = timestamp;
-    let dt = timestamp - lastTime;
-    lastTime = timestamp;
-    
-    // Cap DT to prevent large jumps after tab switching
-    if (dt > 100) dt = 16; 
-
-    if (gameState === 'stage_intro' || gameState === 'stage_clear') {
-        stageOverlayTimer -= dt;
-        if (stageOverlayTimer <= 0) {
-            if (gameState === 'stage_intro') {
-                gameState = 'playing';
-                stageOverlay.classList.add('hidden');
-            } else {
-                startNextStage();
-            }
-        }
-        draw(); // Keep rendering during overlays
-    } else {
-        update(dt); 
-        draw();
-    }
-    
-    requestAnimationFrame(gameLoop);
 }
 
 function endGame(title) {
