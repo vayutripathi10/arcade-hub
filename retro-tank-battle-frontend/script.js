@@ -603,21 +603,24 @@ function updateHUD() {
     playerHpBar.style.background = player.hp < 40 ? '#ffaa00' : '#00ccff';
 }
 
-function checkStageClear() {
-    if (enemiesInStageRemaining <= 0 && enemiesSpawnedInStage >= totalEnemiesInStage) {
-        gameState = 'stage_clear';
-        currentStage++;
-        totalEnemiesInStage = 5 + (currentStage * 2);
-        showStageOverlay(`STAGE ${currentStage}`, "GET READY!");
-        setTimeout(startNextStage, 2000);
-    }
-}
-
 function showStageOverlay(title, sub) {
     stageOverlay.classList.remove('hidden');
     document.getElementById('stage-title').textContent = title;
     document.getElementById('stage-subtitle').textContent = sub;
 }
+
+function checkStageClear() {
+    if (enemiesInStageRemaining <= 0 && enemiesSpawnedInStage >= totalEnemiesInStage) {
+        currentStage++;
+        totalEnemiesInStage = 5 + (currentStage * 2);
+        showStageOverlay(`STAGE ${currentStage}`, "GET READY!");
+        
+        stageOverlayTimer = 2000; 
+        gameState = 'stage_clear';
+    }
+}
+
+let stageOverlayTimer = 0;
 
 function startNextStage() {
     initMap();
@@ -643,9 +646,6 @@ function startNextStage() {
     updateHUD();
     stageOverlay.classList.add('hidden');
     gameState = 'playing';
-    lastTime = performance.now();
-    deathSequenceStartTime = 0; // Fix: Reset absolute timer
-    requestAnimationFrame(gameLoop);
 }
 
 function initGame() {
@@ -673,7 +673,7 @@ function initGame() {
     enemiesInStageRemaining = totalEnemiesInStage;
     freezeTimer = 0;
     deathAnimationTimer = 0;
-    deathSequenceStartTime = 0; // Fix: Ensure no partial death from previous sessions
+    deathSequenceStartTime = 0;
     
     player.shield = 0;
     player.multiShotTimer = 0;
@@ -686,24 +686,20 @@ function initGame() {
     pauseMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
     
-    // Unlock Audio Context on first gesture
     if (window.audioFX) {
         window.audioFX.init();
-        const btnMute = document.getElementById('btn-mute');
-        if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
-        
         if (typeof window.audioFX.startEngine === 'function') {
             window.audioFX.startEngine();
         }
     }
 
     showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
-    setTimeout(() => {
-        stageOverlay.classList.add('hidden');
-        gameState = 'playing';
-        lastTime = performance.now();
-        requestAnimationFrame(gameLoop);
-    }, 2000);
+    
+    // Mobile Stability: Start the loop immediately
+    stageOverlayTimer = 2000;
+    gameState = 'stage_intro';
+    lastTime = 0;
+    requestAnimationFrame(gameLoop);
 }
 
 function handleTankCollision(e, idx) {
@@ -750,15 +746,36 @@ function handleTankCollision(e, idx) {
 }
 
 function gameLoop(timestamp) {
-    if (gameState !== 'playing' && gameState !== 'death_sequence') return;
-    
-    // Sanitize DT
-    if (!lastTime || lastTime > timestamp) lastTime = timestamp;
-    let dt = timestamp - lastTime;
-    if (dt > 100) dt = 16; 
-    lastTime = timestamp;
+    if (gameState === 'gameover' || gameState === 'paused' || gameState === 'menu') return;
+    if (gameState === 'playing' || gameState === 'stage_intro' || gameState === 'stage_clear' || gameState === 'death_sequence') {
+        // Continue
+    } else {
+        return;
+    }
 
-    update(dt); draw();
+    if (!lastTime) lastTime = timestamp;
+    let dt = timestamp - lastTime;
+    lastTime = timestamp;
+    
+    // Cap DT to prevent large jumps after tab switching
+    if (dt > 100) dt = 16; 
+
+    if (gameState === 'stage_intro' || gameState === 'stage_clear') {
+        stageOverlayTimer -= dt;
+        if (stageOverlayTimer <= 0) {
+            if (gameState === 'stage_intro') {
+                gameState = 'playing';
+                stageOverlay.classList.add('hidden');
+            } else {
+                startNextStage();
+            }
+        }
+        draw(); // Keep rendering during overlays
+    } else {
+        update(dt); 
+        draw();
+    }
+    
     requestAnimationFrame(gameLoop);
 }
 
