@@ -613,8 +613,13 @@ body::before {
 .game-title {
     font-size: 1.6rem;
     font-weight: 700;
-    margin: 0 1.5rem 1rem 1.5rem; /* Standardized title padding */
+    margin: 0 1.5rem 1rem 1.5rem;
     color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
 }
 
 .card-video-container {
