@@ -617,15 +617,15 @@ body::before {
 }
 
 .card-video-container {
-    width: 100%;
-    height: 160px;
+    width: calc(100% + 3rem); /* Expand to edges */
+    height: 220px;
     background: #000;
-    margin-bottom: 1.5rem;
-    border-radius: 12px;
+    margin: 0 -1.5rem 1.5rem -1.5rem; /* Negative margin to flush with card edges */
     overflow: hidden;
-    border: 1px solid var(--glass-border);
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
     position: relative;
-    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
 }
 
 .card-video-container video {
