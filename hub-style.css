@@ -156,6 +156,7 @@ body::before {
     border-radius: 20px;
     width: 100%;
     max-width: 350px;
+    height: 480px; /* Consistent card height */
     overflow: hidden;
     text-decoration: none;
     color: var(--text);
@@ -167,10 +168,10 @@ body::before {
 }
 
 .card-content {
-    padding: 1.5rem;
+    padding: 1.5rem 0 0 0; /* Remove side padding for video flush */
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    height: 100%;
 }
 
 .game-card:hover:not(.disabled) {
@@ -610,20 +611,18 @@ body::before {
 }
 
 .game-title {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin: 0 1.5rem 1rem 1.5rem; /* Standardized title padding */
     color: white;
 }
 
 .card-video-container {
-    width: calc(100% + 3rem); /* Expand to edges */
-    height: 220px;
+    width: 100%;
+    flex-grow: 1; /* Expand to fill space */
     background: #000;
-    margin: 0 -1.5rem 1.5rem -1.5rem; /* Negative margin to flush with card edges */
     overflow: hidden;
     border-top: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
     position: relative;
     box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
 }
@@ -632,7 +631,7 @@ body::before {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.8;
+    opacity: 0.9;
     transition: all 0.3s ease;
 }
 
@@ -650,18 +649,18 @@ body::before {
 }
 
 .play-btn {
-    display: inline-block;
-    text-align: center;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
+    display: block;
+    width: 100%;
+    padding: 1.2rem;
     background: linear-gradient(45deg, var(--primary), #00b386);
     color: #000;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.9rem;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    border: none;
     transition: all 0.3s;
-    box-shadow: 0 5px 15px rgba(0, 255, 204, 0.3);
 }
 
 .game-card:hover:not(.disabled) .play-btn {
