@@ -30,6 +30,14 @@ let assetsLoaded = 0;
 const totalAssets = Object.keys(assetFiles).length;
 
 function loadAssets() {
+    let loadedCount = 0;
+    const timeout = setTimeout(() => {
+        if (assetsLoaded < totalAssets) {
+            console.warn("AudioFX: Asset loading timed out. Starting anyway...");
+            assetsLoaded = totalAssets; // Fallback
+        }
+    }, 5000);
+
     for (let key in assetFiles) {
         const img = new Image();
         img.src = assetFiles[key];
@@ -37,8 +45,13 @@ function loadAssets() {
             assets[key] = img;
             assetsLoaded++;
             if (assetsLoaded === totalAssets) {
+                clearTimeout(timeout);
                 console.log("All assets loaded.");
             }
+        };
+        img.onerror = () => {
+            console.error("Failed to load asset:", assetFiles[key]);
+            assetsLoaded++; // Skip but don't hang
         };
     }
 }
@@ -835,8 +848,22 @@ window.addEventListener('click', wakeUpAudio);
 window.addEventListener('touchstart', wakeUpAudio);
 
 // NUCLEAR OPTION: Prevent ALL scrolling on the document level during gameplay
+document.addEventListener('touchstart', (e) => {
+    if (gameState === 'playing' || gameState === 'paused') {
+        if (e.target.closest('.controls-container') || e.target.closest('#gameCanvas')) {
+            e.preventDefault();
+        }
+    }
+}, { passive: false });
+
 document.addEventListener('touchmove', (e) => {
     if (gameState === 'playing' || gameState === 'paused') {
         e.preventDefault();
     }
 }, { passive: false });
+
+// Ensure Canvas is visible on Safari
+window.addEventListener('load', () => {
+    lastTime = performance.now();
+    requestAnimationFrame(gameLoop);
+});

@@ -282,7 +282,9 @@ html, body {
     /* Responsive Canvas Sizing */
     #gameCanvas {
         width: 100% !important;
-        height: calc(100dvh - var(--hud-h-mobile) - var(--dpad-h) - var(--ad-h)) !important;
+        height: auto !important;
+        max-height: calc(100dvh - var(--hud-h-mobile) - 60px) !important;
+        aspect-ratio: 800 / 576;
     }
     
     .hidden-mobile { display: none !important; }

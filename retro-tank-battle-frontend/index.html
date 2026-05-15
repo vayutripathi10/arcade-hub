@@ -149,16 +149,20 @@
         </footer>
     </div>
 
-    <script src="../shared/audio-fx.js"></script>
-    <script src="script.js?v=ArcadeHub_Tank_HUD_Fix"></script>
+    <script src="audio-fx.js"></script>
+    <script src="script.js?v=ArcadeHub_Tank_Safari_Fix"></script>
     <script>
         const wakeUpAudio = () => {
-            if (window.audioFX && typeof window.audioFX.init === 'function') {
+            if (window.audioFX) {
                 window.audioFX.init();
+                // Safari fix: Resume immediately on touch
+                if (window.audioFX.ctx && window.audioFX.ctx.state === 'suspended') {
+                    window.audioFX.ctx.resume();
+                }
             }
         };
-        window.addEventListener('click', wakeUpAudio, { once: true });
-        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+        document.getElementById('btn-start').addEventListener('click', wakeUpAudio);
+        document.getElementById('btn-start').addEventListener('touchstart', wakeUpAudio);
     </script>
 </body>
 </html>
