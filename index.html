@@ -402,27 +402,30 @@
 
         });
 
-        // Lazy Video Autoplay with Intersection Observer
+        // Set attributes on all videos
         document.querySelectorAll('.game-card video').forEach(v => {
           v.muted = true;
           v.playsInline = true;
           v.setAttribute('playsinline', '');
           v.setAttribute('webkit-playsinline', '');
+          v.setAttribute('preload', 'none');
         });
 
+        // Play helper function
+        function tryPlay(video) {
+          video.load();
+          const promise = video.play();
+          if (promise !== undefined) {
+            promise.catch(() => {});
+          }
+        }
+
+        // Intersection Observer
         const videoObserver = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             const video = entry.target;
             if (entry.isIntersecting) {
-              video.load();
-              const playPromise = video.play();
-              if (playPromise !== undefined) {
-                playPromise.then(() => {
-                  // playing successfully
-                }).catch(() => {
-                  video.load();
-                });
-              }
+              tryPlay(video);
             } else {
               video.pause();
               video.currentTime = 0;
@@ -436,6 +439,26 @@
         document.querySelectorAll('.game-card video').forEach(v => {
           videoObserver.observe(v);
         });
+
+        // iOS 16+ KEY FIX — unlock autoplay on first user touch anywhere on page
+        let iOSUnlocked = false;
+        document.addEventListener('touchstart', () => {
+          if (iOSUnlocked) return;
+          iOSUnlocked = true;
+          // Play and immediately pause all videos to unlock autoplay
+          document.querySelectorAll('.game-card video').forEach(v => {
+            v.play().then(() => {
+              v.pause();
+              v.currentTime = 0;
+            }).catch(() => {});
+          });
+          // Now re-trigger observer for visible videos
+          document.querySelectorAll('.game-card video').forEach(v => {
+            const rect = v.getBoundingClientRect();
+            const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+            if (isVisible) tryPlay(v);
+          });
+        }, { once: false });
     </script>
 </body>
 </html>
