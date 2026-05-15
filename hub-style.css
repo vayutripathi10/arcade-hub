@@ -616,6 +616,31 @@ body::before {
     color: white;
 }
 
+.card-video-container {
+    width: 100%;
+    height: 160px;
+    background: #000;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    position: relative;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.card-video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.game-card:hover .card-video-container video {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
 .game-desc {
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.6);
