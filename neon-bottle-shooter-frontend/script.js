@@ -177,11 +177,11 @@ class Particle {
         this.life = 1.0;
         this.decay = Math.random() * 0.02 + 0.02;
     }
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += 0.5; // gravity
-        this.life -= this.decay;
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.vy += 0.5 * deltaTime; // gravity
+        this.life -= this.decay * deltaTime;
     }
     draw() {
         ctx.save();
@@ -203,9 +203,9 @@ class FloatingText {
         this.life = 1.0;
         this.size = size;
     }
-    update() {
-        this.y -= 2;
-        this.life -= 0.03;
+    update(deltaTime) {
+        this.y -= 2 * deltaTime;
+        this.life -= 0.03 * deltaTime;
     }
     draw() {
         ctx.save();
@@ -248,12 +248,12 @@ class Bottle {
         this.active = true;
     }
 
-    update() {
+    update(deltaTime) {
         if (freezeTimer > 0) return; // Ice effect
         
-        this.x += this.vx;
+        this.x += this.vx * deltaTime;
         if (this.isZigZag) {
-            this.angle += 0.1;
+            this.angle += 0.1 * deltaTime;
             this.y = this.startY + Math.sin(this.angle) * 50;
         }
 
@@ -321,7 +321,7 @@ function createExplosion(x, y, color) {
 function reload() {
     if (isReloading || ammo === MAX_AMMO) return;
     isReloading = true;
-    reloadTimer = 30; // 0.5 seconds at 60fps
+    reloadTimer = 30; // 0.5 seconds
     playSound('reload');
     uiAmmo.classList.add('ammo-empty');
 }
@@ -464,21 +464,25 @@ function hitBottle(b, index) {
 
 // --- Main Loop ---
 
-function update() {
+function update(deltaTime) {
     if (isReloading) {
-        reloadTimer--;
+        reloadTimer -= deltaTime;
         if (reloadTimer <= 0) finishReload();
     }
 
-    if (freezeTimer > 0) freezeTimer--;
+    if (freezeTimer > 0) freezeTimer -= deltaTime;
 
     // Bottle generation
-    waveTimer++;
+    waveTimer += deltaTime;
     let spawnRate = Math.max(30, 90 - (currentWave * 10)); 
     if (gameMode === 'precision') spawnRate = 120; // Slower for precision
     
-    if (waveTimer % spawnRate === 0 && freezeTimer === 0) {
+    // We use a separate accumulator for spawning to keep it consistent
+    if (!this._spawnAccum) this._spawnAccum = 0;
+    this._spawnAccum += deltaTime;
+    if (this._spawnAccum >= spawnRate && freezeTimer <= 0) {
         spawnBottle();
+        this._spawnAccum = 0;
     }
 
     // Wave Progression
@@ -491,20 +495,20 @@ function update() {
     }
 
     // Update Entities
-    bottles.forEach(b => b.update());
+    bottles.forEach(b => b.update(deltaTime));
     bottles = bottles.filter(b => b.active);
 
-    particles.forEach(p => p.update());
+    particles.forEach(p => p.update(deltaTime));
     particles = particles.filter(p => p.life > 0);
 
-    floatingTexts.forEach(t => t.update());
+    floatingTexts.forEach(t => t.update(deltaTime));
     floatingTexts = floatingTexts.filter(t => t.life > 0);
 
     // Timer & Modes
     if (gameMode === 'classic') {
-        timeAccumulator++;
+        timeAccumulator += deltaTime;
         if (timeAccumulator >= 60) {
-            timeAccumulator = 0;
+            timeAccumulator -= 60;
             timer--;
             if (timer <= 10) uiTime.classList.add('time-warning');
             updateHUD();
@@ -602,12 +606,17 @@ function draw() {
 
 function loop(timestamp) {
     if (gameState === 'playing') {
-        const elapsed = timestamp - lastTime;
-        if (elapsed > 16) {
-            lastTime = timestamp;
-            update();
-            draw();
-        }
+        if (!lastTime) lastTime = timestamp;
+        const dt = timestamp - lastTime;
+        lastTime = timestamp;
+        
+        const deltaTime = Math.min(dt / 16.67, 3);
+        update(deltaTime);
+        draw();
+    } else {
+        // Draw even in menu/gameover for background visuals
+        draw();
+        lastTime = timestamp;
     }
     animationFrameId = requestAnimationFrame(loop);
 }

@@ -27,6 +27,9 @@ let levelIdx  = 0;
 let retries   = 0;
 let inkUsed   = 0;
 let playTime  = 0;
+let lastTimestamp = 0;
+let accumulator = 0;
+const PHYSICS_STEP = 1000 / 60; // 16.67ms
 let ball = null, particles = [], userSegs = [], curSeg = null, undoGroups = [];
 
 const savedProgress = (() => {
@@ -349,6 +352,8 @@ function startPlay() {
     if (mode !== 'draw') return;
     mode = 'play'; playTime = Date.now();
     isPaused = false;
+    lastTimestamp = performance.now();
+    accumulator = 0;
     if (window.audioFX) window.audioFX.init();
     pauseBtn?.classList.remove('hidden');
     document.getElementById('btnPlay').classList.add('play-active');
@@ -390,26 +395,30 @@ function win() {
     }, 900);
 }
 
-function update() {
+function update(dt) {
     if (mode !== 'play' || isPaused) return;
     var lvl = LEVELS[levelIdx];
+    
+    // Scale per-step factors by our fixed step
+    const stepScale = 1; // Since we run at fixed 60fps steps
+    
     lvl.platforms.forEach(function(p) {
         if (p.axis === 'x') {
-            p.x += p.speed * p._dir;
+            p.x += p.speed * p._dir * stepScale;
             if (p.x > p.max) { p.x = p.max; p._dir = -1; }
             if (p.x < p.min) { p.x = p.min; p._dir = 1; }
         } else {
-            p.y += p.speed * p._dir;
+            p.y += p.speed * p._dir * stepScale;
             if (p.y > p.max) { p.y = p.max; p._dir = -1; }
             if (p.y < p.min) { p.y = p.min; p._dir = 1; }
         }
     });
-    lvl.hammers.forEach(function(h) { h.angle += h.speed; });
+    lvl.hammers.forEach(function(h) { h.angle += h.speed * stepScale; });
     ball.inFan = false;
     lvl.fans.forEach(function(f) {
         if (ball.x>=f.x && ball.x<=f.x+f.w && ball.y>=f.y && ball.y<=f.y+f.h) {
-            ball.vx += Math.cos(f.angle)*f.force;
-            ball.vy += Math.sin(f.angle)*f.force;
+            ball.vx += Math.cos(f.angle)*f.force * stepScale;
+            ball.vy += Math.sin(f.angle)*f.force * stepScale;
             ball.inFan = true;
         }
     });
@@ -433,9 +442,12 @@ function update() {
     
     // Forgiving hitbox for goal triggers
     if (Math.sqrt(dx*dx+dy2*dy2) < 40) win();
+}
+
+function updateParticles(deltaTime) {
     for (var i=particles.length-1; i>=0; i--) {
         var p=particles[i];
-        p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.life-=0.022;
+        p.x+=p.vx * deltaTime; p.y+=p.vy * deltaTime; p.vy+=0.1 * deltaTime; p.life-=0.022 * deltaTime;
         if(p.life<=0) particles.splice(i,1);
     }
 }
@@ -546,9 +558,23 @@ function render() {
 }
 
 var rafId;
-function loop(){
+function loop(timestamp){
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+
     try {
-        update();
+        if (mode === 'play' && !isPaused) {
+            accumulator += Math.min(dt, 100); // Cap to avoid spiral of death
+            while (accumulator >= PHYSICS_STEP) {
+                update(PHYSICS_STEP);
+                accumulator -= PHYSICS_STEP;
+            }
+            updateParticles(dt / 16.67);
+        } else {
+            // Even in draw mode, update particles for visuals
+            updateParticles(dt / 16.67);
+        }
         render();
     } catch(e) {
         console.error("NDB Loop Error:", e);
@@ -677,8 +703,8 @@ function togglePause(forcePause) {
     } else {
         pauseMenu.classList.add('hidden');
         if (pauseIcon) pauseIcon.textContent = "||";
-        // To avoid jumps in physics we could reset a timer if we had one
-        // but this uses a fixed step physics without a delta time anyway
+        lastTimestamp = performance.now();
+        accumulator = 0;
     }
 }
 

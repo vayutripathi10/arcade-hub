@@ -225,18 +225,18 @@ class Player {
         this.color = '#00f5ff';
     }
 
-    update() {
+    update(deltaTime) {
         // Movement
         if (keys.left) this.vx = -this.speed;
         else if (keys.right) this.vx = this.speed;
-        else this.vx *= 0.8; // friction
+        else this.vx *= Math.pow(0.8, deltaTime); // friction
 
         // Gravity scaling
-        const currentGravity = this.gravity + (level * 0.02);
+        const currentGravity = (this.gravity + (level * 0.02)) * deltaTime;
         this.vy += currentGravity;
 
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
 
         // Wraparound
         if (this.x > cw) this.x = -this.w;
@@ -247,7 +247,7 @@ class Player {
         if (this.trail.length > 12) this.trail.shift();
 
         // Invincibility
-        if (this.invincible > 0) this.invincible--;
+        if (this.invincible > 0) this.invincible -= deltaTime;
 
         // Death by falling below camera (Instant death at screen edge)
         if (this.y > Math.abs(camY) + ch + 10) {
@@ -330,9 +330,9 @@ class Platform {
         this.color = type === 'spring' ? '#ffe600' : (type === 'break' ? '#ff9900' : colors[Math.floor(Math.random() * colors.length)]);
     }
 
-    update() {
+    update(deltaTime) {
         if (this.type === 'moving') {
-            this.x += this.vx;
+            this.x += this.vx * deltaTime;
             if (this.x < 0 || this.x + this.w > cw) this.vx *= -1;
         }
     }
@@ -389,7 +389,7 @@ class Coin {
         this.collected = false;
         this.offset = Math.random() * Math.PI * 2;
     }
-    update() {
+    update(deltaTime) {
         this.y = this.baseY + Math.sin(frames * 0.1 + this.offset) * 10;
     }
     draw() {
@@ -426,10 +426,10 @@ class Hazard {
             this.h = 20;
         }
     }
-    update() {
+    update(deltaTime) {
         if (this.type === 'rocket') {
-            this.x += this.vx;
-            if (frames % 3 === 0) spawnParticles(this.x + this.w, this.y + this.h/2, 1, '#ff9900');
+            this.x += this.vx * deltaTime;
+            if (Math.floor(frames) % 3 === 0) spawnParticles(this.x + this.w, this.y + this.h/2, 1, '#ff9900');
         }
     }
     draw() {
@@ -545,12 +545,12 @@ function generateWorld() {
     }
 }
 
-function update() {
+function update(deltaTime) {
     if (gameState !== 'PLAYING') return;
-    frames++;
+    frames += deltaTime;
 
     // Difficulty Scaling (increase level every 10 seconds / 600 frames)
-    if (frames % 600 === 0) {
+    if (Math.floor(frames / 600) > Math.floor((frames - deltaTime) / 600)) {
         level++;
         sfx.levelup();
         spawnParticles(player.x + player.w/2, player.y, 50, '#39ff14');
@@ -566,11 +566,11 @@ function update() {
 
     // Combo
     if (comboTimer > 0) {
-        comboTimer--;
-        if (comboTimer === 0) comboCount = 0;
+        comboTimer -= deltaTime;
+        if (comboTimer <= 0) comboCount = 0;
     }
 
-    player.update();
+    player.update(deltaTime);
 
     // Camera follow
     let targetCamY = -player.y + ch * 0.4;
@@ -599,7 +599,7 @@ function update() {
     // Platform Collisions
     for (let i = platforms.length - 1; i >= 0; i--) {
         const p = platforms[i];
-        p.update();
+        p.update(deltaTime);
         
         // Remove off-screen
         if (p.y > -camY + ch + 10) {
@@ -635,7 +635,7 @@ function update() {
     // Coins
     for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
-        c.update();
+        c.update(deltaTime);
         if (c.y > -camY + ch + 10) { coins.splice(i, 1); continue; }
         
         if (!c.collected && 
@@ -667,7 +667,7 @@ function update() {
     // Hazards
     for (let i = hazards.length - 1; i >= 0; i--) {
         const h = hazards[i];
-        h.update();
+        h.update(deltaTime);
         if (h.y > -camY + ch + 10 || h.x < -100) { hazards.splice(i, 1); continue; }
         
         if (player.x < h.x + h.w && player.x + player.w > h.x &&
@@ -679,9 +679,9 @@ function update() {
     // Particles
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 0.05;
+        p.x += p.vx * deltaTime;
+        p.y += p.vy * deltaTime;
+        p.life -= 0.05 * deltaTime;
         if (p.life <= 0) particles.splice(i, 1);
     }
 }
@@ -744,8 +744,15 @@ function varColor(name, fallback) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 }
 
-function gameLoop() {
-    update();
+let lastTimestamp = 0;
+function gameLoop(timestamp = 0) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+
+    const deltaTime = Math.min(dt / 16.67, 3);
+
+    update(deltaTime);
     draw();
     requestAnimationFrame(gameLoop);
 }

@@ -67,10 +67,10 @@ class Particle {
         this.color = color;
         this.size = Math.random() * 3 + 1;
     }
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life -= 0.02;
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.life -= 0.02 * deltaTime;
     }
     draw() {
         ctx.globalAlpha = this.life;
@@ -105,8 +105,8 @@ class PowerUp {
         this.color = config[type].color;
         this.icon = config[type].icon;
     }
-    update() {
-        this.y += this.speed;
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
     }
     draw() {
         ctx.save();
@@ -140,13 +140,13 @@ class Brick {
         this.moveOffset = Math.random() * Math.PI * 2;
         this.ghostTimer = Math.random() * 100;
     }
-    update() {
+    update(deltaTime) {
         if (this.destroyed) return;
         if (this.type === 'moving') {
             this.x = this.startX + Math.sin(Date.now() / 1000 + this.moveOffset) * 50;
         }
         if (this.type === 'ghost') {
-            this.ghostTimer++;
+            this.ghostTimer += deltaTime;
         }
     }
     draw() {
@@ -193,15 +193,15 @@ class Ball {
         this.color = '#fff';
         this.tempMulti = 1;
     }
-    update() {
+    update(deltaTime) {
         const s = this.speed * this.tempMulti;
         // Normalize velocity
         const mag = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
         this.dx = (this.dx / mag) * s;
         this.dy = (this.dy / mag) * s;
 
-        this.x += this.dx;
-        this.y += this.dy;
+        this.x += this.dx * deltaTime;
+        this.y += this.dy * deltaTime;
 
         // Wall collisions
         if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
@@ -237,14 +237,15 @@ class Paddle {
         this.timer = 0;
         this.hasShield = false;
     }
-    update() {
-        this.x += (this.targetX - (this.x + this.w / 2)) * 0.2;
+    update(deltaTime) {
+        this.x += (this.targetX - (this.x + this.w / 2)) * 0.2 * deltaTime;
         if (this.x < 0) this.x = 0;
         if (this.x + this.w > canvas.width) this.x = canvas.width - this.w;
 
         if (this.timer > 0) {
-            this.timer--;
-            if (this.timer === 0) {
+            this.timer -= deltaTime * 60;
+            if (this.timer <= 0) {
+                this.timer = 0;
                 this.w = this.baseW;
                 balls.forEach(b => b.tempMulti = 1);
             }
@@ -381,12 +382,12 @@ canvas.addEventListener('touchmove', e => {
     handleInput(e.touches[0].clientX);
 }, { passive: false });
 
-function update(dt) {
+function update(deltaTime) {
     if (gameState !== 'playing') return;
 
-    paddle.update();
+    paddle.update(deltaTime);
     if (comboTimer > 0) {
-        comboTimer -= dt;
+        comboTimer -= deltaTime * 16.67;
         if (comboTimer <= 0) {
             comboStreak = 0;
             comboMultiplier = 1;
@@ -395,7 +396,7 @@ function update(dt) {
 
     for (let i = balls.length - 1; i >= 0; i--) {
         const ball = balls[i];
-        ball.update();
+        ball.update(deltaTime);
 
         // Paddle Collision
         if (ball.y + ball.radius > paddle.y && 
@@ -418,7 +419,7 @@ function update(dt) {
         for (let j = bricks.length - 1; j >= 0; j--) {
             const brick = bricks[j];
             if (brick.destroyed) continue;
-            brick.update();
+            brick.update(deltaTime);
             
             if (ball.x + ball.radius > brick.x && ball.x - ball.radius < brick.x + brick.w &&
                 ball.y + ball.radius > brick.y && ball.y - ball.radius < brick.y + brick.h) {
@@ -479,7 +480,7 @@ function update(dt) {
     // PowerUp Updates
     for (let i = powerUps.length - 1; i >= 0; i--) {
         const pu = powerUps[i];
-        pu.update();
+        pu.update(deltaTime);
         if (pu.y + 15 > paddle.y && pu.y - 15 < paddle.y + paddle.h &&
             pu.x + 15 > paddle.x && pu.x - 15 < paddle.x + paddle.w) {
             
@@ -512,7 +513,7 @@ function update(dt) {
 
     // Particles
     for (let i = particles.length - 1; i >= 0; i--) {
-        particles[i].update();
+        particles[i].update(deltaTime);
         if (particles[i].life <= 0) particles.splice(i, 1);
     }
 }
@@ -653,8 +654,10 @@ function loop(t) {
     const dt = t - lastTime;
     lastTime = t;
     
+    const deltaTime = Math.min(dt / 16.67, 3);
+    
     if (gameState === 'playing') {
-        update(dt);
+        update(deltaTime);
     }
     draw();
     requestAnimationFrame(loop);

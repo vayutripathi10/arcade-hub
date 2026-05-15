@@ -104,8 +104,8 @@ let score = 0;
 let bestScore = localStorage.getItem('neonInvadersBest') || 0;
 let wave = 1;
 let invaderDirection = 1;
-let invaderMoveTimer = 0;
-let invaderMoveInterval = 60; // frames
+let invaderMoveInterval = 1000; // ms
+let lastTimestamp = 0;
 
 class Player {
     constructor() {
@@ -123,22 +123,23 @@ class Player {
         };
     }
 
-    update() {
+    update(deltaTime) {
         if (isDragging) {
-            this.x += (this.targetX - (this.x + this.w/2)) * 0.2;
+            this.x += (this.targetX - (this.x + this.w/2)) * 0.2 * deltaTime;
         } else {
-            if (keys.ArrowLeft || keys.a) this.x -= 7;
-            if (keys.ArrowRight || keys.d) this.x += 7;
+            const moveSpeed = 7 * deltaTime;
+            if (keys.ArrowLeft || keys.a) this.x -= moveSpeed;
+            if (keys.ArrowRight || keys.d) this.x += moveSpeed;
         }
 
         // Clamp
         this.x = Math.max(0, Math.min(canvas.width - this.w, this.x));
 
-        if (this.invincible > 0) this.invincible--;
+        if (this.invincible > 0) this.invincible -= deltaTime * 60;
         
         // Decay powerups
-        if (this.powerups.triple > 0) this.powerups.triple--;
-        if (this.powerups.rapid > 0) this.powerups.rapid--;
+        if (this.powerups.triple > 0) this.powerups.triple -= deltaTime * 60;
+        if (this.powerups.rapid > 0) this.powerups.rapid -= deltaTime * 60;
     }
 
     hit() {
@@ -256,8 +257,8 @@ class Bullet {
         this.color = color;
     }
 
-    update() {
-        this.y += this.dy;
+    update(deltaTime) {
+        this.y += this.dy * deltaTime;
     }
 
     draw() {
@@ -279,8 +280,8 @@ class PowerUp {
         this.label = type === 'triple' ? '🔱' : type === 'rapid' ? '⚡' : '🛡️';
     }
 
-    update() {
-        this.y += this.dy;
+    update(deltaTime) {
+        this.y += this.dy * deltaTime;
     }
 
     draw() {
@@ -312,10 +313,10 @@ class Particle {
         this.color = color;
     }
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.life -= 0.03;
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.life -= 0.03 * deltaTime;
     }
 
     draw() {
@@ -353,7 +354,7 @@ function spawnWave() {
         }
     }
     
-    invaderMoveInterval = Math.max(10, 60 - (wave * 5));
+    invaderMoveInterval = Math.max(200, 1000 - (wave * 100));
     levelTag.textContent = `WAVE ${wave}`;
 }
 
@@ -507,15 +508,24 @@ function drawGrid() {
     }
 }
 
-function loop() {
+function loop(timestamp) {
+    const deltaTime = lastTimestamp ? Math.min((timestamp - lastTimestamp) / 16.67, 3) : 1;
+    lastTimestamp = timestamp;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
 
     if (gameState === 'PLAYING' && !isPaused) {
-        player.update();
+        player.update(deltaTime);
         
         // Move Invaders
-        invaderMoveTimer++;
+        invaderMoveTimer += (timestamp - (lastTimestamp || timestamp)) || 16.67; // approx ms
+        // Fix for first frame
+        if (isNaN(invaderMoveTimer)) invaderMoveTimer = 0;
+
+        // Better way: use a constant for the timer accumulation
+        // Actually, let's just use deltaTime * 16.67
+        
         if (invaderMoveTimer >= invaderMoveInterval) {
             invaderMoveTimer = 0;
             let shouldDrop = false;
@@ -534,7 +544,7 @@ function loop() {
         }
         
         // Invader Fire
-        if (Math.random() < 0.01 + (wave * 0.005)) {
+        if (Math.random() < (0.01 + (wave * 0.005)) * deltaTime) {
             const shooter = invaders[Math.floor(Math.random() * invaders.length)];
             if (shooter) bullets.push(new Bullet(shooter.x + shooter.w/2, shooter.y + shooter.h, BULLET_SPEED * 0.6, COLORS.danger));
         }
@@ -542,7 +552,7 @@ function loop() {
         // Powerups
         for (let i = powerups.length - 1; i >= 0; i--) {
             const p = powerups[i];
-            p.update();
+            p.update(deltaTime);
             if (p.y > canvas.height) { powerups.splice(i, 1); continue; }
             
             if (p.x > player.x && p.x < player.x + player.w && p.y > player.y && p.y < player.y + player.h) {
@@ -558,7 +568,7 @@ function loop() {
         // Bullets
         for (let i = bullets.length - 1; i >= 0; i--) {
             const b = bullets[i];
-            b.update();
+            b.update(deltaTime);
             if (b.y < 0 || b.y > canvas.height) { bullets.splice(i, 1); continue; }
             
             // Player bullet hits invader
@@ -600,7 +610,7 @@ function loop() {
         // Particles
         for (let i = particles.length - 1; i >= 0; i--) {
             const p = particles[i];
-            p.update();
+            p.update(deltaTime);
             if (p.life <= 0) particles.splice(i, 1);
         }
 

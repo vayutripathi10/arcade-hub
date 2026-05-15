@@ -229,10 +229,10 @@ class Wyrm {
         for(let i=0; i<10; i++) this.segments.push({x: -200, y: this.y});
     }
 
-    update() {
+    update(deltaTime) {
         if (warningTimer > 0) return;
         this.active = true;
-        this.sinOffset += 0.04;
+        this.sinOffset += 0.04 * deltaTime;
         this.x = (CANVAS_W/2) + Math.sin(this.sinOffset) * (CANVAS_W/2.5);
         this.y = (CANVAS_H/2 - 100) + Math.cos(this.sinOffset * 0.5) * 50;
 
@@ -240,8 +240,8 @@ class Wyrm {
         this.segments[0].x = this.x;
         this.segments[0].y = this.y;
         for(let i=this.segments.length-1; i>0; i--) {
-            this.segments[i].x += (this.segments[i-1].x - this.segments[i].x) * 0.2;
-            this.segments[i].y += (this.segments[i-1].y - this.segments[i].y) * 0.2;
+            this.segments[i].x += (this.segments[i-1].x - this.segments[i].x) * 0.2 * deltaTime;
+            this.segments[i].y += (this.segments[i-1].y - this.segments[i].y) * 0.2 * deltaTime;
         }
 
         // Shooting
@@ -253,7 +253,7 @@ class Wyrm {
         // Projectiles
         for(let i=this.projectiles.length-1; i>=0; i--) {
             let p = this.projectiles[i];
-            p.x += p.vx;
+            p.x += p.vx * deltaTime;
             
             // Reflected hit boss
             if (p.reflected) {
@@ -377,45 +377,45 @@ function gameOver() {
     overlay.classList.remove('hidden');
 }
 
-function update() {
+function update(deltaTime) {
     if (player.state === 'attackLeft' || player.state === 'attackRight') {
-        player.timer--;
+        player.timer -= deltaTime;
         if (player.timer <= 0) player.state = 'idle';
     }
     
-    if (screenShake > 0) screenShake *= 0.9;
-    if (comboGlow > 0) comboGlow--;
+    if (screenShake > 0) screenShake *= Math.pow(0.9, deltaTime);
+    if (comboGlow > 0) comboGlow -= deltaTime;
     
     if (player.invulnerable) {
-        player.invulnTimer--;
+        player.invulnTimer -= deltaTime;
         if (player.invulnTimer <= 0) player.invulnerable = false;
     }
 
     if (!bossActive) {
-        spawnTimer++;
+        spawnTimer += deltaTime;
         if (spawnTimer >= spawnInterval) {
             createEnemy();
             spawnTimer = 0;
         }
     } else if (boss) {
-        boss.update();
-        if (warningTimer > 0) warningTimer--;
+        boss.update(deltaTime);
+        if (warningTimer > 0) warningTimer -= deltaTime;
     }
     
     for (let i = enemies.length - 1; i >= 0; i--) {
         let e = enemies[i];
-        e.x += e.vx;
-        e.y += e.vy;
+        e.x += e.vx * deltaTime;
+        e.y += e.vy * deltaTime;
         
         if (e.dead) {
-            e.vy += 0.8; 
+            e.vy += 0.8 * deltaTime; 
             if (e.y > CANVAS_H + 100) enemies.splice(i, 1);
         } else {
             let dist = Math.abs(e.x - player.x);
             if (dist < KILL_RANGE) {
                 takeDamage();
                 if (e.hp > 0) { // Push back slightly
-                    e.x += e.side === 'left' ? -50 : 50; 
+                    e.x += e.side === 'left' ? -50 * deltaTime : 50 * deltaTime; 
                 }
             }
         }
@@ -423,9 +423,9 @@ function update() {
     
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= 0.04;
+        p.x += p.vx * deltaTime;
+        p.y += p.vy * deltaTime;
+        p.life -= 0.04 * deltaTime;
         if (p.life <= 0) particles.splice(i, 1);
     }
 }
@@ -563,12 +563,13 @@ function loop(timestamp = 0) {
         frameCount++;
         frameId = requestAnimationFrame(loop);
         if (!lastTime) lastTime = timestamp;
-        let elapsed = timestamp - lastTime;
-        if (elapsed > fpsInterval) {
-            lastTime = timestamp - (elapsed % fpsInterval);
-            update();
-            draw();
-        }
+        let dt = timestamp - lastTime;
+        lastTime = timestamp;
+        
+        let deltaTime = Math.min(dt / 16.67, 3);
+        
+        update(deltaTime);
+        draw();
     } else if (player && player.state === 'dead') {
         draw();
     }

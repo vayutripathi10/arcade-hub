@@ -403,22 +403,22 @@ function checkHitbox(attacker, defender) {
     return false;
 }
 
-function update(dt) {
-    if (shakeTime > 0) shakeTime -= dt;
+function update(deltaTime) {
+    if (shakeTime > 0) shakeTime -= deltaTime * 16.67;
     if (comboTimer > 0) {
-        comboTimer -= dt;
+        comboTimer -= deltaTime * 16.67;
         if (comboTimer <= 0) {
             comboCount = 0;
             uiCombo?.classList.add('hidden');
         }
     }
     
-    if (Math.random() < 0.01) spawnEnemy();
+    if (Math.random() < 0.01 * deltaTime) spawnEnemy();
     
     if (player.hitStun <= 0 && !player.state.startsWith('attack')) {
-        const speed = 250;
-        if (keys.left) { player.x -= speed * (dt/1000); player.dir = -1; player.state = 'run'; }
-        else if (keys.right) { player.x += speed * (dt/1000); player.dir = 1; player.state = 'run'; }
+        const speed = 4.16; // 250 / 60 approx
+        if (keys.left) { player.x -= speed * deltaTime; player.dir = -1; player.state = 'run'; }
+        else if (keys.right) { player.x += speed * deltaTime; player.dir = 1; player.state = 'run'; }
         else { player.state = 'idle'; }
         
         player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
@@ -430,21 +430,21 @@ function update(dt) {
     }
     
     if (player.hitStun > 0) {
-        player.hitStun -= dt;
+        player.hitStun -= deltaTime * 16.67;
         if (player.hitStun <= 0) player.state = 'idle';
     }
     if (player.state.startsWith('attack')) {
-        player.stateFrame -= dt;
+        player.stateFrame -= deltaTime * 16.67;
         if (player.stateFrame <= 0) {
             player.state = 'idle';
             if (player.attackHitbox) player.attackHitbox.active = false;
         }
     }
     
-    player.x += player.vx;
-    player.vx *= 0.8; 
-    player.y += player.vy;
-    if (player.y < groundY) player.vy += 60 * (dt/1000); 
+    player.x += player.vx * deltaTime;
+    player.vx *= Math.pow(0.8, deltaTime); 
+    player.y += player.vy * deltaTime;
+    if (player.y < groundY) player.vy += 1.0 * deltaTime; // 60/60 = 1.0
     else { player.y = groundY; player.vy = 0; }
     
     enemies.forEach(e => checkHitbox(player, e));
@@ -484,11 +484,11 @@ function update(dt) {
         }
         
         if (e.hitStun > 0) {
-            e.hitStun -= dt;
+            e.hitStun -= deltaTime * 16.67;
             if (e.hitStun <= 0) e.state = 'idle';
         }
         else if (e.state.startsWith('attack')) {
-            e.stateFrame -= dt;
+            e.stateFrame -= deltaTime * 16.67;
             if (e.stateFrame <= 0) {
                 e.state = 'idle';
                 if (e.attackHitbox) e.attackHitbox.active = false;
@@ -498,9 +498,9 @@ function update(dt) {
             const dist = player.x - e.x;
             const reach = e.isBoss ? 70 : 50;
             if (Math.abs(dist) > reach) {
-                const speed = e.isBoss ? 100 : 80;
+                const speed = e.isBoss ? 1.67 : 1.33; // 100/60, 80/60
                 e.dir = dist > 0 ? 1 : -1;
-                e.x += e.dir * speed * (dt/1000);
+                e.x += e.dir * speed * deltaTime;
                 e.state = 'run';
             } else {
                 e.state = 'idle';
@@ -511,10 +511,10 @@ function update(dt) {
             }
         }
         
-        e.x += e.vx;
-        e.vx *= 0.8;
-        e.y += e.vy;
-        if (e.y < groundY) e.vy += 60 * (dt/1000);
+        e.x += e.vx * deltaTime;
+        e.vx *= Math.pow(0.8, deltaTime);
+        e.y += e.vy * deltaTime;
+        if (e.y < groundY) e.vy += 1.0 * deltaTime;
         else { e.y = groundY; e.vy = 0; }
         
         checkHitbox(e, player);
@@ -524,10 +524,10 @@ function update(dt) {
         gameOver();
     }
     
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= dt/1000; });
+    particles.forEach(p => { p.x += p.vx * deltaTime; p.y += p.vy * deltaTime; p.vy += 0.5 * deltaTime; p.life -= (deltaTime * 0.01667); });
     particles = particles.filter(p => p.life > 0);
     
-    floatingTexts.forEach(t => { t.y -= 1; t.life -= dt/1000; });
+    floatingTexts.forEach(t => { t.y -= 1 * deltaTime; t.life -= (deltaTime * 0.01667); });
     floatingTexts = floatingTexts.filter(t => t.life > 0);
 }
 
@@ -587,7 +587,9 @@ function loop(timestamp) {
     const dt = timestamp - lastTime;
     lastTime = timestamp;
     
-    update(dt);
+    const deltaTime = Math.min(dt / 16.67, 3);
+    
+    update(deltaTime);
     draw();
     
     requestAnimationFrame(loop);

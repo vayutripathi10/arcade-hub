@@ -459,6 +459,25 @@
             if (isVisible) tryPlay(v);
           });
         }, { once: false });
+
+        // Memory Management: Release all video resources before navigating to a game
+        function releaseAllVideos() {
+          document.querySelectorAll('.game-card video').forEach(v => {
+            v.pause();
+            v.src = '';
+            v.load();
+            v.remove(); // Force garbage collection
+          });
+        }
+
+        document.querySelectorAll('.game-card').forEach(link => {
+          link.addEventListener('click', (e) => {
+            // Only release if it's a direct navigation to a game folder
+            if (link.getAttribute('href').includes('frontend/index.html')) {
+                releaseAllVideos();
+            }
+          });
+        });
     </script>
 </body>
 </html>

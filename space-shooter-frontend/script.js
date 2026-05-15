@@ -87,12 +87,13 @@ class Player {
         this.speed = 6;
     }
 
-    update() {
+    update(deltaTime) {
         // Keyboard movement
-        if (keys['ArrowLeft'] || keys['KeyA']) this.x -= this.speed;
-        if (keys['ArrowRight'] || keys['KeyD']) this.x += this.speed;
-        if (keys['ArrowUp'] || keys['KeyW']) this.y -= this.speed;
-        if (keys['ArrowDown'] || keys['KeyS']) this.y += this.speed;
+        const moveSpeed = this.speed * deltaTime;
+        if (keys['ArrowLeft'] || keys['KeyA']) this.x -= moveSpeed;
+        if (keys['ArrowRight'] || keys['KeyD']) this.x += moveSpeed;
+        if (keys['ArrowUp'] || keys['KeyW']) this.y -= moveSpeed;
+        if (keys['ArrowDown'] || keys['KeyS']) this.y += moveSpeed;
 
         // Boundaries
         if (this.x < 0) this.x = 0;
@@ -110,13 +111,13 @@ class Player {
 
         // Powerup Timers
         if (this.speedBoost) {
-            this.speedBoostTimer--;
+            this.speedBoostTimer -= deltaTime;
             if (this.speedBoostTimer <= 0) this.speedBoost = false;
         }
 
         // Invulnerability Timer
         if (this.invulnerable) {
-            this.invulnTimer--;
+            this.invulnTimer -= deltaTime;
             if (this.invulnTimer <= 0) this.invulnerable = false;
         }
     }
@@ -186,8 +187,8 @@ class Bullet {
         this.color = '#fff';
     }
 
-    update() {
-        this.y -= this.speed;
+    update(deltaTime) {
+        this.y -= this.speed * deltaTime;
     }
 
     draw() {
@@ -209,9 +210,9 @@ class BossBullet {
         this.color = color;
     }
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
     }
 
     draw() {
@@ -253,20 +254,20 @@ class Boss {
         this.laserTimer = 0;
     }
 
-    update() {
+    update(deltaTime) {
         // Entry
         if (!this.entryFinished) {
-            this.y += 2;
+            this.y += 2 * deltaTime;
             if (this.y >= 100) this.entryFinished = true;
         } else {
             // Hover movement
-            this.floatOffset += 0.05;
+            this.floatOffset += 0.05 * deltaTime;
             this.y = 100 + Math.sin(this.floatOffset) * 20;
             
             if (Math.abs(this.x - this.targetX) < 5) {
                 this.targetX = 200 + Math.random() * (canvas.width - 400);
             }
-            this.x += (this.targetX - this.x) * 0.02;
+            this.x += (this.targetX - this.x) * 0.02 * deltaTime;
         }
 
         // Update dragon segments (snake following logic)
@@ -285,16 +286,16 @@ class Boss {
         // Attack Patterns
         if (gameRunning && this.entryFinished) {
             if (this.laserActive || this.laserCharging) {
-                this.updateLaser();
+                this.updateLaser(deltaTime);
             } else {
-                this.shoot();
-                if (this.phase === 3) this.spawnMinions();
+                this.shoot(deltaTime);
+                if (this.phase === 3) this.spawnMinions(deltaTime);
             }
         }
     }
 
-    updateLaser() {
-        this.laserTimer--;
+    updateLaser(deltaTime) {
+        this.laserTimer -= deltaTime;
         if (this.laserCharging) {
             if (this.laserTimer <= 0) {
                 this.laserCharging = false;
@@ -315,7 +316,7 @@ class Boss {
         }
     }
 
-    shoot() {
+    shoot(deltaTime) {
         const now = Date.now();
         let cooldown = 1500 - (this.phase * 300);
         if (now - this.lastShot > cooldown) {
@@ -350,7 +351,7 @@ class Boss {
         bossBullets.push(new BossBullet(this.x, this.y + 40, (dx/dist) * speed, (dy/dist) * speed));
     }
 
-    spawnMinions() {
+    spawnMinions(deltaTime) {
         const now = Date.now();
         if (now - this.lastSpawn > 4000) {
             this.lastSpawn = now;
@@ -495,10 +496,10 @@ class Enemy {
         }
     }
 
-    update() {
-        this.y += this.speed;
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
         if (this.isZigzag) {
-            this.zigzagPhase += 0.05;
+            this.zigzagPhase += 0.05 * deltaTime;
             this.x = this.startX + Math.sin(this.zigzagPhase) * 100;
         }
     }
@@ -554,10 +555,10 @@ class Asteroid {
         }
     }
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.rotation += this.rotationSpeed;
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.rotation += this.rotationSpeed * deltaTime;
     }
 
     draw() {
@@ -590,8 +591,8 @@ class Powerup {
         this.vy = 2;
     }
 
-    update() {
-        this.y += this.vy;
+    update(deltaTime) {
+        this.y += this.vy * deltaTime;
     }
 
     draw() {
@@ -616,10 +617,10 @@ class Particle {
         this.alpha = 1;
     }
 
-    update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.alpha -= 0.02;
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.alpha -= 0.02 * deltaTime;
     }
 
     draw() {
@@ -648,9 +649,9 @@ function initStars() {
     }
 }
 
-function updateStars() {
+function updateStars(deltaTime) {
     stars.forEach(s => {
-        s.y += s.speed;
+        s.y += s.speed * deltaTime;
         if (s.y > canvas.height) {
             s.y = 0;
             s.x = Math.random() * canvas.width;
@@ -682,7 +683,7 @@ function createExplosion(x, y, color) {
     }
 }
 
-function spawnEntity() {
+function spawnEntity(deltaTime) {
     if (bossState !== 'none') return; // Pause normal stuff during boss flow
 
     if (score >= bossSpawnScore) {
@@ -691,30 +692,33 @@ function spawnEntity() {
         return;
     }
 
-    if (frameCount % 60 === 0) {
+    if (frameCount > 60) {
+        frameCount = 0;
         const rand = Math.random();
         if (rand > 0.8) enemies.push(new Enemy('tank'));
         else if (rand > 0.5) enemies.push(new Enemy('zigzag'));
         else enemies.push(new Enemy('basic'));
     }
-    if (frameCount % 100 === 0) {
+    
+    // Check for asteroid spawn (using a separate timer or logic)
+    if (Math.random() < 0.01 * deltaTime) {
         asteroids.push(new Asteroid());
     }
 }
 
 // --- Core Loops ---
 
-function update() {
-    frameCount++;
-    currentSpeedMultiplier += SPEED_INC;
+function update(deltaTime) {
+    frameCount += deltaTime;
+    currentSpeedMultiplier += SPEED_INC * deltaTime;
 
-    updateStars();
-    player.update();
+    updateStars(deltaTime);
+    player.update(deltaTime);
 
     if (screenShake > 0) screenShake *= 0.9;
 
     bullets.forEach((b, i) => {
-        b.update();
+        b.update(deltaTime);
         if (b.y < -20) {
             bullets.splice(i, 1);
             return;
@@ -733,7 +737,7 @@ function update() {
     });
 
     bossBullets.forEach((b, i) => {
-        b.update();
+        b.update(deltaTime);
         if (b.y > canvas.height + 20 || b.x < -20 || b.x > canvas.width + 20) {
             bossBullets.splice(i, 1);
             return;
@@ -748,7 +752,7 @@ function update() {
         }
     });
 
-    if (bossMessageTimer > 0) bossMessageTimer--;
+    if (bossMessageTimer > 0) bossMessageTimer -= deltaTime;
 
     if (bossState === 'incoming' && bossMessageTimer <= 0) {
         bossState = 'active';
@@ -761,7 +765,7 @@ function update() {
     }
 
     if (bossState === 'active' && boss) {
-        boss.update();
+        boss.update(deltaTime);
         // Collision dragon body with player
         boss.segments.forEach(seg => {
             const dx = seg.x - (player.x + 20);
@@ -773,7 +777,7 @@ function update() {
     }
 
     enemies.forEach((e, i) => {
-        e.update();
+        e.update(deltaTime);
         if (e.y > canvas.height + 50) enemies.splice(i, 1);
 
         // Bullet hit enemy
@@ -801,7 +805,7 @@ function update() {
     });
 
     asteroids.forEach((a, i) => {
-        a.update();
+        a.update(deltaTime);
         if (a.y > canvas.height + 50) asteroids.splice(i, 1);
 
         // Player hit asteroid
@@ -824,7 +828,7 @@ function update() {
     });
 
     powerups.forEach((p, i) => {
-        p.update();
+        p.update(deltaTime);
         if (rectIntersect(player, p)) {
             if (p.type === 'speed') {
                 player.speedBoost = true;
@@ -837,11 +841,11 @@ function update() {
     });
 
     particles.forEach((p, i) => {
-        p.update();
+        p.update(deltaTime);
         if (p.alpha <= 0) particles.splice(i, 1);
     });
 
-    spawnEntity();
+    spawnEntity(deltaTime);
     scoreElement.textContent = score;
 }
 
@@ -952,12 +956,12 @@ function animate(timestamp) {
     if (!gameRunning || isPaused) return;
     animationFrameId = requestAnimationFrame(animate);
     
-    const elapsed = timestamp - lastTime;
-    if (elapsed > 16.6) { // ~60fps
-        lastTime = timestamp;
-        update();
-        draw();
-    }
+    if (!lastTime) lastTime = timestamp;
+    const deltaTime = Math.min((timestamp - lastTime) / 16.67, 3); // Cap at 3x to avoid huge jumps
+    lastTime = timestamp;
+
+    update(deltaTime);
+    draw();
 }
 
 function startGame() {

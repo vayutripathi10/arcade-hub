@@ -28,7 +28,6 @@ let score = 0;
 let highScore = localStorage.getItem('snakeHighScore') || 0;
 let gameRunning = false;
 let isPaused = false;
-let gameLoopInterval;
 let speed = 200;
 let survivalTimer = 0;
 const minSpeed = 50;
@@ -141,14 +140,14 @@ function startGame() {
     overlay.classList.add('hidden');
     pauseBtn?.classList.remove('hidden');
     
-    if (gameLoopInterval) clearInterval(gameLoopInterval);
-    gameLoopInterval = setInterval(gameLoop, speed);
+    lastTimestamp = performance.now();
+    moveAccumulator = 0;
+    requestAnimationFrame(gameLoop);
 }
 
 function quitToMenu() {
     gameRunning = false;
     isPaused = false;
-    clearInterval(gameLoopInterval);
     pauseMenu.classList.add('hidden');
     overlayTitle.textContent = "Zen Snake";
     overlayMessage.textContent = "Press any key or Tap to start";
@@ -191,17 +190,32 @@ function togglePause(forcePause) {
     isPaused = forcePause !== undefined ? forcePause : !isPaused;
     
     if (isPaused) {
-        clearInterval(gameLoopInterval);
         pauseMenu.classList.remove('hidden');
     } else {
         pauseMenu.classList.add('hidden');
-        gameLoopInterval = setInterval(gameLoop, speed);
+        lastTimestamp = performance.now();
+        requestAnimationFrame(gameLoop);
     }
 }
 
-function gameLoop() {
-    update();
+let lastTimestamp = 0;
+let moveAccumulator = 0;
+
+function gameLoop(timestamp) {
+    if (!gameRunning || isPaused) return;
+    
+    const deltaTime = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+    
+    moveAccumulator += deltaTime;
+    
+    if (moveAccumulator >= speed) {
+        update();
+        moveAccumulator = 0;
+    }
+    
     draw();
+    requestAnimationFrame(gameLoop);
 }
 
 function update() {
@@ -251,10 +265,8 @@ function update() {
 
 function increaseSpeed(amount) {
     if (speed > minSpeed) {
-        clearInterval(gameLoopInterval);
         speed -= amount;
         if (speed < minSpeed) speed = minSpeed;
-        gameLoopInterval = setInterval(gameLoop, speed);
     }
 }
 
@@ -312,7 +324,6 @@ function generateFood() {
 function gameOver() {
     gameRunning = false; isPaused = false;
     pauseBtn?.classList.add('hidden');
-    clearInterval(gameLoopInterval);
     if (window.audioFX) window.audioFX.playGameOver();
     if (navigator.vibrate) navigator.vibrate(50);
     overlayTitle.textContent = "Game Over";

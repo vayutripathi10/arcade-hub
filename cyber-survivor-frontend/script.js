@@ -133,7 +133,7 @@ class Player {
         };
     }
 
-    update(dt) {
+    update(deltaTime) {
         // Movement
         let dx = 0, dy = 0;
         if (keys.w || keys.ArrowUp) dy -= 1;
@@ -149,8 +149,8 @@ class Player {
             dy = joystick.dy;
         }
 
-        this.x += dx * this.speed * dt;
-        this.y += dy * this.speed * dt;
+        this.x += dx * (this.speed / 60) * deltaTime;
+        this.y += dy * (this.speed / 60) * deltaTime;
 
         // Bounds
         this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
@@ -158,7 +158,7 @@ class Player {
 
         // Auto Shoot - Blaster (Targets nearest)
         if (this.weapons.blaster.level > 0) {
-            this.weapons.blaster.timer -= dt;
+            this.weapons.blaster.timer -= deltaTime * 0.01667;
             if (this.weapons.blaster.timer <= 0) {
                 const target = getNearestEnemy(this.x, this.y);
                 if (target) {
@@ -172,7 +172,7 @@ class Player {
 
         // Auto Shoot - Spread
         if (this.weapons.spread.level > 0) {
-            this.weapons.spread.timer -= dt;
+            this.weapons.spread.timer -= deltaTime * 0.01667;
             if (this.weapons.spread.timer <= 0) {
                 this.weapons.spread.timer = this.weapons.spread.cooldown;
                 const count = 2 + this.weapons.spread.level;
@@ -186,7 +186,7 @@ class Player {
 
         // Orbital Update
         if (this.weapons.orbital.level > 0) {
-            this.weapons.orbital.angle += this.weapons.orbital.speed * dt;
+            this.weapons.orbital.angle += (this.weapons.orbital.speed / 60) * deltaTime;
             // Collision handled in main loop
         }
 
@@ -316,14 +316,14 @@ class Enemy {
         }
 
         // Apply knockback
-        this.x += this.knockbackX * dt;
-        this.y += this.knockbackY * dt;
-        this.knockbackX *= 0.9;
-        this.knockbackY *= 0.9;
+        this.x += (this.knockbackX / 60) * deltaTime;
+        this.y += (this.knockbackY / 60) * deltaTime;
+        this.knockbackX *= Math.pow(0.9, deltaTime);
+        this.knockbackY *= Math.pow(0.9, deltaTime);
 
         // Normal movement
-        this.x += dx * this.speed * dt;
-        this.y += dy * this.speed * dt;
+        this.x += dx * (this.speed / 60) * deltaTime;
+        this.y += dy * (this.speed / 60) * deltaTime;
     }
 
     draw(ctx) {
@@ -384,10 +384,10 @@ class Projectile {
         this.hitEnemies = new Set();
     }
 
-    update(dt) {
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-        this.life -= dt;
+    update(deltaTime) {
+        this.x += (this.vx / 60) * deltaTime;
+        this.y += (this.vy / 60) * deltaTime;
+        this.life -= deltaTime * 0.01667;
         if (this.life <= 0) this.markedForDeletion = true;
     }
 
@@ -424,8 +424,8 @@ class Gem {
                 player.gainXp(this.value);
                 if (window.audioFX) window.audioFX.playGem();
             } else {
-                this.x += (dx / dist) * speed * dt;
-                this.y += (dy / dist) * speed * dt;
+                this.x += (dx / dist) * (speed / 60) * deltaTime;
+                this.y += (dy / dist) * (speed / 60) * deltaTime;
             }
         }
     }
@@ -453,10 +453,10 @@ class Particle {
         this.maxLife = this.life;
         this.color = color;
     }
-    update(dt) {
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-        this.life -= dt;
+    update(deltaTime) {
+        this.x += (this.vx / 60) * deltaTime;
+        this.y += (this.vy / 60) * deltaTime;
+        this.life -= deltaTime * 0.01667;
     }
     draw(ctx) {
         ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
@@ -476,9 +476,9 @@ class FloatingText {
         this.maxLife = 0.8;
         this.vy = -50;
     }
-    update(dt) {
-        this.y += this.vy * dt;
-        this.life -= dt;
+    update(deltaTime) {
+        this.y += (this.vy / 60) * deltaTime;
+        this.life -= deltaTime * 0.01667;
     }
     draw(ctx) {
         ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
@@ -495,8 +495,8 @@ class FloatingText {
 let spawnTimer = 0;
 let bossSpawnedAt = new Set();
 
-function spawnEnemies(dt) {
-    spawnTimer -= dt;
+function spawnEnemies(deltaTime) {
+    spawnTimer -= deltaTime * 0.01667;
     if (spawnTimer <= 0) {
         // Spawn rate gets faster over time, min 0.2s
         spawnTimer = Math.max(0.2, 1.5 - (gameTime / 120)); 
@@ -619,8 +619,9 @@ function formatTime(s) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-function update(dt) {
-    gameTime += dt;
+function update(deltaTime) {
+    const dtSeconds = deltaTime * 0.01667;
+    gameTime += dtSeconds;
     uiTime.textContent = formatTime(gameTime);
 
     // Achievements
@@ -628,14 +629,14 @@ function update(dt) {
         window.achievements.unlock('survivor', 'survive_5m', 'Survived 5 Minutes');
     }
 
-    player.update(dt);
-    spawnEnemies(dt);
+    player.update(deltaTime);
+    spawnEnemies(deltaTime);
 
-    enemies.forEach(e => e.update(dt));
-    projectiles.forEach(p => p.update(dt));
-    gems.forEach(g => g.update(dt));
-    particles.forEach(p => p.update(dt));
-    floatingTexts.forEach(ft => ft.update(dt));
+    enemies.forEach(e => e.update(deltaTime));
+    projectiles.forEach(p => p.update(deltaTime));
+    gems.forEach(g => g.update(deltaTime));
+    particles.forEach(p => p.update(deltaTime));
+    floatingTexts.forEach(ft => ft.update(deltaTime));
 
     // Collisions
     // 1. Projectiles vs Enemies
@@ -674,7 +675,7 @@ function update(dt) {
                     const dx = e.x - player.x;
                     const dy = e.y - player.y;
                     const len = Math.hypot(dx, dy);
-                    e.takeDamage(player.weapons.orbital.damage * dt * 5, dx/len, dy/len); 
+                    e.takeDamage(player.weapons.orbital.damage * deltaTime * 0.01667 * 5, dx/len, dy/len); 
                     // applied rapidly due to overlap, mitigated by dt
                 }
             });
@@ -686,7 +687,7 @@ function update(dt) {
         if (e.markedForDeletion) return;
         const dist = Math.hypot(e.x - player.x, e.y - player.y);
         if (dist < e.radius + player.radius) {
-            player.takeDamage(e.damage * dt); // continuous damage on touch
+            player.takeDamage(e.damage * deltaTime * 0.01667); // continuous damage on touch
         }
     });
 
@@ -729,10 +730,12 @@ function update(dt) {
 function gameLoop(timestamp) {
     if (gameState !== 'PLAYING') return;
 
-    const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+    if (!lastTime) lastTime = timestamp;
+    const dt = timestamp - lastTime;
     lastTime = timestamp;
 
-    update(dt);
+    const deltaTime = Math.min(dt / 16.67, 3);
+    update(deltaTime);
 
     if (gameState === 'PLAYING') {
         requestAnimationFrame(gameLoop);

@@ -107,8 +107,8 @@ let particles = [];
 // Input Handling
 let isDragging = false;
 let lastMouseX = 0;
-let rotationVelocity = 0;
 let levelRotation = 0;
+let lastTimestamp = 0;
 
 class Ball {
     constructor() {
@@ -130,21 +130,21 @@ class Ball {
         soundManager.play('click');
     }
 
-    update() {
+    update(deltaTime) {
         if (gameState !== 'PLAYING' || isPaused) return;
 
         // Apply Gravity
-        this.vy += GRAVITY;
-        this.x += this.vx;
-        this.y += this.vy;
+        this.vy += GRAVITY * deltaTime;
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
 
         // Friction / Air resistance
-        this.vx *= 0.99;
+        this.vx *= Math.pow(0.99, deltaTime);
 
-        this.checkCollisions();
+        this.checkCollisions(deltaTime);
     }
 
-    checkCollisions() {
+    checkCollisions(deltaTime) {
         // Find the ring the ball is currently inside or near
         rings.forEach((ring, index) => {
             const dx = this.x - ring.x;
@@ -222,7 +222,7 @@ class Ball {
 
         // Update Camera to follow ball
         const targetY = -this.y + canvas.height * 0.4;
-        cameraY += (targetY - cameraY) * 0.1;
+        cameraY += (targetY - cameraY) * 0.1 * deltaTime;
     }
 
     draw() {
@@ -319,6 +319,7 @@ function restartGame() {
     rings = [];
     levelRotation = 0;
     rotationVelocity = 0;
+    lastTimestamp = 0;
     
     for (let i = 0; i < 5; i++) addRing(i);
     
@@ -425,17 +426,22 @@ function resize() {
     rings.forEach(r => r.x = canvas.width / 2);
 }
 
-function loop() {
+function loop(timestamp) {
+    const deltaTime = lastTimestamp ? Math.min((timestamp - lastTimestamp) / 16.67, 3) : 1;
+    lastTimestamp = timestamp;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
         if (!isPaused || gameState === 'GAMEOVER') {
-            if (!isDragging) rotationVelocity *= ROTATION_MOMENTUM;
-            levelRotation += rotationVelocity;
-            ball.update();
+            if (!isDragging) rotationVelocity *= Math.pow(ROTATION_MOMENTUM, deltaTime);
+            levelRotation += rotationVelocity * deltaTime;
+            ball.update(deltaTime);
             
             particles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                p.x += p.vx * deltaTime; 
+                p.y += p.vy * deltaTime; 
+                p.life -= 0.02 * deltaTime;
                 if (p.life <= 0) particles.splice(i, 1);
             });
         }

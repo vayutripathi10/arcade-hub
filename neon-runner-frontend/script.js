@@ -301,38 +301,38 @@ function spawnParticles(x, y, colorVar, count=10) {
 }
 
 // --- Main Loop Functions ---
-function update() {
-    frameCount++;
-    score += (baseSpeed * speedMult) * 0.01;
-    speedMult += 0.0005; 
+function update(deltaTime) {
+    frameCount += deltaTime;
+    score += (baseSpeed * speedMult) * 0.01 * deltaTime;
+    speedMult += 0.0005 * deltaTime; 
     
     let currentSpeed = baseSpeed * speedMult;
 
     if (player.invincible) {
-        player.invincTimer--;
+        player.invincTimer -= deltaTime * 60;
         if (player.invincTimer <= 0) player.invincible = false;
         currentSpeed *= 1.5; 
     }
 
     if (frameCount % 10 === 0) updateHUD();
 
-    player.y += (player.targetY - player.y) * 0.2;
+    player.y += (player.targetY - player.y) * 0.2 * deltaTime;
 
-    if (Math.random() < 0.015 * speedMult) spawnObstacle();
-    if (Math.random() < 0.02 * speedMult) spawnCoin();
+    if (Math.random() < 0.015 * speedMult * deltaTime) spawnObstacle();
+    if (Math.random() < 0.02 * speedMult * deltaTime) spawnCoin();
 
     bgStars.forEach(s => {
-        s.x -= currentSpeed * 0.1;
+        s.x -= currentSpeed * 0.1 * deltaTime;
         if (s.x < 0) { s.x = cw; s.y = Math.random()*(ch*0.6); }
     });
     bgBuildings.forEach(b => {
-        b.x -= currentSpeed * 0.4;
+        b.x -= currentSpeed * 0.4 * deltaTime;
         if (b.x + b.w < 0) { b.x = cw; b.w = 40+Math.random()*80; b.h = 50+Math.random()*150; }
     });
 
     for (let i = obstacles.length - 1; i >= 0; i--) {
         let obs = obstacles[i];
-        obs.x -= currentSpeed;
+        obs.x -= currentSpeed * deltaTime;
         
         let playerBot = player.y + player.h/2;
         let playerTop = player.y - player.h/2;
@@ -363,7 +363,7 @@ function update() {
 
     for (let i = coins.length - 1; i >= 0; i--) {
         let c = coins[i];
-        c.x -= currentSpeed;
+        c.x -= currentSpeed * deltaTime;
         
         let cY = lanes[c.lane];
         let dist = Math.hypot(c.x - player.x, cY - player.y);
@@ -395,9 +395,9 @@ function update() {
 
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
-        p.x += p.vx - (currentSpeed*0.5); 
-        p.y += p.vy;
-        p.life -= 0.03;
+        p.x += (p.vx - (currentSpeed*0.5)) * deltaTime; 
+        p.y += p.vy * deltaTime;
+        p.life -= 0.03 * deltaTime;
         if (p.life <= 0) particles.splice(i, 1);
     }
     
@@ -519,13 +519,11 @@ function loop(timestamp) {
     animationId = requestAnimationFrame(loop);
     
     if (!lastTime) lastTime = timestamp;
-    let elapsed = timestamp - lastTime;
-    
-    if (elapsed > fps) {
-        lastTime = timestamp - (elapsed % fps);
-        update();
-        drawBase();
-    }
+    const deltaTime = Math.min((timestamp - lastTime) / 16.67, 3);
+    lastTime = timestamp;
+
+    update(deltaTime);
+    drawBase();
 }
 
 function share(platform) {

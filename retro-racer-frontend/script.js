@@ -440,22 +440,25 @@ function togglePause() {
     }
 }
 
-function update(dt) {
+function update(deltaTime) {
     if (gameState !== 'playing') return;
+    
+    // dt was in ms, deltaTime is normalized (1.0 = 16.67ms)
+    const dtSeconds = deltaTime * 0.01667; 
     
     const maxSpeed = Math.min(250, 150 + (currentStage * 20));
     speed = Math.min(maxSpeed, 60 + (score / 100));
     if (window.audioFX && window.audioFX.updateEngine) window.audioFX.updateEngine(speed);
     
-    if (keys.ArrowLeft) player.x -= 300 * (dt/1000);
-    if (keys.ArrowRight) player.x += 300 * (dt/1000);
+    if (keys.ArrowLeft) player.x -= 5.0 * deltaTime; // 300/60 approx
+    if (keys.ArrowRight) player.x += 5.0 * deltaTime;
     
     if (player.x < grassWidth + player.w/2) player.x = grassWidth + player.w/2;
     if (player.x > canvas.width - grassWidth - player.w/2) player.x = canvas.width - grassWidth - player.w/2;
     
-    const scrollAmount = speed * (dt/100);
+    const scrollAmount = speed * (deltaTime / 6.0); // Adjust to maintain original feel
     roadOffset = (roadOffset + scrollAmount) % 100;
-    runDistance += speed * (dt/1000);
+    runDistance += speed * dtSeconds;
     
     if (runDistance >= stageDistanceTarget && !finishedStage) {
         if (finishLineY === -1) finishLineY = -200;
@@ -480,10 +483,10 @@ function update(dt) {
     for (let i = obstacles.length - 1; i >= 0; i--) {
         let obs = obstacles[i];
         if (!obs.active) { obstacles.splice(i, 1); continue; }
-        obs.y += speed * 3 * (dt/1000);
+        obs.y += speed * 0.05 * deltaTime; // Balanced to original speed * 3 * (dt/1000)
         if (obs.y > canvas.height + 100) obs.active = false;
         if (obs.vx) {
-            obs.x += obs.vx * (dt/1000);
+            obs.x += obs.vx * dtSeconds;
             if (obs.x < grassWidth + obs.w) { obs.x = grassWidth + obs.w; obs.vx *= -1; }
             if (obs.x > canvas.width - grassWidth - obs.w) { obs.x = canvas.width - grassWidth - obs.w; obs.vx *= -1; }
         }
@@ -509,17 +512,17 @@ function update(dt) {
     }
     
     for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i]; p.x += p.vx; p.y += p.vy; p.y += speed * 0.5 * (dt/1000);
-        p.life -= 0.02; if (p.life <= 0) particles.splice(i, 1);
+        let p = particles[i]; p.x += p.vx * deltaTime; p.y += p.vy * deltaTime; p.y += speed * 0.008 * deltaTime;
+        p.life -= 0.02 * deltaTime; if (p.life <= 0) particles.splice(i, 1);
     }
     
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        let t = floatingTexts[i]; t.y -= 1; t.life -= 0.02; if (t.life <= 0) floatingTexts.splice(i, 1);
+        let t = floatingTexts[i]; t.y -= 1 * deltaTime; t.life -= 0.02 * deltaTime; if (t.life <= 0) floatingTexts.splice(i, 1);
     }
     
-    timeAccumulator += dt;
+    timeAccumulator += deltaTime * 16.67;
     if (timeAccumulator > 1000) { timeAccumulator -= 1000; timer--; if (timer <= 0) gameOver(); }
-    score += speed * (dt/1000);
+    score += speed * dtSeconds;
     updateHUD();
 }
 
@@ -595,8 +598,11 @@ function loop(timestamp) {
     if (!lastTime) lastTime = timestamp;
     const dt = timestamp - lastTime;
     lastTime = timestamp;
+    
+    const deltaTime = Math.min(dt / 16.67, 3);
+    
     if (gameState !== 'loading') {
-        update(dt);
+        update(deltaTime);
         draw();
     }
     animFrame = requestAnimationFrame(loop);

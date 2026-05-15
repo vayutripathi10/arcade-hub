@@ -171,12 +171,12 @@ function hideOverlay() {
 }
 
 // ─── Update ───────────────────────────────────────────────────────────────────
-function update(now) {
+function update(deltaTime) {
     if (gameState !== 'running') return;
 
     // Bird physics
-    bird.vy += GRAVITY;
-    bird.y += bird.vy;
+    bird.vy += GRAVITY * deltaTime;
+    bird.y += bird.vy * deltaTime;
     bird.angle = Math.max(-25, Math.min(80, bird.vy * 4.5));
 
     // Trail
@@ -190,15 +190,15 @@ function update(now) {
     }
 
     // Spawn pipes
+    const now = performance.now();
     if (now - lastPipeTime > PIPE_INTERVAL) {
         pipes.push(createPipe());
         lastPipeTime = now;
     }
 
-    // Update pipes
     for (let i = pipes.length - 1; i >= 0; i--) {
         const p = pipes[i];
-        p.x -= PIPE_SPEED;
+        p.x -= PIPE_SPEED * deltaTime;
 
         // Score
         if (!p.scored && p.x + PIPE_WIDTH < bird.x) {
@@ -241,10 +241,10 @@ function update(now) {
     // Particles
     for (let i = particlePool.length - 1; i >= 0; i--) {
         const pt = particlePool[i];
-        pt.x += pt.vx;
-        pt.y += pt.vy;
-        pt.vy += 0.15;
-        pt.life -= 0.05;
+        pt.x += pt.vx * deltaTime;
+        pt.y += pt.vy * deltaTime;
+        pt.vy += 0.15 * deltaTime;
+        pt.life -= 0.05 * deltaTime;
         if (pt.life <= 0) particlePool.splice(i, 1);
     }
 }
@@ -424,40 +424,46 @@ function roundRect(ctx, x, y, w, h, radii = {}) {
 }
 
 // ─── Game Loop ────────────────────────────────────────────────────────────────
-let lastTime = 0;
-const fpsInterval = 1000 / 60;
-
 function loop(timestamp = 0) {
     if (gameState === 'paused') return;
+    
+    if (!lastTime) lastTime = timestamp;
+    const dt = timestamp - lastTime;
+    lastTime = timestamp;
+    
+    const deltaTime = Math.min(dt / 16.67, 3);
+
     if (gameState !== 'dead') {
         frameId = requestAnimationFrame(loop);
-        if (!lastTime) lastTime = timestamp;
-        const elapsed = timestamp - lastTime;
-        if (elapsed > fpsInterval) {
-            lastTime = timestamp - (elapsed % fpsInterval);
-            update(timestamp);
-            draw();
-        }
+        update(deltaTime);
+        draw();
     } else {
         // Keep drawing particles until they die
         const deadLoop = (ts) => {
             if (particlePool.length > 0) {
                 requestAnimationFrame(deadLoop);
-                if (!lastTime) lastTime = ts;
-                const elapsed = ts - lastTime;
-                if (elapsed > fpsInterval) {
-                    lastTime = ts - (elapsed % fpsInterval);
-                    draw();
-                    particlePool.forEach(pt => {
-                        pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.15; pt.life -= 0.05;
-                    });
-                    particlePool = particlePool.filter(p => p.life > 0);
-                }
+                const dts = ts - (lastTime || ts);
+                lastTime = ts;
+                const dTime = Math.min(dts / 16.67, 3);
+                
+                updateParticlesOnly(dTime);
+                draw();
             } else {
                 draw(); // final steady draw
             }
         };
         requestAnimationFrame(deadLoop);
+    }
+}
+
+function updateParticlesOnly(deltaTime) {
+    for (let i = particlePool.length - 1; i >= 0; i--) {
+        const pt = particlePool[i];
+        pt.x += pt.vx * deltaTime;
+        pt.y += pt.vy * deltaTime;
+        pt.vy += 0.15 * deltaTime;
+        pt.life -= 0.05 * deltaTime;
+        if (pt.life <= 0) particlePool.splice(i, 1);
     }
 }
 

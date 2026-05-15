@@ -1522,7 +1522,8 @@ function gameLoop(timestamp) {
     const rawDt = timestamp - (lastTime || timestamp);
     lastTime = timestamp;
     const timeScale = slowMo.active ? 0.25 : 1;
-    const dt = Math.min(rawDt, 33) * timeScale;
+    const deltaTime = Math.min(rawDt / 16.67, 3) * timeScale;
+    const dt = rawDt * timeScale; // Keep dt for some non-normalized timers if needed
 
     if (isPaused) return;
 
@@ -1537,7 +1538,7 @@ function gameLoop(timestamp) {
 
     // Moving platforms logic
     if (movingPlatforms) {
-        platformPhase += dt * 0.002;
+        platformPhase += deltaTime * 0.033; // 0.002 * 16.67 approx
         if (MatchState.p1Moving) {
             MatchState.p1Offset.y = Math.sin(platformPhase) * 40;
             MatchState.p1Offset.x = Math.cos(platformPhase * 0.7) * 20;
@@ -1559,7 +1560,7 @@ function gameLoop(timestamp) {
 
     // Update Birds
     MatchState.birds.forEach(bird => {
-        bird.x += bird.vx * (dt / 16);
+        bird.x += bird.vx * deltaTime;
         if (bird.x > W + 100) bird.x = -100;
         if (bird.x < -100) bird.x = W + 100;
         bird.y += Math.sin(timestamp * 0.005) * 0.5;
@@ -1567,14 +1568,14 @@ function gameLoop(timestamp) {
 
     // Stick growing
     if (stickState === 'growing' && isHolding) {
-        stickLength = Math.min(stickLength + STICK_GROW_SPEED * (dt / 16), MAX_STICK_LENGTH);
+        stickLength = Math.min(stickLength + STICK_GROW_SPEED * deltaTime, MAX_STICK_LENGTH);
         document.getElementById('powerFill').style.width = (stickLength / MAX_STICK_LENGTH * 100) + '%';
         if (frameCounter % 4 === 0) playGrowSound();
     }
 
     // Stick falling animation
     if (stickState === 'falling') {
-        stickAngle += STICK_FALL_SPEED * MatchState.gravityMult * (dt / 16) * (Math.PI / 180);
+        stickAngle += STICK_FALL_SPEED * MatchState.gravityMult * deltaTime * (Math.PI / 180);
         if (stickAngle >= Math.PI / 2) {
             stickAngle = Math.PI / 2;
             stickState = 'landed';
@@ -1600,11 +1601,11 @@ function gameLoop(timestamp) {
 
     // Update Lasers
     MatchState.lasers.forEach(laser => {
-        laser.angle += laser.speed * (dt / 16);
+        laser.angle += laser.speed * deltaTime;
     });
 
     // Draw background logic
-    drawBackground(timestamp / 16);
+    drawBackground(timestamp / 16.67);
 
     // Draw Lasers
     MatchState.lasers.forEach(laser => {

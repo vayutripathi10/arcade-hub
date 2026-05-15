@@ -217,11 +217,11 @@ class Tank {
         ctx.restore();
     }
 
-    move(dt) {
+    move(deltaTime) {
         if (this.type === 'enemy' || (this.type === 'player' && this.moving)) {
             let nextX = this.x;
             let nextY = this.y;
-            const dist = this.speed;
+            const dist = this.speed * deltaTime;
 
             if (this.dir === 0) nextY -= dist;
             if (this.dir === 1) nextX += dist;
@@ -233,7 +233,7 @@ class Tank {
                 this.y = nextY;
             } else if (this.type === 'enemy') {
                 // Enemy AI: Change direction if hit wall
-                if (Math.random() < 0.05) {
+                if (Math.random() < 0.05 * deltaTime) {
                     this.dir = Math.floor(Math.random() * 4);
                 }
             }
@@ -315,11 +315,12 @@ class Bullet {
         this.isStrong = isStrong;
     }
 
-    update() {
-        if (this.dir === 0) this.y -= this.speed;
-        if (this.dir === 1) this.x += this.speed;
-        if (this.dir === 2) this.y += this.speed;
-        if (this.dir === 3) this.x -= this.speed;
+    update(deltaTime) {
+        const step = this.speed * deltaTime;
+        if (this.dir === 0) this.y -= step;
+        if (this.dir === 1) this.x += step;
+        if (this.dir === 2) this.y += step;
+        if (this.dir === 3) this.x -= step;
 
         const r = Math.floor(this.y / TILE_SIZE);
         const c = Math.floor(this.x / TILE_SIZE);
@@ -420,12 +421,12 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-function update(dt) {
+function update(deltaTime) {
     if (gameState === 'death_sequence') {
         const elapsed = Date.now() - deathSequenceStartTime;
         
         // Update particles only
-        particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; });
+        particles.forEach(p => { p.x += p.vx * deltaTime; p.y += p.vy * deltaTime; p.life -= 0.02 * deltaTime; });
         particles = particles.filter(p => p.life > 0);
         
         // Force transition after 1.2s absolute time
@@ -437,11 +438,12 @@ function update(dt) {
 
     if (gameState !== 'playing') return;
 
-    // Power-up durations
-    if (player.multiShotTimer > 0) player.multiShotTimer -= dt;
-    if (player.strongBulletTimer > 0) player.strongBulletTimer -= dt;
-    if (player.speedTimer > 0) player.speedTimer -= dt;
-    if (freezeTimer > 0) freezeTimer -= dt;
+    // Power-up durations (scaling dt to ms for these timers)
+    const dtMs = deltaTime * 16.67;
+    if (player.multiShotTimer > 0) player.multiShotTimer -= dtMs;
+    if (player.strongBulletTimer > 0) player.strongBulletTimer -= dtMs;
+    if (player.speedTimer > 0) player.speedTimer -= dtMs;
+    if (freezeTimer > 0) freezeTimer -= dtMs;
 
     // Player with speed boost
     player.moving = false;
@@ -449,28 +451,28 @@ function update(dt) {
 
     if (keys['ArrowUp'] || keys['KeyW']) { 
         player.dir = 0; player.moving = true; 
-        const nx = player.x; const ny = player.y - pSpeed;
+        const nx = player.x; const ny = player.y - pSpeed * deltaTime;
         if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
     }
     else if (keys['ArrowRight'] || keys['KeyD']) { 
         player.dir = 1; player.moving = true; 
-        const nx = player.x + pSpeed; const ny = player.y;
+        const nx = player.x + pSpeed * deltaTime; const ny = player.y;
         if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
     }
     else if (keys['ArrowDown'] || keys['KeyS']) { 
         player.dir = 2; player.moving = true; 
-        const nx = player.x; const ny = player.y + pSpeed;
+        const nx = player.x; const ny = player.y + pSpeed * deltaTime;
         if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
     }
     else if (keys['ArrowLeft'] || keys['KeyA']) { 
         player.dir = 3; player.moving = true; 
-        const nx = player.x - pSpeed; const ny = player.y;
+        const nx = player.x - pSpeed * deltaTime; const ny = player.y;
         if (!player.checkCollision(nx, ny)) { player.x = nx; player.y = ny; }
     }
 
     // Bullet updates
     for (let i = bullets.length - 1; i >= 0; i--) {
-        if (!bullets[i].update()) bullets.splice(i, 1);
+        if (!bullets[i].update(deltaTime)) bullets.splice(i, 1);
     }
 
     // Power-up Collection
@@ -485,7 +487,7 @@ function update(dt) {
     }
 
     // Enemy AI
-    enemySpawnTimer += dt;
+    enemySpawnTimer += deltaTime * 16.67;
     if (enemySpawnTimer > spawnRate && enemiesSpawnedInStage < totalEnemiesInStage) {
         spawnEnemy();
         enemySpawnTimer = 0;
@@ -504,14 +506,14 @@ function update(dt) {
             // Normal AI logic
             const hqX = (MAP_COLS / 2) * TILE_SIZE;
             const hqY = (MAP_ROWS - 2) * TILE_SIZE;
-            if (Math.random() < 0.02) {
+            if (Math.random() < 0.02 * deltaTime) {
                 const dx = hqX - e.x;
                 const dy = hqY - e.y;
                 if (Math.abs(dx) > Math.abs(dy)) e.dir = dx > 0 ? 1 : 3;
                 else e.dir = dy > 0 ? 2 : 0;
             }
-            e.move(dt);
-            if (Math.random() < 0.01) e.shoot();
+            e.move(deltaTime);
+            if (Math.random() < 0.01 * deltaTime) e.shoot();
         }
     }
     // Particles
@@ -526,7 +528,7 @@ function update(dt) {
 
     // Player Shield Countdown (Ensures it ends even if standing still)
     if (player && player.invincibilityTimer > 0) {
-        player.invincibilityTimer -= dt;
+        player.invincibilityTimer -= deltaTime * 16.67;
     }
 
     if (hqHP <= 0) endGame('HQ DESTROYED');
@@ -666,12 +668,10 @@ function gameLoop(timestamp) {
     let dt = timestamp - lastTime;
     lastTime = timestamp;
     
-    // Cap DT to prevent large jumps after tab switching
-    if (dt > 100) dt = 16; 
-    if (dt < 0) dt = 0;
+    const deltaTime = Math.min(dt / 16.67, 3);
 
     if (gameState === 'stage_intro' || gameState === 'stage_clear') {
-        stageOverlayTimer -= dt;
+        stageOverlayTimer -= deltaTime * 16.67;
         if (stageOverlayTimer <= 0) {
             if (gameState === 'stage_intro') {
                 gameState = 'playing';
@@ -682,7 +682,7 @@ function gameLoop(timestamp) {
         }
         draw(); 
     } else {
-        update(dt); 
+        update(deltaTime); 
         draw();
     }
     
