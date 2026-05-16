@@ -33,9 +33,12 @@ class PipeGame {
         // Buttons
         document.getElementById('start-btn').addEventListener('click', () => this.showModeSelection());
         
-        document.getElementById('mode-back-btn').addEventListener('click', () => {
-            document.getElementById('mode-screen').classList.remove('active');
-            document.getElementById('start-screen').classList.add('active');
+        document.getElementById('home-btn').addEventListener('click', () => {
+            this.gameRunning = false;
+            this.gridElement.innerHTML = '';
+            document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
+            document.getElementById('mode-screen').classList.add('active');
+            if (this.hintInterval) clearInterval(this.hintInterval);
         });
 
         document.getElementById('select-classic').addEventListener('click', () => this.startGame('classic'));
@@ -539,10 +542,11 @@ class PipeGame {
         });
 
         let timeLeft = 2;
-        const interval = setInterval(() => {
+        this.hintInterval = setInterval(() => {
             timeLeft--;
             if (timeLeft <= 0) {
-                clearInterval(interval);
+                clearInterval(this.hintInterval);
+                this.hintInterval = null;
                 overlay.classList.remove('active');
                 
                 // Restore state
