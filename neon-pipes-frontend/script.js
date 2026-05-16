@@ -13,6 +13,8 @@ class PipeGame {
         this.grid = [];
         this.streak = 0;
         this.soundEnabled = true;
+        this.hintUsed = false;
+        this.isHinting = false;
         
         this.initUI();
         this.initAudio();
@@ -34,6 +36,22 @@ class PipeGame {
         document.getElementById('retry-btn').addEventListener('click', () => this.resetLevel());
         document.getElementById('pause-btn').addEventListener('click', () => this.togglePause());
         document.getElementById('mute-btn').addEventListener('click', () => this.toggleMute());
+        document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
+        
+        // HTP Modal
+        document.getElementById('htp-btn').addEventListener('click', () => {
+            document.getElementById('htp-overlay').classList.add('active');
+        });
+        document.getElementById('htp-close').addEventListener('click', () => {
+            document.getElementById('htp-overlay').classList.remove('active');
+        });
+
+        // Sharing
+        const share = (p) => this.shareScore(p);
+        document.getElementById('share-wa').addEventListener('click', (e) => { e.preventDefault(); share('wa'); });
+        document.getElementById('share-x').addEventListener('click', (e) => { e.preventDefault(); share('x'); });
+        document.getElementById('over-share-wa').addEventListener('click', (e) => { e.preventDefault(); share('wa'); });
+        document.getElementById('over-share-x').addEventListener('click', (e) => { e.preventDefault(); share('x'); });
     }
 
     initAudio() {
@@ -91,11 +109,16 @@ class PipeGame {
     }
 
     setupLevel() {
-        // Level Configuration
-        if (this.level <= 3) { this.gridSize = 4; this.timer = 60; }
-        else if (this.level <= 6) { this.gridSize = 5; this.timer = 75; }
-        else if (this.level <= 10) { this.gridSize = 6; this.timer = 90; }
-        else { this.gridSize = 8; this.timer = 120; }
+        // New Level Configuration
+        if (this.level <= 2) { this.gridSize = 3; this.timer = 60; }
+        else if (this.level <= 5) { this.gridSize = 4; this.timer = 75; }
+        else if (this.level <= 8) { this.gridSize = 5; this.timer = 90; }
+        else { this.gridSize = 6; this.timer = 120; }
+
+        this.hintUsed = false;
+        const hintBtn = document.getElementById('hint-btn');
+        hintBtn.disabled = false;
+        hintBtn.textContent = '💡 HINT';
 
         this.resize();
         this.generateGrid();
@@ -166,6 +189,7 @@ class PipeGame {
             else entries.push(curr.dir);
 
             this.assignPipeType(curr.r, curr.c, entries);
+            this.grid[curr.r][curr.c].targetRotation = this.grid[curr.r][curr.c].rotation;
         }
 
         // 3. Fill the rest with random pipes
@@ -174,6 +198,7 @@ class PipeGame {
             for (let c = 0; c < this.gridSize; c++) {
                 if (!visited.has(`${r},${c}`)) {
                     this.grid[r][c].type = types[Math.floor(Math.random() * types.length)];
+                    this.grid[r][c].targetRotation = Math.floor(Math.random() * 4); // Random target for non-path
                 }
                 // Random Shuffle
                 this.grid[r][c].rotation = Math.floor(Math.random() * 4);
@@ -250,7 +275,7 @@ class PipeGame {
     }
 
     rotatePipe(r, c, element) {
-        if (!this.gameRunning || this.isPaused) return;
+        if (!this.gameRunning || this.isPaused || this.isHinting) return;
         this.grid[r][c].rotation = (this.grid[r][c].rotation + 1) % 4;
         element.style.transform = `rotate(${this.grid[r][c].rotation * 90}deg)`;
         this.sfx.rotate();
@@ -329,7 +354,7 @@ class PipeGame {
         this.sfx.whoosh();
         this.gridElement.classList.add('flowing');
         
-        const timeBonus = Math.floor(this.timer * 10);
+        const timeBonus = this.hintUsed ? 0 : Math.floor(this.timer * 10);
         const levelScore = 1000 + timeBonus + (this.streak * 50);
         this.score += levelScore;
         this.streak++;
@@ -381,6 +406,62 @@ class PipeGame {
     toggleMute() {
         this.soundEnabled = !this.soundEnabled;
         document.getElementById('mute-btn').textContent = this.soundEnabled ? '🔊' : '🔇';
+    }
+
+    showHint() {
+        if (!this.gameRunning || this.isPaused || this.hintUsed || this.isHinting) return;
+        
+        this.hintUsed = true;
+        this.isHinting = true;
+        const hintBtn = document.getElementById('hint-btn');
+        hintBtn.disabled = true;
+        hintBtn.textContent = '💡 USED';
+
+        const overlay = document.getElementById('hint-overlay');
+        overlay.classList.add('active');
+
+        // Store current rotations
+        const originalRotations = this.grid.map(row => row.map(p => p.rotation));
+
+        // Show solved state
+        const cells = document.querySelectorAll('.pipe-cell');
+        cells.forEach(cell => {
+            const r = parseInt(cell.dataset.r);
+            const c = parseInt(cell.dataset.c);
+            cell.style.transform = `rotate(${this.grid[r][c].targetRotation * 90}deg)`;
+            cell.classList.add('connected');
+        });
+
+        let timeLeft = 2;
+        const interval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                overlay.classList.remove('active');
+                
+                // Restore state
+                cells.forEach(cell => {
+                    const r = parseInt(cell.dataset.r);
+                    const c = parseInt(cell.dataset.c);
+                    this.grid[r][c].rotation = originalRotations[r][c];
+                    cell.style.transform = `rotate(${this.grid[r][c].rotation * 90}deg)`;
+                });
+                this.isHinting = false;
+                this.checkConnections();
+            } else {
+                overlay.textContent = `Hint: ${timeLeft}...`;
+            }
+        }, 1000);
+    }
+
+    shareScore(platform) {
+        const text = `I just connected the flow in Neon Pipes at Arcade Hub! Score: ${this.score}, Level: ${this.level}. Can you beat me?`;
+        const url = 'https://arcadehubplay.com/neon-pipes-frontend/index.html';
+        if (platform === 'x') {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+        } else if (platform === 'wa') {
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+        }
     }
 
     updateHUD() {

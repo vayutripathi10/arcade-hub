@@ -148,26 +148,26 @@ body {
 
 .pipe-path {
     fill: none;
-    stroke: var(--neon-cyan);
-    stroke-width: 8;
+    stroke: #1a6b6b; /* Dim unconnected color */
+    stroke-width: 24; /* Approx 30% of 80px cell */
     stroke-linecap: round;
-    opacity: 0.3;
+    stroke-linejoin: round;
     transition: all 0.3s;
 }
 
 .pipe-cell.connected .pipe-path {
-    opacity: 1;
-    stroke-shadow: 0 0 10px var(--neon-cyan);
-    filter: drop-shadow(0 0 5px var(--neon-cyan));
+    stroke: var(--neon-cyan);
+    filter: drop-shadow(0 0 8px var(--neon-cyan));
 }
 
 /* Flow Animation */
 .flow-pulse {
     fill: none;
     stroke: var(--neon-pink);
-    stroke-width: 6;
+    stroke-width: 18; /* Slightly thinner than pipe */
     stroke-linecap: round;
-    stroke-dasharray: 10, 1000;
+    stroke-linejoin: round;
+    stroke-dasharray: 20, 1000;
     stroke-dashoffset: 0;
     display: none;
 }
@@ -248,7 +248,100 @@ body {
 
 .btn-outline:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--neon-pink); color: var(--neon-pink); }
 
-/* Responsive Adjustments */
+/* Hint Button */
+.hint-container {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 150;
+}
+
+#hint-btn {
+    background: transparent;
+    color: var(--neon-yellow);
+    border: 2px solid var(--neon-yellow);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(255, 230, 0, 0.2);
+}
+
+#hint-btn:not(:disabled):hover { 
+    background: var(--neon-yellow); 
+    color: black;
+    box-shadow: 0 0 20px var(--neon-yellow);
+}
+
+#hint-btn:disabled {
+    opacity: 0.3;
+    border-color: #555;
+    color: #555;
+    cursor: default;
+    box-shadow: none;
+}
+
+/* Hint Countdown Overlay */
+.hint-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 20px var(--neon-yellow);
+    pointer-events: none;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hint-overlay.active { opacity: 1; }
+
+/* Social Sharing */
+.social-sharing {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.share-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.05);
+    font-size: 18px;
+    color: white;
+    text-decoration: none;
+}
+
+.share-btn.wa:hover { border-color: #25D366; color: #25D366; }
+.share-btn.x:hover { border-color: #fff; color: #fff; }
+
+/* How to Play Overlay */
+#htp-overlay .modal {
+    max-width: 500px;
+    text-align: left;
+}
+
+.htp-content {
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.htp-content li { margin-bottom: 10px; }
 @media (max-width: 600px) {
     .hud { height: 50px; padding: 0 10px; }
     .stat-value { font-size: 16px; }
