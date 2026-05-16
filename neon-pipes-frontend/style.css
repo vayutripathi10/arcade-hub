@@ -311,8 +311,8 @@ body {
 }
 
 .share-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: 1px solid var(--glass-border);
     display: flex;
@@ -321,13 +321,29 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     background: rgba(255,255,255,0.05);
-    font-size: 18px;
     color: white;
     text-decoration: none;
+    padding: 0;
 }
 
-.share-btn.wa:hover { border-color: #25D366; color: #25D366; }
-.share-btn.x:hover { border-color: #fff; color: #fff; }
+.share-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.share-btn.wa:hover { 
+    background: #25D366; 
+    border-color: #25D366; 
+    color: white; 
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+}
+
+.share-btn.x:hover { 
+    background: #000; 
+    border-color: #fff; 
+    color: white; 
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+}
 
 /* How to Play Overlay */
 #htp-overlay .modal {
