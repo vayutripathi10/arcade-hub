@@ -129,109 +129,135 @@ class PipeGame {
 
     generateGrid() {
         this.grid = [];
-        // Initialize empty grid
-        for (let r = 0; r < this.gridSize; r++) {
-            this.grid[r] = [];
-            for (let c = 0; c < this.gridSize; c++) {
-                this.grid[r][c] = {
-                    type: 'straight',
-                    rotation: 0, // 0, 1, 2, 3 (x90 deg)
-                    connected: false,
-                    r, c
-                };
-            }
-        }
+        // Initialize connections grid [top, right, bottom, left]
+        const connections = Array.from({ length: this.gridSize }, () => 
+            Array.from({ length: this.gridSize }, () => [0, 0, 0, 0])
+        );
 
-        // 1. Generate Solvable Path using Random Walk
-        let current = { r: 0, c: 0 };
+        // 1. Generate Main Path (Source to Destination)
+        const path = [];
+        let curr = { r: 0, c: 0 };
         const target = { r: this.gridSize - 1, c: this.gridSize - 1 };
-        const path = [current];
         const visited = new Set(['0,0']);
+        path.push(curr);
 
-        while (current.r !== target.r || current.c !== target.c) {
+        while (curr.r !== target.r || curr.c !== target.c) {
             const neighbors = [];
-            if (current.r > 0) neighbors.push({ r: current.r - 1, c: current.c, dir: 0 }); // Up
-            if (current.c < this.gridSize - 1) neighbors.push({ r: current.r, c: current.c + 1, dir: 1 }); // Right
-            if (current.r < this.gridSize - 1) neighbors.push({ r: current.r + 1, c: current.c, dir: 2 }); // Down
-            if (current.c > 0) neighbors.push({ r: current.r, c: current.c - 1, dir: 3 }); // Left
+            if (curr.r > 0) neighbors.push({ r: curr.r - 1, c: curr.c, dir: 0, opp: 2 });
+            if (curr.c < this.gridSize - 1) neighbors.push({ r: curr.r, c: curr.c + 1, dir: 1, opp: 3 });
+            if (curr.r < this.gridSize - 1) neighbors.push({ r: curr.r + 1, c: curr.c, dir: 2, opp: 0 });
+            if (curr.c > 0) neighbors.push({ r: curr.r, c: curr.c - 1, dir: 3, opp: 1 });
 
-            // Prioritize moving towards target
+            // Prioritize target direction
             neighbors.sort((a, b) => {
                 const distA = Math.abs(target.r - a.r) + Math.abs(target.c - a.c);
                 const distB = Math.abs(target.r - b.r) + Math.abs(target.c - b.c);
-                return distA - distB + (Math.random() - 0.5) * 2;
+                return distA - distB + (Math.random() - 0.5);
             });
 
             let moved = false;
             for (const n of neighbors) {
                 if (!visited.has(`${n.r},${n.c}`)) {
+                    connections[curr.r][curr.c][n.dir] = 1;
+                    connections[n.r][n.c][n.opp] = 1;
                     visited.add(`${n.r},${n.c}`);
-                    path.push(n);
-                    current = n;
+                    curr = { r: n.r, c: n.c };
+                    path.push(curr);
                     moved = true;
                     break;
                 }
             }
-            if (!moved) break; // Trapped (rare for small grids), algorithm would need reset
+            if (!moved) break; 
         }
 
-        // 2. Assign pipe types based on path
-        for (let i = 0; i < path.length; i++) {
-            const curr = path[i];
-            const prev = path[i - 1];
-            const next = path[i + 1];
-            
-            const entries = [];
-            if (i === 0) entries.push(3); // Source entry from left
-            else entries.push((prev.dir + 2) % 4);
+        // Add source/destination entry/exit
+        connections[0][0][3] = 1; // Source from left
+        connections[this.gridSize-1][this.gridSize-1][1] = 1; // Dest to right
 
-            if (i === path.length - 1) entries.push(1); // Target exit to right
-            else entries.push(curr.dir);
-
-            this.assignPipeType(curr.r, curr.c, entries);
-            this.grid[curr.r][curr.c].targetRotation = this.grid[curr.r][curr.c].rotation;
-        }
-
-        // 3. Fill the rest with random pipes
-        const types = ['straight', 'l', 't', 'cross'];
+        // 2. Branching: Connect all other cells to the network
+        const unvisited = [];
         for (let r = 0; r < this.gridSize; r++) {
             for (let c = 0; c < this.gridSize; c++) {
-                if (!visited.has(`${r},${c}`)) {
-                    this.grid[r][c].type = types[Math.floor(Math.random() * types.length)];
-                    this.grid[r][c].targetRotation = Math.floor(Math.random() * 4); // Random target for non-path
-                }
-                // Random Shuffle
-                this.grid[r][c].rotation = Math.floor(Math.random() * 4);
+                if (!visited.has(`${r},${c}`)) unvisited.push({ r, c });
+            }
+        }
+        
+        // Randomly connect unvisited cells to a visited neighbor
+        while (unvisited.length > 0) {
+            const idx = Math.floor(Math.random() * unvisited.length);
+            const u = unvisited[idx];
+            const neighbors = [
+                { r: u.r - 1, c: u.c, dir: 0, opp: 2 },
+                { r: u.r, c: u.c + 1, dir: 1, opp: 3 },
+                { r: u.r + 1, c: u.c, dir: 2, opp: 0 },
+                { r: u.r, c: u.c - 1, dir: 3, opp: 1 }
+            ].filter(n => n.r >= 0 && n.r < this.gridSize && n.c >= 0 && n.c < this.gridSize);
+
+            const vNeighbor = neighbors.find(n => visited.has(`${n.r},${n.c}`));
+            if (vNeighbor) {
+                connections[u.r][u.c][vNeighbor.opp] = 1;
+                connections[vNeighbor.r][vNeighbor.c][vNeighbor.dir] = 1;
+                visited.add(`${u.r},${u.c}`);
+                unvisited.splice(idx, 1);
+            } else {
+                // Shuffle unvisited to try others
+                unvisited.push(unvisited.splice(idx, 1)[0]);
+            }
+        }
+
+        // 3. Map connections to pipe types
+        for (let r = 0; r < this.gridSize; r++) {
+            this.grid[r] = [];
+            for (let c = 0; c < this.gridSize; c++) {
+                const conn = connections[r][c];
+                const { type, baseRotation } = this.determinePipeType(conn);
+                this.grid[r][c] = {
+                    type,
+                    targetRotation: baseRotation,
+                    rotation: Math.floor(Math.random() * 4),
+                    connected: false,
+                    r, c
+                };
             }
         }
     }
 
-    assignPipeType(r, c, connections) {
-        connections.sort();
-        const connStr = connections.join(',');
-        
-        // Map connections to types and rotations
-        const map = {
-            '0,2': { type: 'straight', rot: 0 },
-            '1,3': { type: 'straight', rot: 1 },
-            '0,1': { type: 'l', rot: 0 },
-            '1,2': { type: 'l', rot: 1 },
-            '2,3': { type: 'l', rot: 2 },
-            '0,3': { type: 'l', rot: 3 },
-            '0,1,2': { type: 't', rot: 0 },
-            '1,2,3': { type: 't', rot: 1 },
-            '0,2,3': { type: 't', rot: 2 },
-            '0,1,3': { type: 't', rot: 3 },
-            '0,1,2,3': { type: 'cross', rot: 0 }
-        };
+    determinePipeType(conn) {
+        const count = conn.reduce((a, b) => a + b, 0);
+        const s = conn.join('');
 
-        const config = map[connStr] || { type: 'straight', rot: 0 };
-        this.grid[r][c].type = config.type;
-        this.grid[r][c].rotation = config.rot;
+        // Cross
+        if (count === 4) return { type: 'cross', baseRotation: 0 };
+        // T-Shape
+        if (count === 3) {
+            if (s === '1110') return { type: 't', baseRotation: 0 };
+            if (s === '0111') return { type: 't', baseRotation: 1 };
+            if (s === '1011') return { type: 't', baseRotation: 2 };
+            if (s === '1101') return { type: 't', baseRotation: 3 };
+        }
+        // Straight or L
+        if (count === 2) {
+            if (s === '1010') return { type: 'straight', baseRotation: 0 };
+            if (s === '0101') return { type: 'straight', baseRotation: 1 };
+            if (s === '1100') return { type: 'l', baseRotation: 0 };
+            if (s === '0110') return { type: 'l', baseRotation: 1 };
+            if (s === '0011') return { type: 'l', baseRotation: 2 };
+            if (s === '1001') return { type: 'l', baseRotation: 3 };
+        }
+        // End-Cap
+        if (count === 1) {
+            if (s === '1000') return { type: 'cap', baseRotation: 0 };
+            if (s === '0100') return { type: 'cap', baseRotation: 1 };
+            if (s === '0010') return { type: 'cap', baseRotation: 2 };
+            if (s === '0001') return { type: 'cap', baseRotation: 3 };
+        }
+        return { type: 'cap', baseRotation: 0 };
     }
 
     renderGrid() {
         this.gridElement.innerHTML = '';
+        this.gridElement.style.setProperty('--grid-size', this.gridSize);
+        
         // Re-add nodes
         const source = document.createElement('div');
         source.className = 'node source-node';
@@ -270,6 +296,9 @@ class PipeGame {
         } else if (pipe.type === 'cross') {
             paths = `<path class="pipe-path" d="M 50 0 L 50 100 M 0 50 L 100 50" />
                      <path class="flow-pulse" d="M 50 0 L 50 100 M 0 50 L 100 50" />`;
+        } else if (pipe.type === 'cap') {
+            paths = `<path class="pipe-path" d="M 50 0 L 50 50" />
+                     <path class="flow-pulse" d="M 50 0 L 50 50" />`;
         }
         return `<svg viewBox="0 0 100 100" class="pipe-svg">${paths}</svg>`;
     }
@@ -283,17 +312,23 @@ class PipeGame {
     }
 
     getConnections(pipe) {
-        const typeConns = {
-            'straight': [0, 2],
-            'l': [0, 1],
-            't': [0, 1, 2],
-            'cross': [0, 1, 2, 3]
-        };
-        return typeConns[pipe.type].map(dir => (dir + pipe.rotation) % 4);
+        let base;
+        if (pipe.type === 'straight') base = [1, 0, 1, 0];
+        else if (pipe.type === 'l') base = [1, 1, 0, 0];
+        else if (pipe.type === 't') base = [1, 1, 1, 0];
+        else if (pipe.type === 'cross') base = [1, 1, 1, 1];
+        else if (pipe.type === 'cap') base = [1, 0, 0, 0];
+
+        // Rotate the bitmask
+        const rot = pipe.rotation;
+        const result = [0, 0, 0, 0];
+        for (let i = 0; i < 4; i++) {
+            if (base[i] === 1) result[(i + rot) % 4] = 1;
+        }
+        return result; // [top, right, bottom, left]
     }
 
     checkConnections() {
-        // Reset connection status
         for (let r = 0; r < this.gridSize; r++) {
             for (let c = 0; c < this.gridSize; c++) {
                 this.grid[r][c].connected = false;
@@ -301,31 +336,30 @@ class PipeGame {
         }
 
         const queue = [];
-        // Source is at (0,0), entering from Left (dir 3)
+        // Source node connects to (0,0) from the left
         const startPipe = this.grid[0][0];
-        if (this.getConnections(startPipe).includes(3)) {
+        if (this.getConnections(startPipe)[3] === 1) {
             startPipe.connected = true;
             queue.push({ r: 0, c: 0 });
         }
 
         while (queue.length > 0) {
             const curr = queue.shift();
-            const currPipe = this.grid[curr.r][curr.c];
-            const conns = this.getConnections(currPipe);
+            const currConns = this.getConnections(this.grid[curr.r][curr.c]);
 
-            const neighbors = [
+            const dirs = [
                 { r: curr.r - 1, c: curr.c, dir: 0, opp: 2 }, // Top
                 { r: curr.r, c: curr.c + 1, dir: 1, opp: 3 }, // Right
                 { r: curr.r + 1, c: curr.c, dir: 2, opp: 0 }, // Bottom
                 { r: curr.r, c: curr.c - 1, dir: 3, opp: 1 }  // Left
             ];
 
-            for (const n of neighbors) {
-                if (n.r >= 0 && n.r < this.gridSize && n.c >= 0 && n.c < this.gridSize) {
-                    const nextPipe = this.grid[n.r][n.c];
-                    if (!nextPipe.connected && conns.includes(n.dir) && this.getConnections(nextPipe).includes(n.opp)) {
+            for (const d of dirs) {
+                if (d.r >= 0 && d.r < this.gridSize && d.c >= 0 && d.c < this.gridSize) {
+                    const nextPipe = this.grid[d.r][d.c];
+                    if (!nextPipe.connected && currConns[d.dir] === 1 && this.getConnections(nextPipe)[d.opp] === 1) {
                         nextPipe.connected = true;
-                        queue.push({ r: n.r, c: n.c });
+                        queue.push({ r: d.r, c: d.c });
                     }
                 }
             }
@@ -343,7 +377,7 @@ class PipeGame {
         // Check if destination is reached
         // Dest is at (last, last), exiting to Right (dir 1)
         const endPipe = this.grid[this.gridSize - 1][this.gridSize - 1];
-        if (endPipe.connected && this.getConnections(endPipe).includes(1)) {
+        if (endPipe.connected && this.getConnections(endPipe)[1] === 1) {
             this.handleWin();
         }
     }
