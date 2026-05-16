@@ -21,6 +21,7 @@
             <div class="stat-item">
                 <span class="stat-label">Score</span>
                 <span class="stat-value" id="score">0</span>
+                <span id="mode-label" style="font-size: 8px; opacity: 0.6; margin-top: 2px;">MODE: CLASSIC</span>
             </div>
             <div class="stat-item">
                 <span class="stat-label">Level</span>
@@ -56,6 +57,30 @@
             <p>Rotate pieces to connect the flow from green to yellow before time runs out!</p>
             <button class="btn-main" id="start-btn">Start Game</button>
             <button class="btn-outline" id="htp-btn">💡 How to Play</button>
+        </div>
+    </div>
+
+    <!-- Mode Selection Screen -->
+    <div class="overlay" id="mode-screen">
+        <button class="hud-btn" id="mode-back-btn" style="position: absolute; top: 20px; left: 20px;">←</button>
+        <div class="modal mode-modal" style="max-width: 600px;">
+            <h2>CHOOSE MODE</h2>
+            <div class="mode-cards">
+                <div class="mode-card classic" id="select-classic">
+                    <div class="mode-icon">🔵</div>
+                    <h3>CLASSIC FLOW</h3>
+                    <p>Connect source to destination. Not all pipes need to be used.</p>
+                    <div class="mode-difficulty">Difficulty: ⭐⭐</div>
+                    <button class="btn-main">PLAY</button>
+                </div>
+                <div class="mode-card perfect" id="select-perfect">
+                    <div class="mode-icon">✨</div>
+                    <h3>PERFECT FLOW</h3>
+                    <p>Every pipe must be part of the path. No pipe left behind!</p>
+                    <div class="mode-difficulty">Difficulty: ⭐⭐⭐⭐</div>
+                    <button class="btn-main" style="background: var(--neon-pink);">PLAY</button>
+                </div>
+            </div>
         </div>
     </div>
 

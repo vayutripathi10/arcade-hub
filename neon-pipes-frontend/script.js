@@ -10,6 +10,7 @@ class PipeGame {
         this.timer = 60;
         this.isPaused = false;
         this.gameRunning = false;
+        this.gameMode = 'classic'; // 'classic' or 'perfect'
         this.grid = [];
         this.streak = 0;
         this.soundEnabled = true;
@@ -27,9 +28,19 @@ class PipeGame {
         this.scoreElement = document.getElementById('score');
         this.levelElement = document.getElementById('level');
         this.timerElement = document.getElementById('timer');
+        this.modeLabel = document.getElementById('mode-label');
         
         // Buttons
-        document.getElementById('start-btn').addEventListener('click', () => this.startGame());
+        document.getElementById('start-btn').addEventListener('click', () => this.showModeSelection());
+        
+        document.getElementById('mode-back-btn').addEventListener('click', () => {
+            document.getElementById('mode-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        });
+
+        document.getElementById('select-classic').addEventListener('click', () => this.startGame('classic'));
+        document.getElementById('select-perfect').addEventListener('click', () => this.startGame('perfect'));
+
         document.getElementById('resume-btn').addEventListener('click', () => this.togglePause());
         document.getElementById('restart-btn').addEventListener('click', () => this.resetLevel());
         document.getElementById('next-btn').addEventListener('click', () => this.nextLevel());
@@ -100,8 +111,14 @@ class PipeGame {
         this.gridElement.style.gridTemplateColumns = `repeat(${this.gridSize}, 1fr)`;
     }
 
-    startGame() {
+    showModeSelection() {
         document.getElementById('start-screen').classList.remove('active');
+        document.getElementById('mode-screen').classList.add('active');
+    }
+
+    startGame(mode) {
+        document.getElementById('mode-screen').classList.remove('active');
+        this.gameMode = mode;
         this.gameRunning = true;
         this.isPaused = false;
         this.setupLevel();
@@ -110,10 +127,14 @@ class PipeGame {
 
     setupLevel() {
         // New Level Configuration
-        if (this.level <= 2) { this.gridSize = 3; this.timer = 60; }
-        else if (this.level <= 5) { this.gridSize = 4; this.timer = 75; }
-        else if (this.level <= 8) { this.gridSize = 5; this.timer = 90; }
-        else { this.gridSize = 6; this.timer = 120; }
+        const extraTime = this.gameMode === 'perfect' ? 20 : 0;
+        if (this.level <= 2) { this.gridSize = 3; this.timer = 60 + extraTime; }
+        else if (this.level <= 5) { this.gridSize = 4; this.timer = 75 + extraTime; }
+        else if (this.level <= 8) { this.gridSize = 5; this.timer = 90 + extraTime; }
+        else { this.gridSize = 6; this.timer = 120 + extraTime; }
+
+        this.modeLabel.textContent = `MODE: ${this.gameMode.toUpperCase()}`;
+        this.modeLabel.style.color = this.gameMode === 'perfect' ? 'var(--neon-pink)' : 'var(--neon-cyan)';
 
         this.hintUsed = false;
         const hintBtn = document.getElementById('hint-btn');
@@ -129,12 +150,38 @@ class PipeGame {
 
     generateGrid() {
         this.grid = [];
-        // Initialize connections grid [top, right, bottom, left]
         const connections = Array.from({ length: this.gridSize }, () => 
             Array.from({ length: this.gridSize }, () => [0, 0, 0, 0])
         );
 
-        // 1. Generate Main Path (Source to Destination)
+        if (this.gameMode === 'perfect') {
+            this.generatePerfectPath(connections);
+        } else {
+            this.generateClassicPath(connections);
+        }
+
+        // Add source/destination entry/exit
+        connections[0][0][3] = 1; // Source from left
+        connections[this.gridSize-1][this.gridSize-1][1] = 1; // Dest to right
+
+        // 3. Map connections to pipe types
+        for (let r = 0; r < this.gridSize; r++) {
+            this.grid[r] = [];
+            for (let c = 0; c < this.gridSize; c++) {
+                const conn = connections[r][c];
+                const { type, baseRotation } = this.determinePipeType(conn);
+                this.grid[r][c] = {
+                    type,
+                    targetRotation: baseRotation,
+                    rotation: Math.floor(Math.random() * 4),
+                    connected: false,
+                    r, c
+                };
+            }
+        }
+    }
+
+    generateClassicPath(connections) {
         const path = [];
         let curr = { r: 0, c: 0 };
         const target = { r: this.gridSize - 1, c: this.gridSize - 1 };
@@ -142,13 +189,13 @@ class PipeGame {
         path.push(curr);
 
         while (curr.r !== target.r || curr.c !== target.c) {
-            const neighbors = [];
-            if (curr.r > 0) neighbors.push({ r: curr.r - 1, c: curr.c, dir: 0, opp: 2 });
-            if (curr.c < this.gridSize - 1) neighbors.push({ r: curr.r, c: curr.c + 1, dir: 1, opp: 3 });
-            if (curr.r < this.gridSize - 1) neighbors.push({ r: curr.r + 1, c: curr.c, dir: 2, opp: 0 });
-            if (curr.c > 0) neighbors.push({ r: curr.r, c: curr.c - 1, dir: 3, opp: 1 });
+            const neighbors = [
+                { r: curr.r - 1, c: curr.c, dir: 0, opp: 2 },
+                { r: curr.r, c: curr.c + 1, dir: 1, opp: 3 },
+                { r: curr.r + 1, c: curr.c, dir: 2, opp: 0 },
+                { r: curr.r, c: curr.c - 1, dir: 3, opp: 1 }
+            ].filter(n => n.r >= 0 && n.r < this.gridSize && n.c >= 0 && n.c < this.gridSize);
 
-            // Prioritize target direction
             neighbors.sort((a, b) => {
                 const distA = Math.abs(target.r - a.r) + Math.abs(target.c - a.c);
                 const distB = Math.abs(target.r - b.r) + Math.abs(target.c - b.c);
@@ -167,14 +214,10 @@ class PipeGame {
                     break;
                 }
             }
-            if (!moved) break; 
+            if (!moved) break;
         }
 
-        // Add source/destination entry/exit
-        connections[0][0][3] = 1; // Source from left
-        connections[this.gridSize-1][this.gridSize-1][1] = 1; // Dest to right
-
-        // 2. Branching: Connect all other cells to the network
+        // Branching: Connect all other cells to the network
         const unvisited = [];
         for (let r = 0; r < this.gridSize; r++) {
             for (let c = 0; c < this.gridSize; c++) {
@@ -182,7 +225,6 @@ class PipeGame {
             }
         }
         
-        // Randomly connect unvisited cells to a visited neighbor
         while (unvisited.length > 0) {
             const idx = Math.floor(Math.random() * unvisited.length);
             const u = unvisited[idx];
@@ -200,25 +242,47 @@ class PipeGame {
                 visited.add(`${u.r},${u.c}`);
                 unvisited.splice(idx, 1);
             } else {
-                // Shuffle unvisited to try others
                 unvisited.push(unvisited.splice(idx, 1)[0]);
             }
         }
+    }
 
-        // 3. Map connections to pipe types
-        for (let r = 0; r < this.gridSize; r++) {
-            this.grid[r] = [];
-            for (let c = 0; c < this.gridSize; c++) {
-                const conn = connections[r][c];
-                const { type, baseRotation } = this.determinePipeType(conn);
-                this.grid[r][c] = {
-                    type,
-                    targetRotation: baseRotation,
-                    rotation: Math.floor(Math.random() * 4),
-                    connected: false,
-                    r, c
-                };
+    generatePerfectPath(connections) {
+        const target = { r: this.gridSize - 1, c: this.gridSize - 1 };
+        const visited = Array.from({ length: this.gridSize }, () => Array(this.gridSize).fill(false));
+        const totalCells = this.gridSize * this.gridSize;
+        
+        const solve = (r, c, count) => {
+            if (count === totalCells) {
+                return r === target.r && c === target.c;
             }
+            if (r === target.r && c === target.c) return false; // Must hit target last
+
+            visited[r][c] = true;
+            const dirs = [
+                { r: r - 1, c, dir: 0, opp: 2 },
+                { r, c: c + 1, dir: 1, opp: 3 },
+                { r: r + 1, c, dir: 2, opp: 0 },
+                { r, c: c - 1, dir: 3, opp: 1 }
+            ].filter(d => d.r >= 0 && d.r < this.gridSize && d.c >= 0 && d.c < this.gridSize && !visited[d.r][d.c]);
+
+            // Randomize exploration
+            dirs.sort(() => Math.random() - 0.5);
+
+            for (const d of dirs) {
+                if (solve(d.r, d.c, count + 1)) {
+                    connections[r][c][d.dir] = 1;
+                    connections[d.r][d.c][d.opp] = 1;
+                    return true;
+                }
+            }
+            visited[r][c] = false;
+            return false;
+        };
+
+        if (!solve(0, 0, 1)) {
+            // Fallback to classic if no Hamiltonian path found (highly unlikely for small grids)
+            this.generateClassicPath(connections);
         }
     }
 
@@ -375,10 +439,18 @@ class PipeGame {
         });
 
         // Check if destination is reached
-        // Dest is at (last, last), exiting to Right (dir 1)
         const endPipe = this.grid[this.gridSize - 1][this.gridSize - 1];
-        if (endPipe.connected && this.getConnections(endPipe)[1] === 1) {
-            this.handleWin();
+        const destReached = endPipe.connected && this.getConnections(endPipe)[1] === 1;
+
+        if (this.gameMode === 'perfect') {
+            const allPipesConnected = this.grid.flat().every(p => p.connected);
+            if (destReached && allPipesConnected) {
+                this.handleWin();
+            }
+        } else {
+            if (destReached) {
+                this.handleWin();
+            }
         }
     }
 

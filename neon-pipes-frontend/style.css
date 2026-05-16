@@ -358,6 +358,72 @@ body {
 }
 
 .htp-content li { margin-bottom: 10px; }
+
+/* Mode Selection Styles */
+.mode-modal {
+    padding: 30px;
+}
+
+.mode-cards {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.mode-card {
+    flex: 1;
+    background: #0d1b2a;
+    border: 2px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mode-card.classic { border-color: var(--neon-cyan); }
+.mode-card.perfect { border-color: var(--neon-pink); }
+
+.mode-card:hover {
+    transform: translateY(-5px);
+    background: #152a3f;
+}
+
+.mode-card.classic:hover { box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); }
+.mode-card.perfect:hover { box-shadow: 0 0 20px rgba(255, 45, 120, 0.3); }
+
+.mode-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.mode-card h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.mode-card p {
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+.mode-difficulty {
+    font-size: 12px;
+    color: var(--neon-yellow);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .mode-cards { flex-direction: column; }
+    .mode-card { padding: 20px; }
+}
 @media (max-width: 600px) {
     .hud { height: 50px; padding: 0 10px; }
     .stat-value { font-size: 16px; }
