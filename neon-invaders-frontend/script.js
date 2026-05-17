@@ -105,6 +105,7 @@ let bestScore = localStorage.getItem('neonInvadersBest') || 0;
 let wave = 1;
 let invaderDirection = 1;
 let invaderMoveInterval = 1000; // ms
+let invaderMoveTimer = 0;
 let lastTimestamp = 0;
 
 class Player {
@@ -519,12 +520,7 @@ function loop(timestamp) {
         player.update(deltaTime);
         
         // Move Invaders
-        invaderMoveTimer += (timestamp - (lastTimestamp || timestamp)) || 16.67; // approx ms
-        // Fix for first frame
-        if (isNaN(invaderMoveTimer)) invaderMoveTimer = 0;
-
-        // Better way: use a constant for the timer accumulation
-        // Actually, let's just use deltaTime * 16.67
+        invaderMoveTimer += deltaTime * 16.67;
         
         if (invaderMoveTimer >= invaderMoveInterval) {
             invaderMoveTimer = 0;
