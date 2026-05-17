@@ -119,23 +119,29 @@ class PipeGame {
         document.getElementById('mode-screen').classList.add('active');
     }
 
-    startGame(mode) {
+    async startGame(mode) {
         document.getElementById('mode-screen').classList.remove('active');
         this.gameMode = mode;
         this.gameRunning = true;
         this.isPaused = false;
-        this.setupLevel();
+        await this.setupLevel();
         this.lastTime = performance.now();
         this.gameLoop(this.lastTime);
     }
 
-    setupLevel() {
+    async setupLevel() {
         // New Level Configuration
-        const extraTime = this.gameMode === 'perfect' ? 20 : 0;
-        if (this.level <= 2) { this.gridSize = 3; this.timer = 60 + extraTime; }
-        else if (this.level <= 5) { this.gridSize = 4; this.timer = 75 + extraTime; }
-        else if (this.level <= 8) { this.gridSize = 5; this.timer = 90 + extraTime; }
-        else { this.gridSize = 6; this.timer = 120 + extraTime; }
+        if (this.gameMode === 'perfect') {
+            if (this.level <= 2) { this.gridSize = 3; this.timer = 80; }
+            else if (this.level <= 4) { this.gridSize = 5; this.timer = 120; }
+            else if (this.level <= 6) { this.gridSize = 7; this.timer = 180; }
+            else { this.gridSize = 9; this.timer = 240; }
+        } else {
+            if (this.level <= 2) { this.gridSize = 3; this.timer = 60; }
+            else if (this.level <= 5) { this.gridSize = 4; this.timer = 75; }
+            else if (this.level <= 8) { this.gridSize = 5; this.timer = 90; }
+            else { this.gridSize = 6; this.timer = 120; }
+        }
 
         this.modeLabel.textContent = `MODE: ${this.gameMode.toUpperCase()}`;
         this.modeLabel.style.color = this.gameMode === 'perfect' ? 'var(--neon-pink)' : 'var(--neon-cyan)';
@@ -146,29 +152,66 @@ class PipeGame {
         hintBtn.textContent = '💡 HINT';
 
         this.resize();
-        this.generateGrid();
+        
+        if (this.gameMode === 'perfect') {
+            await this.generatePerfectGridAsync();
+        } else {
+            this.generateGrid();
+        }
+
         this.renderGrid();
         this.levelElement.textContent = this.level;
         this.updateHUD();
     }
 
-    generateGrid() {
+    async generatePerfectGridAsync() {
+        let success = false;
+        const loader = document.getElementById('loading-overlay');
+        if(loader) loader.classList.add('active');
+
+        for (let retry = 0; retry < 3; retry++) {
+            await new Promise(r => setTimeout(r, 50)); // Yield to paint spinner
+            
+            this.grid = [];
+            const connections = Array.from({ length: this.gridSize }, () => 
+                Array.from({ length: this.gridSize }, () => [0, 0, 0, 0])
+            );
+            
+            if (this.generatePerfectPath(connections)) {
+                connections[0][0][3] = 1; // Source from left
+                connections[this.gridSize-1][this.gridSize-1][1] = 1; // Dest to right
+                this.mapConnectionsToPipes(connections);
+                success = true;
+                break;
+            }
+        }
+
+        if (!success) {
+            console.warn("Failed to generate Perfect Path after 3 retries. Falling back to Classic Path.");
+            this.generateGrid(true); // force classic
+        }
+
+        if(loader) loader.classList.remove('active');
+    }
+
+    generateGrid(forceClassic = false) {
         this.grid = [];
         const connections = Array.from({ length: this.gridSize }, () => 
             Array.from({ length: this.gridSize }, () => [0, 0, 0, 0])
         );
 
-        if (this.gameMode === 'perfect') {
-            this.generatePerfectPath(connections);
-        } else {
-            this.generateClassicPath(connections);
+        if (this.gameMode === 'perfect' && !forceClassic) {
+            // Should not be called directly for perfect mode anymore
+            return;
         }
 
-        // Add source/destination entry/exit
+        this.generateClassicPath(connections);
         connections[0][0][3] = 1; // Source from left
         connections[this.gridSize-1][this.gridSize-1][1] = 1; // Dest to right
+        this.mapConnectionsToPipes(connections);
+    }
 
-        // 3. Map connections to pipe types
+    mapConnectionsToPipes(connections) {
         for (let r = 0; r < this.gridSize; r++) {
             this.grid[r] = [];
             for (let c = 0; c < this.gridSize; c++) {
@@ -253,28 +296,49 @@ class PipeGame {
 
     generatePerfectPath(connections) {
         const target = { r: this.gridSize - 1, c: this.gridSize - 1 };
-        const visited = Array.from({ length: this.gridSize }, () => Array(this.gridSize).fill(false));
         const totalCells = this.gridSize * this.gridSize;
+        let attempts = 0;
         
-        const solve = (r, c, count) => {
+        const visited = Array.from({ length: this.gridSize }, () => Array(this.gridSize).fill(false));
+        let pathFound = false;
+
+        const getNeighbors = (rr, cc) => {
+            return [
+                { r: rr - 1, c: cc, dir: 0, opp: 2 },
+                { r: rr, c: cc + 1, dir: 1, opp: 3 },
+                { r: rr + 1, c: cc, dir: 2, opp: 0 },
+                { r: rr, c: cc - 1, dir: 3, opp: 1 }
+            ].filter(d => d.r >= 0 && d.r < this.gridSize && d.c >= 0 && d.c < this.gridSize && !visited[d.r][d.c]);
+        };
+
+        const dfs = (r, c, count) => {
+            if (attempts > 1000) return false;
+            if (pathFound) return true;
+
             if (count === totalCells) {
-                return r === target.r && c === target.c;
+                if (r === target.r && c === target.c) {
+                    pathFound = true;
+                    return true;
+                }
+                return false;
             }
             if (r === target.r && c === target.c) return false; // Must hit target last
 
             visited[r][c] = true;
-            const dirs = [
-                { r: r - 1, c, dir: 0, opp: 2 },
-                { r, c: c + 1, dir: 1, opp: 3 },
-                { r: r + 1, c, dir: 2, opp: 0 },
-                { r, c: c - 1, dir: 3, opp: 1 }
-            ].filter(d => d.r >= 0 && d.r < this.gridSize && d.c >= 0 && d.c < this.gridSize && !visited[d.r][d.c]);
+            
+            const dirs = getNeighbors(r, c);
 
-            // Randomize exploration
-            dirs.sort(() => Math.random() - 0.5);
+            // Warnsdorff's heuristic
+            dirs.sort((a, b) => {
+                const onwardA = getNeighbors(a.r, a.c).length;
+                const onwardB = getNeighbors(b.r, b.c).length;
+                if (onwardA !== onwardB) return onwardA - onwardB;
+                return Math.random() - 0.5;
+            });
 
             for (const d of dirs) {
-                if (solve(d.r, d.c, count + 1)) {
+                attempts++;
+                if (dfs(d.r, d.c, count + 1)) {
                     connections[r][c][d.dir] = 1;
                     connections[d.r][d.c][d.opp] = 1;
                     return true;
@@ -284,10 +348,7 @@ class PipeGame {
             return false;
         };
 
-        if (!solve(0, 0, 1)) {
-            // Fallback to classic if no Hamiltonian path found (highly unlikely for small grids)
-            this.generateClassicPath(connections);
-        }
+        return dfs(0, 0, 1);
     }
 
     determinePipeType(conn) {
@@ -470,7 +531,7 @@ class PipeGame {
         this.streak++;
 
         setTimeout(() => {
-            document.getElementById('summary-score').textContent = 1000;
+            document.getElementById('summary-score').textContent = levelScore;
             document.getElementById('summary-bonus').textContent = timeBonus;
             document.getElementById('complete-screen').classList.add('active');
             this.updateHUD();
@@ -484,21 +545,25 @@ class PipeGame {
         document.getElementById('over-screen').classList.add('active');
     }
 
-    nextLevel() {
+    async nextLevel() {
         this.level++;
         document.getElementById('complete-screen').classList.remove('active');
         this.gridElement.classList.remove('flowing');
-        this.setupLevel();
+        await this.setupLevel();
+        this.lastTime = performance.now();
         this.gameRunning = true;
+        this.gameLoop(this.lastTime);
     }
 
-    resetLevel() {
+    async resetLevel() {
         this.streak = 0;
         document.getElementById('over-screen').classList.remove('active');
         document.getElementById('pause-screen').classList.remove('active');
         this.gridElement.classList.remove('flowing');
-        this.setupLevel();
+        await this.setupLevel();
+        this.lastTime = performance.now();
         this.gameRunning = true;
+        this.gameLoop(this.lastTime);
     }
 
     togglePause() {

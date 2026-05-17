@@ -50,6 +50,17 @@
         <div class="hint-overlay" id="hint-overlay">Hint: 2...</div>
     </main>
 
+    <!-- Loading Overlay -->
+    <div class="overlay" id="loading-overlay" style="z-index: 999;">
+        <div class="modal" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="width: 50px; height: 50px; border: 5px solid var(--neon-pink); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+            <h2 style="color: var(--neon-pink); font-size: 24px;">Generating Perfect Puzzle...</h2>
+            <style>
+                @keyframes spin { 100% { transform: rotate(360deg); } }
+            </style>
+        </div>
+    </div>
+
     <!-- Start Screen -->
     <div class="overlay active" id="start-screen">
         <div class="modal">
