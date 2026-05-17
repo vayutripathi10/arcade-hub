@@ -717,4 +717,4 @@ document.querySelectorAll('.btn-hub').forEach(btn => {
     });
 });
 
-buildMenu(); showScreen('menu'); resizeCanvas(); loop();
+buildMenu(); showScreen('menu'); resizeCanvas(); loop(performance.now());

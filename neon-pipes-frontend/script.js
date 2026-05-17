@@ -125,7 +125,8 @@ class PipeGame {
         this.gameRunning = true;
         this.isPaused = false;
         this.setupLevel();
-        this.gameLoop();
+        this.lastTime = performance.now();
+        this.gameLoop(this.lastTime);
     }
 
     setupLevel() {

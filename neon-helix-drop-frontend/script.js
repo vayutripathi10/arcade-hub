@@ -470,4 +470,4 @@ function loop(timestamp) {
 window.addEventListener('resize', resize);
 resize();
 bestScoreEl.textContent = Math.floor(bestScore);
-loop();
+loop(performance.now());
