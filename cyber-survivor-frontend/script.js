@@ -304,7 +304,7 @@ class Enemy {
         }
     }
 
-    update(dt) {
+    update(deltaTime) {
         // Move towards player
         let dx = player.x - this.x;
         let dy = player.y - this.y;
@@ -413,7 +413,7 @@ class Gem {
         this.collecting = false;
     }
 
-    update(dt) {
+    update(deltaTime) {
         if (this.collecting) {
             let dx = player.x - this.x;
             let dy = player.y - this.y;
