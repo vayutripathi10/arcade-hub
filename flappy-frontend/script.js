@@ -42,7 +42,7 @@ const PIPE_SPEED    = 2.8;
 const PIPE_INTERVAL = 1600;     // ms between new pipes
 
 // ─── State ───────────────────────────────────────────────────────────────────
-let bird, pipes, score, highScore, frameId, lastPipeTime, gameState;
+let bird, pipes, score, highScore, frameId, lastPipeTime, lastTime, gameState;
 // gameState: 'idle' | 'running' | 'dead'
 
 let particlePool = [];
@@ -133,7 +133,8 @@ function startGame() {
     hideOverlay();
     resetGame();
     if (frameId) cancelAnimationFrame(frameId);
-    loop();
+    lastTime = performance.now();
+    loop(lastTime);
 }
 
 function gameOver() {
