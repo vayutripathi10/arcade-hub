@@ -189,8 +189,11 @@ body {
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(10px);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    padding: 60px 20px 20px 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
     z-index: 200;
     opacity: 0;
     visibility: hidden;
@@ -204,10 +207,11 @@ body {
     border: 1px solid var(--glass-border);
     padding: 40px;
     border-radius: 24px;
-    width: 90%;
+    width: 100%;
     max-width: 400px;
     text-align: center;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    margin: auto;
 }
 
 .modal h2 { 
@@ -421,8 +425,13 @@ body {
 }
 
 @media (max-width: 600px) {
-    .mode-cards { flex-direction: column; }
-    .mode-card { padding: 20px; }
+    .mode-cards { flex-direction: column; gap: 12px; margin-top: 20px; }
+    .mode-card { padding: 15px; }
+    .mode-modal { padding: 20px; }
+    .mode-icon { font-size: 36px; margin-bottom: 10px; }
+    .mode-card h3 { font-size: 18px; margin-bottom: 8px; }
+    .mode-card p { font-size: 12px; margin-bottom: 12px; line-height: 1.4; }
+    .mode-difficulty { margin-bottom: 12px; }
 }
 @media (max-width: 600px) {
     .hud { height: 50px; padding: 0 10px; }
