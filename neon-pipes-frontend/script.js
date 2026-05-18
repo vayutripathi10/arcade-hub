@@ -169,7 +169,7 @@ class PipeGame {
         const loader = document.getElementById('loading-overlay');
         if(loader) loader.classList.add('active');
 
-        for (let retry = 0; retry < 3; retry++) {
+        for (let retry = 0; retry < 10; retry++) {
             await new Promise(r => setTimeout(r, 50)); // Yield to paint spinner
             
             this.grid = [];
@@ -187,7 +187,7 @@ class PipeGame {
         }
 
         if (!success) {
-            console.warn("Failed to generate Perfect Path after 3 retries. Falling back to Classic Path.");
+            console.warn("Failed to generate Perfect Path after 10 retries. Falling back to Classic Path.");
             this.generateGrid(true); // force classic
         }
 
@@ -312,7 +312,7 @@ class PipeGame {
         };
 
         const dfs = (r, c, count) => {
-            if (attempts > 1000) return false;
+            if (attempts > 500000) return false;
             if (pathFound) return true;
 
             if (count === totalCells) {
