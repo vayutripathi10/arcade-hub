@@ -120,12 +120,33 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
-    <header class="nav-header">
-        <a href="index.html" class="back-link">← Home</a>
-        <div class="nav-links" style="margin-bottom: 0;">
-            <a href="contact.html" class="nav-link">Contact Us</a>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
         </div>
-    </header>
+        <div class="sidebar-links">
+            <a href="index.html" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub.html" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements.html" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="about.html" class="sidebar-link active-hub">ℹ️ About Us</a>
+            <a href="contact.html" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
+    <div class="header-container" style="margin-bottom: 2rem;">
+        <h1 class="main-title" style="font-size: clamp(2.5rem, 6vw, 3.5rem);">About Us</h1>
+    </div>
 
     <main class="container">
         <!-- About Us Section -->
@@ -219,5 +240,26 @@
     <footer class="site-footer">
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a> | <a href="updates.html">News</a></p>
     </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar Drawer Toggle Logic
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
 </body>
 </html>

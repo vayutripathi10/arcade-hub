@@ -95,12 +95,32 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub.html" class="sidebar-link active-hub">🕹️ Retro Hub</a>
+            <a href="achievements.html" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="about.html" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact.html" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
     <header class="header">
         <h1>🕹️ Retro Games</h1>
-        <nav class="nav-links">
-            <a href="index.html">⚡ Arcade Hub</a>
-            <a href="retro-hub.html" style="color:#ffd700;">🕹️ Retro Hub</a>
-        </nav>
     </header>
 
     <main class="main-content">
@@ -126,5 +146,26 @@
             </div>
         </div>
     </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar Drawer Toggle Logic
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
 </body>
 </html>
