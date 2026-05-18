@@ -325,8 +325,7 @@ class Game {
         
         // Physics configurations
         this.gravity = 750; // pixels/s^2
-        this.scrollSpeed = 160; // Pixels per second horizontal speed
-        this.baseScrollSpeed = 160;
+        this.scrollSpeed = 0; // Dynamic — driven by player movement
         
         // Game variables
         this.score = 0;
@@ -336,6 +335,8 @@ class Game {
         this.timeElapsed = 0;
         this.lastTime = 0;
         this.worldDistance = 0;
+        this.hintTimer = 0; // "TAP TO RELEASE" hint countdown
+        this.lastDetachedAnchor = null; // Prevent re-grab of same anchor
         
         // Objects arrays
         this.anchors = [];
@@ -348,7 +349,7 @@ class Game {
             x: 150,
             y: 350,
             radius: 12,
-            vx: 250,
+            vx: 0,
             vy: 0,
             angle: 0,
             angularVel: 0.0,
@@ -357,7 +358,9 @@ class Game {
             activeAnchor: null
         };
         
-        this.grabRadius = 50; // Character auto grab radius in px
+        this.grabRadius = 50; // Auto grab radius in px
+        this.tapGrabRadius = 250; // Manual tap grab radius in px
+        this.targetScreenX = 200; // Camera target: keep player near this X
         
         // Stars/Background particles
         this.stars = [];
@@ -398,29 +401,28 @@ class Game {
         this.particles = [];
         this.worldDistance = 0;
         this.coinScore = 0;
+        this.hintTimer = 3.0; // Show hint for 3 seconds
+        this.lastDetachedAnchor = null;
+        this.scrollSpeed = 0;
         
-        // Reset player in a comfortable starting position
-        this.player.x = 150;
-        this.player.y = 350;
-        this.player.vx = 250;
-        this.player.vy = -100;
-        this.player.attached = true;
-        
-        // Create first active anchor
-        const a0 = new Anchor(150, 180);
+        // First anchor directly above character — clearly visible
+        const a0 = new Anchor(this.canvas.width * 0.25, 160);
         this.anchors.push(a0);
-        this.player.activeAnchor = a0;
-        this.player.ropeLength = 170; // 350 - 180 = 170
-        this.player.angle = 0;
-        this.player.angularVel = 2.0; // Start with initial swing velocity
-
-        // Generate next reachable anchor ensuring it is close and easily reachable
-        const nextX = 400;
-        const nextY = 170;
-        this.anchors.push(new Anchor(nextX, nextY));
         
-        // Generate subsequent anchors
-        this.spawnNextAnchors(4);
+        // Auto-attach on start so player immediately sees the mechanic
+        this.player.x = a0.x;
+        this.player.y = a0.y + 170;
+        this.player.vx = 0;
+        this.player.vy = 0;
+        this.player.attached = true;
+        this.player.activeAnchor = a0;
+        this.player.ropeLength = 170;
+        this.player.angle = 0;
+        this.player.angularVel = 1.8; // Gentle initial swing
+
+        // Generate next reachable anchors
+        this.anchors.push(new Anchor(a0.x + 300, 150));
+        this.spawnNextAnchors(5);
     }
 
     // Procedural layout calculation guaranteeing winnable/reachable levels
@@ -470,7 +472,7 @@ class Game {
     bindEvents() {
         window.addEventListener('resize', () => this.resizeCanvas());
         
-        // Space key triggers release
+        // Space key triggers action
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
@@ -478,9 +480,15 @@ class Game {
             }
         });
         
-        // Tap / Click overlay triggers release (ignores header HUD buttons clicks)
+        // Tap/Click overlay triggers action
         const overlay = document.getElementById('interaction-overlay');
         overlay.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.handlePlayerAction();
+        });
+        
+        // Canvas click also triggers action (belt & suspenders)
+        this.canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             this.handlePlayerAction();
         });
@@ -507,24 +515,62 @@ class Game {
         document.getElementById('go-retry-btn').addEventListener('click', () => this.restartGame());
     }
 
+    // Helper: attach player to a specific anchor
+    attachToAnchor(anchor) {
+        this.player.attached = true;
+        this.player.activeAnchor = anchor;
+        
+        const dx = this.player.x - anchor.x;
+        const dy = this.player.y - anchor.y;
+        
+        this.player.ropeLength = Math.max(30, Math.sqrt(dx * dx + dy * dy));
+        this.player.angle = Math.atan2(dx, dy);
+        
+        // Preserve angular momentum from flight
+        const speed = Math.sqrt(this.player.vx * this.player.vx + this.player.vy * this.player.vy);
+        this.player.angularVel = speed / this.player.ropeLength;
+        if (this.player.vx < 0) this.player.angularVel *= -1;
+        
+        synth.playAttachSFX();
+        console.log(`Rope attached to anchor at ${Math.round(anchor.x)}, ${Math.round(anchor.y)}`);
+    }
+
     handlePlayerAction() {
         if (this.gameState !== 'PLAYING') return;
 
-        // Player tap only controls release (as requested)
         if (this.player.attached) {
-            // Calculate release velocities
+            // === RELEASE rope ===
             const angle = this.player.angle;
-            const velocityMagnitude = this.player.angularVel * this.player.ropeLength;
+            const vm = this.player.angularVel * this.player.ropeLength;
+            this.player.vx = vm * Math.cos(angle);
+            this.player.vy = vm * -Math.sin(angle);
             
-            // Projectile velocities
-            this.player.vx = velocityMagnitude * Math.cos(angle);
-            this.player.vy = velocityMagnitude * -Math.sin(angle);
-            
-            // Detach rope
+            this.lastDetachedAnchor = this.player.activeAnchor;
             this.player.attached = false;
             this.player.activeAnchor = null;
             
             synth.playAttachSFX();
+            console.log('Rope released');
+        } else {
+            // === ATTACH to nearest anchor within tap range ===
+            let nearest = null;
+            let nearestDist = Infinity;
+            
+            this.anchors.forEach(anchor => {
+                if (anchor === this.lastDetachedAnchor) return;
+                const dx = anchor.x - this.player.x;
+                const dy = anchor.y - this.player.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < nearestDist && dist <= this.tapGrabRadius) {
+                    nearestDist = dist;
+                    nearest = anchor;
+                }
+            });
+            
+            if (nearest) {
+                this.attachToAnchor(nearest);
+            }
+            // If no anchor in range — character continues free fall with gravity
         }
     }
 
@@ -534,7 +580,7 @@ class Game {
         this.gameState = 'PLAYING';
         this.score = 0;
         this.timeElapsed = 0;
-        this.scrollSpeed = this.baseScrollSpeed;
+        this.scrollSpeed = 0;
         
         // Hide Screens
         document.getElementById('start-screen').classList.remove('active');
@@ -608,17 +654,16 @@ class Game {
 
     update(dt) {
         this.timeElapsed += dt;
-        
-        // Increment World Spacing Speed dynamically
-        if (this.timeElapsed < 30) {
-            this.scrollSpeed = this.baseScrollSpeed;
-        } else if (this.timeElapsed < 60) {
-            this.scrollSpeed = this.baseScrollSpeed * 1.35;
-        } else if (this.timeElapsed < 120) {
-            this.scrollSpeed = this.baseScrollSpeed * 1.7;
-        } else {
-            this.scrollSpeed = this.baseScrollSpeed * 2.1;
-        }
+        if (this.hintTimer > 0) this.hintTimer -= dt;
+
+        // === CAMERA-FOLLOW SCROLL (player-driven, no fixed speed) ===
+        // Scroll speed is proportional to how far player is ahead of the target screen X
+        const diff = this.player.x - this.targetScreenX;
+        const targetScroll = Math.max(0, diff * 3.0);
+        // Smooth lerp towards target
+        this.scrollSpeed += (targetScroll - this.scrollSpeed) * 0.08;
+        // Tiny minimum drift to keep stars moving even when stationary
+        if (this.scrollSpeed < 5) this.scrollSpeed = Math.max(0, this.scrollSpeed);
 
         // Distance points (distance score + accumulated coin bonus)
         this.worldDistance += this.scrollSpeed * dt;
@@ -636,44 +681,36 @@ class Game {
 
         // 2. Character Physics Engine
         if (this.player.attached && this.player.activeAnchor) {
-            // Scroll active anchor first (general loop will skip it)
+            // Scroll active anchor (general loop will skip it)
             this.player.activeAnchor.x -= this.scrollSpeed * dt;
 
             // Real pendulum physics (gravity + angular momentum)
             const angleAccel = (-this.gravity / this.player.ropeLength) * Math.sin(this.player.angle);
             this.player.angularVel += angleAccel * dt;
-            
-            // Add custom visual centrifugal drag
-            this.player.angularVel *= 0.999; 
-            
+            this.player.angularVel *= 0.999; // subtle drag
             this.player.angle += this.player.angularVel * dt;
 
-            // Character Position from (already-scrolled) Anchor
+            // Character position from (already-scrolled) anchor
             this.player.x = this.player.activeAnchor.x + Math.sin(this.player.angle) * this.player.ropeLength;
             this.player.y = this.player.activeAnchor.y + Math.cos(this.player.angle) * this.player.ropeLength;
         } else {
             // Projectile flight physics
             this.player.vy += this.gravity * dt;
-            
-            // Scale player horizontal scroll delta
-            this.player.x += (this.player.vx - this.scrollSpeed) * dt;
+            this.player.x += this.player.vx * dt - this.scrollSpeed * dt;
             this.player.y += this.player.vy * dt;
-            
-            // Trailing effect behind character while flying (Fading dots)
+
+            // Trailing effect while flying
             this.particles.push({
-                x: this.player.x,
-                y: this.player.y,
-                alpha: 1.0,
-                radius: 4
+                x: this.player.x, y: this.player.y, alpha: 1.0, radius: 4
             });
 
-            // Auto grab mechanics: Auto-attach when within grab radius of 50px
+            // Auto grab: attach when within 50px of any anchor (except the one just released)
             let nextAnchor = null;
             let minDist = Infinity;
-            
+
             this.anchors.forEach(anchor => {
-                // Focus only on anchors ahead of the player
-                if (anchor.x > this.player.x - 20) {
+                if (anchor === this.lastDetachedAnchor) return;
+                if (anchor.x > this.player.x - 30) {
                     const dx = anchor.x - this.player.x;
                     const dy = anchor.y - this.player.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -684,54 +721,30 @@ class Game {
                 }
             });
 
-            // Character grabs next anchor automatically when within radius of 50px (as requested)
             if (nextAnchor && minDist <= this.grabRadius) {
-                this.player.attached = true;
-                this.player.activeAnchor = nextAnchor;
-                
-                const dx = this.player.x - nextAnchor.x;
-                const dy = this.player.y - nextAnchor.y;
-                
-                this.player.ropeLength = Math.sqrt(dx * dx + dy * dy);
-                this.player.angle = Math.atan2(dx, dy);
-                
-                // Preserve angular momentum during conversion
-                const linearVelocity = Math.sqrt(this.player.vx * this.player.vx + this.player.vy * this.player.vy);
-                this.player.angularVel = linearVelocity / this.player.ropeLength;
-                
-                // If velocity direction was backwards, invert momentum
-                if (this.player.vx < 0) {
-                    this.player.angularVel *= -1;
-                }
-                
-                synth.playAttachSFX();
+                this.attachToAnchor(nextAnchor);
             }
         }
 
         // Fading trailing particles
-        this.particles.forEach(p => {
-            p.alpha -= 2.2 * dt;
-        });
+        this.particles.forEach(p => { p.alpha -= 2.2 * dt; });
         this.particles = this.particles.filter(p => p.alpha > 0);
 
-        // 3. Spacing assets scroll & update (skip active anchor — already scrolled above)
+        // 3. Scroll all assets (skip active anchor — already scrolled above)
         this.anchors.forEach(a => {
             if (a !== this.player.activeAnchor) {
                 a.x -= this.scrollSpeed * dt;
             }
             a.update(dt);
         });
-        
+
         this.coins.forEach(c => {
             c.x -= this.scrollSpeed * dt;
             c.update(dt);
-            
-            // Collision chime detection with gold coins
             if (!c.collected) {
                 const dx = c.x - this.player.x;
                 const dy = c.y - this.player.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < (c.radius + this.player.radius)) {
+                if (Math.sqrt(dx * dx + dy * dy) < (c.radius + this.player.radius)) {
                     c.collected = true;
                     this.coinScore += 10;
                     synth.playCoinSFX();
@@ -742,45 +755,29 @@ class Game {
         this.obstacles.forEach(o => {
             o.x -= this.scrollSpeed * dt;
             o.update(dt);
-            
-            // Collision Buzz detection with Obstacles
             const dx = o.x - this.player.x;
             const dy = o.y - this.player.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            let hasCollided = false;
-            if (o.type === 'rotating_blade') {
-                // Check against each blade line length
-                if (dist < 65) {
-                    // Check exact hit within blade segments
-                    hasCollided = true;
-                }
-            } else if (o.type === 'moving_wall') {
-                // Check standard box intersections
-                const hHit = Math.abs(dx) < (o.width/2 + this.player.radius);
-                const vHit = Math.abs(this.player.y - o.y) < (o.height/2 + this.player.radius);
-                if (hHit && vHit) {
-                    hasCollided = true;
-                }
+            let hit = false;
+            if (o.type === 'rotating_blade' && dist < 55) hit = true;
+            if (o.type === 'moving_wall') {
+                if (Math.abs(dx) < (o.width / 2 + this.player.radius) &&
+                    Math.abs(dy) < (o.height / 2 + this.player.radius)) hit = true;
             }
-
-            if (hasCollided) {
-                this.triggerGameOver();
-            }
+            if (hit) this.triggerGameOver();
         });
 
-        // 4. Garbage collection & infinite procedural spawning
+        // 4. Garbage collection & procedural spawning
         this.anchors = this.anchors.filter(a => a.x > -150);
         this.coins = this.coins.filter(c => c.x > -150 && !c.collected);
         this.obstacles = this.obstacles.filter(o => o.x > -150);
+        if (this.anchors.length < 6) this.spawnNextAnchors(3);
 
-        // Keep 6 anchors spawned ahead at all times
-        if (this.anchors.length < 6) {
-            this.spawnNextAnchors(3);
+        // 5. Game Over — ONLY fall below screen bottom OR fall far behind
+        if (this.player.y > this.canvas.height + 50) {
+            this.triggerGameOver();
         }
-
-        // 5. Game Over triggers: Fall off screen boundaries
-        if (this.player.y > this.canvas.height + 40 || this.player.y < -300 || this.player.x < -40) {
+        if (this.player.x < -100) {
             this.triggerGameOver();
         }
     }
@@ -870,6 +867,18 @@ class Game {
         this.ctx.lineWidth = 1.5;
         this.ctx.stroke();
         this.ctx.restore();
+
+        // 8. Hint text "TAP TO RELEASE" for first 3 seconds
+        if (this.hintTimer > 0) {
+            this.ctx.save();
+            this.ctx.font = '700 22px Outfit, sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillStyle = `rgba(0, 255, 255, ${Math.min(1, this.hintTimer)})`;
+            this.ctx.shadowColor = '#00ffff';
+            this.ctx.shadowBlur = 15;
+            this.ctx.fillText('TAP TO RELEASE', this.player.x, this.player.y - 40);
+            this.ctx.restore();
+        }
     }
 }
 
