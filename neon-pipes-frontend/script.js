@@ -149,7 +149,7 @@ class PipeGame {
         this.hintUsed = false;
         const hintBtn = document.getElementById('hint-btn');
         hintBtn.disabled = false;
-        hintBtn.textContent = '💡 HINT';
+        hintBtn.textContent = '💡';
 
         this.resize();
         
@@ -590,7 +590,7 @@ class PipeGame {
         this.isHinting = true;
         const hintBtn = document.getElementById('hint-btn');
         hintBtn.disabled = true;
-        hintBtn.textContent = '💡 USED';
+        hintBtn.textContent = '💡';
 
         const overlay = document.getElementById('hint-overlay');
         overlay.classList.add('active');

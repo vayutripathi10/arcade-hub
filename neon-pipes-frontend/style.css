@@ -253,37 +253,22 @@ body {
 .btn-outline:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--neon-pink); color: var(--neon-pink); }
 
 /* Hint Button */
-.hint-container {
-    position: fixed;
-    bottom: calc(20px + env(safe-area-inset-bottom));
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 150;
-}
-
 #hint-btn {
-    background: transparent;
     color: var(--neon-yellow);
-    border: 2px solid var(--neon-yellow);
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 0 10px rgba(255, 230, 0, 0.2);
+    border-color: rgba(255, 230, 0, 0.2);
+    box-shadow: 0 0 10px rgba(255, 230, 0, 0.1);
 }
 
 #hint-btn:not(:disabled):hover { 
-    background: var(--neon-yellow); 
-    color: black;
-    box-shadow: 0 0 20px var(--neon-yellow);
+    background: rgba(255, 230, 0, 0.15); 
+    border-color: var(--neon-yellow);
+    color: var(--neon-yellow);
+    box-shadow: 0 0 15px rgba(255, 230, 0, 0.4);
 }
 
 #hint-btn:disabled {
     opacity: 0.3;
-    border-color: #555;
-    color: #555;
+    border-color: var(--glass-border);
     cursor: default;
     box-shadow: none;
 }
