@@ -582,10 +582,11 @@ class Game {
         this.timeElapsed = 0;
         this.scrollSpeed = 0;
         
-        // Hide Screens
+        // Hide Screens, Show HUD
         document.getElementById('start-screen').classList.remove('active');
         document.getElementById('pause-screen').classList.remove('active');
         document.getElementById('game-over-screen').classList.remove('active');
+        document.querySelector('.hud-header').style.display = 'grid';
         
         this.generateInitialLevel();
         this.lastTime = performance.now();
@@ -620,7 +621,8 @@ class Game {
         
         this.updateHUD();
         
-        // Update Game Over display
+        // Hide HUD, Show Game Over
+        document.querySelector('.hud-header').style.display = 'none';
         document.getElementById('go-final-score').textContent = this.score;
         document.getElementById('go-best-score').textContent = this.bestScore;
         document.getElementById('game-over-screen').classList.add('active');

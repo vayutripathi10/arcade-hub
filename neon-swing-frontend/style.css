@@ -66,7 +66,7 @@ body {
     left: 0;
     width: 100%;
     padding: 20px 30px;
-    display: grid;
+    display: none; /* Hidden by default; shown by JS during gameplay */
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     z-index: 100;
