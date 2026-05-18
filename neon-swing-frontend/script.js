@@ -43,29 +43,29 @@ class AudioSynthManager {
     // Loop a simple retro neon/synthwave bass line
     startBackgroundMusic() {
         if (this.synthInterval) clearInterval(this.synthInterval);
-        
+
         this.synthInterval = setInterval(() => {
             if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
-            
+
             const now = this.ctx.currentTime;
-            
+
             // Bass beat (1/8 notes)
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-            
+
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(this.bassNotes[this.musicStep % this.bassNotes.length], now);
-            
+
             // Neon accent note every 4 beats
             if (this.musicStep % 4 === 0) {
                 const leadOsc = this.ctx.createOscillator();
                 const leadGain = this.ctx.createGain();
                 leadOsc.type = 'sawtooth';
                 leadOsc.frequency.setValueAtTime(this.bassNotes[this.musicStep % this.bassNotes.length] * 4, now); // 2 octaves up
-                
+
                 leadGain.gain.setValueAtTime(0.04, now);
                 leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                
+
                 leadOsc.connect(leadGain);
                 leadGain.connect(this.ctx.destination);
                 leadOsc.start(now);
@@ -74,13 +74,13 @@ class AudioSynthManager {
 
             gain.gain.setValueAtTime(0.12, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-            
+
             osc.connect(gain);
             gain.connect(this.ctx.destination);
-            
+
             osc.start(now);
             osc.stop(now + 0.3);
-            
+
             this.musicStep++;
         }, 300);
     }
@@ -90,20 +90,20 @@ class AudioSynthManager {
         if (this.isMuted || !this.ctx) return;
         this.resume();
         const now = this.ctx.currentTime;
-        
+
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        
+
         osc.type = 'sine';
         osc.frequency.setValueAtTime(600, now);
         osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
-        
+
         gain.gain.setValueAtTime(0.15, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-        
+
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-        
+
         osc.start(now);
         osc.stop(now + 0.09);
     }
@@ -113,26 +113,26 @@ class AudioSynthManager {
         if (this.isMuted || !this.ctx) return;
         this.resume();
         const now = this.ctx.currentTime;
-        
+
         // High-pitched crystal bell sound (harmonic sine waves)
         const osc1 = this.ctx.createOscillator();
         const osc2 = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        
+
         osc1.type = 'sine';
         osc1.frequency.setValueAtTime(987.77, now); // B5 note
         osc1.frequency.setValueAtTime(1318.51, now + 0.06); // E6 note
-        
+
         osc2.type = 'sine';
         osc2.frequency.setValueAtTime(1975.53, now); // B6 note (high overtone)
-        
+
         gain.gain.setValueAtTime(0.18, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-        
+
         osc1.connect(gain);
         osc2.connect(gain);
         gain.connect(this.ctx.destination);
-        
+
         osc1.start(now);
         osc2.start(now);
         osc1.stop(now + 0.25);
@@ -144,20 +144,20 @@ class AudioSynthManager {
         if (this.isMuted || !this.ctx) return;
         this.resume();
         const now = this.ctx.currentTime;
-        
+
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        
+
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(180, now);
         osc.frequency.linearRampToValueAtTime(30, now + 0.35);
-        
+
         gain.gain.setValueAtTime(0.25, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-        
+
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-        
+
         osc.start(now);
         osc.stop(now + 0.38);
     }
@@ -185,7 +185,7 @@ class Anchor {
         ctx.save();
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        
+
         let color = '#00a8a8';
         let glow = 8;
         if (isActive) {
@@ -200,14 +200,14 @@ class Anchor {
         ctx.shadowBlur = glow;
         ctx.fillStyle = color;
         ctx.fill();
-        
+
         // Outer halo
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius + 6 + Math.sin(this.pulse) * 2, 0, Math.PI * 2);
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.5;
         ctx.stroke();
-        
+
         ctx.restore();
     }
 }
@@ -232,12 +232,12 @@ class Coin {
         // Draw rotating hexagon/circle shape
         const w = this.radius * Math.sin(this.angle);
         ctx.ellipse(this.x, this.y, Math.abs(w), this.radius, 0, 0, Math.PI * 2);
-        
+
         ctx.shadowColor = '#ffff00';
         ctx.shadowBlur = 12;
         ctx.fillStyle = '#ffd700';
         ctx.fill();
-        
+
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -280,12 +280,12 @@ class Obstacle {
         if (this.type === 'rotating_blade') {
             ctx.translate(this.x, this.y);
             ctx.rotate(this.angle);
-            
+
             // Draw a neat neon blade spinner
             ctx.beginPath();
             ctx.arc(0, 0, 8, 0, Math.PI * 2);
             ctx.fill();
-            
+
             for (let i = 0; i < 4; i++) {
                 ctx.rotate(Math.PI / 2);
                 ctx.beginPath();
@@ -298,16 +298,16 @@ class Obstacle {
             }
         } else if (this.type === 'moving_wall') {
             ctx.beginPath();
-            ctx.rect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+            ctx.rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
             ctx.fill();
             ctx.stroke();
-            
+
             // Glowing neon core stripes
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(this.x, this.y - this.height/2 + 5);
-            ctx.lineTo(this.x, this.y + this.height/2 - 5);
+            ctx.moveTo(this.x, this.y - this.height / 2 + 5);
+            ctx.lineTo(this.x, this.y + this.height / 2 - 5);
             ctx.stroke();
         }
 
@@ -322,11 +322,11 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
-        
+
         // Physics configurations
         this.gravity = 750; // pixels/s^2
         this.scrollSpeed = 0; // Dynamic — driven by player movement
-        
+
         // Game variables
         this.score = 0;
         this.coinScore = 0;
@@ -337,13 +337,13 @@ class Game {
         this.worldDistance = 0;
         this.hintTimer = 0; // "TAP TO RELEASE" hint countdown
         this.lastDetachedAnchor = null; // Prevent re-grab of same anchor
-        
+
         // Objects arrays
         this.anchors = [];
         this.coins = [];
         this.obstacles = [];
         this.particles = []; // Character trail
-        
+
         // Player properties
         this.player = {
             x: 150,
@@ -357,15 +357,15 @@ class Game {
             attached: false,
             activeAnchor: null
         };
-        
-        this.grabRadius = 50; // Auto grab radius in px
-        this.tapGrabRadius = 250; // Manual tap grab radius in px
+
+        this.grabRadius = 80; // Auto grab radius in px
+        this.tapGrabRadius = 400; // Manual tap grab radius in px
         this.targetScreenX = 200; // Camera target: keep player near this X
-        
+
         // Stars/Background particles
         this.stars = [];
         this.initStars();
-        
+
         // Register inputs
         this.bindEvents();
         this.resizeCanvas();
@@ -388,7 +388,7 @@ class Game {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         this.initStars();
-        
+
         if (this.gameState === 'START' || this.gameState === 'PLAYING') {
             this.generateInitialLevel();
         }
@@ -404,11 +404,11 @@ class Game {
         this.hintTimer = 3.0; // Show hint for 3 seconds
         this.lastDetachedAnchor = null;
         this.scrollSpeed = 0;
-        
+
         // First anchor directly above character — clearly visible
         const a0 = new Anchor(this.canvas.width * 0.25, 160);
         this.anchors.push(a0);
-        
+
         // Auto-attach on start so player immediately sees the mechanic
         this.player.x = a0.x;
         this.player.y = a0.y + 170;
@@ -429,19 +429,19 @@ class Game {
     spawnNextAnchors(count = 1) {
         for (let k = 0; k < count; k++) {
             const lastAnchor = this.anchors[this.anchors.length - 1];
-            
+
             // X-spacing scales slightly as game proceeds, capped to ensure reachability
-            const minSpacing = 220;
+            const minSpacing = 160;
             const maxSpacing = Math.min(360, 220 + (this.timeElapsed * 1.5));
             const spacing = minSpacing + Math.random() * (maxSpacing - minSpacing);
-            
+
             const nextX = lastAnchor.x + spacing;
-            
+
             // Kept within a very comfortable vertical safe range
             const minHeight = 150;
             const maxHeight = 280;
             const nextY = minHeight + Math.random() * (maxHeight - minHeight);
-            
+
             const anchor = new Anchor(nextX, nextY);
             this.anchors.push(anchor);
 
@@ -460,10 +460,10 @@ class Game {
                 if (this.timeElapsed > 60 && Math.random() > 0.5) {
                     obstacleType = 'moving_wall';
                 }
-                
+
                 // Position obstacles safely in the middle gap where player swings through
                 const obsX = midX;
-                const obsY = midY + 50; 
+                const obsY = midY + 50;
                 this.obstacles.push(new Obstacle(obsX, obsY, obstacleType));
             }
         }
@@ -471,7 +471,7 @@ class Game {
 
     bindEvents() {
         window.addEventListener('resize', () => this.resizeCanvas());
-        
+
         // Space key triggers action
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
@@ -479,14 +479,14 @@ class Game {
                 this.handlePlayerAction();
             }
         });
-        
+
         // Tap/Click overlay triggers action
         const overlay = document.getElementById('interaction-overlay');
         overlay.addEventListener('pointerdown', (e) => {
             e.preventDefault();
             this.handlePlayerAction();
         });
-        
+
         // Canvas click also triggers action (belt & suspenders)
         this.canvas.addEventListener('pointerdown', (e) => {
             e.preventDefault();
@@ -495,7 +495,7 @@ class Game {
 
         // UI Start button
         document.getElementById('start-play-btn').addEventListener('click', () => this.startGame());
-        
+
         // UI Pause buttons
         document.getElementById('hud-pause-btn').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -503,7 +503,7 @@ class Game {
         });
         document.getElementById('pause-resume-btn').addEventListener('click', () => this.togglePause());
         document.getElementById('pause-restart-btn').addEventListener('click', () => this.restartGame());
-        
+
         // Sound toggle button
         document.getElementById('hud-sound-btn').addEventListener('click', (e) => {
             e.stopPropagation();
@@ -519,18 +519,18 @@ class Game {
     attachToAnchor(anchor) {
         this.player.attached = true;
         this.player.activeAnchor = anchor;
-        
+
         const dx = this.player.x - anchor.x;
         const dy = this.player.y - anchor.y;
-        
+
         this.player.ropeLength = Math.max(30, Math.sqrt(dx * dx + dy * dy));
         this.player.angle = Math.atan2(dx, dy);
-        
+
         // Preserve angular momentum from flight
         const speed = Math.sqrt(this.player.vx * this.player.vx + this.player.vy * this.player.vy);
         this.player.angularVel = speed / this.player.ropeLength;
         if (this.player.vx < 0) this.player.angularVel *= -1;
-        
+
         synth.playAttachSFX();
         console.log(`Rope attached to anchor at ${Math.round(anchor.x)}, ${Math.round(anchor.y)}`);
     }
@@ -544,18 +544,18 @@ class Game {
             const vm = this.player.angularVel * this.player.ropeLength;
             this.player.vx = vm * Math.cos(angle);
             this.player.vy = vm * -Math.sin(angle);
-            
+
             this.lastDetachedAnchor = this.player.activeAnchor;
             this.player.attached = false;
             this.player.activeAnchor = null;
-            
+
             synth.playAttachSFX();
             console.log('Rope released');
         } else {
             // === ATTACH to nearest anchor within tap range ===
             let nearest = null;
             let nearestDist = Infinity;
-            
+
             this.anchors.forEach(anchor => {
                 if (anchor === this.lastDetachedAnchor) return;
                 const dx = anchor.x - this.player.x;
@@ -566,7 +566,7 @@ class Game {
                     nearest = anchor;
                 }
             });
-            
+
             if (nearest) {
                 this.attachToAnchor(nearest);
             }
@@ -581,13 +581,13 @@ class Game {
         this.score = 0;
         this.timeElapsed = 0;
         this.scrollSpeed = 0;
-        
+
         // Hide Screens, Show HUD
         document.getElementById('start-screen').classList.remove('active');
         document.getElementById('pause-screen').classList.remove('active');
         document.getElementById('game-over-screen').classList.remove('active');
         document.querySelector('.hud-header').style.display = 'grid';
-        
+
         this.generateInitialLevel();
         this.lastTime = performance.now();
         requestAnimationFrame((t) => this.gameLoop(t));
@@ -612,15 +612,15 @@ class Game {
     triggerGameOver() {
         this.gameState = 'GAMEOVER';
         synth.playBuzzSFX();
-        
+
         // Save Best Score
         if (this.score > this.bestScore) {
             this.bestScore = this.score;
             localStorage.setItem('neonSwingBestScore', this.bestScore);
         }
-        
+
         this.updateHUD();
-        
+
         // Hide HUD, Show Game Over
         document.querySelector('.hud-header').style.display = 'none';
         document.getElementById('go-final-score').textContent = this.score;
@@ -631,13 +631,13 @@ class Game {
     updateHUD() {
         document.getElementById('hud-score').textContent = this.score;
         document.getElementById('hud-best-score').textContent = this.bestScore;
-        
+
         document.getElementById('start-best-score').textContent = this.bestScore;
     }
 
     // --------------------------------------------------------------------------
     // 4. MAIN INTERACTIVE RUNTIME LOOP
-// --------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     gameLoop(time) {
         if (this.gameState !== 'PLAYING') return;
 
@@ -801,7 +801,7 @@ class Game {
         // 3. Glowing Anchors
         this.anchors.forEach((anchor) => {
             const isActive = (anchor === this.player.activeAnchor);
-            
+
             // Find next active reachable anchor
             let isNext = false;
             if (!this.player.attached) {
@@ -836,7 +836,7 @@ class Game {
             this.ctx.beginPath();
             this.ctx.moveTo(this.player.activeAnchor.x, this.player.activeAnchor.y);
             this.ctx.lineTo(this.player.x, this.player.y);
-            
+
             this.ctx.shadowColor = '#00ffff';
             this.ctx.shadowBlur = 15;
             this.ctx.strokeStyle = '#00ffff';
@@ -859,12 +859,12 @@ class Game {
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(this.player.x, this.player.y, this.player.radius, 0, Math.PI * 2);
-        
+
         this.ctx.shadowColor = '#00ffff';
         this.ctx.shadowBlur = 18;
         this.ctx.fillStyle = '#00ffff';
         this.ctx.fill();
-        
+
         this.ctx.strokeStyle = '#ffffff';
         this.ctx.lineWidth = 1.5;
         this.ctx.stroke();

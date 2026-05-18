@@ -4,9 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Neon Swing | Arcade Hub</title>
-    <meta name="description" content="Swing through the neon universe! Control a glowing character, collect yellow coins, dodge rotating obstacles and don't fall!">
+    <meta name="description" content="Swing through the neon universe! Tap to release the rope, grab the next anchor and don't fall. Play Neon Swing for free on Arcade Hub.">
+    <meta name="keywords" content="neon swing, rope swing game, arcade hub, browser games, neon game, free online games">
     <link rel="icon" type="image/png" href="../favicon.png">
-    
+    <link rel="canonical" href="https://arcadehubplay.com/neon-swing-frontend/index.html">
+
+    <!-- Social Sharing / Open Graph -->
+    <meta property="og:title" content="Neon Swing | Arcade Hub">
+    <meta property="og:description" content="Swing through the neon universe! Tap to release, grab anchors, collect coins. Play free.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-swing-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Neon Swing | Arcade Hub">
+    <meta name="twitter:description" content="Swing through the neon universe! Tap to release, grab anchors, collect coins.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +27,19 @@
     
     <!-- Styling -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
+     crossorigin="anonymous"></script>
     
     <!-- Ultimate Network Ad Blocker Shield -->
     <script>
@@ -61,6 +87,7 @@
             </div>
         </div>
         <div class="hud-right">
+            <button class="hud-btn icon-btn" id="hud-help-btn" aria-label="How to Play">❓</button>
             <button class="hud-btn icon-btn" id="hud-sound-btn" aria-label="Toggle Sound">🔊</button>
             <button class="hud-btn icon-btn" id="hud-pause-btn" aria-label="Pause Game">⏸</button>
         </div>
@@ -86,6 +113,42 @@
 
             <button id="start-play-btn" class="menu-btn primary-glow">PLAY GAME</button>
             <a href="../index.html" class="menu-btn secondary-glow">🏠 HUB</a>
+        </div>
+    </div>
+
+    <!-- How to Play Screen -->
+    <div id="help-screen" class="game-screen">
+        <div class="screen-content glass-card">
+            <h2 class="screen-title neon-text-blue">HOW TO PLAY</h2>
+            
+            <div class="instruction-list">
+                <div class="instruction-item">
+                    <span class="inst-icon">🕸️</span>
+                    <p>Your character starts <strong>attached to an anchor</strong> and swings like a pendulum.</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">👆</span>
+                    <p><strong>Tap / Click / Space</strong> to release the rope. Character flies in swing direction!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">🎯</span>
+                    <p>Rope <strong>auto-attaches</strong> within 50px of the next anchor, or tap again to grab manually.</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">🪙</span>
+                    <p>Collect <strong>golden coins</strong> mid-air for +10 bonus points!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">⚠️</span>
+                    <p>Avoid <strong>red obstacles</strong> — rotating blades and moving walls!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">💀</span>
+                    <p>Miss the anchor and fall off the screen = <strong>Game Over!</strong></p>
+                </div>
+            </div>
+
+            <button id="help-close-btn" class="menu-btn primary-glow">GOT IT!</button>
         </div>
     </div>
 
@@ -118,6 +181,11 @@
 
             <button id="go-retry-btn" class="menu-btn primary-glow">PLAY AGAIN</button>
             <a href="../index.html" class="menu-btn secondary-glow">🏠 HUB</a>
+
+            <div class="share-row">
+                <button id="share-wa-btn" class="share-btn wa-btn">📱 WhatsApp</button>
+                <button id="share-x-btn" class="share-btn x-btn">𝕏 Post</button>
+            </div>
         </div>
     </div>
 
