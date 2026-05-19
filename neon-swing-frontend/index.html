@@ -25,10 +25,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- Styling -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Google tag (gtag.js) -->
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -40,38 +39,15 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
      crossorigin="anonymous"></script>
-    
-    <!-- Ultimate Network Ad Blocker Shield -->
-    <script>
-    (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
-        const originalAdd = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            if ((this === window || this === document || this === document.body) && 
-                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
-                typeof listener === 'function') 
-            {
-                const wrappedListener = function(e) {
-                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return; // Shield!
-                    }
-                    return listener.apply(this, arguments);
-                };
-                return originalAdd.call(this, type, wrappedListener, options);
-            }
-            return originalAdd.call(this, type, listener, options);
-        };
-    })();
-    </script>
 </head>
 <body>
-    <!-- Full-screen Canvas Gameplay -->
+    <!-- Full-screen Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Tap / Click Overlay for Mobile & Desktop Swing Control -->
+    <!-- Tap/Click Overlay -->
     <div id="interaction-overlay" class="interaction-overlay"></div>
 
-    <!-- HUD Overlay (Standard 3-Column Grid) -->
+    <!-- HUD — 3 Column Grid -->
     <header class="hud-header">
         <div class="hud-left">
             <a href="../index.html" class="hud-btn" id="hud-hub-btn">🏠 HUB</a>
@@ -87,87 +63,101 @@
             </div>
         </div>
         <div class="hud-right">
+            <!-- FIX: Help button now has correct id and pointer-events -->
             <button class="hud-btn icon-btn" id="hud-help-btn" aria-label="How to Play">❓</button>
             <button class="hud-btn icon-btn" id="hud-sound-btn" aria-label="Toggle Sound">🔊</button>
             <button class="hud-btn icon-btn" id="hud-pause-btn" aria-label="Pause Game">⏸</button>
         </div>
     </header>
 
-    <!-- Overlay Screens -->
-    <!-- Start / Main Menu Screen -->
+    <!-- ═══════════════════════════════════════════════
+         SCREEN: START
+    ════════════════════════════════════════════════ -->
     <div id="start-screen" class="game-screen active">
         <div class="screen-content glass-card">
-            <h1 class="game-title neon-text-blue">NEON <span class="neon-text-pink">SWING</span></h1>
-            <p class="game-subtitle">Release rope and swing to the next anchor!</p>
-            
+            <h1 class="game-title">
+                <span class="neon-text-blue">NEON</span>
+                <span class="neon-text-pink"> SWING</span>
+            </h1>
+            <p class="game-subtitle">Release the rope and swing to the next anchor!</p>
+
             <div class="score-display">
                 <span>🏆 BEST SCORE</span>
                 <span id="start-best-score">0</span>
             </div>
 
             <div class="controls-guide">
-                <p><strong>💻 DESKTOP:</strong> Space or Click to release</p>
-                <p><strong>📱 MOBILE:</strong> Tap anywhere to release</p>
-                <p class="guide-note">Rope attaches automatically within <span class="highlight-cyan">50px</span> of next anchor</p>
+                <p><strong>💻 DESKTOP:</strong> Space or Click to release / grab</p>
+                <p><strong>📱 MOBILE:</strong> Tap anywhere to release / grab</p>
+                <p class="guide-note">Rope auto-attaches within <span class="highlight-cyan">80px</span> — or tap to grab manually up to <span class="highlight-cyan">400px</span> away!</p>
             </div>
 
-            <button id="start-play-btn" class="menu-btn primary-glow">PLAY GAME</button>
+            <button id="start-play-btn" class="menu-btn primary-glow">▶ PLAY GAME</button>
             <a href="../index.html" class="menu-btn secondary-glow">🏠 HUB</a>
         </div>
     </div>
 
-    <!-- How to Play Screen -->
+    <!-- ═══════════════════════════════════════════════
+         SCREEN: HOW TO PLAY
+    ════════════════════════════════════════════════ -->
     <div id="help-screen" class="game-screen">
         <div class="screen-content glass-card">
             <h2 class="screen-title neon-text-blue">HOW TO PLAY</h2>
-            
+
             <div class="instruction-list">
                 <div class="instruction-item">
                     <span class="inst-icon">🕸️</span>
-                    <p>Your character starts <strong>attached to an anchor</strong> and swings like a pendulum.</p>
+                    <p>Your character starts <strong>attached to a pink anchor</strong> and swings like a pendulum.</p>
                 </div>
                 <div class="instruction-item">
                     <span class="inst-icon">👆</span>
-                    <p><strong>Tap / Click / Space</strong> to release the rope. Character flies in swing direction!</p>
+                    <p><strong>Tap / Click / Space</strong> to release the rope — character flies in the swing direction!</p>
                 </div>
                 <div class="instruction-item">
                     <span class="inst-icon">🎯</span>
-                    <p>Rope <strong>auto-attaches</strong> within 50px of the next anchor, or tap again to grab manually.</p>
+                    <p>Watch for the <strong>yellow anchor</strong> — that's your next target! Tap again to grab it (up to 400px range).</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">⚡</span>
+                    <p>Rope also <strong>auto-attaches</strong> if you drift within 80px of any anchor.</p>
                 </div>
                 <div class="instruction-item">
                     <span class="inst-icon">🪙</span>
-                    <p>Collect <strong>golden coins</strong> mid-air for +10 bonus points!</p>
+                    <p>Collect <strong>golden coins</strong> mid-air for +10 bonus points each!</p>
                 </div>
                 <div class="instruction-item">
                     <span class="inst-icon">⚠️</span>
-                    <p>Avoid <strong>red obstacles</strong> — rotating blades and moving walls!</p>
+                    <p>Avoid <strong>red obstacles</strong> — rotating blades appear after 30 seconds!</p>
                 </div>
                 <div class="instruction-item">
                     <span class="inst-icon">💀</span>
-                    <p>Miss the anchor and fall off the screen = <strong>Game Over!</strong></p>
+                    <p>Miss all anchors and fall off screen = <strong>Game Over!</strong></p>
                 </div>
             </div>
 
-            <button id="help-close-btn" class="menu-btn primary-glow">GOT IT!</button>
+            <button id="help-close-btn" class="menu-btn primary-glow">✅ GOT IT!</button>
         </div>
     </div>
 
-    <!-- Pause Screen -->
+    <!-- ═══════════════════════════════════════════════
+         SCREEN: PAUSE
+    ════════════════════════════════════════════════ -->
     <div id="pause-screen" class="game-screen">
         <div class="screen-content glass-card">
-            <h2 class="screen-title neon-text-yellow">GAME PAUSED</h2>
-            
-            <button id="pause-resume-btn" class="menu-btn primary-glow">RESUME</button>
-            <button id="pause-restart-btn" class="menu-btn secondary-glow">RESTART</button>
+            <h2 class="screen-title neon-text-yellow">⏸ PAUSED</h2>
+            <button id="pause-resume-btn" class="menu-btn primary-glow">▶ RESUME</button>
+            <button id="pause-restart-btn" class="menu-btn secondary-glow">🔄 RESTART</button>
             <a href="../index.html" class="menu-btn danger-glow">🏠 EXIT TO HUB</a>
         </div>
     </div>
 
-    <!-- Game Over Screen -->
+    <!-- ═══════════════════════════════════════════════
+         SCREEN: GAME OVER
+    ════════════════════════════════════════════════ -->
     <div id="game-over-screen" class="game-screen">
         <div class="screen-content glass-card">
-            <h2 class="screen-title neon-text-red">GAME OVER</h2>
-            
+            <h2 class="screen-title neon-text-red">💀 GAME OVER</h2>
+
             <div class="final-stats">
                 <div class="stat-row">
                     <span>FINAL SCORE</span>
@@ -179,17 +169,69 @@
                 </div>
             </div>
 
-            <button id="go-retry-btn" class="menu-btn primary-glow">PLAY AGAIN</button>
+            <button id="go-retry-btn" class="menu-btn primary-glow">🔄 PLAY AGAIN</button>
             <a href="../index.html" class="menu-btn secondary-glow">🏠 HUB</a>
 
-            <div class="share-row">
-                <button id="share-wa-btn" class="share-btn wa-btn">📱 WhatsApp</button>
-                <button id="share-x-btn" class="share-btn x-btn">𝕏 Post</button>
+            <!-- FIX: Social sharing buttons — WhatsApp + X (Twitter) -->
+            <div class="share-section">
+                <p class="share-label">SHARE YOUR SCORE</p>
+                <div class="share-row">
+                    <button id="share-wa-btn" class="share-btn wa-btn">
+                        <span class="share-icon">📱</span> WhatsApp
+                    </button>
+                    <button id="share-x-btn" class="share-btn x-btn">
+                        <span class="share-icon">𝕏</span> Post
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Game JavaScript -->
     <script src="script.js"></script>
+
+    <!-- FIX: All button wiring in one place AFTER DOM is ready -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // ── Help button (❓) ──────────────────────────────────────
+            const helpBtn = document.getElementById('hud-help-btn');
+            const helpScreen = document.getElementById('help-screen');
+            const helpCloseBtn = document.getElementById('help-close-btn');
+
+            helpBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Pause the game while showing help
+                const game = window._game;
+                if (game && game.gameState === 'PLAYING') game.togglePause();
+                helpScreen.classList.add('active');
+            });
+
+            helpCloseBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                helpScreen.classList.remove('active');
+                // Resume game after closing help
+                const game = window._game;
+                if (game && game.gameState === 'PAUSED') game.togglePause();
+            });
+
+            // ── Social Share ──────────────────────────────────────────
+            document.getElementById('share-wa-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const score = document.getElementById('go-final-score').textContent;
+                const best  = document.getElementById('go-best-score').textContent;
+                const text  = `🎮 I scored ${score} on Neon Swing! Best: ${best}\nCan you beat me? Play free at arcadehubplay.com 🕹️`;
+                const url   = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            });
+
+            document.getElementById('share-x-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const score = document.getElementById('go-final-score').textContent;
+                const text  = `🎮 I scored ${score} on Neon Swing!\nPlay free at arcadehubplay.com 🕹️ #NeonSwing #ArcadeHub`;
+                const url   = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            });
+        });
+    </script>
 </body>
 </html>
