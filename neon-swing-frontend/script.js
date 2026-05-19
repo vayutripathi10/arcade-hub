@@ -41,34 +41,51 @@ class AudioSynthManager {
     }
 
     startBackgroundMusic() {
-        if (this.synthInterval) clearInterval(this.synthInterval);
+        this.stopBackgroundMusic();
+        // NEW MUSIC: Softer ambient neon pulse — calmer feel
+        this.musicStep = 0;
+        // Pentatonic scale — more melodic and less harsh
+        this.bassNotes = [130.81, 146.83, 164.81, 196.00, 220.00, 196.00, 164.81, 146.83];
+        
         this.synthInterval = setInterval(() => {
             if (this.isMuted || !this.ctx || this.ctx.state === 'suspended') return;
             const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(this.bassNotes[this.musicStep % this.bassNotes.length], now);
+
+            // Soft ambient pad — sine wave, very low volume
+            const padOsc = this.ctx.createOscillator();
+            const padGain = this.ctx.createGain();
+            padOsc.type = 'sine';
+            padOsc.frequency.setValueAtTime(this.bassNotes[this.musicStep % this.bassNotes.length], now);
+            padGain.gain.setValueAtTime(0.06, now);
+            padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            padOsc.connect(padGain);
+            padGain.connect(this.ctx.destination);
+            padOsc.start(now);
+            padOsc.stop(now + 0.5);
+
+            // Subtle high note every 4 beats — sparkle effect
             if (this.musicStep % 4 === 0) {
-                const leadOsc = this.ctx.createOscillator();
-                const leadGain = this.ctx.createGain();
-                leadOsc.type = 'sawtooth';
-                leadOsc.frequency.setValueAtTime(this.bassNotes[this.musicStep % this.bassNotes.length] * 4, now);
-                leadGain.gain.setValueAtTime(0.04, now);
-                leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                leadOsc.connect(leadGain);
-                leadGain.connect(this.ctx.destination);
-                leadOsc.start(now);
-                leadOsc.stop(now + 0.3);
+                const sparkOsc = this.ctx.createOscillator();
+                const sparkGain = this.ctx.createGain();
+                sparkOsc.type = 'sine';
+                sparkOsc.frequency.setValueAtTime(this.bassNotes[this.musicStep % this.bassNotes.length] * 3, now);
+                sparkGain.gain.setValueAtTime(0.03, now);
+                sparkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                sparkOsc.connect(sparkGain);
+                sparkGain.connect(this.ctx.destination);
+                sparkOsc.start(now);
+                sparkOsc.stop(now + 0.35);
             }
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.3);
+
             this.musicStep++;
-        }, 300);
+        }, 400); // Slower tempo — more relaxed
+    }
+
+    stopBackgroundMusic() {
+        if (this.synthInterval) {
+            clearInterval(this.synthInterval);
+            this.synthInterval = null;
+        }
     }
 
     playAttachSFX() {
@@ -548,7 +565,11 @@ class Game {
 
     startGame() {
         synth.init();
-        synth.resume();
+        // FIX: Always resume context and restart music fresh on new game
+        if (synth.ctx) synth.ctx.resume();
+        synth.stopBackgroundMusic();
+        if (!synth.isMuted) synth.startBackgroundMusic();
+
         this.gameState = 'PLAYING';
         this.score = 0;
         this.timeElapsed = 0;
@@ -571,9 +592,15 @@ class Game {
     togglePause() {
         if (this.gameState === 'PLAYING') {
             this.gameState = 'PAUSED';
+            // FIX: Stop music on pause
+            synth.stopBackgroundMusic();
+            if (synth.ctx) synth.ctx.suspend();
             document.getElementById('pause-screen').classList.add('active');
         } else if (this.gameState === 'PAUSED') {
             this.gameState = 'PLAYING';
+            // FIX: Resume music on unpause
+            if (synth.ctx) synth.ctx.resume();
+            if (!synth.isMuted) synth.startBackgroundMusic();
             document.getElementById('pause-screen').classList.remove('active');
             this.lastTime = performance.now();
             requestAnimationFrame((t) => this.gameLoop(t));
@@ -583,7 +610,16 @@ class Game {
     triggerGameOver() {
         if (this.gameState === 'GAMEOVER') return; // prevent double trigger
         this.gameState = 'GAMEOVER';
-        synth.playBuzzSFX();
+        // FIX: Stop background music immediately on game over
+        synth.stopBackgroundMusic();
+        if (synth.ctx) synth.ctx.suspend();
+        // Brief resume just to play buzz SFX then suspend again
+        if (synth.ctx) {
+            synth.ctx.resume().then(() => {
+                synth.playBuzzSFX();
+                setTimeout(() => { if (synth.ctx) synth.ctx.suspend(); }, 500);
+            });
+        }
 
         if (this.score > this.bestScore) {
             this.bestScore = this.score;

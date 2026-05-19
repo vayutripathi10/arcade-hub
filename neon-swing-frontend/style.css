@@ -190,8 +190,12 @@ body {
     visibility: hidden;
     transition: opacity 0.35s ease, visibility 0.35s ease;
     padding: 20px;
-    /* FIX: Make screens scrollable on small phones */
     overflow-y: auto;
+}
+
+/* FIX: Help screen must be above all other screens */
+#help-screen {
+    z-index: 150;
 }
 
 .game-screen.active {

@@ -200,18 +200,25 @@
 
             helpBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Pause the game while showing help
                 const game = window._game;
-                if (game && game.gameState === 'PLAYING') game.togglePause();
+                // FIX: Freeze game internally WITHOUT showing pause screen
+                if (game && game.gameState === 'PLAYING') {
+                    game.gameState = 'PAUSED';
+                    // do NOT call togglePause — that would show pause screen
+                }
                 helpScreen.classList.add('active');
             });
 
             helpCloseBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 helpScreen.classList.remove('active');
-                // Resume game after closing help
                 const game = window._game;
-                if (game && game.gameState === 'PAUSED') game.togglePause();
+                // FIX: Resume game loop directly
+                if (game && game.gameState === 'PAUSED') {
+                    game.gameState = 'PLAYING';
+                    game.lastTime = performance.now();
+                    requestAnimationFrame((t) => game.gameLoop(t));
+                }
             });
 
             // ── Social Share ──────────────────────────────────────────
