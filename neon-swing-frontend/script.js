@@ -546,6 +546,8 @@ class Game {
 
             this.anchors.forEach(anchor => {
                 if (anchor === this.lastDetachedAnchor) return;
+                // FIX: On manual tap also prefer forward anchors — skip anchors far behind
+                if (anchor.x < this.player.x - 100) return;
                 const dx = anchor.x - this.player.x;
                 const dy = anchor.y - this.player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
@@ -696,12 +698,17 @@ class Game {
                 x: this.player.x, y: this.player.y, alpha: 1.0, radius: 4
             });
 
-            // Auto-grab: if player drifts within grabRadius of any anchor — attach automatically
+            // Auto-grab: attach ONLY to anchors that are:
+            // 1. Not the last detached anchor
+            // 2. AHEAD of player (x > player.x - 50) — never grab behind/left anchors
+            // 3. Within grabRadius
             let autoAnchor = null;
             let minDist = Infinity;
 
             this.anchors.forEach(anchor => {
                 if (anchor === this.lastDetachedAnchor) return;
+                // FIX: Never auto-grab anchors that are behind the player
+                if (anchor.x < this.player.x - 50) return;
                 const dx = anchor.x - this.player.x;
                 const dy = anchor.y - this.player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
@@ -764,12 +771,26 @@ class Game {
         this.obstacles = this.obstacles.filter(o => o.x > -150);
         if (this.anchors.length < 7) this.spawnNextAnchors(3);
 
-        // Game Over conditions — ONLY fall or scroll behind
-        if (this.player.y > this.canvas.height + 80) {
-            this.triggerGameOver();
-        }
-        if (this.player.x < -150) {
-            this.triggerGameOver();
+        // ── GAME OVER CONDITIONS ─────────────────────────────────────
+        // FIX 1: Never trigger game over while player is ATTACHED to a rope
+        //         — swing can temporarily take player off screen edges, that's valid
+        if (!this.player.attached) {
+            // Only game over when player falls below screen bottom with generous buffer
+            if (this.player.y > this.canvas.height + 120) {
+                this.triggerGameOver();
+            }
+            // Left side game over — only when truly far behind AND falling (not swinging up)
+            // Give extra buffer on mobile (small screen)
+            const leftBuffer = Math.min(250, this.canvas.width * 0.25);
+            if (this.player.x < -leftBuffer && this.player.vy > 0) {
+                this.triggerGameOver();
+            }
+        } else {
+            // While attached — only game over if anchor itself scrolled far off left
+            // (means player is stuck on a dead anchor)
+            if (this.player.activeAnchor && this.player.activeAnchor.x < -300) {
+                this.triggerGameOver();
+            }
         }
     }
 
