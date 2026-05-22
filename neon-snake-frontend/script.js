@@ -35,6 +35,8 @@ let highScore = localStorage.getItem('neonSnakeHighScore') || 0;
 let gameRunning = false;
 let isPaused = false;
 let mode = 'zen'; // 'zen' or 'arcade'
+let isGameOverState = false;
+let initDone = false;
 
 // Engine Speed Variables (in ms per grid tick)
 let baseSpeed = 200; 
@@ -72,12 +74,19 @@ highScoreElement.textContent = highScore;
 
 // --- INITIALIZATION ---
 function initGame() {
+    if (initDone) return;
+    initDone = true;
+
     resizeCanvas();
     
     // Hub Button
     document.getElementById('hub-btn')?.addEventListener('click', () => {
-        stopSynthDrone();
-        window.location.href = '../index.html';
+        if (gameRunning || isGameOverState) {
+            quitToMenu();
+        } else {
+            stopSynthDrone();
+            window.location.href = '../index.html';
+        }
     });
 
     startBtn?.addEventListener('click', (e) => {
@@ -343,8 +352,19 @@ function startGame() {
 function quitToMenu() {
     gameRunning = false;
     isPaused = false;
+    isGameOverState = false;
+    
     pauseMenu.classList.add('hidden');
     document.getElementById('shareContainer')?.classList.add('hidden');
+    
+    // Show mode selector & restore initial options menu titles/buttons
+    document.getElementById('modeSelector')?.classList.remove('hidden');
+    const overlayTitle = overlay.querySelector('h2');
+    if (overlayTitle) overlayTitle.textContent = "Neon Zen Snake";
+    const overlaySub = overlay.querySelector('p.subtitle');
+    if (overlaySub) overlaySub.textContent = "Experience classic snake modernized in 120 FPS cyberpunk skin";
+    if (startBtn) startBtn.textContent = "Start Neural Link";
+    
     overlay.classList.remove('hidden');
     pauseBtn?.classList.add('hidden');
     activePowerupsHud.innerHTML = '';
@@ -768,6 +788,7 @@ function createPowerupHudEl(cls, label, fillRatio) {
 function triggerGameOver() {
     gameRunning = false;
     isPaused = false;
+    isGameOverState = true;
     pauseBtn?.classList.add('hidden');
     
     // Terminate drone chord
@@ -777,6 +798,9 @@ function triggerGameOver() {
     playSynthChime([146.83, 110.00, 73.42], 'sawtooth', 0.7, 0.45);
     
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    
+    // Hide mode selector
+    document.getElementById('modeSelector')?.classList.add('hidden');
     
     document.getElementById('overlay').classList.remove('hidden');
     document.getElementById('overlay').querySelector('h2').textContent = "Neural Overload";
