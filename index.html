@@ -125,8 +125,16 @@
                     <h3 class="game-title"><span>💧</span> Neon Pipes</h3>
                     <div class="card-video-container">
                         <video muted loop playsinline webkit-playsinline preload="none"
-                            poster="neon-pipes-frontend/thumbnail.jpg">
-                            <source src="neon-pipes-frontend/preview.mp4" type="video/mp4">
+                          poster="neon-pipes-frontend/thumbnail.jpg"
+                          style="
+                            object-fit: cover;
+                            object-position: center 40%;
+                            width: 100%;
+                            height: 100%;
+                            transform: scale(1.8);
+                            transform-origin: center 45%;
+                          ">
+                          <source src="neon-pipes-frontend/preview.mp4" type="video/mp4">
                         </video>
                     </div>
                     <span class="play-btn">Play Now</span>
