@@ -18,52 +18,6 @@
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
     <title>Neon Draw Bridge | Arcade Hub</title>
 
-    <!-- Ultimate Network Ad Blocker Shield -->
-    <script>
-    (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
-        
-        // 1. Intercept all global event bindings (how Popunders usually hijack)
-        const originalAdd = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            if ((this === window || this === document || this === document.body) && 
-                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
-                typeof listener === 'function') 
-            {
-                const wrappedListener = function(e) {
-                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return; // Shield activated! Block the ad from receiving this interaction.
-                    }
-                    return listener.apply(this, arguments);
-                };
-                return originalAdd.call(this, type, wrappedListener, options);
-            }
-            return originalAdd.call(this, type, listener, options);
-        };
-
-        // 2. Prevent dynamic overlay hijacking (invisible divs)
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mut => {
-                mut.addedNodes.forEach(node => {
-                    if (node.tagName === 'DIV' && node.style) {
-                        // Check if it's acting like a full-screen overlay clickjacker
-                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
-                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
-                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
-                            // Automatically push behind our UI
-                            node.style.zIndex = '1';
-                            node.style.pointerEvents = 'none'; // Click through to game!
-                        }
-                    }
-                });
-            });
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    })();
-    </script>
-
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -72,14 +26,7 @@
       gtag('config', 'G-B8XQ759LPH');
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Adsterra Global Popunder -->
-    
-
-    
-
-    <!-- Dark Mode Ad Formatting -->
+    <link rel="stylesheet" href="style.css"><!-- Dark Mode Ad Formatting -->
     <style>
         .ad-container { background-color: transparent !important; }
         .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
@@ -87,6 +34,110 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
      crossorigin="anonymous"></script>
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
 
@@ -201,5 +252,43 @@
     window.addEventListener('click', wakeUpAudio, { once: true });
     window.addEventListener('touchstart', wakeUpAudio, { once: true });
 </script>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Neon Draw Bridge</h2>
+        <p>Exercise your structural logic and physics problem-solving skills in Neon Draw Bridge. Draw solid glowing lines to build stable bridges, ramps, and pathways to guide retro vehicles safely across high-risk chasms. Balancing line limits, gravitational pull, and vehicle momentum, this puzzle game offers a delightful mental workout.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Left-click and drag your mouse cursor across the screen to draw bridge structures. Press the Start button to test your design.</p>
+                <p><strong>On Mobile:</strong> Tap and drag your finger across the touchscreen to draw path designs. Tap the Play icon to run the vehicle simulation.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Build strong foundations: Connect your lines to solid anchor points on either side of the cliff to prevent structural collapse.</li>
+            <li>Use curves instead of sharp angles: Vehicles can easily flip over if your bridge transitions into a steep, jagged wall.</li>
+            <li>Manage your ink limit: A glowing bar at the top represents your structural resource. Minimize unnecessary lines to score maximum points.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: Why does my vehicle keep flipping?</div>
+            <div class="faq-answer">A: Ensure your bridge has a smooth slope and isn't too steep. You can also build a 'roof' of lines to hold the vehicle down if needed.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Can I edit my bridge after drawing?</div>
+            <div class="faq-answer">A: Yes! You can clear your canvas and redraw your bridge design as many times as you like before running the simulation.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

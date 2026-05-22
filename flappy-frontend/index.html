@@ -18,52 +18,6 @@
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
     <title>Neon Flappy | Arcade Hub</title>
 
-    <!-- Ultimate Network Ad Blocker Shield -->
-    <script>
-    (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
-        
-        // 1. Intercept all global event bindings (how Popunders usually hijack)
-        const originalAdd = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            if ((this === window || this === document || this === document.body) && 
-                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
-                typeof listener === 'function') 
-            {
-                const wrappedListener = function(e) {
-                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return; // Shield activated! Block the ad from receiving this interaction.
-                    }
-                    return listener.apply(this, arguments);
-                };
-                return originalAdd.call(this, type, wrappedListener, options);
-            }
-            return originalAdd.call(this, type, listener, options);
-        };
-
-        // 2. Prevent dynamic overlay hijacking (invisible divs)
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mut => {
-                mut.addedNodes.forEach(node => {
-                    if (node.tagName === 'DIV' && node.style) {
-                        // Check if it's acting like a full-screen overlay clickjacker
-                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
-                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
-                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
-                            // Automatically push behind our UI
-                            node.style.zIndex = '1';
-                            node.style.pointerEvents = 'none'; // Click through to game!
-                        }
-                    }
-                });
-            });
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    })();
-    </script>
-
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -72,14 +26,7 @@
       gtag('config', 'G-B8XQ759LPH');
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Adsterra Global Popunder -->
-    
-
-    
-
-    <!-- Dark Mode Ad Formatting -->
+    <link rel="stylesheet" href="style.css"><!-- Dark Mode Ad Formatting -->
     <style>
         .ad-container { background-color: transparent !important; }
         .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
@@ -167,6 +114,110 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
      crossorigin="anonymous"></script>
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
     <header class="header">
@@ -220,21 +271,6 @@
         <p>Tap or press <b>SPACE</b> to flap. Dodge the neon pipes!</p>
     </div>
 
-    
-    <!-- Adsterra Mobile Banner (320x50) - OUTSIDE GAME AREA -->
-    <div class="ad-container mobile-banner" style="margin: 20px auto; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
-        <script>
-        atOptions = {
-            'key' : '68ced95a589a3c37a8f41a8fff267340',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-        };
-        </script>
-        <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
-    </div>
-
     <footer class="site-footer">
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy.html">Privacy Policy</a> | <a href="../contact.html">Contact Us</a> | <a href="../updates.html">News</a></p>
     </footer>
@@ -264,5 +300,43 @@
             <button class="htp-back" onclick="document.getElementById('htpOverlay').classList.remove('active')">← Got it!</button>
         </div>
     </div>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Neon Flappy</h2>
+        <p>Neon Flappy is a high-speed synthwave adaptation of the classic flappy arcade formula. Control a glowing cyber-bird and navigate through a series of pulsing, neon pipe obstacles. The game features interactive background elements, custom sound effects, and high-speed vertical velocity challenges that test your precision and reflexes with every single tap.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Press the Spacebar or Click the mouse to flap wings and gain altitude. Release to fall.</p>
+                <p><strong>On Mobile:</strong> Tap anywhere on the screen to flap wings and rise. Good timing is key to navigating the tight spaces.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Find your rhythm: Rhythmic, steady taps are far more effective than erratic panic-clicking.</li>
+            <li>Anticipate gravity: The cyber-bird falls quickly. Flap slightly before you enter a gap to ensure you don't clip the bottom pipe.</li>
+            <li>Use the center visual guide: Keep the bird centered in the screen as much as possible between obstacles.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: Can I play Neon Flappy on my mobile phone?</div>
+            <div class="faq-answer">A: Yes! Neon Flappy is designed with mobile-first layouts, supporting fully responsive fullscreen gameplay and touch inputs.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Does Neon Flappy save high scores?</div>
+            <div class="faq-answer">A: Yes, your high score is saved locally on your device so you can try to beat it on your next visit.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

@@ -19,6 +19,110 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div id="game-container">
@@ -102,5 +206,43 @@
 
     <script src="../shared/achievements.js"></script>
     <script src="script.js"></script>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Neon Invaders</h2>
+        <p>Defend the cyber-grid from descending waves of retro geometric alien invaders in Neon Invaders, a premium homage to the classic Space Invaders. Pilot your glowing defense cannon, fire plasma bolts, and utilize destructible neon barriers to shield yourself from incoming heavy energy blasts. Complete with particle explosions and a pounding synth track, this is classic space combat at its finest.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Use the Left and Right Arrow Keys to slide your cannon. Press Spacebar to shoot at the descending invaders.</p>
+                <p><strong>On Mobile:</strong> Tap the left and right directional arrows at the bottom of the screen to move, and tap the Blast button on the right to shoot.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Use the shields: Destructible neon walls block enemy fire. Duck behind them to reload or dodge heavy incoming alien barrages.</li>
+            <li>Pick off the edges: Focus on the leftmost and rightmost alien columns first. This slows down their descent speed across the screen.</li>
+            <li>Target the mother ship: Occasionally, a high-value red alien ship will fly across the very top. Hit it for massive bonus points.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: Do the invaders get faster?</div>
+            <div class="faq-answer">A: Yes! As the number of invaders decreases, the remaining space aliens move and descend at significantly faster speeds.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Is the game endless?</div>
+            <div class="faq-answer">A: The game features multiple waves. Cleared waves lead to faster, more aggressive alien fleets with enhanced firing rates.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

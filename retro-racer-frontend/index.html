@@ -18,46 +18,6 @@
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
     <title>Retro Racer | Arcade Hub</title>
 
-    <!-- Ultimate Network Ad Blocker Shield -->
-    <script>
-    (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container, .arcade-btn';
-        const originalAdd = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            if ((this === window || this === document || this === document.body) && 
-                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
-                typeof listener === 'function') 
-            {
-                const wrappedListener = function(e) {
-                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return;
-                    }
-                    return listener.apply(this, arguments);
-                };
-                return originalAdd.call(this, type, wrappedListener, options);
-            }
-            return originalAdd.call(this, type, listener, options);
-        };
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mut => {
-                mut.addedNodes.forEach(node => {
-                    if (node.tagName === 'DIV' && node.style) {
-                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
-                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
-                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
-                            node.style.zIndex = '1';
-                            node.style.pointerEvents = 'none';
-                        }
-                    }
-                });
-            });
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    })();
-    </script>
-
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -70,6 +30,110 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
      crossorigin="anonymous"></script>
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div class="game-root">
@@ -174,5 +238,43 @@
         window.addEventListener('click', wakeUpAudio, { once: true });
         window.addEventListener('touchstart', wakeUpAudio, { once: true });
     </script>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Retro Car Race</h2>
+        <p>Retro Car Race is an 8-bit stylized vertical driving game that captures the feel of classic arcade cabinet racers. Take the wheel of a high-speed racing machine, dodge traffic, navigate tight curves, and collect fuel cells to keep your engine running. Featuring retro sound effects and stylized pixel graphics, this is pure classic driving fun.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Use the Left and Right Arrow Keys (or A/D) to steer your car between lanes. Spacebar activates temporary speed boosts.</p>
+                <p><strong>On Mobile:</strong> Tap the left and right arrows on the virtual retro-pad at the bottom of the screen to steer your car through traffic.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Dodge large vehicles early: Large trucks and slow-moving buses change lanes without warning. Give them plenty of space.</li>
+            <li>Collect fuel tanks: Your fuel gauge steadily drops. Missing a red fuel cell on the highway will lead to an early engine shutdown.</li>
+            <li>Use speed boosts wisely: Boosting scores massive points but reduces your reaction window. Use it only on clear highway stretches.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: Is there a brake pedal in Retro Car Race?</div>
+            <div class="faq-answer">A: This is a high-speed arcade game! Your car naturally moves at high speed, but releasing controls slightly stabilizes steering around tight corners.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Does the traffic get faster?</div>
+            <div class="faq-answer">A: Yes, as you cover more distance, the speed of traffic and the density of cars on the road increase significantly.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

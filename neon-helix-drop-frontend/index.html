@@ -19,6 +19,110 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div id="game-container">
@@ -102,5 +206,43 @@
 
     <script src="../shared/achievements.js"></script>
     <script src="script.js"></script>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Neon Helix Drop</h2>
+        <p>Neon Helix Drop is a vibrant, hyper-casual helix jump game that tests your speed and precision. Rotate a massive spiral helix tower to guide a bouncing neon sphere through safe gaps in the platform layers. Chain consecutive drops to activate fireball mode, smashing directly through solid obstacles and racking up massive high-score multipliers.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Press the Left and Right Arrow Keys, or click and drag your mouse, to rotate the spiral tower in either direction.</p>
+                <p><strong>On Mobile:</strong> Swipe horizontally anywhere on your touch screen to smoothly rotate the helix tower.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Aim for consecutive drops: Passing through three or more gaps in a single fall unlocks Fireball Mode, letting you smash obstacles automatically.</li>
+            <li>Dodge red hazard zones: Hitting a hazard segment will instantly pop your ball. Rotate the tower quickly to steer clear of these zones.</li>
+            <li>Control your bounce: Use quick, brief rotations to stabilize the ball's bounce before committing to a massive drop.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: How do I activate the fireball combo in Neon Helix Drop?</div>
+            <div class="faq-answer">A: Drop through three or more platform gaps in a single, continuous fall without bouncing. The ball will turn into a blazing fireball and destroy the next platform it hits.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Is the speed progressive?</div>
+            <div class="faq-answer">A: Yes, as you descend deeper down the helix tower, the platforms rotate faster and contain more hazard zones.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

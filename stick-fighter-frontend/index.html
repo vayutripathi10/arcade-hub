@@ -13,13 +13,116 @@
     </script>
     <title>Neon Stick Fighter - Arcade Hub</title>
     
-    <!-- Adsterra Mobile Popunder Setup -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../hub-style.css">
     <link rel="stylesheet" href="style.css">
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
      crossorigin="anonymous"></script>
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div class="game-root">
@@ -142,5 +245,43 @@
         window.addEventListener('click', wakeUpAudio, { once: true });
         window.addEventListener('touchstart', wakeUpAudio, { once: true });
     </script>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Neon Stick Fighter</h2>
+        <p>Master retro-cyber martial arts in Neon Stick Fighter. Battle endless hordes of incoming stickman fighters in a side-scrolling neon city. Unleash punches, kicks, and devastating combos to clear the grid. With highly fluid action frames, glowing particle impacts, and challenging boss fights, Neon Stick Fighter is the ultimate arcade brawler.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Press the Left and Right Arrow Keys to move. Press Down Arrow to kick and punch. Combos execute automatically with rapid presses.</p>
+                <p><strong>On Mobile:</strong> Use the left virtual d-pad to move left or right. Tap the large Strike button on the right to attack.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Execute combos: Rapidly press the attack button to chain simple moves into heavy roundhouse kicks and high-damage punches.</li>
+            <li>Keep enemies in front of you: Getting surrounded is deadly. Push enemies away using your basic kick before turning to fight others.</li>
+            <li>Prepare for Bosses: Every 10 standard foes defeated will spawn a massive boss. Conserve your health and time your attacks to beat them.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: How do I trigger special attacks in Neon Stick Fighter?</div>
+            <div class="faq-answer">A: Chain 3 or more strikes in rapid succession to trigger the glowing roundhouse kick combo, which knocks down multiple enemies at once.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Is the game free to play?</div>
+            <div class="faq-answer">A: Yes, Neon Stick Fighter is fully free-to-play with zero downloads or registration needed.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

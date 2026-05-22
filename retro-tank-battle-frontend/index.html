@@ -18,6 +18,110 @@
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
      crossorigin="anonymous"></script>
+
+<style id="adsense-compliance-styles">
+    /* AdSense Compliance Layout Overrides */
+    body {
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    .game-root {
+        position: relative !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        height: auto !important;
+        overflow-y: visible !important;
+    }
+    .game-wrapper {
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+    }
+    @media (max-width: 600px) {
+        .game-wrapper {
+            height: calc(100vh - 56px) !important;
+            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
+        }
+    }
+    
+    /* Compliance Info Container Stylings */
+    .game-info-container {
+        background: #0d0f14;
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        padding: 40px 24px;
+        font-family: 'Outfit', sans-serif;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.7;
+        max-width: 800px;
+        margin: 0 auto;
+        z-index: 10;
+        position: relative;
+        user-select: text !important;
+        text-align: left;
+    }
+    .game-info-container h2 {
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 16px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .game-info-container h3 {
+        color: var(--accent-color, #00ffcc);
+        font-size: 1.3rem;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .game-info-container p {
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+    }
+    .game-info-container ul {
+        margin-bottom: 16px;
+        padding-left: 20px;
+    }
+    .game-info-container li {
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        list-style-type: disc;
+    }
+    .game-info-container .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .game-info-container .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .game-info-container .faq-item {
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        padding-bottom: 16px;
+    }
+    .game-info-container .faq-question {
+        color: #fff;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .game-info-container .faq-answer {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    @media (max-width: 768px) {
+        .game-info-container .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div class="game-root">
@@ -166,5 +270,43 @@
         document.getElementById('btn-restart').addEventListener('click', wakeUpAudio);
         document.getElementById('btn-restart').addEventListener('touchstart', wakeUpAudio);
     </script>
+
+    <!-- Google AdSense Compliance: High Value Rich Content Container -->
+    <section class="game-info-container">
+        <h2>About Retro Tank Battle</h2>
+        <p>Pilot a heavy tactical armor vehicle in Retro Tank Battle. Navigate grid-like battlegrounds, utilize brick walls for defensive cover, and blast enemy tank squads. Featuring multiple enemy tank classes, strategic wall-shattering physics, and retro-themed sound effects, Retro Tank Battle demands tactical planning and fast shooting.</p>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🕹️ Complete Game Controls Guide</h3>
+                <p><strong>On Desktop:</strong> Use WASD or Arrow Keys to drive your tank. Press Spacebar to shoot high-velocity shell rounds in your current direction.</p>
+                <p><strong>On Mobile:</strong> Use the left virtual d-pad to drive and aim. Tap the round Blast button on the right side of the screen to fire.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>💡 Pro Tips & Strategies for High Scores</h3>
+                <ul>
+            <li>Use walls for cover: Enemy tanks cannot shoot through solid concrete walls. Use them to dodge shells, then pop out to fire.</li>
+            <li>Bounce shell rounds: Your tank's shells can bounce off hard surfaces. Learn to shoot at walls to hit enemies hiding around corners.</li>
+            <li>Target fast scouts first: Fast scout tanks move quickly and can easily flank you. Pick them off before dealing with heavy slow tanks.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>❓ Frequently Asked Questions (FAQ)</h3>
+        <div class="faq-block">
+
+        <div class="faq-item">
+            <div class="faq-question">Q: Are there bosses in Retro Tank Battle?</div>
+            <div class="faq-answer">A: Yes! Every few waves, a massive Boss Tank with rapid-fire twin barrels and high health will enter the arena to challenge you.</div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">Q: Can I destroy walls?</div>
+            <div class="faq-answer">A: Standard brick walls can be shattered with tank shells, while dark concrete walls are completely indestructible and provide permanent cover.</div>
+        </div>
+                </div>
+    </section>
+    
 </body>
 </html>

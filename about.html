@@ -18,52 +18,6 @@
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
     <title>About Us | Arcade Hub</title>
 
-    <!-- Ultimate Network Ad Blocker Shield -->
-    <script>
-    (function() {
-        const protectSelectors = 'a, button, canvas, .game-card, .btn, .pause-btn, .share-btn, .home-btn, .nav-link, .cell, input, select, .score-container';
-        
-        // 1. Intercept all global event bindings (how Popunders usually hijack)
-        const originalAdd = EventTarget.prototype.addEventListener;
-        EventTarget.prototype.addEventListener = function(type, listener, options) {
-            if ((this === window || this === document || this === document.body) && 
-                ['click', 'mousedown', 'touchstart', 'mouseup', 'touchend'].includes(type) &&
-                typeof listener === 'function') 
-            {
-                const wrappedListener = function(e) {
-                    if (e.target && e.target.closest && e.target.closest(protectSelectors)) {
-                        return; // Shield activated! Block the ad from receiving this interaction.
-                    }
-                    return listener.apply(this, arguments);
-                };
-                return originalAdd.call(this, type, wrappedListener, options);
-            }
-            return originalAdd.call(this, type, listener, options);
-        };
-
-        // 2. Prevent dynamic overlay hijacking (invisible divs)
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mut => {
-                mut.addedNodes.forEach(node => {
-                    if (node.tagName === 'DIV' && node.style) {
-                        // Check if it's acting like a full-screen overlay clickjacker
-                        const isAbsolute = node.style.position === 'absolute' || node.style.position === 'fixed';
-                        const isMassive = parseInt(node.style.zIndex || 0) > 1000;
-                        if (isAbsolute && isMassive && !node.classList.contains('ad-container')) {
-                            // Automatically push behind our UI
-                            node.style.zIndex = '1';
-                            node.style.pointerEvents = 'none'; // Click through to game!
-                        }
-                    }
-                });
-            });
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    })();
-    </script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -103,14 +57,7 @@
             border-top: none;
             background: transparent;
         }
-    </style>
-
-    <!-- Adsterra Global Popunder -->
-    
-
-    
-
-    <!-- Dark Mode Ad Formatting -->
+    </style><!-- Dark Mode Ad Formatting -->
     <style>
         .ad-container { background-color: transparent !important; }
         .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
@@ -221,21 +168,6 @@
             </div>
         </section>
     </main>
-
-    
-    <!-- Adsterra Mobile Banner (320x50) - OUTSIDE GAME AREA -->
-    <div class="ad-container mobile-banner" style="margin: 20px auto; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
-        <script>
-        atOptions = {
-            'key' : '68ced95a589a3c37a8f41a8fff267340',
-            'format' : 'iframe',
-            'height' : 50,
-            'width' : 320,
-            'params' : {}
-        };
-        </script>
-        <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
-    </div>
 
     <footer class="site-footer">
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a> | <a href="updates.html">News</a></p>
