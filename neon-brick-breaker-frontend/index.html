@@ -26,17 +26,44 @@
         overflow-y: auto !important;
         height: auto !important;
     }
+    
+    /* Bulletproof parent-level hide for everything that is NOT the compliance overlay */
+    body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+        display: none !important;
+    }
+
+    /* Double protection explicit list of selectors */
     body.show-info-overlay .game-root,
     body.show-info-overlay #game-root,
+    body.show-info-overlay .game-wrapper,
     body.show-info-overlay #gameWrapper,
-    body.show-info-overlay canvas {
-        display: none !important;
-    }
+    body.show-info-overlay #game-wrapper,
+    body.show-info-overlay canvas,
+    body.show-info-overlay #gameCanvas,
+    body.show-info-overlay .header,
+    body.show-info-overlay header,
+    body.show-info-overlay .footer,
+    body.show-info-overlay footer,
     body.show-info-overlay #hud,
     body.show-info-overlay .hud-header,
-    body.show-info-overlay .header {
+    body.show-info-overlay .overlay,
+    body.show-info-overlay .go-overlay,
+    body.show-info-overlay .htp-overlay,
+    body.show-info-overlay .transition-overlay,
+    body.show-info-overlay #mainMenu,
+    body.show-info-overlay #screen-start,
+    body.show-info-overlay #screen-gameover,
+    body.show-info-overlay #screen-pause,
+    body.show-info-overlay #how-to-play,
+    body.show-info-overlay #howToPlayModal,
+    body.show-info-overlay #mainMenuContainer,
+    body.show-info-overlay .menu-overlay,
+    body.show-info-overlay .modal,
+    body.show-info-overlay .ad-container,
+    body.show-info-overlay #ad-box {
         display: none !important;
     }
+
     .game-info-overlay {
         display: none;
         background: #0a0b0d;
