@@ -447,6 +447,8 @@
         var gameId = 'neon-brick-breaker';
         localStorage.setItem('arcade_seen_' + gameId, '1');
         document.body.classList.remove('show-info-overlay');
+        // Trigger a window resize event to force canvas and layout recalculation now that display is visible
+        window.dispatchEvent(new Event('resize'));
         var overlay = document.getElementById('game-info-overlay');
         if (overlay) overlay.style.display = 'none';
         if (typeof initGame === 'function') { initGame(); }
