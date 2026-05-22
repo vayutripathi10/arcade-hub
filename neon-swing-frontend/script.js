@@ -428,13 +428,33 @@ class Game {
             const anchor = new Anchor(nextX, nextY);
             this.anchors.push(anchor);
 
-            // Coins between anchors
+            // FIX: Place coins along the actual swing arc between anchors
             const midX = (lastAnchor.x + nextX) / 2;
-            const midY = ((lastAnchor.y + nextY) / 2) + 60 + Math.random() * 40;
-            this.coins.push(new Coin(midX, midY));
+
+            // Calculate the natural swing arc midpoint height
+            // Player swings from lastAnchor down and up to nextAnchor
+            // Arc lowest point is roughly ropeLength below anchor average height
+            const anchorAvgY = (lastAnchor.y + nextY) / 2;
+            const swingArcY = anchorAvgY + (this.player.ropeLength * 0.6);
+
+            // Place main coin cluster AT the swing arc — where player naturally passes
+            this.coins.push(new Coin(midX - 20, swingArcY));
+            this.coins.push(new Coin(midX, swingArcY - 15));
+            this.coins.push(new Coin(midX + 20, swingArcY));
+
+            // Place bonus coins slightly above arc — reward for good timing
             if (Math.random() > 0.4) {
-                this.coins.push(new Coin(midX - 30, midY - 15));
-                this.coins.push(new Coin(midX + 30, midY - 15));
+                this.coins.push(new Coin(midX - 40, swingArcY - 35));
+                this.coins.push(new Coin(midX + 40, swingArcY - 35));
+            }
+
+            // Place a few coins on the flight path between anchors
+            // These are collectible when player releases rope and flies
+            const flightY = (lastAnchor.y + nextY) / 2 - 20;
+            if (Math.random() > 0.5) {
+                this.coins.push(new Coin(midX, flightY));
+                this.coins.push(new Coin(midX - 30, flightY + 20));
+                this.coins.push(new Coin(midX + 30, flightY + 20));
             }
 
             // Obstacles only after 30 seconds
@@ -742,7 +762,8 @@ class Game {
             if (!c.collected) {
                 const dx = c.x - this.player.x;
                 const dy = c.y - this.player.y;
-                if (Math.sqrt(dx * dx + dy * dy) < (c.radius + this.player.radius)) {
+                // FIX: Increased collection radius — more forgiving and satisfying
+                if (Math.sqrt(dx * dx + dy * dy) < (c.radius + this.player.radius + 15)) {
                     c.collected = true;
                     this.coinScore += 10;
                     synth.playCoinSFX();
