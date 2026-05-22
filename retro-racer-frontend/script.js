@@ -272,6 +272,19 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 
+// Monitor wrapper size changes (e.g. when ads load, screen rotates, overlay toggles) to dynamically adjust canvas aspect ratio
+try {
+    const resizeObserver = new ResizeObserver(() => {
+        resize();
+    });
+    const wrapperElement = document.getElementById('gameWrapper');
+    if (wrapperElement) {
+        resizeObserver.observe(wrapperElement);
+    }
+} catch (e) {
+    console.warn("ResizeObserver not supported:", e);
+}
+
 function initUI() {
     // Hub Button
     document.getElementById('hub-btn')?.addEventListener('click', () => {
@@ -361,7 +374,7 @@ function initGame() {
     currentStage = 1; stageDistanceTarget = 2800; finishLineY = -1; finishedStage = false;
     
     player.x = canvas.width / 2;
-    player.y = canvas.height - 120;
+    player.y = canvas.height - 150;
     
     updateHUD();
     mainMenu.classList.add('hidden');
