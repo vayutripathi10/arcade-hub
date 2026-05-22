@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Play Neon Zen Snake - a breathtaking cyberpunk snake game with sub-grid 120 FPS movements, Zen Mode (no death wrapping), Arcade Mode (power-ups and obstacles), and custom Web Audio synth effects.">
+    <meta name="keywords" content="neon zen snake, cyberpunk snake, snake game, free online browser games, arcade hub, sub-grid lerp, retro modernization">
+    <link rel="canonical" href="https://arcadehubplay.com/neon-snake-frontend/index.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Neon Zen Snake | Arcade Hub">
+    <meta property="og:description" content="Play Neon Zen Snake - a breathtaking cyberpunk snake game with sub-grid 120 FPS movements, Zen Mode (no death wrapping), Arcade Mode (power-ups and obstacles), and custom Web Audio synth effects.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-snake-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Neon Zen Snake | Arcade Hub">
+    <meta name="twitter:description" content="Play Neon Zen Snake - a breathtaking cyberpunk snake game with sub-grid 120 FPS movements, Zen Mode (no death wrapping), Arcade Mode (power-ups and obstacles), and custom Web Audio synth effects.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <title>Neon Zen Snake | Arcade Hub</title>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+    
+    <!-- Outfit Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771"
+     crossorigin="anonymous"></script>
+
+    <style id="adsense-compliance-styles">
+        /* === PRE-GAME OVERLAY SYSTEM === */
+        body.show-info-overlay {
+            overflow: hidden !important;
+            height: 100dvh !important;
+        }
+        
+        /* Bulletproof parent-level hide for everything that is NOT the compliance overlay */
+        body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+            display: none !important;
+        }
+
+        /* Double protection explicit list of selectors */
+        body.show-info-overlay .game-root,
+        body.show-info-overlay #game-root,
+        body.show-info-overlay .game-wrapper,
+        body.show-info-overlay #gameWrapper,
+        body.show-info-overlay #game-wrapper,
+        body.show-info-overlay canvas,
+        body.show-info-overlay #gameCanvas,
+        body.show-info-overlay .header,
+        body.show-info-overlay header,
+        body.show-info-overlay .footer,
+        body.show-info-overlay footer,
+        body.show-info-overlay #hud,
+        body.show-info-overlay .hud-header,
+        body.show-info-overlay .overlay,
+        body.show-info-overlay .go-overlay,
+        body.show-info-overlay .htp-overlay,
+        body.show-info-overlay .transition-overlay,
+        body.show-info-overlay #mainMenu,
+        body.show-info-overlay #screen-start,
+        body.show-info-overlay #screen-gameover,
+        body.show-info-overlay #screen-pause,
+        body.show-info-overlay #how-to-play,
+        body.show-info-overlay #howToPlayModal,
+        body.show-info-overlay #mainMenuContainer,
+        body.show-info-overlay .menu-overlay,
+        body.show-info-overlay .modal,
+        body.show-info-overlay .ad-container,
+        body.show-info-overlay #ad-box {
+            display: none !important;
+        }
+
+        .game-info-overlay {
+            display: none;
+            background: #06070a;
+            width: 100%;
+            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            padding: 40px 24px;
+            box-sizing: border-box;
+        }
+        body.show-info-overlay .game-info-overlay {
+            display: block !important;
+        }
+        .game-info-container { max-width: 780px; margin: 0 auto; }
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 0, 234, 0.15);
+        }
+        .brand-header .brand-title {
+            color: #ff00ea;
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(255,0,234,0.4);
+            margin: 0 0 6px 0;
+        }
+        .brand-header .brand-sub {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .continue-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            position: sticky;
+            top: 16px;
+            z-index: 1000000;
+        }
+        .continue-game-btn {
+            background: linear-gradient(90deg, #ff00ea, #00f3ff);
+            color: #fff;
+            border: none;
+            padding: 16px 52px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 28px rgba(255,0,234,0.55);
+            transition: all 0.25s ease;
+            letter-spacing: 1.5px;
+        }
+        .continue-game-btn:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 40px rgba(255,255,255,0.8);
+            transform: scale(1.04);
+        }
+        .continue-game-btn:active { transform: scale(0.97); }
+        .game-info-container h2 {
+            color: #fff;
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 14px;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+        .game-info-container h3 {
+            color: #00f3ff;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+        .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+        .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .faq-item {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+        .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+        .page-footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+        }
+        .page-footer-note a { color: #00f3ff; text-decoration: none; }
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .continue-game-btn { width: 100%; padding: 15px 24px; }
+            .game-info-container h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="show-info-overlay">
+
+    <!-- PRE-GAME INFO OVERLAY (AdSense Compliance) -->
+    <div class="game-info-overlay" id="game-info-overlay">
+        <div class="game-info-container">
+            <div class="brand-header">
+                <p class="brand-title">🕹️ Arcade Hub</p>
+                <p class="brand-sub">Free Browser Games — No Download Required</p>
+            </div>
+
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
+            </div>
+
+            <h2>Neon Zen Snake</h2>
+            <p>Welcome to <strong>Neon Zen Snake</strong>, a stunning, next-generation neon modernization of the traditional snake arcade game. Implemented in high-performance Javascript with a silky smooth sub-grid linear interpolation engine running at up to 120 frames per second, Neon Zen Snake presents dual modes that cater to both cozy relaxation and high-octane gaming. Journey through a shifting grid backdrop, eat colorful power orbs, unlock dynamic synth chords, and survive using active power-ups.</p>
+
+            <h3>🎮 Game Mechanics & Features</h3>
+            <p>Control a glowing, gradient cyber-serpent and navigate around a dynamic cyberpunk grid arena. Steer with instant key mapping or touch triggers to consume glowing orbs while gaining powerful boosts.</p>
+            <ul>
+                <li><strong>Zen Mode:</strong> Wrap safely across screen boundaries. Hitting your own body won't trigger a game over; instead, it cleanly slices off your tail back to that length with a delightful synth drop chime! Play with zero pressure.</li>
+                <li><strong>Arcade Mode:</strong> Survival is key. Boundaries are deadly, self-collisions end the run, speed accelerates rapidly, obstacles block your path, and power-up canisters emerge on the board.</li>
+                <li><strong>Sub-Grid Lerping:</strong> Moving items are rendered with sub-pixel interpolation, generating an extremely fluid animation flow rather than retro grid-jumping blocks.</li>
+            </ul>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚡ Cyberspace Power-Ups</h3>
+                    <ul>
+                        <li>⏱️ <strong>Chrono-Slow (Blue):</strong> Freezes clock cycles, slowing the snake down by 40% for 6 seconds to enable meticulous evasion.</li>
+                        <li>🛡️ <strong>Zen Shield (Magenta):</strong> Generates an orbital particle shield around the head to withstand one obstacle collision safely.</li>
+                        <li>🧲 <strong>Pulse Magnet (Yellow):</strong> Creates a magnetic field that automatically draws food orbs from up to 3 tiles away.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>🏆 Cyberpunk Pro Tips</h3>
+                    <ul>
+                        <li>In <strong>Zen Mode</strong>, deliberately run over your tail if you get too long to easily resize your snake without dying.</li>
+                        <li>In <strong>Arcade Mode</strong>, preserve Chrono-Slow canisters for high speeds. Never grab a slow power-up if a dangerous obstacle lies directly ahead.</li>
+                        <li>Plan paths 4 to 5 ticks in advance; wrapping borders in Zen Mode is a valuable escape route to avoid center traps.</li>
+                        <li>Activate sound to utilize auditory alerts for incoming power-up expirations and combo streak peaks.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="faq-item">
+                <p class="faq-question">What is the difference between Zen and Arcade modes?</p>
+                <p class="faq-answer">Zen Mode is boundary-free and self-collision only chops your snake body shorter, letting you play indefinitely. Arcade Mode features deadly walls, deadly self-collision, spawning static obstacles, and accelerating speeds for a supreme high score challenge.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">How does the sub-grid movement system work?</p>
+                <p class="faq-answer">Unlike typical retro snake games that skip rigidly block-by-block, Neon Zen Snake tracks fractional movement frames between grid ticks and uses linear interpolation to render the snake sliding smoothly at up to 120 FPS.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Is the game sound synthesized dynamically?</p>
+                <p class="faq-answer">Yes! Built with the browser Web Audio API, Neon Zen Snake generates all its sound effects and melodic chord harmonies programmatically, creating dynamic audio chords based on your game state without downloading large audio files.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Is Neon Zen Snake completely free to play?</p>
+                <p class="faq-answer">Yes, it is 100% free! You can play instantly on both mobile and desktop with no signup, registration, or downloads required, courtesy of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a>.</p>
+            </div>
+
+            <div class="page-footer-note">
+                Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> — Free Browser Arcade Games
+            </div>
+        </div>
+    </div>
+    <!-- END PRE-GAME INFO OVERLAY -->
+
+    <div class="game-root">
+        <header class="header">
+            <div class="nav-left">
+                <button class="home-btn" id="hub-btn">← Arcade Hub</button>
+            </div>
+            <div class="header-center">
+                <div class="score-pills">
+                    <div class="score-pill">
+                        <span class="pill-label">Score</span>
+                        <span id="score" class="pill-value">0</span>
+                    </div>
+                    <div class="score-pill" id="multiplier-container" style="display: none;">
+                        <span class="pill-label">Combo</span>
+                        <span id="multiplier" class="pill-value">1.0x</span>
+                    </div>
+                    <div class="score-pill">
+                        <span class="pill-label">High Score</span>
+                        <span id="highScore" class="pill-value">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+                <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">⏸</button>
+            </div>
+        </header>
+
+        <!-- Active Power-Ups Panel -->
+        <div id="active-powerups-hud" class="powerups-hud-container">
+            <!-- Dynamic powerup indicators will appear here -->
+        </div>
+
+        <div class="game-wrapper">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            
+            <!-- START / MAIN MENU OVERLAY -->
+            <div id="overlay" class="overlay">
+                <div class="overlay-content select-mode-card">
+                    <h2>Neon Zen Snake</h2>
+                    <p class="subtitle">Experience classic snake modernized in 120 FPS cyberpunk skin</p>
+                    
+                    <div class="mode-selector">
+                        <button class="mode-card-btn active" id="choose-zen">
+                            <span class="mode-icon">🌌</span>
+                            <div class="mode-info">
+                                <span class="mode-title">Zen Mode</span>
+                                <span class="mode-desc">No death, wrap walls, self-body cuts tail. Cozy play.</span>
+                            </div>
+                        </button>
+                        <button class="mode-card-btn" id="choose-arcade">
+                            <span class="mode-icon">⚡</span>
+                            <div class="mode-info">
+                                <span class="mode-title">Arcade Mode</span>
+                                <span class="mode-desc">Deadly walls, obstacles, speed combos, power-ups!</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="share-container hidden" id="shareContainer">
+                        <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
+                        <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="startBtn" class="btn primary">Start Neural Link</button>
+                        <button id="htp-btn" class="btn secondary">Neural Operations</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAUSE MENU -->
+            <div id="pauseMenu" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2>Neural Paused</h2>
+                    <div class="action-buttons">
+                        <button id="btn-resume" class="btn primary">Resume Link</button>
+                        <button id="btn-quit" class="btn secondary">Disconnect</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Touch D-Pad -->
+            <div class="mobile-controls">
+                <div class="control-row">
+                    <button class="control-btn" id="upBtn">▲</button>
+                </div>
+                <div class="control-row">
+                    <button class="control-btn" id="leftBtn">◀</button>
+                    <button class="control-btn" id="downBtn">▼</button>
+                    <button class="control-btn" id="rightBtn">▶</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ad Container -->
+        <div class="ad-container" id="ad-box">
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:320px;height:50px"
+                 data-ad-client="ca-pub-68ced95a589a3c37a8f41a8fff267340">
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </ins>
+        </div>
+    </div>
+
+    <!-- HOW TO PLAY OVERLAY -->
+    <div class="htp-overlay" id="htpOverlay">
+        <div class="htp-card">
+            <div class="htp-title">🌌 Neon Neural Guide</div>
+            <div class="htp-row"><span class="htp-row-icon">🕹️</span><span><b>Steering:</b> Use <b>WASD</b> or <b>Arrows</b> on desktop. Touch <b>D-Pad</b> on mobile devices.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🌌</span><span><b>Zen Mode:</b> Play with boundary wrapping and body-cuts. Self-collision simply shortens your length. Soothing, continuous audio chord pads.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">⚡</span><span><b>Arcade Mode:</b> Deadly boundaries and self-collision. Evade dynamic glowing brick obstacles. Obtain combo multipliers by eating quickly.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🔋</span><span><b>Power-Ups (Arcade):</b> Collect canisters: <b>⏱️ Chrono-Slow</b> (blue) slows time, <b>🛡️ Shield</b> (magenta) grants 1 crash immunity, and <b>🧲 Magnet</b> (yellow) draws food.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🏆</span><span><b>Score Combos:</b> Eat orbs rapidly in Arcade Mode to increase your score multiplier and trigger neon sound frequencies.</span></div>
+            <button class="htp-back" id="htp-close">← Connect to Arena</button>
+        </div>
+    </div>
+
+    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js?v=1.0.0"></script>
+    
+    <script>
+        const wakeUpAudio = () => {
+            if (window.audioFX && typeof window.audioFX.init === 'function') {
+                window.audioFX.init();
+            }
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
+    
+    <script>
+    (function() {
+        var gameId = 'neon-snake';
+        if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+            continueToGame(true);
+        }
+    })();
+    function continueToGame(isReturning) {
+        var gameId = 'neon-snake';
+        localStorage.setItem('arcade_seen_' + gameId, '1');
+        document.body.classList.remove('show-info-overlay');
+        window.dispatchEvent(new Event('resize'));
+        var overlay = document.getElementById('game-info-overlay');
+        if (overlay) overlay.style.display = 'none';
+        if (typeof initGame === 'function') { initGame(); }
+    }
+    </script>
+</body>
+</html>
