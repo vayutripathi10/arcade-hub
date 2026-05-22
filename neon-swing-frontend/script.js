@@ -420,7 +420,8 @@ class Game {
             const maxSpacing = Math.min(200, 140 + (this.timeElapsed * 0.8));
             const spacing = minSpacing + Math.random() * (maxSpacing - minSpacing);
 
-            const nextX = lastAnchor.x + spacing;
+            const lastX = lastAnchor ? lastAnchor.x : this.player.x;
+            const nextX = lastX + spacing;
             const minHeight = 120;
             const maxHeight = 260;
             const nextY = minHeight + Math.random() * (maxHeight - minHeight);
@@ -429,13 +430,18 @@ class Game {
             this.anchors.push(anchor);
 
             // FIX: Place coins along the actual swing arc between anchors
-            const midX = (lastAnchor.x + nextX) / 2;
+            const lastXForCoins = lastAnchor ? lastAnchor.x : (this.player.x - spacing);
+            const midX = (lastXForCoins + nextX) / 2;
 
             // Calculate the natural swing arc midpoint height
             // Player swings from lastAnchor down and up to nextAnchor
             // Arc lowest point is roughly ropeLength below anchor average height
-            const anchorAvgY = (lastAnchor.y + nextY) / 2;
+            const lastY = lastAnchor ? lastAnchor.y : 180;
+            const anchorAvgY = (lastY + nextY) / 2;
             const swingArcY = anchorAvgY + (this.player.ropeLength * 0.6);
+
+            // Define midY to fix ReferenceError crash when spawning obstacles
+            const midY = anchorAvgY;
 
             // Place main coin cluster AT the swing arc — where player naturally passes
             this.coins.push(new Coin(midX - 20, swingArcY));
@@ -450,7 +456,8 @@ class Game {
 
             // Place a few coins on the flight path between anchors
             // These are collectible when player releases rope and flies
-            const flightY = (lastAnchor.y + nextY) / 2 - 20;
+            const lastYForFlight = lastAnchor ? lastAnchor.y : 180;
+            const flightY = (lastYForFlight + nextY) / 2 - 20;
             if (Math.random() > 0.5) {
                 this.coins.push(new Coin(midX, flightY));
                 this.coins.push(new Coin(midX - 30, flightY + 20));
@@ -548,9 +555,15 @@ class Game {
             // Ensure minimum launch speed so player actually flies toward next anchor
             const speed = Math.sqrt(this.player.vx * this.player.vx + this.player.vy * this.player.vy);
             if (speed < 150) {
-                const scale = 150 / Math.max(speed, 1);
-                this.player.vx *= scale;
-                this.player.vy *= scale;
+                if (speed < 1) {
+                    // Default forward-upward boost if they were completely stationary
+                    this.player.vx = 180;
+                    this.player.vy = -120;
+                } else {
+                    const scale = 150 / speed;
+                    this.player.vx *= scale;
+                    this.player.vy *= scale;
+                }
             }
 
             this.lastDetachedAnchor = this.player.activeAnchor;
@@ -703,6 +716,12 @@ class Game {
             const angleAccel = (-this.gravity / this.player.ropeLength) * Math.sin(this.player.angle);
             this.player.angularVel += angleAccel * dt;
             this.player.angularVel *= 0.9995; // very subtle air drag
+
+            // Boost angular velocity if the swing decays too much near the bottom to prevent getting stuck
+            if (Math.abs(this.player.angle) < 0.2 && Math.abs(this.player.angularVel) < 1.0) {
+                this.player.angularVel = this.player.angularVel >= 0 ? 1.0 : -1.0;
+            }
+
             this.player.angle += this.player.angularVel * dt;
 
             this.player.x = this.player.activeAnchor.x + Math.sin(this.player.angle) * this.player.ropeLength;
