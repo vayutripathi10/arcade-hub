@@ -177,6 +177,7 @@ const images = {
     petrol: new Image()
 };
 const finalImages = {};
+let assetsLoaded = false;
 
 function startWhenReady() {
     const assetList = [images.player, images.enemy, images.petrol];
@@ -186,12 +187,19 @@ function startWhenReady() {
     const onAssetLoad = () => {
         loadedCount++;
         if (loadedCount === total) {
+            assetsLoaded = true;
             finalImages.player = makeTransparent(images.player);
             finalImages.enemy = makeTransparent(images.enemy);
             finalImages.petrol = makeTransparent(images.petrol);
             initUI();
-            gameState = 'menu';
-            resize();
+            
+            const wasPending = (gameState === 'playing_pending');
+            if (wasPending) {
+                initGame();
+            } else {
+                gameState = 'menu';
+                resize();
+            }
             animFrame = requestAnimationFrame(loop);
         }
     };
@@ -206,20 +214,26 @@ function startWhenReady() {
 }
 
 function makeTransparent(img) {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = img.width;
-    tempCanvas.height = img.height;
-    const tCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
-    tCtx.drawImage(img, 0, 0);
+    if (!img || img.width === 0 || img.height === 0) {
+        return img;
+    }
     try {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = img.width;
+        tempCanvas.height = img.height;
+        const tCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+        tCtx.drawImage(img, 0, 0);
         const imgData = tCtx.getImageData(0, 0, img.width, img.height);
         const data = imgData.data;
         for (let i = 0; i < data.length; i += 4) {
             if (data[i] < 50 && data[i+1] > 200 && data[i+2] < 50) data[i+3] = 0;
         }
         tCtx.putImageData(imgData, 0, 0);
-    } catch(e) { } 
-    return tempCanvas;
+        return tempCanvas;
+    } catch(e) {
+        console.warn("makeTransparent failed:", e);
+        return img;
+    }
 }
 
 // Screen bounds
@@ -334,6 +348,14 @@ canvas.addEventListener('touchmove', e => {
 canvas.addEventListener('touchend', () => { touchX = null; });
 
 function initGame() {
+    if (!assetsLoaded) {
+        gameState = 'playing_pending';
+        mainMenu.classList.add('hidden');
+        gameOverMenu.classList.add('hidden');
+        pauseMenu.classList.add('hidden');
+        document.getElementById('btn-pause').classList.remove('hidden');
+        return;
+    }
     score = 0; lives = 3; timer = 30; timeAccumulator = 0; speed = 60; runDistance = 0;
     obstacles = []; particles = []; floatingTexts = []; roadOffset = 0;
     currentStage = 1; stageDistanceTarget = 2800; finishLineY = -1; finishedStage = false;
