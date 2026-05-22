@@ -118,8 +118,8 @@
 <style id="adsense-compliance-styles">
     /* === PRE-GAME OVERLAY SYSTEM === */
     body.show-info-overlay {
-        overflow-y: auto !important;
-        height: auto !important;
+        overflow: hidden !important;
+        height: 100dvh !important;
     }
     
     /* Bulletproof parent-level hide for everything that is NOT the compliance overlay */
@@ -163,14 +163,18 @@
         display: none;
         background: #0a0b0d;
         width: 100%;
-        min-height: 100dvh;
+        height: 100dvh;
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        touch-action: pan-y !important;
         font-family: 'Outfit', sans-serif;
         color: rgba(255,255,255,0.75);
         line-height: 1.7;
         padding: 40px 24px;
         box-sizing: border-box;
-        position: relative;
-        z-index: 999999;
     }
     body.show-info-overlay .game-info-overlay {
         display: block !important;
