@@ -41,110 +41,216 @@
      crossorigin="anonymous"></script>
 
 <style id="adsense-compliance-styles">
-    /* AdSense Compliance Layout Overrides */
-    body {
+    /* === PRE-GAME OVERLAY SYSTEM === */
+    body.show-info-overlay {
         overflow-y: auto !important;
         height: auto !important;
     }
-    .game-root {
-        position: relative !important;
-        min-height: 100vh;
+    body.show-info-overlay .game-root,
+    body.show-info-overlay #game-root,
+    body.show-info-overlay #gameWrapper,
+    body.show-info-overlay canvas {
+        display: none !important;
+    }
+    body.show-info-overlay #hud,
+    body.show-info-overlay .hud-header,
+    body.show-info-overlay .header {
+        display: none !important;
+    }
+    .game-info-overlay {
+        display: none;
+        background: #0a0b0d;
+        width: 100%;
         min-height: 100dvh;
-        height: auto !important;
-        overflow-y: visible !important;
-    }
-    .game-wrapper {
-        height: calc(100vh - 64px) !important;
-        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
-        flex-shrink: 0 !important;
-        flex-grow: 0 !important;
-    }
-    @media (max-width: 600px) {
-        .game-wrapper {
-            height: calc(100vh - 56px) !important;
-            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
-        }
-    }
-    
-    /* Compliance Info Container Stylings */
-    .game-info-container {
-        background: #0d0f14;
-        border-top: 2px solid rgba(255, 255, 255, 0.05);
-        padding: 40px 24px;
         font-family: 'Outfit', sans-serif;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255,255,255,0.75);
         line-height: 1.7;
-        max-width: 800px;
-        margin: 0 auto;
-        z-index: 10;
+        padding: 40px 24px;
+        box-sizing: border-box;
         position: relative;
-        user-select: text !important;
-        text-align: left;
+        z-index: 999999;
     }
+    body.show-info-overlay .game-info-overlay {
+        display: block !important;
+    }
+    .game-info-container { max-width: 780px; margin: 0 auto; }
+    .brand-header {
+        text-align: center;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0,255,204,0.15);
+    }
+    .brand-header .brand-title {
+        color: #00ffcc;
+        font-size: 1.3rem;
+        font-weight: 900;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        text-shadow: 0 0 12px rgba(0,255,204,0.4);
+        margin: 0 0 6px 0;
+    }
+    .brand-header .brand-sub {
+        color: rgba(255,255,255,0.35);
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .continue-btn-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 36px;
+        position: sticky;
+        top: 16px;
+        z-index: 1000000;
+    }
+    .continue-game-btn {
+        background: #00ffcc;
+        color: #000;
+        border: none;
+        padding: 16px 52px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-radius: 14px;
+        cursor: pointer;
+        box-shadow: 0 0 28px rgba(0,255,204,0.55);
+        transition: all 0.25s ease;
+        letter-spacing: 1.5px;
+    }
+    .continue-game-btn:hover {
+        background: #fff;
+        box-shadow: 0 0 40px rgba(255,255,255,0.65);
+        transform: scale(1.04);
+    }
+    .continue-game-btn:active { transform: scale(0.97); }
     .game-info-container h2 {
         color: #fff;
-        font-size: 2rem;
-        margin-bottom: 16px;
+        font-size: 1.9rem;
         font-weight: 700;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        text-align: center;
+        margin-bottom: 14px;
     }
     .game-info-container h3 {
-        color: var(--accent-color, #00ffcc);
-        font-size: 1.3rem;
-        margin-top: 24px;
-        margin-bottom: 12px;
+        color: #00ffcc;
+        font-size: 1.15rem;
         font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 10px;
     }
-    .game-info-container p {
-        margin-bottom: 16px;
-        font-size: 0.95rem;
-    }
-    .game-info-container ul {
-        margin-bottom: 16px;
-        padding-left: 20px;
-    }
-    .game-info-container li {
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-        list-style-type: disc;
-    }
-    .game-info-container .info-grid {
+    .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+    .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+    .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+    .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        margin-top: 24px;
+        gap: 20px;
+        margin: 24px 0;
     }
-    .game-info-container .info-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
-        padding: 24px;
+    .info-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 20px;
     }
-    .game-info-container .faq-item {
-        margin-bottom: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    .faq-item {
+        margin-bottom: 18px;
         padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
     }
-    .game-info-container .faq-question {
-        color: #fff;
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 1rem;
+    .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+    .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+    .page-footer-note {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.25);
     }
-    .game-info-container .faq-answer {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.9rem;
-        margin-bottom: 0;
-    }
+    .page-footer-note a { color: #00ffcc; text-decoration: none; }
     @media (max-width: 768px) {
-        .game-info-container .info-grid {
-            grid-template-columns: 1fr;
-        }
+        .info-grid { grid-template-columns: 1fr; }
+        .continue-game-btn { width: 100%; padding: 15px 24px; }
+        .game-info-container h2 { font-size: 1.5rem; }
     }
 </style>
 
 </head>
-<body>
+<body class="show-info-overlay">
+
+<!-- PRE-GAME INFO OVERLAY -->
+<div class="game-info-overlay" id="game-info-overlay">
+    <div class="game-info-container">
+
+        <div class="brand-header">
+            <p class="brand-title">&#x1F579;&#xFE0F; Arcade Hub</p>
+            <p class="brand-sub">Free Browser Games &mdash; No Download Required</p>
+        </div>
+
+        <div class="continue-btn-wrapper">
+            <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW &#x2794;</button>
+        </div>
+
+        <h2>Neon Swing</h2>
+        <p>Neon Swing is an elegant physics-based swinging game where you play as a glowing orb flying through a neon skyline. Click to anchor a rope to the nearest grapple point, then release at the perfect moment to fly forward and grab the next anchor. Miss your timing and you plummet. Chain perfect swings together for speed bonuses, collect mid-air coins, and cover as much distance as possible in this graceful acrobatic challenge.</p>
+
+        <h3>&#x1F3AE; How to Play</h3>
+        <p>Click or tap to shoot a rope to the nearest anchor point above you. Hold to swing, then release to fly forward. Time your release at the peak of your swing arc for maximum distance.</p>
+        <ul>
+            <li><strong>Desktop:</strong> Click and hold to latch rope; release to let go and fly</li>
+            <li><strong>Mobile:</strong> Touch and hold to latch; release to fly</li>
+            <li><strong>Coins:</strong> Fly through glowing coins mid-swing for score bonuses</li>
+            <li><strong>Goal:</strong> Swing as far as possible without falling below the screen</li>
+        </ul>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>&#x26A1; Game Features</h3>
+                <ul>
+                    <li>Realistic rope-swing physics engine</li>
+                    <li>Procedurally placed grapple points for infinite variety</li>
+                    <li>Speed combo multiplier for chained perfect swings</li>
+                    <li>Neon particle trail follows your flight path</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>&#x1F3C6; Pro Tips</h3>
+                <ul>
+                    <li>Release at the peak of your forward arc for maximum horizontal distance</li>
+                    <li>Aim for high anchor points &mdash; longer ropes build more swing momentum</li>
+                    <li>Don't panic-click; wait for the right anchor before latching</li>
+                    <li>Chain 5+ perfect swings to activate the speed multiplier bonus</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>&#x2753; Frequently Asked Questions</h3>
+        <div class="faq-item">
+            <p class="faq-question">Is Neon Swing free to play?</p>
+            <p class="faq-answer">Yes, completely free in your browser. No download or signup required.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Does Neon Swing work on mobile?</p>
+            <p class="faq-answer">Yes! Touch and hold to grapple, release to fly. Works perfectly on phones and tablets.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Is there an end to the game?</p>
+            <p class="faq-answer">No &mdash; Neon Swing is an endless distance game. The goal is to beat your personal record.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Where can I find more free games?</p>
+            <p class="faq-answer">Visit <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> for 18+ free browser games.</p>
+        </div>
+
+        <div class="page-footer-note">
+            Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> &mdash; Free Browser Arcade Games
+        </div>
+
+    </div>
+</div>
+<!-- END PRE-GAME INFO OVERLAY -->
+
     <!-- Full-screen Canvas -->
     <canvas id="game-canvas"></canvas>
 
@@ -344,43 +450,23 @@
             });
         });
     </script>
-
-    <!-- Google AdSense Compliance: High Value Rich Content Container -->
-    <section class="game-info-container">
-        <h2>About Neon Swing</h2>
-        <p>Neon Swing is a physics-based rope swinging game that captures the thrill of high-flying motion. Attach your glowing laser line to anchor points in a deep cyber-space grid, build momentum, and swing from anchor to anchor while collecting energy rings. The game demands precise timing and physics calculations to maintain a smooth swinging flow.</p>
-        
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>🕹️ Complete Game Controls Guide</h3>
-                <p><strong>On Desktop:</strong> Left-click and hold your mouse button to connect a line to the nearest glowing anchor. Release the button to fly.</p>
-                <p><strong>On Mobile:</strong> Tap and hold anywhere on the touch screen to anchor a rope. Release your touch to let go and launch yourself forward.</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>💡 Pro Tips & Strategies for High Scores</h3>
-                <ul>
-            <li>Build momentum: The best time to release your rope is at the lowest point of your swing arc, which launches you with maximum speed.</li>
-            <li>Plan your next hook: Look ahead to see where the next glowing anchor is. Don't wait until you're falling to tap the screen.</li>
-            <li>Adjust rope length: Hold the button to shorten your laser line, letting you swing faster and clear high-up obstacles.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <h3>❓ Frequently Asked Questions (FAQ)</h3>
-        <div class="faq-block">
-
-        <div class="faq-item">
-            <div class="faq-question">Q: How do I gain speed in Neon Swing?</div>
-            <div class="faq-answer">A: Release your hook at the lowest point of your arc. This transfers all gravitational energy into horizontal kinetic velocity, propelling you forward.</div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">Q: What do the floating rings do?</div>
-            <div class="faq-answer">A: Collecting floating neon rings boosts your high score and unlocks premium visual themes for your rope and avatar.</div>
-        </div>
-                </div>
-    </section>
     
+    <script>
+    (function() {
+        var gameId = 'neon-swing';
+        if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+            continueToGame(true);
+        }
+    })();
+    function continueToGame(isReturning) {
+        var gameId = 'neon-swing';
+        localStorage.setItem('arcade_seen_' + gameId, '1');
+        document.body.classList.remove('show-info-overlay');
+        var overlay = document.getElementById('game-info-overlay');
+        if (overlay) overlay.style.display = 'none';
+        if (typeof initGame === 'function') { initGame(); }
+    }
+    </script>
+
 </body>
 </html>

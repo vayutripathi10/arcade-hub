@@ -21,110 +21,216 @@
      crossorigin="anonymous"></script>
 
 <style id="adsense-compliance-styles">
-    /* AdSense Compliance Layout Overrides */
-    body {
+    /* === PRE-GAME OVERLAY SYSTEM === */
+    body.show-info-overlay {
         overflow-y: auto !important;
         height: auto !important;
     }
-    .game-root {
-        position: relative !important;
-        min-height: 100vh;
+    body.show-info-overlay .game-root,
+    body.show-info-overlay #game-root,
+    body.show-info-overlay #gameWrapper,
+    body.show-info-overlay canvas {
+        display: none !important;
+    }
+    body.show-info-overlay #hud,
+    body.show-info-overlay .hud-header,
+    body.show-info-overlay .header {
+        display: none !important;
+    }
+    .game-info-overlay {
+        display: none;
+        background: #0a0b0d;
+        width: 100%;
         min-height: 100dvh;
-        height: auto !important;
-        overflow-y: visible !important;
-    }
-    .game-wrapper {
-        height: calc(100vh - 64px) !important;
-        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
-        flex-shrink: 0 !important;
-        flex-grow: 0 !important;
-    }
-    @media (max-width: 600px) {
-        .game-wrapper {
-            height: calc(100vh - 56px) !important;
-            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
-        }
-    }
-    
-    /* Compliance Info Container Stylings */
-    .game-info-container {
-        background: #0d0f14;
-        border-top: 2px solid rgba(255, 255, 255, 0.05);
-        padding: 40px 24px;
         font-family: 'Outfit', sans-serif;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255,255,255,0.75);
         line-height: 1.7;
-        max-width: 800px;
-        margin: 0 auto;
-        z-index: 10;
+        padding: 40px 24px;
+        box-sizing: border-box;
         position: relative;
-        user-select: text !important;
-        text-align: left;
+        z-index: 999999;
     }
+    body.show-info-overlay .game-info-overlay {
+        display: block !important;
+    }
+    .game-info-container { max-width: 780px; margin: 0 auto; }
+    .brand-header {
+        text-align: center;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0,255,204,0.15);
+    }
+    .brand-header .brand-title {
+        color: #00ffcc;
+        font-size: 1.3rem;
+        font-weight: 900;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        text-shadow: 0 0 12px rgba(0,255,204,0.4);
+        margin: 0 0 6px 0;
+    }
+    .brand-header .brand-sub {
+        color: rgba(255,255,255,0.35);
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .continue-btn-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 36px;
+        position: sticky;
+        top: 16px;
+        z-index: 1000000;
+    }
+    .continue-game-btn {
+        background: #00ffcc;
+        color: #000;
+        border: none;
+        padding: 16px 52px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-radius: 14px;
+        cursor: pointer;
+        box-shadow: 0 0 28px rgba(0,255,204,0.55);
+        transition: all 0.25s ease;
+        letter-spacing: 1.5px;
+    }
+    .continue-game-btn:hover {
+        background: #fff;
+        box-shadow: 0 0 40px rgba(255,255,255,0.65);
+        transform: scale(1.04);
+    }
+    .continue-game-btn:active { transform: scale(0.97); }
     .game-info-container h2 {
         color: #fff;
-        font-size: 2rem;
-        margin-bottom: 16px;
+        font-size: 1.9rem;
         font-weight: 700;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        text-align: center;
+        margin-bottom: 14px;
     }
     .game-info-container h3 {
-        color: var(--accent-color, #00ffcc);
-        font-size: 1.3rem;
-        margin-top: 24px;
-        margin-bottom: 12px;
+        color: #00ffcc;
+        font-size: 1.15rem;
         font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 10px;
     }
-    .game-info-container p {
-        margin-bottom: 16px;
-        font-size: 0.95rem;
-    }
-    .game-info-container ul {
-        margin-bottom: 16px;
-        padding-left: 20px;
-    }
-    .game-info-container li {
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-        list-style-type: disc;
-    }
-    .game-info-container .info-grid {
+    .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+    .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+    .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+    .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        margin-top: 24px;
+        gap: 20px;
+        margin: 24px 0;
     }
-    .game-info-container .info-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
-        padding: 24px;
+    .info-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 20px;
     }
-    .game-info-container .faq-item {
-        margin-bottom: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    .faq-item {
+        margin-bottom: 18px;
         padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
     }
-    .game-info-container .faq-question {
-        color: #fff;
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 1rem;
+    .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+    .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+    .page-footer-note {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.25);
     }
-    .game-info-container .faq-answer {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.9rem;
-        margin-bottom: 0;
-    }
+    .page-footer-note a { color: #00ffcc; text-decoration: none; }
     @media (max-width: 768px) {
-        .game-info-container .info-grid {
-            grid-template-columns: 1fr;
-        }
+        .info-grid { grid-template-columns: 1fr; }
+        .continue-game-btn { width: 100%; padding: 15px 24px; }
+        .game-info-container h2 { font-size: 1.5rem; }
     }
 </style>
 
 </head>
-<body>
+<body class="show-info-overlay">
+
+<!-- PRE-GAME INFO OVERLAY -->
+<div class="game-info-overlay" id="game-info-overlay">
+    <div class="game-info-container">
+
+        <div class="brand-header">
+            <p class="brand-title">&#x1F579;&#xFE0F; Arcade Hub</p>
+            <p class="brand-sub">Free Browser Games &mdash; No Download Required</p>
+        </div>
+
+        <div class="continue-btn-wrapper">
+            <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW &#x2794;</button>
+        </div>
+
+        <h2>Neon Brick Breaker</h2>
+        <p>Neon Brick Breaker is an action-packed cyberpunk remake of the classic Atari Breakout. Guide a glowing paddle to bounce laser balls into rows of vibrant neon bricks. Collect powerful drop power-ups including wide paddle extenders, multi-ball spawns, laser cannons, slow-motion fields, and shields. With escalating stage difficulty and boss brick patterns, this is the definitive modern brick-breaker experience.</p>
+
+        <h3>&#x1F3AE; How to Play</h3>
+        <p>Move the paddle left and right to bounce the ball upward into the brick grid. Clear all bricks to complete the stage. Collect power-ups that drop from broken bricks for game-changing abilities.</p>
+        <ul>
+            <li><strong>Desktop:</strong> Move the mouse left/right to control the paddle; click to launch the ball</li>
+            <li><strong>Mobile:</strong> Touch and drag left/right along the bottom of the screen</li>
+            <li><strong>Launch:</strong> Click or tap to launch the ball at the start of each round</li>
+            <li><strong>Goal:</strong> Break all bricks without letting the ball fall off the bottom</li>
+        </ul>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>&#x26A1; Game Features</h3>
+                <ul>
+                    <li>Multi-ball, laser, and wide-paddle power-ups</li>
+                    <li>Indestructible silver bricks requiring multiple hits</li>
+                    <li>Stage transition animations with level-up mechanics</li>
+                    <li>Moving bricks that appear in later stages</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>&#x1F3C6; Pro Tips</h3>
+                <ul>
+                    <li>Hit bricks with the edge of the paddle for steep low-angle bounces</li>
+                    <li>Prioritize the Multi-Ball power-up &mdash; it doubles your destruction output</li>
+                    <li>Let the ball reach the top and bounce inside the upper rows for chain clears</li>
+                    <li>Never chase power-ups off-screen &mdash; losing a life costs more than any drop</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>&#x2753; Frequently Asked Questions</h3>
+        <div class="faq-item">
+            <p class="faq-question">Is Neon Brick Breaker free to play?</p>
+            <p class="faq-answer">Yes, completely free in your browser. No downloads or accounts required.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Does it work on mobile?</p>
+            <p class="faq-answer">Yes &mdash; swipe left/right along the bottom to control the paddle on any touch device.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">How many lives do I start with?</p>
+            <p class="faq-answer">You start with 3 lives. Extra-life power-ups can occasionally drop from special gold bricks.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Where can I find more free games?</p>
+            <p class="faq-answer">Visit <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> for 18+ free browser games.</p>
+        </div>
+
+        <div class="page-footer-note">
+            Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> &mdash; Free Browser Arcade Games
+        </div>
+
+    </div>
+</div>
+<!-- END PRE-GAME INFO OVERLAY -->
+
     <div id="gameWrapper">
         <header class="header">
             <a href="../index.html" class="home-btn">&#8592; Arcade Hub</a>
@@ -329,43 +435,23 @@
         window.addEventListener('touchstart', wakeUpAudio, { once: true });
     </script>
     <script src="script.js?v=ArcadeHub_GlobalUI"></script>
-
-    <!-- Google AdSense Compliance: High Value Rich Content Container -->
-    <section class="game-info-container">
-        <h2>About Neon Brick Breaker</h2>
-        <p>Neon Brick Breaker is a premium, action-packed modernization of the classic Atari breakout genre. Navigate a glowing paddle to bounce cyber-balls and shatter rows of high-value neon bricks. Collect glowing power-ups including laser mounts, multi-ball spawns, paddle-extenders, and slow-motion drops to clear high-difficulty layouts in style.</p>
-        
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>🕹️ Complete Game Controls Guide</h3>
-                <p><strong>On Desktop:</strong> Slide your mouse left and right to control the glowing paddle. Left-click to launch the ball at the start of a round.</p>
-                <p><strong>On Mobile:</strong> Touch and drag your finger left or right along the bottom of the screen to smoothly guide the paddle.</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>💡 Pro Tips & Strategies for High Scores</h3>
-                <ul>
-            <li>Master corner bounces: Hitting the ball with the extreme edges of your paddle will bounce it at a steep, low angle, perfect for sliding behind brick rows.</li>
-            <li>Prioritize Multi-Ball: Power-ups like multi-ball double your destructive output and make keeping a ball in play much easier.</li>
-            <li>Do not chase lasers off-screen: Falling into the hazard zone to catch a minor power-up is never worth losing a life.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <h3>❓ Frequently Asked Questions (FAQ)</h3>
-        <div class="faq-block">
-
-        <div class="faq-item">
-            <div class="faq-question">Q: What power-ups are available in Neon Brick Breaker?</div>
-            <div class="faq-answer">A: Power-ups include Multi-Ball, Laser Blaster, Paddle Expansion, Ball Slowdown, and Shield barriers.</div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">Q: How many lives do I start with?</div>
-            <div class="faq-answer">A: You start with three lives per round, and can occasionally collect extra-life powerups by breaking special neon gold bricks.</div>
-        </div>
-                </div>
-    </section>
     
+    <script>
+    (function() {
+        var gameId = 'neon-brick-breaker';
+        if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+            continueToGame(true);
+        }
+    })();
+    function continueToGame(isReturning) {
+        var gameId = 'neon-brick-breaker';
+        localStorage.setItem('arcade_seen_' + gameId, '1');
+        document.body.classList.remove('show-info-overlay');
+        var overlay = document.getElementById('game-info-overlay');
+        if (overlay) overlay.style.display = 'none';
+        if (typeof initGame === 'function') { initGame(); }
+    }
+    </script>
+
 </body>
 </html>

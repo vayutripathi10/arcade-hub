@@ -204,110 +204,216 @@ html,body { background:var(--bg); color:var(--text); overflow:hidden; width:100%
      crossorigin="anonymous"></script>
 
 <style id="adsense-compliance-styles">
-    /* AdSense Compliance Layout Overrides */
-    body {
+    /* === PRE-GAME OVERLAY SYSTEM === */
+    body.show-info-overlay {
         overflow-y: auto !important;
         height: auto !important;
     }
-    .game-root {
-        position: relative !important;
-        min-height: 100vh;
+    body.show-info-overlay .game-root,
+    body.show-info-overlay #game-root,
+    body.show-info-overlay #gameWrapper,
+    body.show-info-overlay canvas {
+        display: none !important;
+    }
+    body.show-info-overlay #hud,
+    body.show-info-overlay .hud-header,
+    body.show-info-overlay .header {
+        display: none !important;
+    }
+    .game-info-overlay {
+        display: none;
+        background: #0a0b0d;
+        width: 100%;
         min-height: 100dvh;
-        height: auto !important;
-        overflow-y: visible !important;
-    }
-    .game-wrapper {
-        height: calc(100vh - 64px) !important;
-        height: calc(100dvh - var(--hud-h-desktop, var(--header-h-desktop, var(--header-height, 64px)))) !important;
-        flex-shrink: 0 !important;
-        flex-grow: 0 !important;
-    }
-    @media (max-width: 600px) {
-        .game-wrapper {
-            height: calc(100vh - 56px) !important;
-            height: calc(100dvh - var(--hud-h-mobile, var(--header-h-mobile, var(--header-height, 56px)))) !important;
-        }
-    }
-    
-    /* Compliance Info Container Stylings */
-    .game-info-container {
-        background: #0d0f14;
-        border-top: 2px solid rgba(255, 255, 255, 0.05);
-        padding: 40px 24px;
         font-family: 'Outfit', sans-serif;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255,255,255,0.75);
         line-height: 1.7;
-        max-width: 800px;
-        margin: 0 auto;
-        z-index: 10;
+        padding: 40px 24px;
+        box-sizing: border-box;
         position: relative;
-        user-select: text !important;
-        text-align: left;
+        z-index: 999999;
     }
+    body.show-info-overlay .game-info-overlay {
+        display: block !important;
+    }
+    .game-info-container { max-width: 780px; margin: 0 auto; }
+    .brand-header {
+        text-align: center;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0,255,204,0.15);
+    }
+    .brand-header .brand-title {
+        color: #00ffcc;
+        font-size: 1.3rem;
+        font-weight: 900;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        text-shadow: 0 0 12px rgba(0,255,204,0.4);
+        margin: 0 0 6px 0;
+    }
+    .brand-header .brand-sub {
+        color: rgba(255,255,255,0.35);
+        font-size: 0.75rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .continue-btn-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 36px;
+        position: sticky;
+        top: 16px;
+        z-index: 1000000;
+    }
+    .continue-game-btn {
+        background: #00ffcc;
+        color: #000;
+        border: none;
+        padding: 16px 52px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-radius: 14px;
+        cursor: pointer;
+        box-shadow: 0 0 28px rgba(0,255,204,0.55);
+        transition: all 0.25s ease;
+        letter-spacing: 1.5px;
+    }
+    .continue-game-btn:hover {
+        background: #fff;
+        box-shadow: 0 0 40px rgba(255,255,255,0.65);
+        transform: scale(1.04);
+    }
+    .continue-game-btn:active { transform: scale(0.97); }
     .game-info-container h2 {
         color: #fff;
-        font-size: 2rem;
-        margin-bottom: 16px;
+        font-size: 1.9rem;
         font-weight: 700;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        text-align: center;
+        margin-bottom: 14px;
     }
     .game-info-container h3 {
-        color: var(--accent-color, #00ffcc);
-        font-size: 1.3rem;
-        margin-top: 24px;
-        margin-bottom: 12px;
+        color: #00ffcc;
+        font-size: 1.15rem;
         font-weight: 600;
+        margin-top: 28px;
+        margin-bottom: 10px;
     }
-    .game-info-container p {
-        margin-bottom: 16px;
-        font-size: 0.95rem;
-    }
-    .game-info-container ul {
-        margin-bottom: 16px;
-        padding-left: 20px;
-    }
-    .game-info-container li {
-        margin-bottom: 8px;
-        font-size: 0.95rem;
-        list-style-type: disc;
-    }
-    .game-info-container .info-grid {
+    .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+    .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+    .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+    .info-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        margin-top: 24px;
+        gap: 20px;
+        margin: 24px 0;
     }
-    .game-info-container .info-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
-        padding: 24px;
+    .info-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        padding: 20px;
     }
-    .game-info-container .faq-item {
-        margin-bottom: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    .faq-item {
+        margin-bottom: 18px;
         padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
     }
-    .game-info-container .faq-question {
-        color: #fff;
-        font-weight: 600;
-        margin-bottom: 8px;
-        font-size: 1rem;
+    .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+    .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+    .page-footer-note {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.78rem;
+        color: rgba(255,255,255,0.25);
     }
-    .game-info-container .faq-answer {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.9rem;
-        margin-bottom: 0;
-    }
+    .page-footer-note a { color: #00ffcc; text-decoration: none; }
     @media (max-width: 768px) {
-        .game-info-container .info-grid {
-            grid-template-columns: 1fr;
-        }
+        .info-grid { grid-template-columns: 1fr; }
+        .continue-game-btn { width: 100%; padding: 15px 24px; }
+        .game-info-container h2 { font-size: 1.5rem; }
     }
 </style>
 
 </head>
-<body>
+<body class="show-info-overlay">
+
+<!-- PRE-GAME INFO OVERLAY -->
+<div class="game-info-overlay" id="game-info-overlay">
+    <div class="game-info-container">
+
+        <div class="brand-header">
+            <p class="brand-title">&#x1F579;&#xFE0F; Arcade Hub</p>
+            <p class="brand-sub">Free Browser Games &mdash; No Download Required</p>
+        </div>
+
+        <div class="continue-btn-wrapper">
+            <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW &#x2794;</button>
+        </div>
+
+        <h2>Stick Duel</h2>
+        <p>Stick Duel is a chaotic two-player platform fighting game where stickmen battle across towering platforms using a wild arsenal of randomly spawning weapons. From pistols and shotguns to grenades and rocket launchers &mdash; grab whatever appears, aim carefully, and eliminate your opponent first. Physics-based projectile trajectories and destructible environments make every duel unpredictable and hilarious.</p>
+
+        <h3>&#x1F3AE; How to Play</h3>
+        <p>Each player controls a stickman on the same screen. Move, jump, and shoot at your opponent. Weapons spawn around the map &mdash; grab them before your opponent does. First to reach the kill limit wins the match.</p>
+        <ul>
+            <li><strong>Player 1 &mdash; Move:</strong> A / D keys &nbsp;|&nbsp; <strong>Jump:</strong> W key &nbsp;|&nbsp; <strong>Shoot:</strong> G key</li>
+            <li><strong>Player 2 &mdash; Move:</strong> Left / Right Arrows &nbsp;|&nbsp; <strong>Jump:</strong> Up Arrow &nbsp;|&nbsp; <strong>Shoot:</strong> L key</li>
+            <li><strong>Weapons:</strong> Walk over glowing weapon pickups to arm yourself</li>
+            <li><strong>Goal:</strong> Eliminate opponent the required number of times to win</li>
+        </ul>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>&#x26A1; Game Features</h3>
+                <ul>
+                    <li>10+ randomized weapons with unique physics</li>
+                    <li>Destructible platform environments</li>
+                    <li>Local 2-player split-keyboard gameplay</li>
+                    <li>Dynamic ragdoll stickman death animations</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>&#x1F3C6; Pro Tips</h3>
+                <ul>
+                    <li>Prioritize grabbing rocket launchers &mdash; they deal area splash damage</li>
+                    <li>Use platform edges to bait opponents into falling off the map</li>
+                    <li>Grenades arc in a curve &mdash; aim above the target for distant shots</li>
+                    <li>Jump constantly to make yourself a harder target to hit</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>&#x2753; Frequently Asked Questions</h3>
+        <div class="faq-item">
+            <p class="faq-question">Is Stick Duel free to play?</p>
+            <p class="faq-answer">Yes, completely free in your browser. No downloads or accounts needed.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Is this a 2-player game?</p>
+            <p class="faq-answer">Yes! Stick Duel is a local 2-player game. Both players share the same keyboard on the same device.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Can I play Stick Duel alone?</p>
+            <p class="faq-answer">Yes &mdash; a single-player vs AI mode is available. The AI opponent adapts to your play style.</p>
+        </div>
+        <div class="faq-item">
+            <p class="faq-question">Where can I find more free games?</p>
+            <p class="faq-answer">Visit <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> for 18+ free browser games.</p>
+        </div>
+
+        <div class="page-footer-note">
+            Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> &mdash; Free Browser Arcade Games
+        </div>
+
+    </div>
+</div>
+<!-- END PRE-GAME INFO OVERLAY -->
+
 
 <!-- ==================== MENU SCREEN ==================== -->
 <div id="menuScreen" class="screen active">
@@ -1979,43 +2085,23 @@ requestAnimationFrame(gameLoop);
 
 })();
 </script>
-
-    <!-- Google AdSense Compliance: High Value Rich Content Container -->
-    <section class="game-info-container">
-        <h2>About Stick Duel Towers</h2>
-        <p>Engage in tactical tower-climbing warfare in Stick Duel Towers. Command your stickman hero to conquer multi-floor enemy fortresses. Compare numerical strength values, defeat lower-level guards to level up, claim powerful weapons, and scale the tower to vanquish the heavy boss. This game combines strategic planning and simple puzzle-solving in a beautiful package.</p>
-        
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>🕹️ Complete Game Controls Guide</h3>
-                <p><strong>On Desktop:</strong> Left-click and drag your stickman hero and drop him onto a tower floor to initiate battle. Dragging is smooth and responsive.</p>
-                <p><strong>On Mobile:</strong> Touch and drag your hero character with your finger, dropping them onto the targeted tower floor to attack.</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>💡 Pro Tips & Strategies for High Scores</h3>
-                <ul>
-            <li>Check the numbers: Every character has a numerical strength value. Only attack floors with values *lower* than your own.</li>
-            <li>Collect floating weapons: Some floors contain bows, swords, or shields. Clear these rooms early to gain massive stat boosts.</li>
-            <li>Plan your path: Calculate the sum of levels you will gain. If you attack the boss too early, your numbers won't match and you will lose.</li>
-                </ul>
-            </div>
-        </div>
-        
-        <h3>❓ Frequently Asked Questions (FAQ)</h3>
-        <div class="faq-block">
-
-        <div class="faq-item">
-            <div class="faq-question">Q: Why did my hero lose a battle?</div>
-            <div class="faq-answer">A: Ensure your hero's level number is strictly higher than the enemy's level number before dropping them into a fight.</div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">Q: Are there multiple tower maps?</div>
-            <div class="faq-answer">A: Yes! The game features progressive levels with multiple towers, moving guards, and complex numerical puzzles to solve.</div>
-        </div>
-                </div>
-    </section>
     
+    <script>
+    (function() {
+        var gameId = 'stick-duel';
+        if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+            continueToGame(true);
+        }
+    })();
+    function continueToGame(isReturning) {
+        var gameId = 'stick-duel';
+        localStorage.setItem('arcade_seen_' + gameId, '1');
+        document.body.classList.remove('show-info-overlay');
+        var overlay = document.getElementById('game-info-overlay');
+        if (overlay) overlay.style.display = 'none';
+        if (typeof initGame === 'function') { initGame(); }
+    }
+    </script>
+
 </body>
 </html>
