@@ -164,6 +164,7 @@
             <a href="achievements.html" class="sidebar-link active-hub">🏆 Trophy Room</a>
             <a href="about.html" class="sidebar-link">ℹ️ About Us</a>
             <a href="contact.html" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
         </div>
     </nav>
 
@@ -241,15 +242,7 @@
             });
         });
     </script>
-    <!-- PWA Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then((reg) => console.log('Service Worker registered successfully with scope:', reg.scope))
-                    .catch((err) => console.warn('Service Worker registration failed:', err));
-            });
-        }
-    </script>
+    <!-- PWA Service Worker & Install Prompt Registration -->
+    <script src="shared/pwa-setup.js"></script>
 </body>
 </html>

@@ -118,15 +118,7 @@
     <footer class="site-footer">
         <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a></p>
     </footer>
-    <!-- PWA Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then((reg) => console.log('Service Worker registered successfully with scope:', reg.scope))
-                    .catch((err) => console.warn('Service Worker registration failed:', err));
-            });
-        }
-    </script>
+    <!-- PWA Service Worker & Install Prompt Registration -->
+    <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
