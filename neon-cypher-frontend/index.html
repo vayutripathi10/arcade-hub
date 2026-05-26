@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Cypher - Daily Cyberpunk Word Decryption | Arcade Hub</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Crack the daily cyberpunk word puzzle! Play Neon Cypher, decrypt the 5-letter mainframe passcode, build your daily streak, or practice with unlimited words.">
+    <meta name="keywords" content="wordle, daily word game, cryptogram, cyberpunk word game, neon cypher, arcade hub, retro word game, online puzzle">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://ArcadeHubPlay.com/neon-cypher-frontend/index.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ArcadeHubPlay.com/neon-cypher-frontend/index.html">
+    <meta property="og:title" content="Neon Cypher - Daily Cyberpunk Word Decryption | Arcade Hub">
+    <meta property="og:description" content="Crack the daily cyberpunk word puzzle! Play Neon Cypher, decrypt the 5-letter mainframe passcode, and build your daily streak.">
+    <meta property="og:image" content="https://ArcadeHubPlay.com/neon-cypher-frontend/thumbnail.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ArcadeHubPlay.com/neon-cypher-frontend/index.html">
+    <meta property="twitter:title" content="Neon Cypher - Daily Cyberpunk Word Decryption | Arcade Hub">
+    <meta property="twitter:description" content="Crack the daily cyberpunk word puzzle! Play Neon Cypher, decrypt the 5-letter mainframe passcode, and build your daily streak.">
+    <meta property="twitter:image" content="https://ArcadeHubPlay.com/neon-cypher-frontend/thumbnail.jpg">
+    
+    <!-- Favicon & PWA Icons (inherited from root scope) -->
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="apple-touch-icon" href="../icon-192.png">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Google Fonts for Retro/Futuristic theme -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="cyber-theme">
+    <!-- AdSense Compliance Pre-game Overlay Container -->
+    <div id="compliance-overlay" class="compliance-overlay">
+        <div class="compliance-box">
+            <div class="compliance-neon-tag">SECURITY CLEARANCE REQUIRED</div>
+            <h2 class="compliance-title">MAINFRAME FIREWALL DETECTED</h2>
+            <p class="compliance-desc">You are attempting to decrypt the daily security terminal. Complete the decryption matrix in 6 attempts or fewer. Verify target encryption packets before proceeding.</p>
+            <div class="compliance-ad-placeholder">
+                <!-- Standard Ad slot placeholder inside compliance card -->
+                <ins class="adsbygoogle"
+                     style="display:block; text-align:center;"
+                     data-ad-layout="in-article"
+                     data-ad-format="fluid"
+                     data-ad-client="ca-pub-XXXXXXXXXXXX"
+                     data-ad-slot="XXXXXXXXXX"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            <button id="compliance-agree-btn" class="compliance-btn">BYPASS FIREWALL</button>
+        </div>
+    </div>
+
+    <!-- Retro CRT TV Static and Scanline Overlays -->
+    <div class="crt-scanlines"></div>
+    <div class="crt-vignette"></div>
+
+    <div class="game-container">
+        <!-- Arcade Hub Header Navigation -->
+        <header class="game-header">
+            <div class="header-left">
+                <a href="../index.html" class="nav-back-btn" id="header-back-link">
+                    <span class="btn-arrow">&larr;</span> TERMINAL HUB
+                </a>
+            </div>
+            <div class="header-center">
+                <h1 class="main-title">NEON <span class="glow-span">CYPHER</span></h1>
+            </div>
+            <div class="header-right">
+                <button id="help-trigger-btn" class="header-icon-btn" title="How to Play" aria-label="How to Play">?</button>
+                <button id="stats-trigger-btn" class="header-icon-btn" title="Statistics" aria-label="Statistics">&#128202;</button>
+                <button id="audio-toggle-btn" class="header-icon-btn" title="Toggle Synth Sound" aria-label="Toggle Synth Sound">&#128266;</button>
+            </div>
+        </header>
+
+        <!-- Mode Indicator and Toggle Panel -->
+        <div class="mode-panel">
+            <div class="mode-badge" id="active-mode-badge">DAILY MODE</div>
+            <div class="mode-toggles">
+                <button id="mode-daily-btn" class="mode-btn active">DAILY CYPHER</button>
+                <button id="mode-practice-btn" class="mode-btn">PRACTICE HACK</button>
+            </div>
+        </div>
+
+        <!-- Decryption Grid (6 attempts, 5 letters) -->
+        <main class="grid-container" role="grid" aria-label="Decryption Grid">
+            <div class="grid-row" role="row" id="row-0">
+                <div class="grid-tile" role="gridcell" id="tile-0-0" aria-label="Row 1 letter 1"></div>
+                <div class="grid-tile" role="gridcell" id="tile-0-1" aria-label="Row 1 letter 2"></div>
+                <div class="grid-tile" role="gridcell" id="tile-0-2" aria-label="Row 1 letter 3"></div>
+                <div class="grid-tile" role="gridcell" id="tile-0-3" aria-label="Row 1 letter 4"></div>
+                <div class="grid-tile" role="gridcell" id="tile-0-4" aria-label="Row 1 letter 5"></div>
+            </div>
+            <div class="grid-row" role="row" id="row-1">
+                <div class="grid-tile" role="gridcell" id="tile-1-0" aria-label="Row 2 letter 1"></div>
+                <div class="grid-tile" role="gridcell" id="tile-1-1" aria-label="Row 2 letter 2"></div>
+                <div class="grid-tile" role="gridcell" id="tile-1-2" aria-label="Row 2 letter 3"></div>
+                <div class="grid-tile" role="gridcell" id="tile-1-3" aria-label="Row 2 letter 4"></div>
+                <div class="grid-tile" role="gridcell" id="tile-1-4" aria-label="Row 2 letter 5"></div>
+            </div>
+            <div class="grid-row" role="row" id="row-2">
+                <div class="grid-tile" role="gridcell" id="tile-2-0" aria-label="Row 3 letter 1"></div>
+                <div class="grid-tile" role="gridcell" id="tile-2-1" aria-label="Row 3 letter 2"></div>
+                <div class="grid-tile" role="gridcell" id="tile-2-2" aria-label="Row 3 letter 3"></div>
+                <div class="grid-tile" role="gridcell" id="tile-2-3" aria-label="Row 3 letter 4"></div>
+                <div class="grid-tile" role="gridcell" id="tile-2-4" aria-label="Row 3 letter 5"></div>
+            </div>
+            <div class="grid-row" role="row" id="row-3">
+                <div class="grid-tile" role="gridcell" id="tile-3-0" aria-label="Row 4 letter 1"></div>
+                <div class="grid-tile" role="gridcell" id="tile-3-1" aria-label="Row 4 letter 2"></div>
+                <div class="grid-tile" role="gridcell" id="tile-3-2" aria-label="Row 4 letter 3"></div>
+                <div class="grid-tile" role="gridcell" id="tile-3-3" aria-label="Row 4 letter 4"></div>
+                <div class="grid-tile" role="gridcell" id="tile-3-4" aria-label="Row 4 letter 5"></div>
+            </div>
+            <div class="grid-row" role="row" id="row-4">
+                <div class="grid-tile" role="gridcell" id="tile-4-0" aria-label="Row 5 letter 1"></div>
+                <div class="grid-tile" role="gridcell" id="tile-4-1" aria-label="Row 5 letter 2"></div>
+                <div class="grid-tile" role="gridcell" id="tile-4-2" aria-label="Row 5 letter 3"></div>
+                <div class="grid-tile" role="gridcell" id="tile-4-3" aria-label="Row 5 letter 4"></div>
+                <div class="grid-tile" role="gridcell" id="tile-4-4" aria-label="Row 5 letter 5"></div>
+            </div>
+            <div class="grid-row" role="row" id="row-5">
+                <div class="grid-tile" role="gridcell" id="tile-5-0" aria-label="Row 6 letter 1"></div>
+                <div class="grid-tile" role="gridcell" id="tile-5-1" aria-label="Row 6 letter 2"></div>
+                <div class="grid-tile" role="gridcell" id="tile-5-2" aria-label="Row 6 letter 3"></div>
+                <div class="grid-tile" role="gridcell" id="tile-5-3" aria-label="Row 6 letter 4"></div>
+                <div class="grid-tile" role="gridcell" id="tile-5-4" aria-label="Row 6 letter 5"></div>
+            </div>
+        </main>
+
+        <!-- On-Screen Virtual Keyboard -->
+        <footer class="keyboard-container" aria-label="Virtual Keyboard">
+            <div class="keyboard-row">
+                <button class="key" data-key="Q" id="key-q">Q</button>
+                <button class="key" data-key="W" id="key-w">W</button>
+                <button class="key" data-key="E" id="key-e">E</button>
+                <button class="key" data-key="R" id="key-r">R</button>
+                <button class="key" data-key="T" id="key-t">T</button>
+                <button class="key" data-key="Y" id="key-y">Y</button>
+                <button class="key" data-key="U" id="key-u">U</button>
+                <button class="key" data-key="I" id="key-i">I</button>
+                <button class="key" data-key="O" id="key-o">O</button>
+                <button class="key" data-key="P" id="key-p">P</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key" data-key="A" id="key-a">A</button>
+                <button class="key" data-key="S" id="key-s">S</button>
+                <button class="key" data-key="D" id="key-d">D</button>
+                <button class="key" data-key="F" id="key-f">F</button>
+                <button class="key" data-key="G" id="key-g">G</button>
+                <button class="key" data-key="H" id="key-h">H</button>
+                <button class="key" data-key="J" id="key-j">J</button>
+                <button class="key" data-key="K" id="key-k">K</button>
+                <button class="key" data-key="L" id="key-l">L</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key double-width-key" data-key="ENTER" id="key-enter">ENTER</button>
+                <button class="key" data-key="Z" id="key-z">Z</button>
+                <button class="key" data-key="X" id="key-x">X</button>
+                <button class="key" data-key="C" id="key-c">C</button>
+                <button class="key" data-key="V" id="key-v">V</button>
+                <button class="key" data-key="B" id="key-b">B</button>
+                <button class="key" data-key="N" id="key-n">N</button>
+                <button class="key" data-key="M" id="key-m">M</button>
+                <button class="key double-width-key" data-key="BACKSPACE" id="key-delete">DELETE</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- How to Play Instructions Modal -->
+    <div id="instructions-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close-btn" id="instructions-close-btn">&times;</button>
+            <h2 class="modal-title">DECRYPTION MANUAL</h2>
+            <div class="modal-scroll-area">
+                <p class="modal-subtitle">HOW TO CRACK THE CYPHER:</p>
+                <p class="instruction-text">Crack the 5-letter daily passcode in 6 attempts. Each guess must be a valid 5-letter spelling packet.</p>
+                
+                <p class="modal-subtitle">DECRYPTION FEEDBACK KEY:</p>
+                <div class="example-row">
+                    <div class="example-tile correct">C</div>
+                    <p class="example-desc"><strong>GREEN CYBER GLOW</strong>: The letter is in the security passcode and placed in the <strong>correct node</strong>.</p>
+                </div>
+                <div class="example-row">
+                    <div class="example-tile present">Y</div>
+                    <p class="example-desc"><strong>GOLD GLOW</strong>: The letter is in the security passcode but in an <strong>incorrect node</strong>.</p>
+                </div>
+                <div class="example-row">
+                    <div class="example-tile absent">B</div>
+                    <p class="example-desc"><strong>STEEL DARK</strong>: The letter is <strong>not present</strong> in the daily security passcode.</p>
+                </div>
+
+                <div class="cyber-divider"></div>
+                
+                <p class="instruction-text">A synchronized global mainframe packet is compiled daily at <strong>00:00 UTC</strong>. Earn decryption streaks and share your results on social platforms to compete!</p>
+            </div>
+            <button class="modal-btn" id="instructions-start-btn">ENGAGE HACK</button>
+        </div>
+    </div>
+
+    <!-- Complete / Stats Completion Modal -->
+    <div id="stats-modal" class="modal-overlay hidden">
+        <div class="modal-content stats-content">
+            <button class="modal-close-btn" id="stats-close-btn">&times;</button>
+            <h2 class="modal-title" id="stats-modal-title">DECRYPTION COMPLETE</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-played">0</div>
+                    <div class="stat-lbl">Played</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-win-pct">0%</div>
+                    <div class="stat-lbl">Success</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-streak">0</div>
+                    <div class="stat-lbl">Streak</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-val" id="stat-max-streak">0</div>
+                    <div class="stat-lbl">Max Streak</div>
+                </div>
+            </div>
+
+            <div class="cyber-divider"></div>
+
+            <h3 class="distribution-title">DECRYPTION ATTEMPTS</h3>
+            <div class="distribution-chart">
+                <div class="chart-row">
+                    <div class="row-num">1</div>
+                    <div class="chart-bar-container"><div class="chart-bar" id="bar-1" style="width: 0%;">0</div></div>
+                </div>
+                <div class="chart-row">
+                    <div class="row-num">2</div>
+                    <div class="chart-bar-container"><div class="chart-bar" id="bar-2" style="width: 0%;">0</div></div>
+                </div>
+                <div class="chart-row">
+                    <div class="row-num">3</div>
+                    <div class="chart-bar-container"><div class="chart-bar" id="bar-3" style="width: 0%;">0</div></div>
+                </div>
+                <div class="chart-row">
+                    <div class="row-num">4</div>
+                    <div class="chart-bar-container"><div class="chart-bar" id="bar-4" style="width: 0%;">0</div></div>
+                </div>
+                <div class="chart-row">
+                    <div class="row-num">5</div>
+                    <div class="chart-bar-container"><div class="chart-bar" id="bar-5" style="width: 0%;">0</div></div>
+                </div>
+                <div class="chart-row">
+                    <div class="row-num">6</div>
+                    <div class="chart-bar-container"><div class="chart-bar" id="bar-6" style="width: 0%;">0</div></div>
+                </div>
+            </div>
+
+            <div class="cyber-divider"></div>
+
+            <div class="modal-footer-flex">
+                <div class="next-countdown-box">
+                    <div class="countdown-lbl">NEXT CYPHER IN</div>
+                    <div class="countdown-val" id="next-cypher-timer">00:00:00</div>
+                </div>
+                <div class="share-box">
+                    <button class="share-btn" id="share-btn">SHARE DECRYPTION &#128229;</button>
+                </div>
+            </div>
+            
+            <div class="practice-action-box hidden" id="practice-replay-box">
+                <button class="modal-btn" id="practice-replay-btn">DECRYPT NEW WORD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Toast Notification Overlay -->
+    <div id="toast-notification" class="toast hidden"></div>
+
+    <!-- Standard Script Integration -->
+    <script src="dictionary.js"></script>
+    <script src="script.js"></script>
+    
+    <!-- PWA Offline Auto-Registration Helper -->
+    <script src="../shared/pwa-setup.js" defer></script>
+</body>
+</html>

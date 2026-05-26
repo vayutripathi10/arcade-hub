@@ -12,7 +12,12 @@ const CORE_ASSETS = [
     'favicon.png',
     'icon-192.png',
     'icon-512.png',
-    'shared/achievements.js'
+    'shared/achievements.js',
+    'neon-cypher-frontend/index.html',
+    'neon-cypher-frontend/style.css',
+    'neon-cypher-frontend/script.js',
+    'neon-cypher-frontend/dictionary.js',
+    'neon-cypher-frontend/thumbnail.jpg'
 ];
 
 const DB_NAME = 'offline-analytics';
