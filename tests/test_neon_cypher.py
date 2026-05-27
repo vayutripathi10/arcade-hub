@@ -25,16 +25,16 @@ def test_neon_cypher():
         
         wait = WebDriverWait(driver, 5)
 
-        print("1. Verify AdSense Compliance Overlay is active for first-time visits...")
-        overlay = driver.find_element(By.ID, "compliance-overlay")
-        assert overlay.is_displayed(), "Compliance overlay is not visible initially!"
+        print("1. Verify AdSense Compliance Description Overlay is active for first-time visits...")
+        overlay = driver.find_element(By.ID, "game-info-overlay")
+        assert overlay.is_displayed(), "Description compliance overlay is not visible initially!"
         
-        print("2. Click BYPASS FIREWALL to enter the game...")
-        agree_btn = driver.find_element(By.ID, "compliance-agree-btn")
+        print("2. Click PLAY NOW to enter the game...")
+        agree_btn = driver.find_element(By.CSS_SELECTOR, ".continue-game-btn")
         agree_btn.click()
         
         time.sleep(0.5)
-        assert "hidden" in overlay.get_attribute("class") or not overlay.is_displayed(), "Compliance overlay did not hide!"
+        assert "hidden" in overlay.get_attribute("class") or not overlay.is_displayed() or "show-info-overlay" not in driver.find_element(By.TAG_NAME, "body").get_attribute("class"), "Compliance overlay did not hide!"
         print("Compliance bypassed successfully!")
 
         print("3. Verify Decryption Manual Help Modal is displayed on first launch...")

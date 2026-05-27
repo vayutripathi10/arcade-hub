@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Neon Cypher - Daily Cyberpunk Word Decryption | Arcade Hub</title>
     
     <!-- SEO Meta Tags -->
@@ -35,253 +35,465 @@
     <!-- Google Fonts for Retro/Futuristic theme -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Share+Tech+Mono&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- AdSense Compliance & Thin Content Pre-game Stylesheet -->
+    <style id="adsense-compliance-styles">
+        body.show-info-overlay {
+            overflow: hidden !important;
+            height: 100dvh !important;
+        }
+        
+        /* Hide active game UI elements when showing description compliance overlay */
+        body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+            display: none !important;
+        }
+
+        body.show-info-overlay .game-root,
+        body.show-info-overlay .game-container,
+        body.show-info-overlay .crt-scanlines,
+        body.show-info-overlay .crt-vignette {
+            display: none !important;
+        }
+
+        .game-info-overlay {
+            display: none;
+            background: #06070a;
+            width: 100%;
+            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            padding: 40px 24px;
+            box-sizing: border-box;
+        }
+        
+        body.show-info-overlay .game-info-overlay {
+            display: block !important;
+        }
+        
+        .game-info-container { max-width: 780px; margin: 0 auto; }
+        
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.15);
+        }
+        
+        .brand-header .brand-title {
+            color: #00ffcc;
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(0, 255, 204, 0.4);
+            margin: 0 0 6px 0;
+        }
+        
+        .brand-header .brand-sub {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .continue-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            position: sticky;
+            top: 16px;
+            z-index: 1000000;
+        }
+        
+        .continue-game-btn {
+            background: linear-gradient(90deg, #00ffcc, #ffd700);
+            color: #000;
+            border: none;
+            padding: 16px 52px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 28px rgba(0,255,204,0.55);
+            transition: all 0.25s ease;
+            letter-spacing: 1.5px;
+        }
+        
+        .continue-game-btn:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 40px rgba(255,255,255,0.8);
+            transform: scale(1.04);
+        }
+        
+        .continue-game-btn:active { transform: scale(0.97); }
+        
+        .game-info-container h2 {
+            color: #fff;
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 14px;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+        }
+        
+        .game-info-container h3 {
+            color: #00ffcc;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+        .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+        .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        
+        .faq-item {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        
+        .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+        .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+        
+        .page-footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+        }
+        
+        .page-footer-note a { color: #00ffcc; text-decoration: none; }
+        
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .continue-game-btn { width: 100%; padding: 15px 24px; }
+            .game-info-container h2 { font-size: 1.5rem; }
+        }
+    </style>
 </head>
-<body class="cyber-theme">
-    <!-- AdSense Compliance Pre-game Overlay Container -->
-    <div id="compliance-overlay" class="compliance-overlay">
-        <div class="compliance-box">
-            <div class="compliance-neon-tag">SECURITY CLEARANCE REQUIRED</div>
-            <h2 class="compliance-title">MAINFRAME FIREWALL DETECTED</h2>
-            <p class="compliance-desc">You are attempting to decrypt the daily security terminal. Complete the decryption matrix in 6 attempts or fewer. Verify target encryption packets before proceeding.</p>
-            <div class="compliance-ad-placeholder">
-                <!-- Standard Ad slot placeholder inside compliance card -->
-                <ins class="adsbygoogle"
-                     style="display:block; text-align:center;"
-                     data-ad-layout="in-article"
-                     data-ad-format="fluid"
-                     data-ad-client="ca-pub-XXXXXXXXXXXX"
-                     data-ad-slot="XXXXXXXXXX"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
+<body class="cyber-theme show-info-overlay">
+
+    <!-- PRE-GAME INFO OVERLAY (Google AdSense Compliance & Thin Content Prevention) -->
+    <div class="game-info-overlay" id="game-info-overlay">
+        <div class="game-info-container">
+            <div class="brand-header">
+                <p class="brand-title">🕹️ Arcade Hub</p>
+                <p class="brand-sub">Free Browser Games — No Download Required</p>
             </div>
-            <button id="compliance-agree-btn" class="compliance-btn">BYPASS FIREWALL</button>
+
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
+            </div>
+
+            <h2>Neon Cypher</h2>
+            <p>Welcome to <strong>Neon Cypher</strong>, a breathtaking daily cyberpunk word decryption game designed from scratch for the Arcade Hub platform. Inspired by the logic of classic cryptograms and word-guessing games like Wordle, Neon Cypher modernizes the genre with an immersive 80s synthesizer soundtrack, pulsing HSL neon glows, and multiple game modes. Complete the 5-letter passcode matrix in 6 attempts to bypass the security mainframe, build your daily decryption streak, and share your hacking results with the world.</p>
+
+            <h3>🎮 Game Mechanics & Features</h3>
+            <p>Control a glowing cryptographic terminal interface and navigate around the security matrix grid. Steer with physical keys or touch the stylized virtual keyboard to submit letter packets while gaining powerful decryption insight.</p>
+            <ul>
+                <li><strong>Daily Cypher Mode:</strong> Crack one global, identical passcode synchronized timezone-safely on UTC midnight clocks. Tracks your decryption history, win percentage, and streaking records dynamically to brag on social streams.</li>
+                <li><strong>Practice Hack Mode:</strong> Unlimited word puzzles! Toggle practice mode to bypass the daily limit and play continuously with random target words to sharpen your codebreaking speed.</li>
+                <li><strong>Double-Tier Dictionaries:</strong> Guesses are validated against a 1,500+ spelling list to block spammed letters, while targets are curated from ~400 arcade, space, computer-science, and sci-fi terms.</li>
+            </ul>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚡ Decoding Clue Colors</h3>
+                    <ul>
+                        <li>🟢 <strong>Cyber Green Glow:</strong> The letter is in the mainframe passcode and placed in the <strong>exact correct node</strong>.</li>
+                        <li>🟡 <strong>Neon Gold Glow:</strong> The letter is in the passcode but in an <strong>incorrect node</strong>.</li>
+                        <li>⚫ <strong>Steel Dark Grey:</strong> The letter is <strong>not present</strong> in the mainframe passcode. Use this to eliminate keys!</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>🏆 Cybernetic Pro Tips</h3>
+                    <ul>
+                        <li>Initiate hacks with vowel-rich starter packets like **`CYBER`**, **`LASER`**, or **`RETRO`** to discover letter locks immediately.</li>
+                        <li>Utilize the visual virtual keyboard at the bottom—it updates to match green, gold, and dark states so you know which letters are spent.</li>
+                        <li>If double-tap zoom keeps throwing off your mobile browser, worry not—our virtual keyboard is embedded with automatic touch filters to guarantee instant mobile typing responses.</li>
+                        <li>Toggle sound effects on to utilize real-time oscillator feedback signals for taps, failures, and ascending winning harmonies.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="faq-item">
+                <p class="faq-question">What time does the Daily Cypher refresh?</p>
+                <p class="faq-answer">The Daily Cypher updates globally at exactly 00:00 UTC every day. A real-time countdown clock is displayed on your completion stats modal so you know exactly when the next mainframe passcode is compiled.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">How does Practice Hack differ from Daily Cypher?</p>
+                <p class="faq-answer">Daily Cypher is limited to one synchronized code per day to maintain streaks. Practice Hack provides unlimited gameplay with random targets and a "DECRYPT NEW WORD" button so you can play indefinitely.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Is the game sound synthesized dynamically?</p>
+                <p class="faq-answer">Yes! Using the browser Web Audio API, Neon Cypher synthesizes all click signals, error buzzers, and ascending winning triads programmatically, keeping download speeds instantaneous and offline-compatible.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Is Neon Cypher completely free to play?</p>
+                <p class="faq-answer">Yes, it is 100% free! You can play instantly on both mobile and desktop with no signup, registration, or downloads required, courtesy of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a>.</p>
+            </div>
+
+            <div class="page-footer-note">
+                Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> — Free Browser Arcade Games
+            </div>
         </div>
     </div>
+    <!-- END PRE-GAME INFO OVERLAY -->
 
-    <!-- Retro CRT TV Static and Scanline Overlays -->
-    <div class="crt-scanlines"></div>
-    <div class="crt-vignette"></div>
+    <div class="game-root">
+        <!-- Retro CRT TV Static and Scanline Overlays -->
+        <div class="crt-scanlines"></div>
+        <div class="crt-vignette"></div>
 
-    <div class="game-container">
-        <!-- Arcade Hub Header Navigation -->
-        <header class="game-header">
-            <div class="header-left">
-                <a href="../index.html" class="nav-back-btn" id="header-back-link">
-                    <span class="btn-arrow">&larr;</span> TERMINAL HUB
-                </a>
-            </div>
-            <div class="header-center">
-                <h1 class="main-title">NEON <span class="glow-span">CYPHER</span></h1>
-            </div>
-            <div class="header-right">
-                <button id="help-trigger-btn" class="header-icon-btn" title="How to Play" aria-label="How to Play">?</button>
-                <button id="stats-trigger-btn" class="header-icon-btn" title="Statistics" aria-label="Statistics">&#128202;</button>
-                <button id="audio-toggle-btn" class="header-icon-btn" title="Toggle Synth Sound" aria-label="Toggle Synth Sound">&#128266;</button>
-            </div>
-        </header>
+        <div class="game-container">
+            <!-- Arcade Hub Header Navigation -->
+            <header class="game-header">
+                <div class="header-left">
+                    <a href="../index.html" class="nav-back-btn" id="header-back-link">
+                        <span class="btn-arrow">&larr;</span> TERMINAL HUB
+                    </a>
+                </div>
+                <div class="header-center">
+                    <h1 class="main-title">NEON <span class="glow-span">CYPHER</span></h1>
+                </div>
+                <div class="header-right">
+                    <button id="help-trigger-btn" class="header-icon-btn" title="How to Play" aria-label="How to Play">?</button>
+                    <button id="stats-trigger-btn" class="header-icon-btn" title="Statistics" aria-label="Statistics">&#128202;</button>
+                    <button id="audio-toggle-btn" class="header-icon-btn" title="Toggle Synth Sound" aria-label="Toggle Synth Sound">&#128266;</button>
+                </div>
+            </header>
 
-        <!-- Mode Indicator and Toggle Panel -->
-        <div class="mode-panel">
-            <div class="mode-badge" id="active-mode-badge">DAILY MODE</div>
-            <div class="mode-toggles">
-                <button id="mode-daily-btn" class="mode-btn active">DAILY CYPHER</button>
-                <button id="mode-practice-btn" class="mode-btn">PRACTICE HACK</button>
+            <!-- Mode Indicator and Toggle Panel -->
+            <div class="mode-panel">
+                <div class="mode-badge" id="active-mode-badge">DAILY MODE</div>
+                <div class="mode-toggles">
+                    <button id="mode-daily-btn" class="mode-btn active">DAILY CYPHER</button>
+                    <button id="mode-practice-btn" class="mode-btn">PRACTICE HACK</button>
+                </div>
+            </div>
+
+            <!-- Decryption Grid (6 attempts, 5 letters) -->
+            <main class="grid-container" role="grid" aria-label="Decryption Grid">
+                <div class="grid-row" role="row" id="row-0">
+                    <div class="grid-tile" role="gridcell" id="tile-0-0" aria-label="Row 1 letter 1"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-0-1" aria-label="Row 1 letter 2"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-0-2" aria-label="Row 1 letter 3"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-0-3" aria-label="Row 1 letter 4"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-0-4" aria-label="Row 1 letter 5"></div>
+                </div>
+                <div class="grid-row" role="row" id="row-1">
+                    <div class="grid-tile" role="gridcell" id="tile-1-0" aria-label="Row 2 letter 1"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-1-1" aria-label="Row 2 letter 2"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-1-2" aria-label="Row 2 letter 3"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-1-3" aria-label="Row 2 letter 4"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-1-4" aria-label="Row 2 letter 5"></div>
+                </div>
+                <div class="grid-row" role="row" id="row-2">
+                    <div class="grid-tile" role="gridcell" id="tile-2-0" aria-label="Row 3 letter 1"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-2-1" aria-label="Row 3 letter 2"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-2-2" aria-label="Row 3 letter 3"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-2-3" aria-label="Row 3 letter 4"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-2-4" aria-label="Row 3 letter 5"></div>
+                </div>
+                <div class="grid-row" role="row" id="row-3">
+                    <div class="grid-tile" role="gridcell" id="tile-3-0" aria-label="Row 4 letter 1"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-3-1" aria-label="Row 4 letter 2"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-3-2" aria-label="Row 4 letter 3"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-3-3" aria-label="Row 4 letter 4"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-3-4" aria-label="Row 4 letter 5"></div>
+                </div>
+                <div class="grid-row" role="row" id="row-4">
+                    <div class="grid-tile" role="gridcell" id="tile-4-0" aria-label="Row 5 letter 1"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-4-1" aria-label="Row 5 letter 2"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-4-2" aria-label="Row 5 letter 3"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-4-3" aria-label="Row 5 letter 4"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-4-4" aria-label="Row 5 letter 5"></div>
+                </div>
+                <div class="grid-row" role="row" id="row-5">
+                    <div class="grid-tile" role="gridcell" id="tile-5-0" aria-label="Row 6 letter 1"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-5-1" aria-label="Row 6 letter 2"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-5-2" aria-label="Row 6 letter 3"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-5-3" aria-label="Row 6 letter 4"></div>
+                    <div class="grid-tile" role="gridcell" id="tile-5-4" aria-label="Row 6 letter 5"></div>
+                </div>
+            </main>
+
+            <!-- On-Screen Virtual Keyboard -->
+            <footer class="keyboard-container" aria-label="Virtual Keyboard">
+                <div class="keyboard-row">
+                    <button class="key" data-key="Q" id="key-q">Q</button>
+                    <button class="key" data-key="W" id="key-w">W</button>
+                    <button class="key" data-key="E" id="key-e">E</button>
+                    <button class="key" data-key="R" id="key-r">R</button>
+                    <button class="key" data-key="T" id="key-t">T</button>
+                    <button class="key" data-key="Y" id="key-y">Y</button>
+                    <button class="key" data-key="U" id="key-u">U</button>
+                    <button class="key" data-key="I" id="key-i">I</button>
+                    <button class="key" data-key="O" id="key-o">O</button>
+                    <button class="key" data-key="P" id="key-p">P</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="A" id="key-a">A</button>
+                    <button class="key" data-key="S" id="key-s">S</button>
+                    <button class="key" data-key="D" id="key-d">D</button>
+                    <button class="key" data-key="F" id="key-f">F</button>
+                    <button class="key" data-key="G" id="key-g">G</button>
+                    <button class="key" data-key="H" id="key-h">H</button>
+                    <button class="key" data-key="J" id="key-j">J</button>
+                    <button class="key" data-key="K" id="key-k">K</button>
+                    <button class="key" data-key="L" id="key-l">L</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key double-width-key" data-key="ENTER" id="key-enter">ENTER</button>
+                    <button class="key" data-key="Z" id="key-z">Z</button>
+                    <button class="key" data-key="X" id="key-x">X</button>
+                    <button class="key" data-key="C" id="key-c">C</button>
+                    <button class="key" data-key="V" id="key-v">V</button>
+                    <button class="key" data-key="B" id="key-b">B</button>
+                    <button class="key" data-key="N" id="key-n">N</button>
+                    <button class="key" data-key="M" id="key-m">M</button>
+                    <button class="key double-width-key" data-key="BACKSPACE" id="key-delete">DELETE</button>
+                </div>
+            </footer>
+        </div>
+
+        <!-- How to Play Instructions Modal -->
+        <div id="instructions-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <button class="modal-close-btn" id="instructions-close-btn">&times;</button>
+                <h2 class="modal-title">DECRYPTION MANUAL</h2>
+                <div class="modal-scroll-area">
+                    <p class="modal-subtitle">HOW TO CRACK THE CYPHER:</p>
+                    <p class="instruction-text">Crack the 5-letter daily passcode in 6 attempts. Each guess must be a valid 5-letter spelling packet.</p>
+                    
+                    <p class="modal-subtitle">DECRYPTION FEEDBACK KEY:</p>
+                    <div class="example-row">
+                        <div class="example-tile correct">C</div>
+                        <p class="example-desc"><strong>GREEN CYBER GLOW</strong>: The letter is in the security passcode and placed in the <strong>correct node</strong>.</p>
+                    </div>
+                    <div class="example-row">
+                        <div class="example-tile present">Y</div>
+                        <p class="example-desc"><strong>GOLD GLOW</strong>: The letter is in the security passcode but in an <strong>incorrect node</strong>.</p>
+                    </div>
+                    <div class="example-row">
+                        <div class="example-tile absent">B</div>
+                        <p class="example-desc"><strong>STEEL DARK</strong>: The letter is <strong>not present</strong> in the daily security passcode.</p>
+                    </div>
+
+                    <div class="cyber-divider"></div>
+                    
+                    <p class="instruction-text">A synchronized global mainframe packet is compiled daily at <strong>00:00 UTC</strong>. Earn decryption streaks and share your results on social platforms to compete!</p>
+                </div>
+                <button class="modal-btn" id="instructions-start-btn">ENGAGE HACK</button>
             </div>
         </div>
 
-        <!-- Decryption Grid (6 attempts, 5 letters) -->
-        <main class="grid-container" role="grid" aria-label="Decryption Grid">
-            <div class="grid-row" role="row" id="row-0">
-                <div class="grid-tile" role="gridcell" id="tile-0-0" aria-label="Row 1 letter 1"></div>
-                <div class="grid-tile" role="gridcell" id="tile-0-1" aria-label="Row 1 letter 2"></div>
-                <div class="grid-tile" role="gridcell" id="tile-0-2" aria-label="Row 1 letter 3"></div>
-                <div class="grid-tile" role="gridcell" id="tile-0-3" aria-label="Row 1 letter 4"></div>
-                <div class="grid-tile" role="gridcell" id="tile-0-4" aria-label="Row 1 letter 5"></div>
-            </div>
-            <div class="grid-row" role="row" id="row-1">
-                <div class="grid-tile" role="gridcell" id="tile-1-0" aria-label="Row 2 letter 1"></div>
-                <div class="grid-tile" role="gridcell" id="tile-1-1" aria-label="Row 2 letter 2"></div>
-                <div class="grid-tile" role="gridcell" id="tile-1-2" aria-label="Row 2 letter 3"></div>
-                <div class="grid-tile" role="gridcell" id="tile-1-3" aria-label="Row 2 letter 4"></div>
-                <div class="grid-tile" role="gridcell" id="tile-1-4" aria-label="Row 2 letter 5"></div>
-            </div>
-            <div class="grid-row" role="row" id="row-2">
-                <div class="grid-tile" role="gridcell" id="tile-2-0" aria-label="Row 3 letter 1"></div>
-                <div class="grid-tile" role="gridcell" id="tile-2-1" aria-label="Row 3 letter 2"></div>
-                <div class="grid-tile" role="gridcell" id="tile-2-2" aria-label="Row 3 letter 3"></div>
-                <div class="grid-tile" role="gridcell" id="tile-2-3" aria-label="Row 3 letter 4"></div>
-                <div class="grid-tile" role="gridcell" id="tile-2-4" aria-label="Row 3 letter 5"></div>
-            </div>
-            <div class="grid-row" role="row" id="row-3">
-                <div class="grid-tile" role="gridcell" id="tile-3-0" aria-label="Row 4 letter 1"></div>
-                <div class="grid-tile" role="gridcell" id="tile-3-1" aria-label="Row 4 letter 2"></div>
-                <div class="grid-tile" role="gridcell" id="tile-3-2" aria-label="Row 4 letter 3"></div>
-                <div class="grid-tile" role="gridcell" id="tile-3-3" aria-label="Row 4 letter 4"></div>
-                <div class="grid-tile" role="gridcell" id="tile-3-4" aria-label="Row 4 letter 5"></div>
-            </div>
-            <div class="grid-row" role="row" id="row-4">
-                <div class="grid-tile" role="gridcell" id="tile-4-0" aria-label="Row 5 letter 1"></div>
-                <div class="grid-tile" role="gridcell" id="tile-4-1" aria-label="Row 5 letter 2"></div>
-                <div class="grid-tile" role="gridcell" id="tile-4-2" aria-label="Row 5 letter 3"></div>
-                <div class="grid-tile" role="gridcell" id="tile-4-3" aria-label="Row 5 letter 4"></div>
-                <div class="grid-tile" role="gridcell" id="tile-4-4" aria-label="Row 5 letter 5"></div>
-            </div>
-            <div class="grid-row" role="row" id="row-5">
-                <div class="grid-tile" role="gridcell" id="tile-5-0" aria-label="Row 6 letter 1"></div>
-                <div class="grid-tile" role="gridcell" id="tile-5-1" aria-label="Row 6 letter 2"></div>
-                <div class="grid-tile" role="gridcell" id="tile-5-2" aria-label="Row 6 letter 3"></div>
-                <div class="grid-tile" role="gridcell" id="tile-5-3" aria-label="Row 6 letter 4"></div>
-                <div class="grid-tile" role="gridcell" id="tile-5-4" aria-label="Row 6 letter 5"></div>
-            </div>
-        </main>
-
-        <!-- On-Screen Virtual Keyboard -->
-        <footer class="keyboard-container" aria-label="Virtual Keyboard">
-            <div class="keyboard-row">
-                <button class="key" data-key="Q" id="key-q">Q</button>
-                <button class="key" data-key="W" id="key-w">W</button>
-                <button class="key" data-key="E" id="key-e">E</button>
-                <button class="key" data-key="R" id="key-r">R</button>
-                <button class="key" data-key="T" id="key-t">T</button>
-                <button class="key" data-key="Y" id="key-y">Y</button>
-                <button class="key" data-key="U" id="key-u">U</button>
-                <button class="key" data-key="I" id="key-i">I</button>
-                <button class="key" data-key="O" id="key-o">O</button>
-                <button class="key" data-key="P" id="key-p">P</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="key" data-key="A" id="key-a">A</button>
-                <button class="key" data-key="S" id="key-s">S</button>
-                <button class="key" data-key="D" id="key-d">D</button>
-                <button class="key" data-key="F" id="key-f">F</button>
-                <button class="key" data-key="G" id="key-g">G</button>
-                <button class="key" data-key="H" id="key-h">H</button>
-                <button class="key" data-key="J" id="key-j">J</button>
-                <button class="key" data-key="K" id="key-k">K</button>
-                <button class="key" data-key="L" id="key-l">L</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="key double-width-key" data-key="ENTER" id="key-enter">ENTER</button>
-                <button class="key" data-key="Z" id="key-z">Z</button>
-                <button class="key" data-key="X" id="key-x">X</button>
-                <button class="key" data-key="C" id="key-c">C</button>
-                <button class="key" data-key="V" id="key-v">V</button>
-                <button class="key" data-key="B" id="key-b">B</button>
-                <button class="key" data-key="N" id="key-n">N</button>
-                <button class="key" data-key="M" id="key-m">M</button>
-                <button class="key double-width-key" data-key="BACKSPACE" id="key-delete">DELETE</button>
-            </div>
-        </footer>
-    </div>
-
-    <!-- How to Play Instructions Modal -->
-    <div id="instructions-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <button class="modal-close-btn" id="instructions-close-btn">&times;</button>
-            <h2 class="modal-title">DECRYPTION MANUAL</h2>
-            <div class="modal-scroll-area">
-                <p class="modal-subtitle">HOW TO CRACK THE CYPHER:</p>
-                <p class="instruction-text">Crack the 5-letter daily passcode in 6 attempts. Each guess must be a valid 5-letter spelling packet.</p>
+        <!-- Complete / Stats Completion Modal -->
+        <div id="stats-modal" class="modal-overlay hidden">
+            <div class="modal-content stats-content">
+                <button class="modal-close-btn" id="stats-close-btn">&times;</button>
+                <h2 class="modal-title" id="stats-modal-title">DECRYPTION COMPLETE</h2>
                 
-                <p class="modal-subtitle">DECRYPTION FEEDBACK KEY:</p>
-                <div class="example-row">
-                    <div class="example-tile correct">C</div>
-                    <p class="example-desc"><strong>GREEN CYBER GLOW</strong>: The letter is in the security passcode and placed in the <strong>correct node</strong>.</p>
-                </div>
-                <div class="example-row">
-                    <div class="example-tile present">Y</div>
-                    <p class="example-desc"><strong>GOLD GLOW</strong>: The letter is in the security passcode but in an <strong>incorrect node</strong>.</p>
-                </div>
-                <div class="example-row">
-                    <div class="example-tile absent">B</div>
-                    <p class="example-desc"><strong>STEEL DARK</strong>: The letter is <strong>not present</strong> in the daily security passcode.</p>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-val" id="stat-played">0</div>
+                        <div class="stat-lbl">Played</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val" id="stat-win-pct">0%</div>
+                        <div class="stat-lbl">Success</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val" id="stat-streak">0</div>
+                        <div class="stat-lbl">Streak</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-val" id="stat-max-streak">0</div>
+                        <div class="stat-lbl">Max Streak</div>
+                    </div>
                 </div>
 
                 <div class="cyber-divider"></div>
+
+                <h3 class="distribution-title">DECRYPTION ATTEMPTS</h3>
+                <div class="distribution-chart">
+                    <div class="chart-row">
+                        <div class="row-num">1</div>
+                        <div class="chart-bar-container"><div class="chart-bar" id="bar-1" style="width: 0%;">0</div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="row-num">2</div>
+                        <div class="chart-bar-container"><div class="chart-bar" id="bar-2" style="width: 0%;">0</div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="row-num">3</div>
+                        <div class="chart-bar-container"><div class="chart-bar" id="bar-3" style="width: 0%;">0</div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="row-num">4</div>
+                        <div class="chart-bar-container"><div class="chart-bar" id="bar-4" style="width: 0%;">0</div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="row-num">5</div>
+                        <div class="chart-bar-container"><div class="chart-bar" id="bar-5" style="width: 0%;">0</div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="row-num">6</div>
+                        <div class="chart-bar-container"><div class="chart-bar" id="bar-6" style="width: 0%;">0</div></div>
+                    </div>
+                </div>
+
+                <div class="cyber-divider"></div>
+
+                <div class="modal-footer-flex">
+                    <div class="next-countdown-box">
+                        <div class="countdown-lbl">NEXT CYPHER IN</div>
+                        <div class="countdown-val" id="next-cypher-timer">00:00:00</div>
+                    </div>
+                    <div class="share-box">
+                        <button class="share-btn" id="share-btn">SHARE DECRYPTION &#128229;</button>
+                    </div>
+                </div>
                 
-                <p class="instruction-text">A synchronized global mainframe packet is compiled daily at <strong>00:00 UTC</strong>. Earn decryption streaks and share your results on social platforms to compete!</p>
-            </div>
-            <button class="modal-btn" id="instructions-start-btn">ENGAGE HACK</button>
-        </div>
-    </div>
-
-    <!-- Complete / Stats Completion Modal -->
-    <div id="stats-modal" class="modal-overlay hidden">
-        <div class="modal-content stats-content">
-            <button class="modal-close-btn" id="stats-close-btn">&times;</button>
-            <h2 class="modal-title" id="stats-modal-title">DECRYPTION COMPLETE</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-val" id="stat-played">0</div>
-                    <div class="stat-lbl">Played</div>
+                <div class="practice-action-box hidden" id="practice-replay-box">
+                    <button class="modal-btn" id="practice-replay-btn">DECRYPT NEW WORD</button>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-val" id="stat-win-pct">0%</div>
-                    <div class="stat-lbl">Success</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-val" id="stat-streak">0</div>
-                    <div class="stat-lbl">Streak</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-val" id="stat-max-streak">0</div>
-                    <div class="stat-lbl">Max Streak</div>
-                </div>
-            </div>
-
-            <div class="cyber-divider"></div>
-
-            <h3 class="distribution-title">DECRYPTION ATTEMPTS</h3>
-            <div class="distribution-chart">
-                <div class="chart-row">
-                    <div class="row-num">1</div>
-                    <div class="chart-bar-container"><div class="chart-bar" id="bar-1" style="width: 0%;">0</div></div>
-                </div>
-                <div class="chart-row">
-                    <div class="row-num">2</div>
-                    <div class="chart-bar-container"><div class="chart-bar" id="bar-2" style="width: 0%;">0</div></div>
-                </div>
-                <div class="chart-row">
-                    <div class="row-num">3</div>
-                    <div class="chart-bar-container"><div class="chart-bar" id="bar-3" style="width: 0%;">0</div></div>
-                </div>
-                <div class="chart-row">
-                    <div class="row-num">4</div>
-                    <div class="chart-bar-container"><div class="chart-bar" id="bar-4" style="width: 0%;">0</div></div>
-                </div>
-                <div class="chart-row">
-                    <div class="row-num">5</div>
-                    <div class="chart-bar-container"><div class="chart-bar" id="bar-5" style="width: 0%;">0</div></div>
-                </div>
-                <div class="chart-row">
-                    <div class="row-num">6</div>
-                    <div class="chart-bar-container"><div class="chart-bar" id="bar-6" style="width: 0%;">0</div></div>
-                </div>
-            </div>
-
-            <div class="cyber-divider"></div>
-
-            <div class="modal-footer-flex">
-                <div class="next-countdown-box">
-                    <div class="countdown-lbl">NEXT CYPHER IN</div>
-                    <div class="countdown-val" id="next-cypher-timer">00:00:00</div>
-                </div>
-                <div class="share-box">
-                    <button class="share-btn" id="share-btn">SHARE DECRYPTION &#128229;</button>
-                </div>
-            </div>
-            
-            <div class="practice-action-box hidden" id="practice-replay-box">
-                <button class="modal-btn" id="practice-replay-btn">DECRYPT NEW WORD</button>
             </div>
         </div>
-    </div>
 
-    <!-- Action Toast Notification Overlay -->
-    <div id="toast-notification" class="toast hidden"></div>
+        <!-- Action Toast Notification Overlay -->
+        <div id="toast-notification" class="toast hidden"></div>
+    </div>
 
     <!-- Standard Script Integration -->
     <script src="dictionary.js"></script>
@@ -289,5 +501,26 @@
     
     <!-- PWA Offline Auto-Registration Helper -->
     <script src="../shared/pwa-setup.js" defer></script>
+
+    <!-- AdSense Compliance Auto-Bypass script for returning players -->
+    <script>
+    (function() {
+        var gameId = 'neon-cypher';
+        if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+            continueToGame(true);
+        }
+    })();
+    function continueToGame(isReturning) {
+        var gameId = 'neon-cypher';
+        localStorage.setItem('arcade_seen_' + gameId, '1');
+        document.body.classList.remove('show-info-overlay');
+        window.dispatchEvent(new Event('resize'));
+        var overlay = document.getElementById('game-info-overlay');
+        if (overlay) overlay.style.display = 'none';
+        
+        // Lazy wake up AudioContext inside core engine if user clicks play
+        if (typeof initAudio === 'function') { initAudio(); }
+    }
+    </script>
 </body>
 </html>

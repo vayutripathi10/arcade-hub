@@ -319,6 +319,7 @@ function renderRecoveredBoard() {
 // Keystroke & Input handling state machine
 // ----------------------------------------------------
 function handleKeyPress(key) {
+    if (document.body.classList.contains('show-info-overlay')) return;
     if (gameState.gameStatus !== 'playing') return;
     if (gameState.currentRow >= 6) {
         gameState.gameStatus = 'lost';
@@ -762,7 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle physical keyboard typings
     document.addEventListener('keydown', (e) => {
-        if (document.getElementById('compliance-overlay').offsetHeight > 0) return;
+        if (document.body.classList.contains('show-info-overlay')) return;
         
         // Ignore typing when instructions modal or statistics completions are open
         if (document.getElementById('instructions-modal').offsetHeight > 0) return;
