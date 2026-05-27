@@ -320,6 +320,10 @@ function renderRecoveredBoard() {
 // ----------------------------------------------------
 function handleKeyPress(key) {
     if (gameState.gameStatus !== 'playing') return;
+    if (gameState.currentRow >= 6) {
+        gameState.gameStatus = 'lost';
+        return;
+    }
     initAudio();
     
     const keyUpper = key.toUpperCase();
@@ -762,6 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Ignore typing when instructions modal or statistics completions are open
         if (document.getElementById('instructions-modal').offsetHeight > 0) return;
+        if (document.getElementById('stats-modal').offsetHeight > 0) return;
         
         handleKeyPress(e.key);
     });
@@ -773,6 +778,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const pressedKey = e.currentTarget.getAttribute('data-key');
             handleKeyPress(pressedKey);
         });
+    });
+
+    // Prevent double-tap zoom on virtual keys, header controls, and mode buttons on mobile screens
+    let lastTouchEnd = 0;
+    const touchSelector = '.key, .header-icon-btn, .mode-btn, .compliance-btn, .share-btn, .modal-btn';
+    document.querySelectorAll(touchSelector).forEach(button => {
+        button.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
     });
 
     // Launch default Daily mode instantly
