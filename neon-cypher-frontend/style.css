@@ -845,3 +845,92 @@ body.cyber-theme {
         min-height: 100vh;
     }
 }
+
+/* Laptop and Short Screen Sizing Constraints (Responsive Vertical Heights) */
+@media (max-height: 760px) {
+    .game-container {
+        padding: 5px;
+    }
+    .game-header {
+        padding: 6px 0;
+    }
+    .main-title {
+        font-size: 1.4rem;
+    }
+    .mode-panel {
+        margin: 4px 0;
+    }
+    .grid-container {
+        padding: 6px 0;
+        gap: 5px;
+    }
+    .grid-row {
+        gap: 5px;
+    }
+    .grid-tile {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+        border-radius: 6px;
+    }
+    .keyboard-container {
+        padding-top: 8px;
+        gap: 4px;
+    }
+    .keyboard-row {
+        gap: 4px;
+    }
+    .key {
+        height: 40px;
+        font-size: 0.9rem;
+        border-radius: 4px;
+    }
+    .double-width-key {
+        max-width: 58px;
+        font-size: 0.68rem;
+    }
+}
+
+@media (max-height: 660px) {
+    .game-container {
+        padding: 3px;
+    }
+    .game-header {
+        padding: 4px 0;
+    }
+    .main-title {
+        font-size: 1.25rem;
+        letter-spacing: 1px;
+    }
+    .mode-panel {
+        display: none; /* Hide mode panel on short viewport heights to conserve space */
+    }
+    .grid-container {
+        padding: 4px 0;
+        gap: 4px;
+    }
+    .grid-row {
+        gap: 4px;
+    }
+    .grid-tile {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+        border-radius: 5px;
+    }
+    .keyboard-container {
+        padding-top: 4px;
+        gap: 3px;
+    }
+    .keyboard-row {
+        gap: 3px;
+    }
+    .key {
+        height: 32px;
+        font-size: 0.8rem;
+    }
+    .double-width-key {
+        max-width: 50px;
+        font-size: 0.6rem;
+    }
+}
