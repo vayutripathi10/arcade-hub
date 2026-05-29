@@ -99,13 +99,14 @@ body.cyber-theme {
     align-items: center;
     padding: 10px 0;
     border-bottom: 2px solid var(--steel-grey);
+    gap: 12px; /* Bulletproof flex gap prevents touching or overlapping under any scale */
 }
 
 .nav-back-btn {
     color: #e2e8f0;
     text-decoration: none;
     font-family: var(--font-cyber);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -120,9 +121,9 @@ body.cyber-theme {
 
 .main-title {
     font-family: var(--font-cyber);
-    font-size: 1.8rem;
+    font-size: 1.55rem;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     color: #ffffff;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
@@ -780,6 +781,160 @@ body.cyber-theme {
     border-radius: 3px;
 }
 
+/* Start Menu Overlay Styling */
+.start-menu-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: #07090d;
+    z-index: 1900; /* High enough to cover game container elements */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.3s ease;
+}
+
+.start-menu-overlay.hidden {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.start-menu-content {
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.start-menu-logo {
+    margin-bottom: 15px;
+}
+
+.start-menu-title {
+    font-family: var(--font-cyber);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+}
+
+.start-menu-subtitle {
+    font-family: var(--font-cyber);
+    font-size: 0.85rem;
+    color: var(--cyber-cyan);
+    text-shadow: 0 0 8px var(--cyber-cyan-rgba);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.start-menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.start-btn {
+    background: #0f1218;
+    border: 1px solid var(--steel-grey);
+    color: #cbd5e1;
+    font-family: var(--font-cyber);
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    touch-action: manipulation;
+}
+
+.start-btn:hover {
+    border-color: #ffffff;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.start-btn.primary-btn {
+    border-color: var(--cyber-cyan);
+    color: var(--cyber-cyan);
+    background: rgba(0, 255, 204, 0.03);
+    text-shadow: 0 0 6px var(--cyber-cyan-rgba);
+}
+
+.start-btn.primary-btn:hover {
+    background: var(--cyber-cyan);
+    color: #000000;
+    text-shadow: none;
+    box-shadow: 0 0 20px var(--cyber-cyan);
+    border-color: var(--cyber-cyan);
+}
+
+.start-btn:active {
+    transform: scale(0.97);
+}
+
+/* Social Share Layout inside Completions Modal */
+.share-box-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.social-share-row {
+    display: flex;
+    gap: 6px;
+}
+
+.social-share-btn {
+    background-color: #0b0e12;
+    border: 1px solid var(--steel-grey);
+    color: #cbd5e1;
+    font-family: var(--font-cyber);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    flex-grow: 1;
+}
+
+.whatsapp-share-btn:hover {
+    border-color: #25d366;
+    color: #25d366;
+    box-shadow: 0 0 10px rgba(37, 211, 102, 0.3);
+    background-color: rgba(37, 211, 102, 0.05);
+}
+
+.twitter-share-btn:hover {
+    border-color: #ffffff;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Back Button Responsive Text Hides */
+.back-text-short {
+    display: none;
+}
+
+
 /* Mobile Portrait Sizing Constraints */
 @media (max-width: 480px) {
     .game-container {
@@ -794,8 +949,16 @@ body.cyber-theme {
         font-size: 0.78rem;
     }
     
+    .back-text-long {
+        display: none !important;
+    }
+    
+    .back-text-short {
+        display: inline !important;
+    }
+    
     .main-title {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         letter-spacing: 1px;
     }
     

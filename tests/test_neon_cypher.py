@@ -49,6 +49,17 @@ def test_neon_cypher():
         assert "hidden" in help_modal.get_attribute("class")
         print("Manual closed successfully!")
 
+        print("4b. Verify Start Menu Overlay is active and click INITIATE DECRYPTION...")
+        start_menu = driver.find_element(By.ID, "start-menu-overlay")
+        assert start_menu.is_displayed(), "Start menu overlay is not visible!"
+        
+        resume_btn = driver.find_element(By.ID, "start-resume-btn")
+        resume_btn.click()
+        
+        time.sleep(0.5)
+        assert "hidden" in start_menu.get_attribute("class") or not start_menu.is_displayed(), "Start menu did not hide!"
+        print("Start menu bypassed successfully!")
+
         print("5. Verify Game Mode default structure (Daily Mode)...")
         active_badge = driver.find_element(By.ID, "active-mode-badge")
         badge_text = active_badge.get_attribute("textContent")

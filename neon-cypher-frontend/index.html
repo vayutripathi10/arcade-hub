@@ -275,12 +275,27 @@
         <div class="crt-scanlines"></div>
         <div class="crt-vignette"></div>
 
+        <!-- Start Menu Overlay -->
+        <div id="start-menu-overlay" class="start-menu-overlay">
+            <div class="start-menu-content">
+                <div class="start-menu-logo">
+                    <h2 class="start-menu-title">NEON <span class="glow-span">CYPHER</span></h2>
+                    <p class="start-menu-subtitle">Security Mainframe Terminal</p>
+                </div>
+                <div class="start-menu-options">
+                    <button class="start-btn primary-btn" id="start-resume-btn">INITIATE DECRYPTION ➔</button>
+                    <button class="start-btn" id="start-howto-btn">HOW TO PLAY</button>
+                    <button class="start-btn" id="start-hub-btn">TERMINAL HUB</button>
+                </div>
+            </div>
+        </div>
+
         <div class="game-container">
             <!-- Arcade Hub Header Navigation -->
             <header class="game-header">
                 <div class="header-left">
                     <a href="../index.html" class="nav-back-btn" id="header-back-link">
-                        <span class="btn-arrow">&larr;</span> TERMINAL HUB
+                        <span class="btn-arrow">&larr;</span> <span class="back-text-long">TERMINAL HUB</span><span class="back-text-short">HUB</span>
                     </a>
                 </div>
                 <div class="header-center">
@@ -480,8 +495,16 @@
                         <div class="countdown-lbl">NEXT CYPHER IN</div>
                         <div class="countdown-val" id="next-cypher-timer">00:00:00</div>
                     </div>
-                    <div class="share-box">
-                        <button class="share-btn" id="share-btn">SHARE DECRYPTION &#128229;</button>
+                    <div class="share-box-wrapper">
+                        <button class="share-btn" id="share-btn">SHARE HACK &#128229;</button>
+                        <div class="social-share-row">
+                            <button class="social-share-btn whatsapp-share-btn" id="share-whatsapp-btn" title="Share on WhatsApp">
+                                💬 WhatsApp
+                            </button>
+                            <button class="social-share-btn twitter-share-btn" id="share-twitter-btn" title="Share on Twitter">
+                                🐦 Twitter
+                            </button>
+                        </div>
                     </div>
                 </div>
                 

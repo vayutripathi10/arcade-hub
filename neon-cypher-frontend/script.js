@@ -654,8 +654,8 @@ function showStatsModal() {
 // ----------------------------------------------------
 // Social Copy Sharing Clipboard Assembly
 // ----------------------------------------------------
-function copyShareGrid() {
-    if (gameState.gameStatus === 'playing') return;
+function generateShareText() {
+    if (gameState.gameStatus === 'playing') return null;
     
     const isWin = gameState.gameStatus === 'won';
     const scoreText = isWin ? `${gameState.currentRow + 1}/6` : 'X/6';
@@ -673,18 +673,25 @@ function copyShareGrid() {
         let rowEmojis = '';
         for (let c = 0; c < 5; c++) {
             const tile = document.getElementById(`tile-${r}-${c}`);
-            if (tile.classList.contains('correct')) {
-                rowEmojis += '🟢';
-            } else if (tile.classList.contains('present')) {
-                rowEmojis += '🟡';
-            } else {
-                rowEmojis += '⚫';
+            if (tile) {
+                if (tile.classList.contains('correct')) {
+                    rowEmojis += '🟢';
+                } else if (tile.classList.contains('present')) {
+                    rowEmojis += '🟡';
+                } else {
+                    rowEmojis += '⚫';
+                }
             }
         }
         gridString += '\n' + rowEmojis;
     }
     
-    const finalShareText = `${titleText}${gridString}\n\nPlay instantly at ArcadeHubPlay.com! 🔐`;
+    return `${titleText}${gridString}\n\nPlay instantly at ArcadeHubPlay.com! 🔐`;
+}
+
+function copyShareGrid() {
+    const finalShareText = generateShareText();
+    if (!finalShareText) return;
     
     // Copy to system clipboard
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -796,7 +803,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (document.body.classList.contains('show-info-overlay')) return;
         
-        // Ignore typing when instructions modal or statistics completions are open
+        // Ignore typing when start menu, instructions modal, or statistics completions are open
+        const startMenu = document.getElementById('start-menu-overlay');
+        if (startMenu && !startMenu.classList.contains('hidden')) return;
         if (document.getElementById('instructions-modal').offsetHeight > 0) return;
         if (document.getElementById('stats-modal').offsetHeight > 0) return;
         
@@ -810,13 +819,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const pressedKey = e.currentTarget.getAttribute('data-key');
             handleKeyPress(pressedKey);
         });
-    });
-
-
-
-    // Prevent double-tap zoom on virtual keys, header controls, and mode buttons on mobile screens
+    });    // Prevent double-tap zoom on virtual keys, header controls, and mode buttons on mobile screens
     let lastTouchEnd = 0;
-    const touchSelector = '.key, .header-icon-btn, .mode-btn, .compliance-btn, .share-btn, .modal-btn, .continue-game-btn';
+    const touchSelector = '.key, .header-icon-btn, .mode-btn, .compliance-btn, .share-btn, .social-share-btn, .start-btn, .modal-btn, .continue-game-btn';
     document.querySelectorAll(touchSelector).forEach(button => {
         button.addEventListener('touchend', (e) => {
             const now = Date.now();
@@ -827,6 +832,106 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { passive: false });
     });
 
+    // Start Menu event listeners and interceptors
+    const resumeBtn = document.getElementById('start-resume-btn');
+    const startHowToBtn = document.getElementById('start-howto-btn');
+    const startHubBtn = document.getElementById('start-hub-btn');
+    const startMenuOverlay = document.getElementById('start-menu-overlay');
+
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', () => {
+            initAudio();
+            playTapSound();
+            if (startMenuOverlay) {
+                startMenuOverlay.classList.add('hidden');
+            }
+        });
+    }
+
+    if (startHowToBtn) {
+        startHowToBtn.addEventListener('click', () => {
+            initAudio();
+            playTapSound();
+            document.getElementById('instructions-modal').classList.remove('hidden');
+        });
+    }
+
+    if (startHubBtn) {
+        startHubBtn.addEventListener('click', () => {
+            initAudio();
+            playTapSound();
+            window.location.href = '../index.html';
+        });
+    }
+
+    // Intercept header back-link to display Start Menu instead of raw site exit
+    const backBtn = document.getElementById('header-back-link');
+    if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            initAudio();
+            playTapSound();
+            updateStartMenuBtnText();
+            if (startMenuOverlay) {
+                startMenuOverlay.classList.remove('hidden');
+            }
+        });
+    }
+
+    // Social Sharing WhatsApp
+    const waShareBtn = document.getElementById('share-whatsapp-btn');
+    if (waShareBtn) {
+        waShareBtn.addEventListener('click', () => {
+            initAudio();
+            playTapSound();
+            const shareText = generateShareText();
+            if (shareText) {
+                const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+                window.open(url, '_blank');
+            }
+        });
+    }
+
+    // Social Sharing Twitter
+    const twShareBtn = document.getElementById('share-twitter-btn');
+    if (twShareBtn) {
+        twShareBtn.addEventListener('click', () => {
+            initAudio();
+            playTapSound();
+            const shareText = generateShareText();
+            if (shareText) {
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+                window.open(url, '_blank');
+            }
+        });
+    }
+
     // Launch default Daily mode instantly
     initGame('daily');
+    updateStartMenuBtnText();
 });
+
+// Helper function to update Start Menu resume button text dynamically
+function updateStartMenuBtnText() {
+    const resumeBtn = document.getElementById('start-resume-btn');
+    if (!resumeBtn) return;
+    
+    // Check if there is an in-progress game state
+    const hasDailySaved = localStorage.getItem(`neon-cypher-daily-state-${gameState.lang}`);
+    let inProgress = false;
+    
+    if (hasDailySaved) {
+        try {
+            const saveObj = JSON.parse(hasDailySaved);
+            if (saveObj.dailyIndex === gameState.dailyIndex && saveObj.currentRow > 0 && saveObj.gameStatus === 'playing') {
+                inProgress = true;
+            }
+        } catch (e) {}
+    }
+    
+    if (inProgress) {
+        resumeBtn.innerHTML = "RESUME HACK ➔";
+    } else {
+        resumeBtn.innerHTML = "INITIATE DECRYPTION ➔";
+    }
+}
