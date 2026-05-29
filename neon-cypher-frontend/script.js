@@ -182,115 +182,10 @@ setInterval(updateCountdown, 1000);
 // ----------------------------------------------------
 // Helper to retrieve active language dictionary arrays
 function getActiveDictionaries() {
-    if (gameState.lang === 'hi') {
-        return {
-            targets: window.HINDI_TARGET_WORDS || [],
-            validations: window.HINDI_VALID_GUESSES || []
-        };
-    }
     return {
         targets: window.TARGET_WORDS || [],
         validations: window.VALID_GUESSES || []
     };
-}
-
-// Translate UI components dynamically based on selected language
-function updateLanguageUI() {
-    const isHi = gameState.lang === 'hi';
-    
-    // Update terminal back button
-    const backBtn = document.getElementById('header-back-link');
-    if (backBtn) {
-        backBtn.innerHTML = isHi ? '<span class="btn-arrow">&larr;</span> टर्मिनल हब' : '<span class="btn-arrow">&larr;</span> TERMINAL HUB';
-    }
-    
-    // Update header tooltips/titles
-    const helpBtn = document.getElementById('help-trigger-btn');
-    if (helpBtn) {
-        helpBtn.title = isHi ? "कैसे खेलें" : "How to Play";
-        helpBtn.setAttribute('aria-label', isHi ? "कैसे खेलें" : "How to Play");
-    }
-    const statsBtn = document.getElementById('stats-trigger-btn');
-    if (statsBtn) {
-        statsBtn.title = isHi ? "आंकड़े" : "Statistics";
-        statsBtn.setAttribute('aria-label', isHi ? "आंकड़े" : "Statistics");
-    }
-    const audioBtn = document.getElementById('audio-toggle-btn');
-    if (audioBtn) {
-        audioBtn.title = isHi ? (soundEnabled ? "आवाज़ बंद करें" : "आवाज़ चालू करें") : (soundEnabled ? "Mute Synth" : "Enable Synth");
-        audioBtn.setAttribute('aria-label', isHi ? "आवाज़ टॉगल करें" : "Toggle Synth Sound");
-    }
-    
-    // Update Mode Buttons
-    const modeDailyBtn = document.getElementById('mode-daily-btn');
-    if (modeDailyBtn) {
-        modeDailyBtn.textContent = isHi ? "डेली साइफ़र" : "DAILY CYPHER";
-    }
-    const modePracticeBtn = document.getElementById('mode-practice-btn');
-    if (modePracticeBtn) {
-        modePracticeBtn.textContent = isHi ? "प्रैक्टिस हैक" : "PRACTICE HACK";
-    }
-    
-
-    
-    // Update Instructions Modal content
-    const instTitle = document.getElementById('instructions-title');
-    if (instTitle) {
-        instTitle.textContent = isHi ? "डिक्रिप्शन मैनुअल" : "DECRYPTION MANUAL";
-    }
-    const instSub1 = document.getElementById('instructions-subtitle-1');
-    if (instSub1) {
-        instSub1.textContent = isHi ? "साइफ़र कैसे क्रैक करें:" : "HOW TO CRACK THE CYPHER:";
-    }
-    const instText1 = document.getElementById('instructions-text-1');
-    if (instText1) {
-        instText1.textContent = isHi ? "6 प्रयासों में 5-अक्षरों वाले दैनिक पासकोड को क्रैक करें। प्रत्येक अनुमान एक मान्य 5-अक्षरों का शब्द (Hinglish/Hindi) होना चाहिए।" : "Crack the 5-letter daily passcode in 6 attempts. Each guess must be a valid 5-letter spelling packet.";
-    }
-    const instSub2 = document.getElementById('instructions-subtitle-2');
-    if (instSub2) {
-        instSub2.textContent = isHi ? "डिक्रिप्शन फ़ीडबैक संकेत:" : "DECRYPTION FEEDBACK KEY:";
-    }
-    
-    const instExampleCorrect = document.getElementById('instructions-example-correct');
-    if (instExampleCorrect) {
-        instExampleCorrect.innerHTML = isHi ? "<strong>हरा साइबर ग्लो:</strong> अक्षर पासकोड में है और <strong>सही स्थान</strong> पर है।" : "<strong>GREEN CYBER GLOW</strong>: The letter is in the security passcode and placed in the <strong>correct node</strong>.";
-    }
-    const instExamplePresent = document.getElementById('instructions-example-present');
-    if (instExamplePresent) {
-        instExamplePresent.innerHTML = isHi ? "<strong>पीला ग्लो:</strong> अक्षर पासकोड में है लेकिन <strong>गलत स्थान</strong> पर है।" : "<strong>GOLD GLOW</strong>: The letter is in the security passcode but in an <strong>incorrect node</strong>.";
-    }
-    const instExampleAbsent = document.getElementById('instructions-example-absent');
-    if (instExampleAbsent) {
-        instExampleAbsent.innerHTML = isHi ? "<strong>डार्क ग्रे:</strong> अक्षर दैनिक सुरक्षा पासकोड में <strong>मौजूद नहीं</strong> है।" : "<strong>STEEL DARK</strong>: The letter is <strong>not present</strong> in the daily security passcode.";
-    }
-    
-    const instText2 = document.getElementById('instructions-text-2');
-    if (instText2) {
-        instText2.innerHTML = isHi ? "एक सिंक्रोनाइज़्ड वैश्विक पासकोड दैनिक <strong>00:00 UTC</strong> पर तैयार होता है। लगातार जीत हासिल करें और शेयर करें!" : "A synchronized global mainframe packet is compiled daily at <strong>00:00 UTC</strong>. Earn decryption streaks and share your results on social platforms to compete!";
-    }
-    
-    const instStartBtn = document.getElementById('instructions-start-btn');
-    if (instStartBtn) {
-        instStartBtn.textContent = isHi ? "हैक शुरू करें" : "ENGAGE HACK";
-    }
-    
-    // Update Stats labels
-    const lblPlayed = document.getElementById('lbl-played');
-    if (lblPlayed) {
-        lblPlayed.textContent = isHi ? "खेला गया" : "Played";
-    }
-    const lblSuccess = document.getElementById('lbl-success');
-    if (lblSuccess) {
-        lblSuccess.textContent = isHi ? "सफलता" : "Success";
-    }
-    const lblStreak = document.getElementById('lbl-streak');
-    if (lblStreak) {
-        lblStreak.textContent = isHi ? "लगातार जीत" : "Streak";
-    }
-    const lblMaxStreak = document.getElementById('lbl-max-streak');
-    if (lblMaxStreak) {
-        lblMaxStreak.textContent = isHi ? "अधिकतम जीत" : "Max Streak";
-    }
 }
 
 // Core Initialization & LocalStorage Resume Logic
@@ -300,9 +195,6 @@ function initGame(mode) {
     gameState.currentCol = 0;
     gameState.boardState = ['', '', '', '', '', ''];
     gameState.gameStatus = 'playing';
-    
-    // Update translation text for the entire UI
-    updateLanguageUI();
     
     // Clear keyboard and board visuals
     clearVisualBoard();
@@ -318,7 +210,7 @@ function initGame(mode) {
         const targetWordIndex = todayIndex % dicts.targets.length;
         gameState.secretWord = dicts.targets[targetWordIndex].toUpperCase();
         
-        const badgeText = gameState.lang === 'hi' ? `डेली हैक #${todayIndex + 1}` : `DAILY MODE #${todayIndex + 1}`;
+        const badgeText = `DAILY MODE #${todayIndex + 1}`;
         document.getElementById('active-mode-badge').textContent = badgeText;
         document.getElementById('practice-replay-box').classList.add('hidden');
         
@@ -329,7 +221,7 @@ function initGame(mode) {
         const randomIdx = Math.floor(Math.random() * dicts.targets.length);
         gameState.secretWord = dicts.targets[randomIdx].toUpperCase();
         
-        const badgeText = gameState.lang === 'hi' ? "प्रैक्टिस मोड सक्रिय" : "PRACTICE HACK ACTIVE";
+        const badgeText = "PRACTICE HACK ACTIVE";
         document.getElementById('active-mode-badge').textContent = badgeText;
         document.getElementById('practice-replay-box').classList.remove('hidden');
     }
@@ -495,7 +387,7 @@ function handleBackspace() {
 
 function handleSubmitRow() {
     if (gameState.currentCol < 5) {
-        const errorText = gameState.lang === 'hi' ? "अधूरा शब्द" : "INCOMPLETE ENCRYPTION";
+        const errorText = "INCOMPLETE ENCRYPTION";
         showToast(errorText);
         playErrorSound();
         shakeRow(gameState.currentRow);
@@ -509,7 +401,7 @@ function handleSubmitRow() {
     
     // Verify guess against active spelling validation list
     if (!dicts.validations.includes(guess.toLowerCase())) {
-        const invalidText = gameState.lang === 'hi' ? "गलत शब्द" : "INVALID ENCRYPTION PACKET";
+        const invalidText = "INVALID ENCRYPTION PACKET";
         showToast(invalidText);
         playErrorSound();
         shakeRow(row);
@@ -614,7 +506,7 @@ function resolveGameState(correctCount) {
         saveDailyState();
         
         setTimeout(() => {
-            const winText = gameState.lang === 'hi' ? "शाबाश! हैक सफल!" : "MAINFRAME BYPASSED!";
+            const winText = "MAINFRAME BYPASSED!";
             showToast(winText);
             showStatsModal();
         }, 1200);
@@ -629,7 +521,7 @@ function resolveGameState(correctCount) {
             saveDailyState();
             
             setTimeout(() => {
-                const failText = gameState.lang === 'hi' ? `हैक असफल! सही शब्द: ${gameState.secretWord}` : `DECRYPTION FAILED. KEY: ${gameState.secretWord}`;
+                const failText = `DECRYPTION FAILED. KEY: ${gameState.secretWord}`;
                 showToast(failText);
                 showStatsModal();
             }, 1200);
@@ -716,31 +608,17 @@ function showStatsModal() {
     const shareBtn = document.getElementById('share-btn');
     const replayBtn = document.getElementById('practice-replay-btn');
     
-    if (gameState.lang === 'hi') {
-        if (gameState.gameStatus === 'won') {
-            titleEl.innerHTML = "हैक <span class='glow-span'>सफल हुआ!</span>";
-        } else if (gameState.gameStatus === 'lost') {
-            titleEl.innerHTML = "हैक <span style='color:var(--magenta-glow);text-shadow:0 0 10px rgba(255,0,85,0.4)'>असफल हुआ</span>";
-        } else {
-            titleEl.textContent = "हैक आंकड़े";
-        }
-        if (distTitle) distTitle.textContent = "प्रयासों की संख्या";
-        if (countdownLbl) countdownLbl.textContent = "अगला हैक";
-        if (shareBtn) shareBtn.innerHTML = "शेयर करें &#128229;";
-        if (replayBtn) replayBtn.textContent = "नया हैक शुरू करें";
+    if (gameState.gameStatus === 'won') {
+        titleEl.innerHTML = "DECRYPTION <span class='glow-span'>SUCCESSFUL</span>";
+    } else if (gameState.gameStatus === 'lost') {
+        titleEl.innerHTML = "DECRYPTION <span style='color:var(--magenta-glow);text-shadow:0 0 10px rgba(255,0,85,0.4)'>FAILED</span>";
     } else {
-        if (gameState.gameStatus === 'won') {
-            titleEl.innerHTML = "DECRYPTION <span class='glow-span'>SUCCESSFUL</span>";
-        } else if (gameState.gameStatus === 'lost') {
-            titleEl.innerHTML = "DECRYPTION <span style='color:var(--magenta-glow);text-shadow:0 0 10px rgba(255,0,85,0.4)'>FAILED</span>";
-        } else {
-            titleEl.textContent = "DECRYPTION STATISTICS";
-        }
-        if (distTitle) distTitle.textContent = "DECRYPTION ATTEMPTS";
-        if (countdownLbl) countdownLbl.textContent = "NEXT CYPHER IN";
-        if (shareBtn) shareBtn.innerHTML = "SHARE DECRYPTION &#128229;";
-        if (replayBtn) replayBtn.textContent = "DECRYPT NEW WORD";
+        titleEl.textContent = "DECRYPTION STATISTICS";
     }
+    if (distTitle) distTitle.textContent = "DECRYPTION ATTEMPTS";
+    if (countdownLbl) countdownLbl.textContent = "NEXT CYPHER IN";
+    if (shareBtn) shareBtn.innerHTML = "SHARE DECRYPTION &#128229;";
+    if (replayBtn) replayBtn.textContent = "DECRYPT NEW WORD";
     
     // Fill attempt chart bars
     const maxVal = Math.max(...stats.distribution, 1);
@@ -836,21 +714,6 @@ function fallbackClipboardCopy(text) {
     }
 }
 
-// Expose language selection + play action globally for landing page triggers
-window.selectLanguageAndPlay = function(lang) {
-    gameState.lang = lang;
-    localStorage.setItem('neon-cypher-lang', lang);
-    
-
-    
-    // Re-initialize game boards under active daily/practice states
-    initGame(gameState.mode);
-    
-    // Proceed to the mainframe game board
-    if (typeof continueToGame === 'function') {
-        continueToGame();
-    }
-};
 
 // ----------------------------------------------------
 // UI Bindings & Modals Event listeners
@@ -949,26 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Hub Back Link click listener to open Language Choice Landing Overlay
-    const backLink = document.getElementById('header-back-link');
-    if (backLink) {
-        backLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            initAudio();
-            playTapSound();
-            
-            // Show the pre-game selection overlay
-            document.body.classList.add('show-info-overlay');
-            const overlay = document.getElementById('game-info-overlay');
-            if (overlay) {
-                overlay.style.display = 'block';
-            }
-        });
-    }
 
-    // Recover saved language preference
-    const savedLang = localStorage.getItem('neon-cypher-lang') || 'en';
-    gameState.lang = savedLang;
 
     // Prevent double-tap zoom on virtual keys, header controls, and mode buttons on mobile screens
     let lastTouchEnd = 0;

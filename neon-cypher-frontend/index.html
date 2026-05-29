@@ -205,17 +205,13 @@
     <!-- PRE-GAME INFO OVERLAY (Google AdSense Compliance & Thin Content Prevention) -->
     <div class="game-info-overlay" id="game-info-overlay">
         <div class="game-info-container">
-            <div class="brand-header" style="position: relative;">
-                <a href="../index.html" class="nav-back-btn" id="landing-back-link" style="position: absolute; left: 8px; top: 0; font-size: 0.85rem; text-decoration: none; color: #00ffcc; font-weight: 700; border: 1px solid rgba(0,255,204,0.3); padding: 6px 12px; border-radius: 8px; background: rgba(0,255,204,0.05); display: flex; align-items: center; gap: 4px;">
-                    &larr; HUB
-                </a>
+            <div class="brand-header">
                 <p class="brand-title">🕹️ Arcade Hub</p>
                 <p class="brand-sub">Free Browser Games — No Download Required</p>
             </div>
 
-            <div class="continue-btn-wrapper" style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
-                <button class="continue-game-btn english-btn" onclick="selectLanguageAndPlay('en')">PLAY IN ENGLISH ➔</button>
-                <button class="continue-game-btn hindi-btn" onclick="selectLanguageAndPlay('hi')" style="background: linear-gradient(90deg, #ff0055, #ffd700); box-shadow: 0 0 28px rgba(255, 0, 85, 0.55);">हिंदी में खेलें ➔</button>
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
             </div>
 
             <h2>Neon Cypher</h2>
@@ -506,9 +502,15 @@
     <!-- PWA Offline Auto-Registration Helper -->
     <script src="../shared/pwa-setup.js" defer></script>
 
-    <!-- Start game handler -->
+    <!-- AdSense Compliance Auto-Bypass script for returning players -->
     <script>
-    function continueToGame() {
+    (function() {
+        var gameId = 'neon-cypher';
+        if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+            continueToGame(true);
+        }
+    })();
+    function continueToGame(isReturning) {
         var gameId = 'neon-cypher';
         localStorage.setItem('arcade_seen_' + gameId, '1');
         document.body.classList.remove('show-info-overlay');
