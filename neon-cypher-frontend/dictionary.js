@@ -174,3 +174,76 @@ const VALID_GUESSES = [
 ];
 window.TARGET_WORDS = TARGET_WORDS;
 window.VALID_GUESSES = VALID_GUESSES;
+
+// Hindi Hinglish Word Dictionary curations for multilingual gameplay
+const HINDI_TARGET_WORDS = [
+    "apnaa", "meraa", "kaisa", "bahat", "pyaar", "dosti", "sapna", "khush", "jaldi", "paani",
+    "samay", "bhaiy", "kamal", "jaduu", "duniy", "namas", "shant", "achha", "kahan", "kabhi",
+    "batao", "jeeto", "khels", "khola", "sunoa", "socho", "chalo", "bhaag", "paisa", "dilse",
+    "manse", "pyara", "dulha", "sabse", "achhe", "saath", "haath", "sauda", "gussa", "sasta",
+    "mitra", "sathi", "rakhi", "bhook", "khana", "peena", "ronaa", "hansa", "baatn", "sachh"
+];
+
+const HINDI_VALID_GUESSES = [
+    ...HINDI_TARGET_WORDS,
+    "apney", "merie", "kaisey", "kaisa", "apnaa", "pyaar", "dosti", "sapna", "khush", "jaldi",
+    "paani", "samay", "bhaiy", "kamal", "jaduu", "duniy", "namas", "shant", "achha", "kahan",
+    "kabhi", "batao", "jeeto", "khels", "khola", "sunoa", "socho", "chalo", "bhaag", "paisa",
+    "dilse", "manse", "pyara", "dulha", "sabse", "achhe", "saath", "haath", "sauda", "gussa",
+    "sasta", "mitra", "sathi", "rakhi", "bhook", "khana", "peena", "ronaa", "hansa", "baatn",
+    "sachh", "aadat", "aajkal", "aakar", "aamla", "aaina", "aankh", "aansu", "aapas", "aaram",
+    "aarop", "aasan", "aashr", "aatao", "aataa", "aawaz", "abhim", "achha", "adrak", "afsos",
+    "agarb", "ahins", "ahkar", "ajmer", "akbar", "akela", "aksar", "alakh", "alawa", "alwar",
+    "amrit", "anajy", "anand", "anant", "anarx", "anban", "andar", "andha", "andhe", "andhi",
+    "angur", "anmol", "antar", "anujx", "apnaa", "apney", "apnii", "aprak", "apron", "asaly",
+    "asli", "asmit", "astha", "atuly", "awadh", "ayodd", "ayubz", "baani", "baara", "baata",
+    "babul", "bacha", "bache", "bachi", "badal", "badam", "badla", "badle", "badli", "bagha",
+    "bahar", "bahat", "bahut", "bahuu", "baisa", "bajaj", "bajar", "bajna", "bajra", "balaj",
+    "balam", "baldy", "balti", "banae", "banai", "banak", "banan", "banao", "banas", "banat",
+    "banda", "bande", "bandh", "bando", "baner", "banga", "bania", "banno", "bansi", "banya",
+    "barad", "baras", "barat", "barda", "barey", "barfi", "barka", "barna", "baroda", "barse",
+    "basal", "basant", "basar", "basav", "basha", "basil", "basta", "basti", "batao", "batar",
+    "batch", "batha", "batra", "batte", "batti", "batua", "baula", "bavan", "bayer", "beena",
+    "beere", "befor", "begar", "begum", "behar", "behen", "behti", "behud", "bejod", "bekar",
+    "belur", "benaa", "benda", "benga", "berar", "besan", "bhabh", "bhaag", "bhaai", "bhaaj",
+    "bhaam", "bhaan", "bhaas", "bhaat", "bhadu", "bhaga", "bhage", "bhagi", "bhago", "bhagy",
+    "bhaiy", "bhaja", "bhaje", "bhaji", "bhajo", "bhakt", "bhala", "bhale", "bhali", "bhalo",
+    "bhamy", "bhand", "bhanu", "bhara", "bhare", "bhari", "bharo", "bhart", "bhasa", "bhasm",
+    "bhats", "bhatt", "bhatu", "bhava", "bhave", "bhavi", "bhavy", "bhaya", "bhedo", "bhedy",
+    "bheja", "bheje", "bheji", "bhejo", "bhekh", "bhiim", "bhikh", "bhind", "bhira", "bhise",
+    "bhish", "bhita", "bhoga", "bhoge", "bhogi", "bhogo", "bhoja", "bhoji", "bhoju", "bhole",
+    "bholi", "bhool", "bhoom", "bhoop", "bhori", "bhota", "bhote", "bhoti", "bhrig", "bhrut",
+    "bhuja", "bhumi", "bhuna", "bhuni", "bhupe", "bhura", "bhure", "bhuri", "bhuro", "bhuse",
+    "bhusi", "bhuta", "bhute", "bhuti", "bhuto", "bhuva", "bhuvi", "bidar", "bihar", "bijoy",
+    "billa", "bille", "billi", "billo", "bimal", "binay", "bindu", "bipin", "birla", "bisha",
+    "bitta", "bitte", "bitty", "bobby", "bolna", "boney", "brahm", "budha", "cahan", "cahat",
+    "caaye", "cacha", "chach", "chaha", "chahe", "chahi", "chaho", "chain", "chakk", "chako",
+    "chala", "chale", "chali", "chalo", "chama", "chami", "chana", "chane", "chand", "chani",
+    "chano", "chapa", "chapi", "chapo", "chaps", "chara", "chare", "chari", "charu", "chasa",
+    "chata", "chate", "chati", "chato", "chats", "chaud", "chauv", "chava", "chavi", "cheel",
+    "cheen", "chela", "chele", "cheli", "chelo", "chera", "cheri", "chero", "cheta", "cheto",
+    "chhab", "chhad", "chhai", "chhal", "chham", "chhan", "chhap", "chhar", "chhas", "chhat",
+    "chhav", "chhay", "chhee", "chhek", "chhel", "chhem", "chher", "chhih", "chhik", "chhim",
+    "chhin", "chhip", "chhir", "chhit", "chhiy", "chhod", "chhok", "chhol", "chhon", "chhop",
+    "chhor", "chhot", "chhoy", "chhud", "chhul", "chhum", "chhun", "chhup", "chhur", "chhut",
+    "chica", "chida", "chidi", "chiko", "chiku", "chila", "chili", "chilo", "chima", "chimi",
+    "china", "chini", "chino", "chint", "chipa", "chipi", "chipo", "chira", "chiri", "chiro",
+    "chita", "chiti", "chito", "chitr", "chitt", "chitu", "chiva", "choba", "chobe", "chobi",
+    "choda", "chode", "chodi", "chodo", "choga", "choge", "chogi", "chogo", "choka", "choki",
+    "choko", "chola", "chole", "choli", "cholo", "chona", "chone", "choni", "chonu", "chopa",
+    "chope", "chopi", "chopo", "chops", "chora", "chore", "chori", "choro", "chota", "chote",
+    "choti", "choto", "choud", "chour", "chova", "chovi", "chuda", "chude", "chudi", "chudo",
+    "chuga", "chuge", "chugi", "chugo", "chuka", "chuke", "chuki", "chuko", "chula", "chule",
+    "chuli", "chulo", "chumi", "chume", "chumi", "chumo", "chuna", "chune", "chuni", "chuno",
+    "chupa", "chupe", "chupi", "chupo", "chura", "chure", "churi", "churo", "chuta", "chute",
+    "chuti", "chuto", "chuva", "chuvi", "daban", "dabar", "dacca", "dacha", "dadda", "dadra",
+    "dadri", "dagad", "dagar", "dahaa", "dahan", "dahia", "dahod", "daiva", "dakar", "daksh",
+    "dalal", "dalan", "dalat", "dalda", "dalia", "dalip", "dalit", "daman", "damar", "damoh",
+    "danav", "dandi", "dango", "dangs", "dania", "danti", "danya", "daraa", "daran", "darba",
+    "darda", "dardi", "darha", "darid", "dariy", "darji", "darka", "darra", "darsh", "darwa",
+    "darwz", "darya", "dasha", "dashi", "dasso", "dastx", "dasty", "datar", "datia", "datta",
+    "dattu", "davan", "davar", "davey", "davia", "dawer", "dayal", "dayam", "dayan", "dayar"
+];
+
+window.HINDI_TARGET_WORDS = HINDI_TARGET_WORDS;
+window.HINDI_VALID_GUESSES = HINDI_VALID_GUESSES;
