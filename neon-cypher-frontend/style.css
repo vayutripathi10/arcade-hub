@@ -776,8 +776,27 @@ body.cyber-theme {
         padding: 5px;
     }
     
+    .game-header {
+        padding: 8px 0;
+    }
+    
+    .nav-back-btn {
+        font-size: 0.78rem;
+    }
+    
     .main-title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+        letter-spacing: 1px;
+    }
+    
+    .header-right {
+        gap: 5px;
+    }
+    
+    .header-icon-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.95rem;
     }
     
     .grid-tile {

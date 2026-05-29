@@ -231,12 +231,7 @@ function updateLanguageUI() {
         modePracticeBtn.textContent = isHi ? "प्रैक्टिस हैक" : "PRACTICE HACK";
     }
     
-    // Update Language Toggle Button
-    const langToggleBtn = document.getElementById('lang-toggle-btn');
-    if (langToggleBtn) {
-        langToggleBtn.textContent = isHi ? "🇮🇳 HI" : "🇮🇳 EN";
-        langToggleBtn.title = isHi ? "Switch to English" : "Switch to Hindi (Hinglish)";
-    }
+
     
     // Update Instructions Modal content
     const instTitle = document.getElementById('instructions-title');
@@ -846,12 +841,7 @@ window.selectLanguageAndPlay = function(lang) {
     gameState.lang = lang;
     localStorage.setItem('neon-cypher-lang', lang);
     
-    // Update language toggle button text and title dynamically
-    const langToggleBtn = document.getElementById('lang-toggle-btn');
-    if (langToggleBtn) {
-        langToggleBtn.textContent = lang === 'en' ? "🇮🇳 EN" : "🇮🇳 HI";
-        langToggleBtn.title = lang === 'en' ? "Switch to Hindi (Hinglish)" : "Switch to English";
-    }
+
     
     // Re-initialize game boards under active daily/practice states
     initGame(gameState.mode);
@@ -959,31 +949,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Language Toggler Binding
-    const langToggleBtn = document.getElementById('lang-toggle-btn');
-    if (langToggleBtn) {
-        langToggleBtn.addEventListener('click', () => {
+    // Hub Back Link click listener to open Language Choice Landing Overlay
+    const backLink = document.getElementById('header-back-link');
+    if (backLink) {
+        backLink.addEventListener('click', (e) => {
+            e.preventDefault();
             initAudio();
-            gameState.lang = gameState.lang === 'en' ? 'hi' : 'en';
-            localStorage.setItem('neon-cypher-lang', gameState.lang);
+            playTapSound();
             
-            // Update button text to match active language
-            langToggleBtn.textContent = gameState.lang === 'en' ? "🇮🇳 EN" : "🇮🇳 HI";
-            langToggleBtn.title = gameState.lang === 'en' ? "Switch to Hindi (Hinglish)" : "Switch to English";
-            
-            // Re-initialize game boards under active daily/practice states
-            initGame(gameState.mode);
-            showToast(gameState.lang === 'hi' ? "भाषा: हिंदी" : "LANGUAGE: ENGLISH");
+            // Show the pre-game selection overlay
+            document.body.classList.add('show-info-overlay');
+            const overlay = document.getElementById('game-info-overlay');
+            if (overlay) {
+                overlay.style.display = 'block';
+            }
         });
     }
 
     // Recover saved language preference
     const savedLang = localStorage.getItem('neon-cypher-lang') || 'en';
     gameState.lang = savedLang;
-    if (langToggleBtn) {
-        langToggleBtn.textContent = savedLang === 'en' ? "🇮🇳 EN" : "🇮🇳 HI";
-        langToggleBtn.title = savedLang === 'en' ? "Switch to Hindi (Hinglish)" : "Switch to English";
-    }
 
     // Prevent double-tap zoom on virtual keys, header controls, and mode buttons on mobile screens
     let lastTouchEnd = 0;
