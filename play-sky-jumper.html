@@ -211,19 +211,34 @@
             };
 
             if (iframe) {
-                // Access iframe document once loaded
-                iframe.addEventListener('load', () => {
+                let locksBound = false;
+                const attachLocks = () => {
+                    if (locksBound) return;
                     try {
                         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        if (iframeDoc) {
+                        if (iframeDoc && iframeDoc.body) {
                             iframeDoc.addEventListener('touchstart', lockScroll, { passive: true });
                             iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
                             iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
+                            
+                            // Prevent parent scroll and iOS viewport bounces on iframe touchmove
+                            iframeDoc.addEventListener('touchmove', (e) => {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            locksBound = true;
+                            console.log("Iframe touch locks bound successfully.");
                         }
                     } catch (err) {
                         console.warn("Could not bind iframe touch locks:", err);
                     }
-                });
+                };
+
+                // Try attaching immediately in case the iframe loaded before DOMContentLoaded
+                attachLocks();
+                
+                // Also bind on standard load event in case it loads later
+                iframe.addEventListener('load', attachLocks);
             }
 
             // Bulletproof scroll-locking listener for iOS viewport bounces
