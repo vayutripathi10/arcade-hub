@@ -259,14 +259,14 @@ class NeonPlate {
         this.damping = 0.988; // pivot friction
     }
 
-    update(dt, holes, screws, selectedScrew) {
+    update(dt, holes, screws) {
         if (this.fallen) return;
 
         // 1. Determine active screws pinning this plate
         let activePins = [];
         this.holeBindings.forEach(binding => {
-            // Find if there is a screw placed at this hole, excluding any currently selected/unscrewed bolt
-            const matchingScrew = screws.find(s => s.holeId === binding.holeId && s !== selectedScrew);
+            // Find if there is a screw placed at this hole
+            const matchingScrew = screws.find(s => s.holeId === binding.holeId);
             if (matchingScrew) {
                 // Determine board hole coordinate
                 const matchingHole = holes.find(h => h.id === binding.holeId);
@@ -871,7 +871,7 @@ class GameEngine {
         this.screws.forEach(s => s.update(dt));
 
         // Update plates pivot physics & falls
-        this.plates.forEach(p => p.update(dt, this.holes, this.screws, this.selectedScrew));
+        this.plates.forEach(p => p.update(dt, this.holes, this.screws));
 
         // Check level win condition: all plates have fallen off
         const allFallen = this.plates.every(p => p.fallen);
