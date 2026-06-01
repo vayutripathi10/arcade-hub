@@ -197,17 +197,41 @@
                 sidebarOverlay.addEventListener('click', toggleSidebar);
             }
 
-            // Lock parent-level touch-scrolling on mobile devices when playing inside the frame
-            const consoleEl = document.getElementById('playConsoleContainer');
-            if (consoleEl) {
-                consoleEl.addEventListener('touchstart', () => {
-                    document.body.style.overflow = 'hidden';
-                }, { passive: true });
-                
-                consoleEl.addEventListener('touchend', () => {
-                    document.body.style.overflow = '';
-                }, { passive: true });
+            // Lock parent-level touch-scrolling on mobile devices when playing inside the iframe
+            const iframe = document.getElementById('gameIframe');
+            
+            const lockScroll = () => {
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+            };
+            
+            const unlockScroll = () => {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            };
+
+            if (iframe) {
+                // Access iframe document once loaded
+                iframe.addEventListener('load', () => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc) {
+                            iframeDoc.addEventListener('touchstart', lockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
+                        }
+                    } catch (err) {
+                        console.warn("Could not bind iframe touch locks:", err);
+                    }
+                });
             }
+
+            // Bulletproof scroll-locking listener for iOS viewport bounces
+            document.body.addEventListener('touchmove', (e) => {
+                if (document.body.style.overflow === 'hidden') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         });
     </script>
     <script src="shared/pwa-setup.js"></script>
