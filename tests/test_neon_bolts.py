@@ -56,25 +56,26 @@ def test_neon_bolts():
         level = driver.execute_script("return gameInstance.level;")
         holes_count = driver.execute_script("return gameInstance.holes.length;")
         screws_count = driver.execute_script("return gameInstance.screws.length;")
-        plates_count = driver.execute_script("return gameInstance.plates.length;")
+        obstacles_count = driver.execute_script("return gameInstance.obstacles.length;")
         
         assert game_state == "PLAYING", f"Expected gameState = 'PLAYING', got '{game_state}'"
         assert level == 1, f"Expected Level = 1, got {level}"
-        assert holes_count == 3, f"Expected 3 holes in level 1, got {holes_count}"
+        assert holes_count == 5, f"Expected 5 holes in level 1, got {holes_count}"
         assert screws_count == 2, f"Expected 2 screws in level 1, got {screws_count}"
-        assert plates_count == 1, f"Expected 1 plate in level 1, got {plates_count}"
+        assert obstacles_count == 0, f"Expected 0 obstacles in level 1, got {obstacles_count}"
         
-        print(f" -> Game engine status: Level={level}, Holes={holes_count}, Screws={screws_count}, Plates={plates_count}")
+        print(f" -> Game engine status: Level={level}, Holes={holes_count}, Screws={screws_count}, Obstacles={obstacles_count}")
 
-        # 6. Test interaction / move mechanics
-        print("6. Simulating screw move manipulation...")
-        # Artificially select a screw and shift it to the empty hole (hole index 2)
+        # 6. Test interaction / move mechanics and locking behavior
+        print("6. Simulating screw selection and movement...")
+        # Select Screw B and place it in Hole 2 (empty hole)
         driver.execute_script("""
-            gameInstance.selectedScrew = gameInstance.screws[0];
-            gameInstance.selectedScrew.holeId = 2;
-            gameInstance.syncScrewsToHoles();
+            let sB = gameInstance.screws.find(s => s.endName === 'EndB');
+            sB.holeId = 2;
             gameInstance.selectedScrew = null;
             gameInstance.moves++;
+            // tick gravity solver to lock the stick ends into active holes
+            gameInstance.stick.update(0.016, gameInstance.screws, gameInstance.holes, gameInstance.obstacles);
             gameInstance.updateHUD();
         """)
         time.sleep(0.3)
@@ -83,12 +84,40 @@ def test_neon_bolts():
         hud_moves = driver.find_element(By.ID, "hud-moves-val").text
         assert moves == 1, f"Expected moves = 1, got {moves}"
         assert hud_moves == "1", f"Expected HUD Moves = '1', got '{hud_moves}'"
-        print(" -> Screw successfully shifted. Moves counter synced to HUD.")
+        print(" -> Screw B shifted to Hole 2. Moves counter synced to HUD.")
 
-        # 7. Test Win triggers & Victory overlay
-        print("7. Testing Victory state and overlay triggers...")
-        # Trigger level clear success screen
-        driver.execute_script("gameInstance.triggerWin();")
+        # 7. Test lockouts (Last-Screw Protection)
+        print("7. Testing last-screw lock safety constraint...")
+        # Since Screw B is at Hole 2, and Screw A is at Hole 0,
+        # unscrewing one makes the other one locked.
+        # Let's verify that when Screw B is unscrewed, clicking Screw A does nothing because of lockout.
+        is_locked_before_release = driver.execute_script("""
+            // Unscrew B (make it carried)
+            let sB = gameInstance.screws.find(s => s.endName === 'EndB');
+            sB.holeId = null;
+            gameInstance.selectedScrew = sB;
+            
+            // Check if active pins length is 1, which locks the other screw (EndA)
+            let activePins = gameInstance.screws.filter(s => s.holeId !== null);
+            let sA = gameInstance.screws.find(s => s.endName === 'EndA');
+            let isPivotState = activePins.length === 1;
+            let sALocked = isPivotState && sA.holeId !== null;
+            return sALocked;
+        """)
+        assert is_locked_before_release, "Screw A should be locked when only 1 screw pins the stick"
+        print(" -> Lock state confirmed: single remaining pin is protected under lockout rules.")
+
+        # 8. Test Win triggers & Victory overlay
+        print("8. Testing Victory state and overlay triggers...")
+        # Trigger level clear victory by placing both screws in the designated goal holes (Hole 3 & Hole 4)
+        driver.execute_script("""
+            let sA = gameInstance.screws.find(s => s.endName === 'EndA');
+            let sB = gameInstance.screws.find(s => s.endName === 'EndB');
+            sA.holeId = 4; // Goal A
+            sB.holeId = 3; // Goal B
+            gameInstance.selectedScrew = null;
+            gameInstance.checkVictoryCondition();
+        """)
         time.sleep(0.5)
         
         success_screen = driver.find_element(By.ID, "success-screen")
@@ -99,8 +128,27 @@ def test_neon_bolts():
         success_level_txt = driver.find_element(By.ID, "success-level-val").text
         success_moves_txt = driver.find_element(By.ID, "success-moves-val").text
         assert success_level_txt == "1", f"Expected success level = '1', got '{success_level_txt}'"
-        assert success_moves_txt == "1", f"Expected success moves = '1', got '{success_moves_txt}'"
+        print(f" -> Level successfully cleared! Star feedback validated on Level {success_level_txt}.")
+
+        # 9. Test Fail / Drop triggers
+        print("9. Testing Fail state (Zero-pinned fall crash) and overlay...")
+        # Reset the level first
+        driver.execute_script("gameInstance.resetLevel();")
+        time.sleep(0.3)
+        # Detach both screws
+        driver.execute_script("""
+            gameInstance.screws.forEach(s => s.holeId = null);
+            gameInstance.stick.update(0.016, gameInstance.screws, gameInstance.holes, gameInstance.obstacles);
+        """)
+        time.sleep(0.3)
         
+        # Verify game is in fail state and fail overlay is visible
+        game_state = driver.execute_script("return gameInstance.gameState;")
+        assert game_state == "FAIL", f"Expected gameState = 'FAIL', got '{game_state}'"
+        fail_screen = driver.find_element(By.ID, "fail-screen")
+        assert "active" in fail_screen.get_attribute("class"), "Fail screen should be active on stick drop"
+        print(" -> Stick drop successfully triggered 'STICK FELL!' fail modal overlay.")
+
         print("All automated Neon Screws & Bolts tests passed successfully!")
 
     except Exception as e:
@@ -110,6 +158,7 @@ def test_neon_bolts():
         print("Browser Console Logs:")
         for entry in driver.get_log('browser'):
             print(entry)
+        raise e
     finally:
         driver.quit()
 

@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Neon Screws & Bolts | Arcade Hub</title>
-    <meta name="description" content="Unscrew glowing neon bolts and move them to empty holes to release hanging cyberpunk plates in this realistic 2D gravity physics puzzle game.">
-    <meta name="keywords" content="neon screws, bolts puzzle, arcade hub, physics puzzle, web games, free online games">
+    <title>Neon Stick & Screws | Arcade Hub</title>
+    <meta name="description" content="Swing and maneuver a neon rigid stick through obstacles to target goal zones in this realistic 2D gravity pendulum physics game.">
+    <meta name="keywords" content="neon stick, screws puzzle, pendulum physics, web games, free online games">
     <link rel="icon" type="image/png" href="../favicon.png">
     <link rel="canonical" href="https://arcadehubplay.com/neon-bolts-frontend/index.html">
 
     <!-- Social Sharing / Open Graph -->
-    <meta property="og:title" content="Neon Screws & Bolts | Arcade Hub">
-    <meta property="og:description" content="Solve physics-based neon screw puzzles! Unscrew and rearrange bolts to drop plates in a pulsing grid.">
+    <meta property="og:title" content="Neon Stick & Screws | Arcade Hub">
+    <meta property="og:description" content="Solve physics-based grappling stick puzzles! Maneuver the neon rod to the goal.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://arcadehubplay.com/neon-bolts-frontend/index.html">
     <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Neon Screws & Bolts | Arcade Hub">
-    <meta name="twitter:description" content="Rearrange glowing bolts to drop vector plates in this high-fidelity gravity physics game.">
+    <meta name="twitter:title" content="Neon Stick & Screws | Arcade Hub">
+    <meta name="twitter:description" content="Maneuver a rigid pendulum neon stick around obstacles. Instant browser play.">
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
 
     <!-- Google Fonts -->
@@ -79,15 +79,15 @@
             text-align: center;
             margin-bottom: 28px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255,230,0,0.15);
+            border-bottom: 1px solid rgba(255,45,120,0.15);
         }
         .brand-header .brand-title {
-            color: #ffff00;
+            color: #ff2d78;
             font-size: 1.3rem;
             font-weight: 900;
             letter-spacing: 3px;
             text-transform: uppercase;
-            text-shadow: 0 0 12px rgba(255,230,0,0.4);
+            text-shadow: 0 0 12px rgba(255,45,120,0.4);
             margin: 0 0 6px 0;
         }
         .brand-header .brand-sub {
@@ -105,8 +105,8 @@
             z-index: 1000000;
         }
         .continue-game-btn {
-            background: #ffff00;
-            color: #000;
+            background: #ff2d78;
+            color: #fff;
             border: none;
             padding: 16px 52px;
             font-family: 'Outfit', sans-serif;
@@ -115,12 +115,13 @@
             text-transform: uppercase;
             border-radius: 14px;
             cursor: pointer;
-            box-shadow: 0 0 28px rgba(255,230,0,0.55);
+            box-shadow: 0 0 28px rgba(255,45,120,0.55);
             transition: all 0.25s ease;
             letter-spacing: 1.5px;
         }
         .continue-game-btn:hover {
             background: #fff;
+            color: #000;
             box-shadow: 0 0 40px rgba(255,255,255,0.65);
             transform: scale(1.04);
         }
@@ -133,7 +134,7 @@
             margin-bottom: 14px;
         }
         .game-info-container h3 {
-            color: #ffff00;
+            color: #ff2d78;
             font-size: 1.15rem;
             font-weight: 600;
             margin-top: 28px;
@@ -169,7 +170,7 @@
             font-size: 0.78rem;
             color: rgba(255,255,255,0.25);
         }
-        .page-footer-note a { color: #ffff00; text-decoration: none; }
+        .page-footer-note a { color: #ff2d78; text-decoration: none; }
         @media (max-width: 768px) {
             .info-grid { grid-template-columns: 1fr; }
             .continue-game-btn { width: 100%; padding: 15px 24px; }
@@ -183,7 +184,7 @@
 <div class="game-info-overlay" id="game-info-overlay">
     <div class="game-info-container">
         <div class="brand-header">
-            <p class="brand-title">🎮 Arcade Hub</p>
+            <p class="brand-title">🕹️ Arcade Hub</p>
             <p class="brand-sub">Free Browser Games — No Download Required</p>
         </div>
 
@@ -192,50 +193,50 @@
         </div>
 
         <h2>Neon Screws & Bolts</h2>
-        <p>Neon Screws & Bolts is an immersive, physics-based spatial puzzle game. Tap on glowing cybernetic bolts to unscrew them and move them into empty holes to release translucent hanging vector plates. As plates drop down from the gravity grid, you clear layers and reveal new secure terminal nodes. Plan your steps carefully—with limited free holes, every single move shifts the center of mass and changes the pendulum swings of hanging plates!</p>
+        <p>Neon Screws & Bolts is an addictive, high-fidelity 2D gravity physics puzzle game set in a cyberspace mainframe. Unlatch yellow bolts to release one end of a hanging neon pink rod, watch it swing realistically under gravity as a pendulum (carrying the unscrewed bolt along on its tip), and lock it into a new wall hole to navigate across obstacles. Avoid letting both screws loose, plan around cyan firewalls, align with shifting sine-wave core holes, and land both ends safely in target green goal zones to decrypt the core mainframe!</p>
 
-        <h3>🎮 How to Play</h3>
-        <p>Unscrew and shift bolts to let all vector plates drop completely off the screen.</p>
+        <h3>🕹️ How to Play</h3>
+        <p>Maneuver the neon pink rod safely from the starting position to the green glowing goal holes.</p>
         <ul>
-            <li><strong>Select Bolt:</strong> Tap/Click any occupied bolt to select it. Selected bolts glow and float slightly.</li>
-            <li><strong>Place Bolt:</strong> Tap/Click any unoccupied hole to place the selected bolt.</li>
-            <li><strong>Drop Plates:</strong> A plate is completely locked if held by 2 or more bolts. If held by only 1 bolt, it rotates freely around it under gravity. If it has 0 bolts, it falls off the screen!</li>
-            <li><strong>Goal:</strong> Make all plates fall off the board to unlock the secure CPU core and clear the level.</li>
+            <li><strong>Select Bolt:</strong> Tap/Click any occupied yellow bolt to unscrew it.
+                <ul>
+                    <li>*Locked Screw Protection:* If only one bolt is holding the rod, it is locked 🔒 and glows red to prevent accidental drops! You must screw the free bolt in first.</li>
+                </ul>
+            </li>
+            <li><strong>Carried Swings:</strong> When unscrewed, the bolt travels WITH the swinging tip of the rod. The rod rotates smoothly under pendulum gravity around the other locked screw.</li>
+            <li><strong>Maneuver and Snap:</strong> Time your taps perfectly! Tap any empty cyan hole within a 40px radius of the swinging bolt to insert and lock it, changing your pivot point.</li>
+            <li><strong>Avoid Crashes:</strong> Do not let the rod hit obstacles, and NEVER release the last support screw—letting the rod fall triggers a FAIL state instantly!</li>
         </ul>
 
         <div class="info-grid">
             <div class="info-card">
                 <h3>⚡ Cybernetic Features</h3>
                 <ul>
-                    <li>Realistic 2D pendulum rotation & gravity physics.</li>
-                    <li>Translucent glassmorphism plates showing overlapping depths.</li>
-                    <li>Satisfying dynamic real-time synthesized sound effects.</li>
-                    <li>Sleek, fluid neon particle explosion feedback.</li>
+                    <li>Smooth pendulum angular momentum and damping simulations.</li>
+                    <li>Elastic bouncing physics segments on cyan firewall obstacles.</li>
+                    <li>Progressive levels featuring moving server holes and gravity-reversal grids.</li>
+                    <li>100% programmatically synthesized Web Audio WHOOSH swings and clinks.</li>
                 </ul>
             </div>
             <div class="info-card">
                 <h3>🏆 Hacker Pro Strategies</h3>
                 <ul>
-                    <li>Use pivots to your advantage! Letting a plate rotate down can uncover occupied bolts hiding underneath.</li>
-                    <li>Avoid trapping your only empty holes under falling plates.</li>
-                    <li>Clear the outermost overlapping layers first.</li>
-                    <li>Study the pivot centers to predict which way a plate will swing.</li>
+                    <li>Use momentum! High swings build swing height, allowing you to reach distant wall holes.</li>
+                    <li>Bouncing off cyan firewalls is extremely useful to alter your swing arc direction.</li>
+                    <li>In gravity shift zones, anticipate that downward is now upward—adjust your release timings accordingly!</li>
+                    <li>Use par moves wisely to secure 3-star terminal decrypt ratings.</li>
                 </ul>
             </div>
         </div>
 
         <h3>❓ Frequently Asked Questions</h3>
         <div class="faq-item">
-            <p class="faq-question">Is Neon Screws & Bolts free to play?</p>
-            <p class="faq-answer">Yes, 100% free with no registration or installations required.</p>
+            <p class="faq-question">What is the Star Rating system?</p>
+            <p class="faq-answer">Levels award 1 to 3 gold stars based on the number of moves used versus the level's benchmark par limit. Move efficiently to secure a perfect 3-star rating!</p>
         </div>
         <div class="faq-item">
-            <p class="faq-question">Does it run offline?</p>
-            <p class="faq-answer">Yes! Registered under our Service Worker PWA cached core, you can play completely offline.</p>
-        </div>
-        <div class="faq-item">
-            <p class="faq-question">What happens if I get stuck?</p>
-            <p class="faq-answer">You can easily reset the level at any time using the Reset (🔄) button on the HUD without penalty.</p>
+            <p class="faq-question">Why does the screw glow red?</p>
+            <p class="faq-answer">If only one screw is pinning the rod, it is locked (🔒) to prevent the rod from falling to its death. You must insert the active screw into a hole before removing this last support.</p>
         </div>
 
         <div class="page-footer-note">
@@ -248,7 +249,7 @@
     <!-- Full-screen Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Tap Overlay for exact alignment -->
+    <!-- Tap Overlay for coordinates fit -->
     <div id="interaction-overlay" class="interaction-overlay"></div>
 
     <!-- HUD Header Grid -->
@@ -259,7 +260,7 @@
         </div>
         <div class="hud-center">
             <div class="hud-score-box">
-                <span class="hud-score-label">LEVEL</span>
+                <span class="hud-score-label">CORE</span>
                 <span class="hud-score-value" id="hud-level-val">1</span>
             </div>
             <div class="hud-score-box best-score-box">
@@ -279,20 +280,20 @@
     <div id="start-screen" class="game-screen active">
         <div class="screen-content glass-card">
             <h1 class="game-title">
-                <span class="neon-text-yellow">NEON</span>
-                <span class="neon-text-blue"> BOLTS</span>
+                <span class="neon-text-pink">SCREWS</span>
+                <span class="neon-text-blue"> & BOLTS</span>
             </h1>
-            <p class="game-subtitle">Unscrew and shift bolts to drop all hanging plates!</p>
+            <p class="game-subtitle">Maneuver the pendulum neon rod to the target goal zone!</p>
 
             <div class="score-display">
-                <span>🔐 SECURE CORES DECRYPTED</span>
+                <span>🔓 CORES DECRYPTED</span>
                 <span id="start-cleared-val">0 / 5</span>
             </div>
 
             <div class="controls-guide">
-                <p><strong>💻 DESKTOP:</strong> Click bolts to unscrew; click empty holes to screw them in</p>
-                <p><strong>📱 MOBILE:</strong> Tap bolts and empty holes to reposition them</p>
-                <p class="guide-note">Clear plates by removing their screw pins. Double-screwed plates are stable; single-screwed plates swing!</p>
+                <p><strong>💻 DESKTOP:</strong> Click yellow screws to remove; click empty holes to insert</p>
+                <p><strong>📱 MOBILE:</strong> Tap screws and empty holes to step-climb the rod</p>
+                <p class="guide-note">The last supporting screw is locked 🔒. Unscrewed bolts travel with the swinging rod tip! Snap into a new hole to lock position.</p>
             </div>
 
             <button id="start-play-btn" class="menu-btn primary-glow">▶ START DECRYPT</button>
@@ -305,61 +306,101 @@
     ════════════════════════════════════════════════ -->
     <div id="help-screen" class="game-screen">
         <div class="screen-content glass-card">
-            <h2 class="screen-title neon-text-yellow">MAINBOARD MANUAL</h2>
+            <h2 class="screen-title neon-text-pink">MAINBOARD MANUAL</h2>
 
             <div class="instruction-list">
                 <div class="instruction-item">
                     <span class="inst-icon">🔩</span>
-                    <p>Tap a <strong>glowing bolt</strong> to unscrew it. Only one bolt can be held at a time.</p>
-                </div>
-                <div class="instruction-item">
-                    <span class="inst-icon">🕳️</span>
-                    <p>Tap any <strong>empty hole</strong> to screw it back in. You must place your active bolt before unscrewing another.</p>
-                </div>
-                <div class="instruction-item">
-                    <span class="inst-icon">📐</span>
-                    <p>Plates pinned by <strong>2+ bolts are locked</strong>. Plates pinned by <strong>1 bolt rotate</strong> under gravity.</p>
+                    <p>Click/Tap a <strong>yellow screw</strong> to unscrew it. The screw will detach from the wall and remain attached to the rod tip.</p>
                 </div>
                 <div class="instruction-item">
                     <span class="inst-icon">💫</span>
-                    <p>Use gravity rotations to swing plates out of the way, exposing bolts and holes locked underneath!</p>
+                    <p>The free end of the rod swings smoothly under <strong>gravity pendulum physics</strong>, carrying the active screw with it.</p>
                 </div>
                 <div class="instruction-item">
-                    <span class="inst-icon">🎯</span>
-                    <p>Drop <strong>all plates off the screen</strong> to clear the terminal mainframe core!</p>
+                    <span class="inst-icon">🕳️</span>
+                    <p>Click/Tap any <strong>empty cyan hole</strong> when the swinging bolt passes within 40px to snap and lock it into place!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">🔒</span>
+                    <p>If only one screw pins the rod, it is <strong>locked (🔒/red glow)</strong>. You cannot remove it until the other screw is pinned!</p>
+                </div>
+                <div class="instruction-item">
+                    <span class="inst-icon">🟩</span>
+                    <p>Navigate the rod through obstacles to land both screws inside the <strong>pulsing green target holes</strong> to secure the core!</p>
                 </div>
             </div>
 
-            <button id="help-close-btn" class="menu-btn primary-glow">✅ UNDERSTOOD</button>
+            <button id="help-close-btn" class="menu-btn primary-glow">✅ SYSTEMS ENGAGED</button>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════
-         SCREEN: LEVEL CLEAR / SUCCESS
+         SCREEN: FAIL SCREEN ("STICK FELL!")
+    ════════════════════════════════════════════════ -->
+    <div id="fail-screen" class="game-screen">
+        <div class="screen-content glass-card">
+            <h2 class="screen-title neon-text-red">💀 STICK FELL!</h2>
+            <p class="game-subtitle">The rod lost its support screws and crashed into the firewall mainframe!</p>
+
+            <div class="score-display">
+                <span style="color: var(--accent-pink);">⚠️ TERMINAL STATUS</span>
+                <span style="font-size: 1.5rem; font-weight: 700; color: #fff;">CONNECTION TERMINATED</span>
+            </div>
+
+            <button id="fail-retry-btn" class="menu-btn primary-glow">🔄 RETRY DECRYPT</button>
+            <button id="fail-hint-btn" class="menu-btn secondary-glow">💡 DECRYPT HINT</button>
+            <a href="../index.html" target="_top" class="menu-btn danger-glow">🏠 EXIT TO HUB</a>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SCREEN: LEVEL COMPLETE / SUCCESS
     ════════════════════════════════════════════════ -->
     <div id="success-screen" class="game-screen">
         <div class="screen-content glass-card">
-            <h2 class="screen-title neon-text-blue">⚡ DECRYPTED</h2>
+            <h2 class="screen-title neon-text-blue">⚡ CORE SECURED</h2>
+
+            <div class="star-rating-box">
+                <div class="star-label-desc">DECRYPTION RATING</div>
+                <div class="stars-row">
+                    <span class="star-item active-star" id="star-1">★</span>
+                    <span class="star-item active-star" id="star-2">★</span>
+                    <span class="star-item active-star" id="star-3">★</span>
+                </div>
+            </div>
 
             <div class="final-stats">
                 <div class="stat-row">
-                    <span>LEVEL SECURED</span>
+                    <span>TERMINAL CODE</span>
                     <span id="success-level-val" class="highlight-cyan">1</span>
                 </div>
                 <div class="stat-row">
-                    <span>MOVES MADE</span>
+                    <span>MOVES EXPANDED</span>
                     <span id="success-moves-val" class="highlight-pink">0</span>
                 </div>
             </div>
 
             <button id="success-next-btn" class="menu-btn primary-glow">▶ NEXT TERMINAL</button>
-            <button id="success-replay-btn" class="menu-btn secondary-glow">🔄 REPLAY</button>
+            <button id="success-replay-btn" class="menu-btn secondary-glow">🔄 REPLAY CORE</button>
             <a href="../index.html" target="_top" class="menu-btn danger-glow">🏠 PORTAL HUB</a>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- ═══════════════════════════════════════════════
+         SCREEN: PAUSE
+    ════════════════════════════════════════════════ -->
+    <div id="pause-screen" class="game-screen">
+        <div class="screen-content glass-card">
+            <h2 class="screen-title neon-text-yellow">⏸ PAUSED</h2>
+            <button id="pause-resume-btn" class="menu-btn primary-glow">▶ RESUME</button>
+            <button id="pause-restart-btn" class="menu-btn secondary-glow">🔄 RESTART</button>
+            <a href="../index.html" target="_top" class="menu-btn danger-glow">🏠 EXIT TO HUB</a>
+        </div>
+    </div>
 
+    <script src="script.js"></script>
+    <script src="../shared/achievements.js"></script>
     <script>
     (function() {
         var gameId = 'neon-bolts';

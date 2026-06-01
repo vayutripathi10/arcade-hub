@@ -1,13 +1,16 @@
 /* ==========================================================================
-   NEON SCREWS & BOLTS GLOBAL STYLESHEET
+   NEON STICK & SCREWS STYLESHEET
    ========================================================================== */
 
 :root {
-    --bg-dark: #07080c;
+    --bg-dark: #0a0a0f;
+    --grid-line: #0d1b2e;
     --primary: #ffff00; /* Neon Yellow */
     --secondary: #00ffff; /* Neon Cyan */
     --accent-pink: #ff2d78; /* Neon Pink */
-    --glass-bg: rgba(12, 13, 18, 0.92);
+    --accent-green: #39ff14; /* Neon Green */
+    --accent-red: #ff4444; /* Neon Red */
+    --glass-bg: rgba(10, 10, 18, 0.94);
     --glass-border: rgba(255, 255, 255, 0.08);
     --font-primary: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -41,7 +44,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1;
-    background: radial-gradient(circle at center, #0f101a 0%, var(--bg-dark) 100%);
+    background: radial-gradient(circle at center, #111425 0%, var(--bg-dark) 100%);
 }
 
 /* Tap/Click overlay */
@@ -113,10 +116,10 @@ body {
 }
 
 .hud-btn:hover {
-    border-color: var(--primary);
-    box-shadow: 0 0 15px rgba(255, 255, 0, 0.35);
+    border-color: var(--accent-pink);
+    box-shadow: 0 0 15px rgba(255, 45, 120, 0.35);
     transform: translateY(-2px);
-    color: var(--primary);
+    color: var(--accent-pink);
 }
 
 .hud-btn:active {
@@ -151,14 +154,14 @@ body {
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 1.5px;
-    color: var(--primary);
+    color: var(--accent-pink);
     text-transform: uppercase;
 }
 
 .hud-score-value {
     font-size: 1.3rem;
     font-weight: 900;
-    text-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+    text-shadow: 0 0 10px rgba(255, 45, 120, 0.5);
 }
 
 .best-score-box .hud-score-label {
@@ -261,6 +264,11 @@ body {
     text-shadow: 0 0 10px rgba(255, 45, 120, 0.6), 0 0 30px rgba(255, 45, 120, 0.2);
 }
 
+.neon-text-red {
+    color: var(--accent-red);
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.6), 0 0 30px rgba(255, 68, 68, 0.2);
+}
+
 /* Score display */
 .score-display {
     background: rgba(255, 255, 255, 0.02);
@@ -276,7 +284,7 @@ body {
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 1px;
-    color: var(--primary);
+    color: var(--accent-pink);
 }
 
 .score-display span:last-child {
@@ -287,8 +295,8 @@ body {
 
 /* Controls guide */
 .controls-guide {
-    background: rgba(255, 255, 0, 0.02);
-    border: 1px dashed rgba(255, 255, 0, 0.2);
+    background: rgba(255, 45, 120, 0.02);
+    border: 1px dashed rgba(255, 45, 120, 0.25);
     border-radius: 16px;
     padding: 16px;
     font-size: 0.82rem;
@@ -352,6 +360,39 @@ body {
     text-shadow: 0 0 10px rgba(255, 45, 120, 0.5);
 }
 
+/* Star ratings widget */
+.star-rating-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.star-label-desc {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 1.5px;
+}
+.stars-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+.star-item {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.08);
+    text-shadow: none;
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.star-item.active-star {
+    color: var(--primary);
+    text-shadow: 0 0 15px rgba(255, 255, 0, 0.75);
+    transform: scale(1.1);
+}
+
 /* Menu buttons */
 .menu-btn {
     background: rgba(255, 255, 255, 0.03);
@@ -376,16 +417,16 @@ body {
 }
 
 .menu-btn.primary-glow {
-    background: var(--primary);
-    color: var(--bg-dark);
+    background: var(--accent-pink);
+    color: #fff;
     border-color: transparent;
-    box-shadow: 0 0 20px rgba(255, 255, 0, 0.4);
+    box-shadow: 0 0 20px rgba(255, 45, 120, 0.4);
 }
 
 .menu-btn.primary-glow:hover {
     transform: translateY(-3px);
-    box-shadow: 0 0 35px rgba(255, 255, 0, 0.65);
-    background: #ffff33;
+    box-shadow: 0 0 35px rgba(255, 45, 120, 0.65);
+    background: #ff4d94;
 }
 
 .menu-btn.secondary-glow:hover {
@@ -396,9 +437,9 @@ body {
 }
 
 .menu-btn.danger-glow:hover {
-    border-color: var(--accent-pink);
-    box-shadow: 0 0 20px rgba(255, 45, 120, 0.4);
-    color: var(--accent-pink);
+    border-color: var(--accent-red);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+    color: var(--accent-red);
     transform: translateY(-3px);
 }
 
