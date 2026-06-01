@@ -289,7 +289,7 @@ function initUI() {
     // Hub Button
     document.getElementById('hub-btn')?.addEventListener('click', () => {
         console.log('hub clicked');
-        window.location.href = '../index.html';
+        window.top.location.href = '../index.html';
     });
 
     document.getElementById('btn-start').addEventListener('click', initGame);

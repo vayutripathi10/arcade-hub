@@ -85,7 +85,7 @@ function initGame() {
             quitToMenu();
         } else {
             stopSynthDrone();
-            window.location.href = '../index.html';
+            window.top.location.href = '../index.html';
         }
     });
 

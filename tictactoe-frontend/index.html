@@ -390,7 +390,7 @@
             // Hub Button
             hubBtn?.addEventListener('click', () => {
                 console.log('hub clicked');
-                window.location.href = '../index.html';
+                window.top.location.href = '../index.html';
             });
 
             cells.forEach(cell => cell.addEventListener('click', cellClicked));

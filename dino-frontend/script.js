@@ -92,7 +92,7 @@ function init() {
     // Hub Button Fix
     document.getElementById('hub-btn')?.addEventListener('click', () => {
         console.log('hub clicked');
-        window.location.href = '../index.html';
+        window.top.location.href = '../index.html';
     });
 
     startBtn?.addEventListener('click', (e) => {

@@ -860,7 +860,7 @@ document.addEventListener('DOMContentLoaded', () => {
         startHubBtn.addEventListener('click', () => {
             initAudio();
             playTapSound();
-            window.location.href = '../index.html';
+            window.top.location.href = '../index.html';
         });
     }
 

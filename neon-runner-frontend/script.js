@@ -23,7 +23,7 @@ const btnMute = document.getElementById('btn-mute');
 document.querySelectorAll('.btn-hub').forEach(btn => {
     btn.addEventListener('click', (e) => {
         console.log('hub clicked');
-        // window.location.href = '../index.html';
+        // window.top.location.href = '../index.html';
     });
 });
 

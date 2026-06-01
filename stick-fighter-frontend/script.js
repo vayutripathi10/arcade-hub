@@ -601,8 +601,8 @@ document.getElementById('btn-restart').addEventListener('click', initGame);
 document.getElementById('btn-howtoplay').addEventListener('click', () => { howToPlayModal.classList.remove('hidden'); });
 document.querySelector('.close-btn').addEventListener('click', () => { howToPlayModal.classList.add('hidden'); });
 
-document.getElementById('btn-quit').addEventListener('click', () => { window.location.href = '../index.html'; });
-document.getElementById('btn-quit-end').addEventListener('click', () => { window.location.href = '../index.html'; });
+document.getElementById('btn-quit').addEventListener('click', () => { window.top.location.href = '../index.html'; });
+document.getElementById('btn-quit-end').addEventListener('click', () => { window.top.location.href = '../index.html'; });
 document.getElementById('btn-resume').addEventListener('click', togglePause);
 btnPauseHUD?.addEventListener('click', togglePause);
 

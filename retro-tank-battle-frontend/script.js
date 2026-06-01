@@ -844,7 +844,7 @@ document.getElementById('btn-mute').addEventListener('click', () => {
 
 // Quit Logic
 const quitGame = () => {
-    window.location.href = '../index.html';
+    window.top.location.href = '../index.html';
 };
 document.getElementById('btn-quit').addEventListener('click', quitGame);
 document.getElementById('btn-quit-end').addEventListener('click', quitGame);
