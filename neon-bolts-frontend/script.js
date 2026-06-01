@@ -669,6 +669,7 @@ class GameLevelManager {
         let gravityDir = 1.0;
 
         if (lvlNum === 1) {
+            // === Level 1: Tutorial Core ===
             parMoves = 4;
             holes.push(new BoardHole(0, 200, 300));
             holes.push(new BoardHole(1, 400, 300));
@@ -680,6 +681,7 @@ class GameLevelManager {
             sticks.push(new NeonStick(200, 0, 1));
 
         } else if (lvlNum === 2) {
+            // === Level 2: The Double Chain ===
             parMoves = 6;
             holes.push(new BoardHole(0, 150, 250));
             holes.push(new BoardHole(1, 350, 250));
@@ -696,6 +698,7 @@ class GameLevelManager {
             sticks.push(new NeonStick(200, 2, 3));
 
         } else if (lvlNum === 3) {
+            // === Level 3: Firewall Deflector ===
             parMoves = 5;
             holes.push(new BoardHole(0, 150, 300));
             holes.push(new BoardHole(1, 350, 300));
@@ -710,12 +713,13 @@ class GameLevelManager {
             obstacles.push(new ObstacleWall(300, 200, 300, 500));
 
         } else if (lvlNum === 4) {
+            // === Level 4: Moving Core Grid ===
             parMoves = 6;
             holes.push(new BoardHole(0, 150, 250));
             holes.push(new BoardHole(1, 350, 250));
             holes.push(new BoardHole(2, 250, 420));
             holes.push(new BoardHole(3, 450, 420));
-            holes.push(new BoardHole(4, 300, 580, 'moving')); // Shifting node!
+            holes.push(new BoardHole(4, 300, 580, 'moving')); // Shifting hole!
 
             screws.push(new Screw(0, 0));
             screws.push(new Screw(1, 1));
@@ -726,6 +730,7 @@ class GameLevelManager {
             sticks.push(new NeonStick(200, 2, 3));
 
         } else if (lvlNum === 5) {
+            // === Level 5: Inverted Gravity Core ===
             parMoves = 8;
             holes.push(new BoardHole(0, 150, 550));
             holes.push(new BoardHole(1, 350, 550));
@@ -741,7 +746,359 @@ class GameLevelManager {
             sticks.push(new NeonStick(200, 0, 1));
             sticks.push(new NeonStick(200, 2, 3));
 
-            gravityDir = -1.0; // gravity pulls UP!
+            gravityDir = -1.0; // upwards gravity!
+
+        } else if (lvlNum === 6) {
+            // === Level 6: The Ladder Grid (Intersecting Chains) ===
+            parMoves = 8;
+            holes.push(new BoardHole(0, 150, 250));
+            holes.push(new BoardHole(1, 350, 250));
+            holes.push(new BoardHole(2, 150, 450));
+            holes.push(new BoardHole(3, 350, 450));
+            holes.push(new BoardHole(4, 250, 600));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 3));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 7) {
+            // === Level 7: Pendulum Wave (Different lengths) ===
+            parMoves = 8;
+            holes.push(new BoardHole(0, 150, 200));
+            holes.push(new BoardHole(1, 270, 200));
+            holes.push(new BoardHole(2, 420, 200));
+            holes.push(new BoardHole(3, 150, 360));
+            holes.push(new BoardHole(4, 270, 320));
+            holes.push(new BoardHole(5, 420, 320));
+            holes.push(new BoardHole(6, 300, 500));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+            screws.push(new Screw(4, 4));
+            screws.push(new Screw(5, 5));
+
+            sticks.push(new NeonStick(160, 0, 3));
+            sticks.push(new NeonStick(120, 1, 4));
+            sticks.push(new NeonStick(120, 2, 5));
+
+        } else if (lvlNum === 8) {
+            // === Level 8: Laser Gate Escaper ===
+            parMoves = 5;
+            holes.push(new BoardHole(0, 160, 250));
+            holes.push(new BoardHole(1, 440, 250));
+            holes.push(new BoardHole(2, 300, 450));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+
+            sticks.push(new NeonStick(280, 0, 1));
+
+            obstacles.push(new ObstacleWall(200, 300, 200, 500));
+            obstacles.push(new ObstacleWall(400, 300, 400, 500));
+
+        } else if (lvlNum === 9) {
+            // === Level 9: Double Shifter Mainboard ===
+            parMoves = 8;
+            holes.push(new BoardHole(0, 150, 250));
+            holes.push(new BoardHole(1, 350, 250));
+            holes.push(new BoardHole(2, 150, 420, 'moving'));
+            holes.push(new BoardHole(3, 350, 420, 'moving'));
+            holes.push(new BoardHole(4, 300, 580));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 10) {
+            // === Level 10: Inverted Ladder Matrix ===
+            parMoves = 9;
+            holes.push(new BoardHole(0, 150, 550));
+            holes.push(new BoardHole(1, 350, 550));
+            holes.push(new BoardHole(2, 150, 350));
+            holes.push(new BoardHole(3, 350, 350));
+            holes.push(new BoardHole(4, 250, 200));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 3));
+            sticks.push(new NeonStick(200, 2, 3));
+
+            gravityDir = -1.0; // upward gravity!
+
+        } else if (lvlNum === 11) {
+            // === Level 11: Diagonal X-Pattern ===
+            parMoves = 6;
+            holes.push(new BoardHole(0, 150, 250));
+            holes.push(new BoardHole(1, 350, 250));
+            holes.push(new BoardHole(2, 150, 450));
+            holes.push(new BoardHole(3, 350, 450));
+            holes.push(new BoardHole(4, 250, 350));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            // Perfectly matching cross diagonal distances (len=282 diagonally)
+            sticks.push(new NeonStick(282, 0, 3));
+            sticks.push(new NeonStick(282, 1, 2));
+
+        } else if (lvlNum === 12) {
+            // === Level 12: Cascade Grid Core ===
+            parMoves = 8;
+            holes.push(new BoardHole(0, 200, 200));
+            holes.push(new BoardHole(1, 400, 200));
+            holes.push(new BoardHole(2, 200, 400));
+            holes.push(new BoardHole(3, 400, 400));
+            holes.push(new BoardHole(4, 300, 550));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 3));
+
+        } else if (lvlNum === 13) {
+            // === Level 13: Triangle Roof Spire ===
+            parMoves = 5;
+            holes.push(new BoardHole(0, 300, 200));
+            holes.push(new BoardHole(1, 180, 360));
+            holes.push(new BoardHole(2, 420, 360));
+            holes.push(new BoardHole(3, 300, 500));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 0, 2));
+
+        } else if (lvlNum === 14) {
+            // === Level 14: Deflection Defiles ===
+            parMoves = 5;
+            holes.push(new BoardHole(0, 200, 200));
+            holes.push(new BoardHole(1, 400, 200));
+            holes.push(new BoardHole(2, 300, 400));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+
+            sticks.push(new NeonStick(200, 0, 1));
+
+            obstacles.push(new ObstacleWall(150, 300, 450, 300));
+
+        } else if (lvlNum === 15) {
+            // === Level 15: Grav-Pivot Lift ===
+            parMoves = 6;
+            holes.push(new BoardHole(0, 150, 450));
+            holes.push(new BoardHole(1, 350, 450));
+            holes.push(new BoardHole(2, 250, 250));
+            holes.push(new BoardHole(3, 450, 250));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+
+            sticks.push(new NeonStick(200, 0, 1));
+
+            gravityDir = -1.0; // Inverted gravity!
+
+        } else if (lvlNum === 16) {
+            // === Level 16: The Shield ring ===
+            parMoves = 10;
+            holes.push(new BoardHole(0, 150, 300));
+            holes.push(new BoardHole(1, 350, 300));
+            holes.push(new BoardHole(2, 150, 460));
+            holes.push(new BoardHole(3, 350, 460));
+            holes.push(new BoardHole(4, 250, 580));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
+            sticks.push(new NeonStick(160, 0, 2));
+            sticks.push(new NeonStick(160, 1, 3));
+
+        } else if (lvlNum === 17) {
+            // === Level 17: Diagonal firewall Cross ===
+            parMoves = 5;
+            holes.push(new BoardHole(0, 150, 250));
+            holes.push(new BoardHole(1, 350, 250));
+            holes.push(new BoardHole(2, 250, 450));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+
+            sticks.push(new NeonStick(200, 0, 1));
+
+            obstacles.push(new ObstacleWall(200, 320, 400, 320));
+
+        } else if (lvlNum === 18) {
+            // === Level 18: Shifting grid conveyor ===
+            parMoves = 7;
+            holes.push(new BoardHole(0, 200, 200));
+            holes.push(new BoardHole(1, 400, 200));
+            holes.push(new BoardHole(2, 300, 380, 'moving'));
+            holes.push(new BoardHole(3, 300, 540));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 2));
+
+        } else if (lvlNum === 19) {
+            // === Level 19: Zig-Zag Core ===
+            parMoves = 7;
+            holes.push(new BoardHole(0, 150, 200));
+            holes.push(new BoardHole(1, 350, 200));
+            holes.push(new BoardHole(2, 250, 360));
+            holes.push(new BoardHole(3, 450, 360));
+            holes.push(new BoardHole(4, 350, 520));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 20) {
+            // === Level 20: Triple Inverted Core ===
+            parMoves = 10;
+            holes.push(new BoardHole(0, 150, 600));
+            holes.push(new BoardHole(1, 350, 600));
+            holes.push(new BoardHole(2, 150, 400));
+            holes.push(new BoardHole(3, 350, 400));
+            holes.push(new BoardHole(4, 250, 200));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 3));
+            sticks.push(new NeonStick(200, 2, 3));
+
+            gravityDir = -1.0; // upwards gravity!
+
+        } else if (lvlNum === 21) {
+            // === Level 21: Diamond Mainframe ===
+            parMoves = 12;
+            holes.push(new BoardHole(0, 300, 200));
+            holes.push(new BoardHole(1, 180, 360));
+            holes.push(new BoardHole(2, 420, 360));
+            holes.push(new BoardHole(3, 300, 520));
+            holes.push(new BoardHole(4, 300, 680));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 3));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 22) {
+            // === Level 22: Pinball obstacles ===
+            parMoves = 5;
+            holes.push(new BoardHole(0, 200, 250));
+            holes.push(new BoardHole(1, 400, 250));
+            holes.push(new BoardHole(2, 300, 450));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+
+            sticks.push(new NeonStick(200, 0, 1));
+
+            obstacles.push(new ObstacleWall(100, 350, 250, 350));
+            obstacles.push(new ObstacleWall(350, 350, 500, 350));
+
+        } else if (lvlNum === 23) {
+            // === Level 23: The Gatekeeper ===
+            parMoves = 12;
+            holes.push(new BoardHole(0, 200, 200));
+            holes.push(new BoardHole(1, 400, 200));
+            holes.push(new BoardHole(2, 200, 400));
+            holes.push(new BoardHole(3, 400, 400));
+            holes.push(new BoardHole(4, 300, 550));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 0, 2));
+            sticks.push(new NeonStick(200, 1, 3));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 24) {
+            // === Level 24: Conveyor Shifter grid ===
+            parMoves = 8;
+            holes.push(new BoardHole(0, 150, 250, 'moving'));
+            holes.push(new BoardHole(1, 350, 250, 'moving'));
+            holes.push(new BoardHole(2, 250, 420));
+            holes.push(new BoardHole(3, 450, 420));
+            holes.push(new BoardHole(4, 300, 580));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 25) {
+            // === Level 25: Hacker Grandmaster Matrix ===
+            parMoves = 15;
+            holes.push(new BoardHole(0, 150, 250));
+            holes.push(new BoardHole(1, 350, 250));
+            holes.push(new BoardHole(2, 150, 450));
+            holes.push(new BoardHole(3, 350, 450));
+            holes.push(new BoardHole(4, 250, 600, 'moving'));
+            holes.push(new BoardHole(5, 450, 600));
+            holes.push(new BoardHole(6, 300, 750));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+            screws.push(new Screw(4, 4));
+            screws.push(new Screw(5, 5));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
+            sticks.push(new NeonStick(200, 4, 5));
+
+            obstacles.push(new ObstacleWall(100, 350, 500, 350));
+            obstacles.push(new ObstacleWall(100, 520, 500, 520));
         }
 
         return {
@@ -754,6 +1111,7 @@ class GameLevelManager {
         };
     }
 }
+
 
 // --------------------------------------------------------------------------
 // 5. MAIN SYSTEM MANAGER & EVENT WIRE-UP
@@ -951,7 +1309,7 @@ class GameStateCoordinator {
     }
 
     nextLevel() {
-        if (this.level < 5) {
+        if (this.level < 25) {
             this.level++;
             this.moves = 0;
             this.initLevel(this.level);
@@ -980,7 +1338,7 @@ class GameStateCoordinator {
     updateHUD() {
         document.getElementById('hud-level-val').textContent = this.level;
         document.getElementById('hud-moves-val').textContent = this.moves;
-        document.getElementById('start-cleared-val').textContent = `${this.clearedCount} / 5`;
+        document.getElementById('start-cleared-val').textContent = `${this.clearedCount} / 25`;
     }
 
     handleInteraction() {
@@ -1238,8 +1596,8 @@ class GameStateCoordinator {
         this.ctx.closePath();
         this.ctx.stroke();
 
-        // Inverted Gravity zone markers for Level 5
-        if (this.level === 5) {
+        // Inverted Gravity zone markers for stages with negative gravity direction
+        if (this.activeGravityDir === -1.0) {
             this.ctx.fillStyle = 'rgba(0, 255, 255, 0.02)';
             this.ctx.fillRect(80, 100, 440, 600);
             
