@@ -6,9 +6,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 def test_cyber_survivor():
-    # Setup Chrome WebDriver
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless') # Uncomment to run invisibly
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--window-size=1920,1080')
     driver = webdriver.Chrome(options=options)
     
     try:
@@ -25,6 +27,14 @@ def test_cyber_survivor():
         print("1. Testing Main Menu...")
         main_menu = driver.find_element(By.ID, "mainMenu")
         assert "hidden" not in main_menu.get_attribute("class")
+
+        # Bypass pre-game compliance overlay
+        print("1b. Bypassing pre-game compliance overlay...")
+        overlay = driver.find_element(By.ID, "game-info-overlay")
+        if overlay.is_displayed():
+            agree_btn = driver.find_element(By.CSS_SELECTOR, ".continue-game-btn")
+            agree_btn.click()
+            time.sleep(0.5)
         
         print("2. Testing Start Game flow...")
         start_btn = driver.find_element(By.ID, "btn-start")
@@ -44,8 +54,8 @@ def test_cyber_survivor():
         
         # Wait for pause menu
         time.sleep(0.5)
-        pause_menu = driver.find_element(By.ID, "pauseMenu")
-        assert "hidden" not in pause_menu.get_attribute("class")
+        pause_overlay = driver.find_element(By.ID, "pauseOverlay")
+        assert "hidden" not in pause_overlay.get_attribute("class")
         
         game_state = driver.execute_script("return gameState;")
         assert game_state == "PAUSED", f"Expected PAUSED, got {game_state}"
@@ -55,7 +65,7 @@ def test_cyber_survivor():
         resume_btn.click()
         
         time.sleep(0.5)
-        assert "hidden" in pause_menu.get_attribute("class")
+        assert "hidden" in pause_overlay.get_attribute("class")
         
         print("5. Testing Level Up Mechanic via JS injection...")
         # Give the player 100 XP directly to trigger a level up

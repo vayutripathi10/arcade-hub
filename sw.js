@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v3';
+const CACHE_NAME = 'arcade-hub-cache-v4';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -17,7 +17,32 @@ const CORE_ASSETS = [
     'neon-cypher-frontend/style.css',
     'neon-cypher-frontend/script.js',
     'neon-cypher-frontend/dictionary.js',
-    'neon-cypher-frontend/thumbnail.jpg'
+    'neon-cypher-frontend/thumbnail.jpg',
+    'blog.html',
+    'blog/evolution-of-cyberpunk-web-games.html',
+    'blog/pwa-html5-mobile-gaming-revolution.html',
+    'blog/retro-arcade-game-strategy-guide.html',
+    'play-neon-cypher.html',
+    'play-neon-swing.html',
+    'play-neon-snake.html',
+    'play-neon-pipes.html',
+    'play-neon-helix-drop.html',
+    'play-sky-jumper.html',
+    'play-cyber-survivor.html',
+    'play-neon-brick-breaker.html',
+    'play-neon-invaders.html',
+    'play-neon-brawler.html',
+    'play-stick-duel.html',
+    'play-space-shooter.html',
+    'play-neon-drawbridge.html',
+    'play-neon-bottle-shooter.html',
+    'play-flappy.html',
+    'play-stick-fighter.html',
+    'play-neon-runner.html',
+    'play-dino.html',
+    'play-snake.html',
+    'play-tictactoe.html',
+    'play-retro-racer.html'
 ];
 
 const DB_NAME = 'offline-analytics';

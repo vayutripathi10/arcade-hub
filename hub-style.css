@@ -1084,3 +1084,71 @@ body.menu-open {
 .pwa-install-btn.hidden {
     display: none !important;
 }
+
+/* --- GOOGLE ADSENSE COMPLIANCE SEO SECTION --- */
+.portal-seo-section {
+    margin-top: 60px;
+    padding: 45px 0;
+    border-top: 1px dashed rgba(0, 255, 204, 0.2);
+    font-family: 'Outfit', sans-serif;
+}
+
+.portal-seo-section h2 {
+    font-size: 1.6rem;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+    font-weight: 900;
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+}
+
+.portal-seo-section h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 36px;
+    margin-bottom: 12px;
+    border-left: 3px solid var(--secondary);
+    padding-left: 12px;
+}
+
+.portal-seo-section p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    text-align: justify;
+}
+
+.portal-seo-faq-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.portal-seo-faq-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.portal-seo-faq-item:hover {
+    border-bottom-color: rgba(0, 255, 204, 0.2);
+}
+
+.portal-seo-faq-question {
+    color: #fff;
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.portal-seo-faq-answer {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.96rem;
+    line-height: 1.6;
+}

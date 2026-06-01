@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Arcade Hub Blog: In-depth guides, historical reviews, and technical insights into modern HTML5 retro games, PWAs, and synthesizer sound.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/blog.html">
+    <title>Arcade Hub Blog — Curation, Guides & Web Game Insights</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    <style>
+        .blog-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 16px;
+        }
+        .blog-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .blog-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        .blog-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+        }
+        .blog-card-img {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #161922 0%, #0d0e12 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .blog-card-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .blog-card-meta {
+            font-size: 0.8rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .blog-card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        .blog-card-desc {
+            font-size: 0.93rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            flex-grow: 1;
+        }
+        .blog-card-more {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub.html" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements.html" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="blog.html" class="sidebar-link active-hub">📝 Blog & Guides</a>
+            <a href="about.html" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact.html" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
+        </div>
+    </nav>
+
+    <div class="blog-container">
+        <div class="blog-header">
+            <h1 class="main-title">📝 Blog & Guides</h1>
+            <p class="subtitle" style="margin-top: 8px;">Curation, Development Insights, and Retro Gaming Strategies</p>
+        </div>
+
+        <div class="blog-grid">
+            <!-- Article 1 -->
+            <a href="blog/evolution-of-cyberpunk-web-games.html" class="blog-card">
+                <div class="blog-card-img">🔐</div>
+                <div class="blog-card-content">
+                    <div class="blog-card-meta">Game Design</div>
+                    <h2 class="blog-card-title">The Evolution of the Cyberpunk Aesthetic in Modern Web Games</h2>
+                    <p class="blog-card-desc">An in-depth look at how retro-futurism, synthesizer audio oscillators, and dark neon color spaces have shaped the casual browser game scene, featuring analysis of Arcade Hub's Neon Cypher.</p>
+                    <div class="blog-card-more">Read Article ➔</div>
+                </div>
+            </a>
+
+            <!-- Article 2 -->
+            <a href="blog/pwa-html5-mobile-gaming-revolution.html" class="blog-card">
+                <div class="blog-card-img">📲</div>
+                <div class="blog-card-content">
+                    <div class="blog-card-meta">Technology Stack</div>
+                    <h2 class="blog-card-title">How PWA and HTML5 Technologies are Reshaping Mobile Offline Play</h2>
+                    <p class="blog-card-desc">Explore the web development mechanics of service workers, pre-caching, and canvas scaling, and how they allow complex web games to run offline on mobile devices with native speed.</p>
+                    <div class="blog-card-more">Read Article ➔</div>
+                </div>
+            </a>
+
+            <!-- Article 3 -->
+            <a href="blog/retro-arcade-game-strategy-guide.html" class="blog-card">
+                <div class="blog-card-img">🕹️</div>
+                <div class="blog-card-content">
+                    <div class="blog-card-meta">Gameplay Guide</div>
+                    <h2 class="blog-card-title">Ultimate Guide to Classic Arcade Game Strategies: From Snake to Brick Breakers</h2>
+                    <p class="blog-card-desc">Master the grids! A detailed breakdown of strategy guides, paddle alignment math, and optimal pathfinding logic to achieve high scores in Zen Dino, Zen Snake, and Brick Breaker.</p>
+                    <div class="blog-card-more">Read Article ➔</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a> | <a href="blog.html">Blog</a></p>
+    </footer>
+
+    <script src="shared/achievements.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>

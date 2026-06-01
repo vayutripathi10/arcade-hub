@@ -6,7 +6,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 def test_sky_jumper():
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless') # Uncomment to run invisibly
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--window-size=1920,1080')
     driver = webdriver.Chrome(options=options)
     
     try:
@@ -23,6 +26,14 @@ def test_sky_jumper():
         start_screen = driver.find_element(By.ID, "screen-start")
         assert "hidden" not in start_screen.get_attribute("class")
         
+        # Bypass pre-game compliance overlay
+        print("1b. Bypassing pre-game compliance overlay...")
+        overlay = driver.find_element(By.ID, "game-info-overlay")
+        if overlay.is_displayed():
+            agree_btn = driver.find_element(By.CSS_SELECTOR, ".continue-game-btn")
+            agree_btn.click()
+            time.sleep(0.5)
+            
         print("2. Starting Game...")
         start_btn = driver.find_element(By.ID, "btn-start")
         start_btn.click()
