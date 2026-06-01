@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NEON STICK & SCREWS - COMPLETE OVERHAULED ENGINE
+   NEON STICK & SCREWS - COMPACT RIGID PUZZLE ENGINE
    ========================================================================== */
 
 // --------------------------------------------------------------------------
@@ -100,7 +100,7 @@ class AudioSynthManager {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
-        // Error buzz for locked clicks
+        // Error buzz
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(120, now);
         gain.gain.setValueAtTime(0.18, now);
@@ -219,7 +219,7 @@ class BoardHole {
         this.x = x;
         this.y = y;
         this.origX = x; // for moving server cores
-        this.type = type; // 'normal', 'goal'
+        this.type = type; // 'normal', 'moving'
         this.radius = 16;
     }
 
@@ -235,16 +235,7 @@ class BoardHole {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
 
-        if (this.type === 'goal') {
-            // Goal hole (green pulsing)
-            const pulse = 8 + Math.sin(performance.now() * 0.008) * 3;
-            ctx.shadowColor = '#39ff14';
-            ctx.shadowBlur = pulse;
-            ctx.strokeStyle = '#39ff14';
-            ctx.lineWidth = 3;
-            ctx.fillStyle = 'rgba(57, 255, 20, 0.12)';
-            ctx.fill();
-        } else if (isSelectedEmpty) {
+        if (isSelectedEmpty) {
             // Empty and snap targets
             ctx.shadowColor = '#00ffff';
             ctx.shadowBlur = 12;
@@ -267,10 +258,9 @@ class BoardHole {
 }
 
 class Screw {
-    constructor(id, holeId, endName) {
+    constructor(id, holeId) {
         this.id = id;
-        this.holeId = holeId; // null if carried on stick tip
-        this.endName = endName; // 'EndA' or 'EndB'
+        this.holeId = holeId; // ID of BoardHole occupied, or null if selected
         this.x = 0;
         this.y = 0;
         this.radius = 16;
@@ -281,15 +271,12 @@ class Screw {
         this.pulse += 5 * dt;
     }
 
-    draw(ctx, isSelected, isLocked) {
+    draw(ctx, isSelected, holes) {
         ctx.save();
         let baseColor = '#ffff00'; // Yellow neon
         let shadowGlow = 8;
 
-        if (isLocked) {
-            baseColor = '#ff4444'; // Red lock alert
-            shadowGlow = 12 + Math.sin(this.pulse) * 3;
-        } else if (isSelected) {
+        if (isSelected) {
             baseColor = '#ffffff';
             shadowGlow = 16 + Math.sin(this.pulse) * 4;
         }
@@ -320,15 +307,6 @@ class Screw {
         ctx.moveTo(this.x + 4, this.y - 4);
         ctx.lineTo(this.x - 4, this.y + 4);
         ctx.stroke();
-
-        // Draw lock symbol 🔒 if single screw is locked
-        if (isLocked) {
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '11px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🔒', this.x, this.y + 1);
-        }
 
         ctx.restore();
     }
@@ -362,14 +340,18 @@ class ObstacleWall {
 // --------------------------------------------------------------------------
 
 class NeonStick {
-    constructor(length) {
+    constructor(length, pinA, pinB) {
         this.length = length;
         
+        // Initial pin indices (indices in gameInstance.holes)
+        this.pinA = pinA;
+        this.pinB = pinB;
+
         // Coordinates of stick ends
-        this.ax = 150;
-        this.ay = 300;
-        this.bx = 350;
-        this.by = 300;
+        this.ax = 0;
+        this.ay = 0;
+        this.bx = 0;
+        this.by = 0;
 
         this.theta = 0; // current angle when pivoting
         this.omega = 0; // angular velocity
@@ -379,91 +361,70 @@ class NeonStick {
 
         this.trailHistory = [];
         this.prevWhooshTime = 0;
+
+        this.vy = 0; // vertical velocity when falling
+        this.fallRotation = 0;
+        this.fallen = false;
     }
 
     update(dt, screws, holes, obstacles, gravityDir = 1.0) {
-        // Sync carried/unlocked screws to swing tips
-        const screwA = screws.find(s => s.endName === 'EndA');
-        const screwB = screws.find(s => s.endName === 'EndB');
+        if (this.fallen) return 'FALLEN';
 
-        const activePins = [];
-        if (screwA && screwA.holeId !== null) activePins.push({ name: 'EndA', screw: screwA });
-        if (screwB && screwB.holeId !== null) activePins.push({ name: 'EndB', screw: screwB });
+        // 1. Check if pins still have screws in them
+        if (this.pinA !== null) {
+            const hasScrew = screws.some(s => s.holeId === this.pinA);
+            if (!hasScrew) this.pinA = null;
+        }
+        if (this.pinB !== null) {
+            const hasScrew = screws.some(s => s.holeId === this.pinB);
+            if (!hasScrew) this.pinB = null;
+        }
 
-        // 1. LOCKED STATE (both screws inserted)
-        if (activePins.length >= 2) {
-            const hA = holes.find(h => h.id === screwA.holeId);
-            const hB = holes.find(h => h.id === screwB.holeId);
+        // 2. LOCKED STATE (both ends pinned)
+        if (this.pinA !== null && this.pinB !== null) {
+            const hA = holes.find(h => h.id === this.pinA);
+            const hB = holes.find(h => h.id === this.pinB);
             if (hA && hB) {
                 this.ax = hA.x; this.ay = hA.y;
                 this.bx = hB.x; this.by = hB.y;
             }
             this.omega = 0;
             this.trailHistory = [];
-
-            // Screw positions follow wall holes exactly
-            screwA.x = this.ax; screwA.y = this.ay;
-            screwB.x = this.bx; screwB.y = this.by;
+            this.vy = 0;
             return 'LOCKED';
         }
 
-        // 2. PIVOT STATE (exactly 1 screw inserted)
-        if (activePins.length === 1) {
-            const pin = activePins[0];
-            const isAPinned = pin.name === 'EndA';
-            const pivotHole = holes.find(h => h.id === pin.screw.holeId);
-
+        // 3. PIVOT A STATE (only End A pinned)
+        if (this.pinA !== null && this.pinB === null) {
+            const pivotHole = holes.find(h => h.id === this.pinA);
             if (pivotHole) {
                 const px = pivotHole.x;
                 const py = pivotHole.y;
+                this.ax = px; this.ay = py;
 
-                if (isAPinned) {
-                    this.ax = px; this.ay = py;
-                } else {
-                    this.bx = px; this.by = py;
-                }
-
-                // If starting a fresh pendulum swing, calculate the initial theta
-                const freeEndName = isAPinned ? 'EndB' : 'EndA';
-                const fx = isAPinned ? this.bx : this.ax;
-                const fy = isAPinned ? this.by : this.ay;
-
-                // Angle is relative to vertical direction (based on active gravity vector direction)
-                const dx = fx - px;
-                const dy = fy - py;
-
-                // Adjust angle for inverted gravity zones (gravityDir = -1.0 means gravity pulls UPWARDS)
-                const adjustedDy = dy * gravityDir;
-                const curTheta = Math.atan2(dx, adjustedDy);
-
+                // Sync angle from End B coordinates
+                const dx = this.bx - px;
+                const dy = this.by - py;
+                const curTheta = Math.atan2(dx, dy * gravityDir);
                 this.theta = curTheta;
 
-                // 2D Pendulum Equation: alpha = (-gravity / L) * sin(theta)
+                // Pendulum Torque equation: alpha = (-gravity / L) * sin(theta)
                 const alpha = (-(this.gravity * gravityDir) / this.length) * Math.sin(this.theta) * gravityDir;
 
-                // Integrate
                 const prevTheta = this.theta;
                 this.omega += alpha * dt;
                 this.omega *= this.damping;
                 this.theta += this.omega * dt;
 
-                // Bound angle
                 if (this.theta > Math.PI * 2) this.theta -= Math.PI * 2;
                 if (this.theta < -Math.PI * 2) this.theta += Math.PI * 2;
 
-                // Recalculate free end candidate coordinates
                 const swingX = px + Math.sin(this.theta) * this.length;
                 const swingY = py + Math.cos(this.theta) * this.length * gravityDir;
 
-                let nextAx = isAPinned ? px : swingX;
-                let nextAy = isAPinned ? py : swingY;
-                let nextBx = isAPinned ? swingX : px;
-                let nextBy = isAPinned ? swingY : py;
-
-                // 3. CYAN OBSTACLE COLLISION DETECTION (Elastic Bouncing)
+                // Obstacle wall collision detection
                 let collided = false;
                 let colPoint = null;
-
                 for (let wall of obstacles) {
                     const hit = this.lineIntersects(
                         { x: px, y: py },
@@ -479,48 +440,159 @@ class NeonStick {
                 }
 
                 if (collided) {
-                    // Elastic rebound bounce
                     this.theta = prevTheta; // roll back
-                    this.omega = -this.omega * 0.45; // reverse and damp
+                    this.omega = -this.omega * 0.45;
                     synth.playBounceSFX();
-                    
-                    // Spawn sparks at crash point
-                    if (colPoint) {
-                        this.spawnSparks(colPoint.x, colPoint.y);
-                    }
+                    if (colPoint) this.spawnSparks(colPoint.x, colPoint.y, '#00ffff');
                 } else {
-                    // Kinematics accept
-                    this.ax = nextAx; this.ay = nextAy;
-                    this.bx = nextBx; this.by = nextBy;
+                    this.bx = swingX; this.by = swingY;
                 }
 
-                // Sync screws
-                screwA.x = this.ax; screwA.y = this.ay;
-                screwB.x = this.bx; screwB.y = this.by;
+                // Snap check to occupied holes
+                for (let hole of holes) {
+                    if (hole.id === this.pinA) continue;
+                    const hasScrew = screws.some(s => s.holeId === hole.id);
+                    if (hasScrew) {
+                        const dist = Math.hypot(hole.x - this.bx, hole.y - this.by);
+                        if (dist < 30) {
+                            this.pinB = hole.id;
+                            this.bx = hole.x; this.by = hole.y;
+                            this.omega = 0;
+                            synth.playClinkSFX();
+                            this.spawnSparks(hole.x, hole.y, '#39ff14');
+                            break;
+                        }
+                    }
+                }
 
-                // Play periodic swing swooshes
                 const nowTime = performance.now();
                 if (nowTime - this.prevWhooshTime > 300 && Math.abs(this.omega) > 1.2) {
                     synth.playWhooshSFX(this.omega);
                     this.prevWhooshTime = nowTime;
                 }
 
-                // Add to pink pendulum fading trails
-                this.trailHistory.push({ x: swingX, y: swingY, alpha: 1.0 });
+                this.trailHistory.push({ x: this.bx, y: this.by, alpha: 1.0 });
                 if (this.trailHistory.length > 25) this.trailHistory.shift();
 
-                return 'SWINGING';
+                return 'PIVOT_A';
             }
         }
 
-        // 4. FALLING STATE (zero screws inserted)
+        // 4. PIVOT B STATE (only End B pinned)
+        if (this.pinB !== null && this.pinA === null) {
+            const pivotHole = holes.find(h => h.id === this.pinB);
+            if (pivotHole) {
+                const px = pivotHole.x;
+                const py = pivotHole.y;
+                this.bx = px; this.by = py;
+
+                // Sync angle from End A coordinates
+                const dx = this.ax - px;
+                const dy = this.ay - py;
+                const curTheta = Math.atan2(dx, dy * gravityDir);
+                this.theta = curTheta;
+
+                const alpha = (-(this.gravity * gravityDir) / this.length) * Math.sin(this.theta) * gravityDir;
+
+                const prevTheta = this.theta;
+                this.omega += alpha * dt;
+                this.omega *= this.damping;
+                this.theta += this.omega * dt;
+
+                if (this.theta > Math.PI * 2) this.theta -= Math.PI * 2;
+                if (this.theta < -Math.PI * 2) this.theta += Math.PI * 2;
+
+                const swingX = px + Math.sin(this.theta) * this.length;
+                const swingY = py + Math.cos(this.theta) * this.length * gravityDir;
+
+                let collided = false;
+                let colPoint = null;
+                for (let wall of obstacles) {
+                    const hit = this.lineIntersects(
+                        { x: px, y: py },
+                        { x: swingX, y: swingY },
+                        { x: wall.x1, y: wall.y1 },
+                        { x: wall.x2, y: wall.y2 }
+                    );
+                    if (hit) {
+                        collided = true;
+                        colPoint = hit;
+                        break;
+                    }
+                }
+
+                if (collided) {
+                    this.theta = prevTheta;
+                    this.omega = -this.omega * 0.45;
+                    synth.playBounceSFX();
+                    if (colPoint) this.spawnSparks(colPoint.x, colPoint.y, '#00ffff');
+                } else {
+                    this.ax = swingX; this.ay = swingY;
+                }
+
+                // Snap check to occupied holes
+                for (let hole of holes) {
+                    if (hole.id === this.pinB) continue;
+                    const hasScrew = screws.some(s => s.holeId === hole.id);
+                    if (hasScrew) {
+                        const dist = Math.hypot(hole.x - this.ax, hole.y - this.ay);
+                        if (dist < 30) {
+                            this.pinA = hole.id;
+                            this.ax = hole.x; this.ay = hole.y;
+                            this.omega = 0;
+                            synth.playClinkSFX();
+                            this.spawnSparks(hole.x, hole.y, '#39ff14');
+                            break;
+                        }
+                    }
+                }
+
+                const nowTime = performance.now();
+                if (nowTime - this.prevWhooshTime > 300 && Math.abs(this.omega) > 1.2) {
+                    synth.playWhooshSFX(this.omega);
+                    this.prevWhooshTime = nowTime;
+                }
+
+                this.trailHistory.push({ x: this.ax, y: this.ay, alpha: 1.0 });
+                if (this.trailHistory.length > 25) this.trailHistory.shift();
+
+                return 'PIVOT_B';
+            }
+        }
+
+        // 5. FALLING STATE (zero pins)
         this.trailHistory = [];
+        this.vy += 980 * dt * gravityDir;
+        this.ay += this.vy * dt;
+        this.by += this.vy * dt;
+
+        // Apply a slow rotation drift
+        this.fallRotation += 1.5 * dt;
+        const halfL = this.length / 2;
+        const cx = (this.ax + this.bx) / 2;
+        const cy = (this.ay + this.by) / 2;
+        this.ax = cx - Math.cos(this.fallRotation) * halfL;
+        this.ay = cy - Math.sin(this.fallRotation) * halfL;
+        this.bx = cx + Math.cos(this.fallRotation) * halfL;
+        this.by = cy + Math.sin(this.fallRotation) * halfL;
+
+        // Check if fully off screen
+        if (gravityDir === 1.0) {
+            if (this.ay > 900 && this.by > 900) {
+                this.fallen = true;
+            }
+        } else {
+            if (this.ay < -100 && this.by < -100) {
+                this.fallen = true;
+            }
+        }
+
         return 'FALLING';
     }
 
-    spawnSparks(x, y) {
+    spawnSparks(x, y, color) {
         if (window.gameInstance) {
-            window.gameInstance.spawnSparks(x, y, '#00ffff');
+            window.gameInstance.spawnSparks(x, y, color);
         }
     }
 
@@ -539,7 +611,7 @@ class NeonStick {
     }
 
     draw(ctx) {
-        // 1. Draw Pendulum trail dots (fading pink dots)
+        // Draw pendulum trails
         this.trailHistory.forEach(trail => {
             trail.alpha -= 0.03;
             if (trail.alpha > 0) {
@@ -556,7 +628,7 @@ class NeonStick {
         });
         this.trailHistory = this.trailHistory.filter(t => t.alpha > 0);
 
-        // 2. Draw active stick (pink/magenta neon rod)
+        // Draw magenta neon rod
         ctx.save();
         ctx.shadowColor = '#ff2d78';
         ctx.shadowBlur = 15;
@@ -568,7 +640,6 @@ class NeonStick {
         ctx.lineTo(this.bx, this.by);
         ctx.stroke();
 
-        // Inner white light core for extra high-fidelity glow
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 3;
         ctx.beginPath();
@@ -593,95 +664,91 @@ class GameLevelManager {
         const holes = [];
         const screws = [];
         const obstacles = [];
-        const goals = [];
+        const sticks = [];
         let parMoves = 5;
-        let gravityDir = 1.0; // 1.0 is standard downward, -1.0 is inverted upward
+        let gravityDir = 1.0;
 
         if (lvlNum === 1) {
-            // === LEVEL 1: TUTORIAL Grapples ===
             parMoves = 4;
-            // Static holes spacing matching stick length (L=200)
+            holes.push(new BoardHole(0, 200, 300));
+            holes.push(new BoardHole(1, 400, 300));
+            holes.push(new BoardHole(2, 300, 480));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+
+            sticks.push(new NeonStick(200, 0, 1));
+
+        } else if (lvlNum === 2) {
+            parMoves = 6;
+            holes.push(new BoardHole(0, 150, 250));
+            holes.push(new BoardHole(1, 350, 250));
+            holes.push(new BoardHole(2, 250, 450));
+            holes.push(new BoardHole(3, 450, 450));
+            holes.push(new BoardHole(4, 300, 600));
+
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
+
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
+
+        } else if (lvlNum === 3) {
+            parMoves = 5;
             holes.push(new BoardHole(0, 150, 300));
             holes.push(new BoardHole(1, 350, 300));
             holes.push(new BoardHole(2, 250, 480));
-            holes.push(new BoardHole(3, 450, 480, 'goal')); // Goal End B
-            holes.push(new BoardHole(4, 250, 600, 'goal')); // Goal End A
+            holes.push(new BoardHole(3, 450, 480));
 
-            // Screws at 0 and 1
-            screws.push(new Screw(0, 0, 'EndA'));
-            screws.push(new Screw(1, 1, 'EndB'));
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
 
-            // No walls for tutorial
+            sticks.push(new NeonStick(200, 0, 1));
 
-        } else if (lvlNum === 2) {
-            // === LEVEL 2: PEN-SWING TIMING ===
-            parMoves = 5;
-            holes.push(new BoardHole(0, 300, 200));
-            holes.push(new BoardHole(1, 300, 400));
-            holes.push(new BoardHole(2, 120, 300));
-            holes.push(new BoardHole(3, 480, 300));
-            holes.push(new BoardHole(4, 120, 500, 'goal'));
-            holes.push(new BoardHole(5, 300, 600, 'goal'));
+            obstacles.push(new ObstacleWall(300, 200, 300, 500));
 
-            screws.push(new Screw(0, 0, 'EndA'));
-            screws.push(new Screw(1, 1, 'EndB'));
-
-        } else if (lvlNum === 3) {
-            // === LEVEL 3: FIREWALL BARRIERS ===
-            parMoves = 7;
+        } else if (lvlNum === 4) {
+            parMoves = 6;
             holes.push(new BoardHole(0, 150, 250));
             holes.push(new BoardHole(1, 350, 250));
             holes.push(new BoardHole(2, 250, 420));
             holes.push(new BoardHole(3, 450, 420));
-            holes.push(new BoardHole(4, 250, 600, 'goal'));
-            holes.push(new BoardHole(5, 450, 600, 'goal'));
+            holes.push(new BoardHole(4, 300, 580, 'moving')); // Shifting node!
 
-            screws.push(new Screw(0, 0, 'EndA'));
-            screws.push(new Screw(1, 1, 'EndB'));
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
 
-            // Cyan Obstacles wall segment placing right in between
-            obstacles.push(new ObstacleWall(300, 200, 300, 500));
-
-        } else if (lvlNum === 4) {
-            // === LEVEL 4: MOVING SERVER CORE ===
-            parMoves = 6;
-            holes.push(new BoardHole(0, 200, 200));
-            holes.push(new BoardHole(1, 400, 200));
-            holes.push(new BoardHole(2, 300, 380, 'moving')); // Shifting hole!
-            holes.push(new BoardHole(3, 150, 550, 'goal'));
-            holes.push(new BoardHole(4, 350, 550, 'goal'));
-
-            screws.push(new Screw(0, 0, 'EndA'));
-            screws.push(new Screw(1, 1, 'EndB'));
-
-            // Divider firewall
-            obstacles.push(new ObstacleWall(100, 450, 500, 450));
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
 
         } else if (lvlNum === 5) {
-            // === LEVEL 5: GRAND GRAVITY REVERSAL ZONE ===
             parMoves = 8;
             holes.push(new BoardHole(0, 150, 550));
             holes.push(new BoardHole(1, 350, 550));
             holes.push(new BoardHole(2, 250, 380));
             holes.push(new BoardHole(3, 450, 380));
-            holes.push(new BoardHole(4, 250, 200, 'goal')); // Goal is at top!
-            holes.push(new BoardHole(5, 450, 200, 'goal'));
+            holes.push(new BoardHole(4, 300, 200));
 
-            screws.push(new Screw(0, 0, 'EndA'));
-            screws.push(new Screw(1, 1, 'EndB'));
+            screws.push(new Screw(0, 0));
+            screws.push(new Screw(1, 1));
+            screws.push(new Screw(2, 2));
+            screws.push(new Screw(3, 3));
 
-            // Inverted gravity!
-            gravityDir = -1.0; // Gravity pulls UP!
+            sticks.push(new NeonStick(200, 0, 1));
+            sticks.push(new NeonStick(200, 2, 3));
 
-            // Cyber obstacles guarding the goal
-            obstacles.push(new ObstacleWall(100, 280, 280, 280));
-            obstacles.push(new ObstacleWall(320, 280, 500, 280));
+            gravityDir = -1.0; // gravity pulls UP!
         }
 
         return {
             holes,
             screws,
             obstacles,
+            sticks,
             parMoves,
             gravityDir
         };
@@ -705,14 +772,15 @@ class GameStateCoordinator {
         this.holes = [];
         this.screws = [];
         this.obstacles = [];
+        this.sticks = [];
         this.particles = [];
 
         this.selectedScrew = null;
+        this.originalHoleId = null; // for cancels
+
         this.activeGravityDir = 1.0;
         this.parMoves = 5;
 
-        // Stick (L = 200)
-        this.stick = new NeonStick(200);
         this.lvlManager = new GameLevelManager();
 
         this.virtualWidth = 600;
@@ -722,7 +790,10 @@ class GameStateCoordinator {
         this.offsetY = 0;
 
         this.lastTime = 0;
-        this.gravityZoneActive = false;
+        
+        // Track pointer for carrying selected screws
+        this.pointerX = 300;
+        this.pointerY = 400;
 
         this.bindEvents();
         this.resizeCanvas();
@@ -732,56 +803,86 @@ class GameStateCoordinator {
     initLevel(lvlNum) {
         this.level = lvlNum;
         this.selectedScrew = null;
+        this.originalHoleId = null;
         this.particles = [];
         this.holes = [];
         this.screws = [];
         this.obstacles = [];
+        this.sticks = [];
+
+        // Core fix: make sure the HUD header is displayed!
+        const hudHeader = document.querySelector('.hud-header');
+        if (hudHeader) {
+            hudHeader.style.display = 'grid';
+        }
 
         const lvlAssets = this.lvlManager.getLevel(lvlNum);
         this.holes = lvlAssets.holes;
         this.screws = lvlAssets.screws;
         this.obstacles = lvlAssets.obstacles;
+        this.sticks = lvlAssets.sticks;
         this.parMoves = lvlAssets.parMoves;
         this.activeGravityDir = lvlAssets.gravityDir;
 
-        // Reset stick coordinates matching original screws
-        const screwA = this.screws.find(s => s.endName === 'EndA');
-        const screwB = this.screws.find(s => s.endName === 'EndB');
-        const hA = this.holes.find(h => h.id === screwA.holeId);
-        const hB = this.holes.find(h => h.id === screwB.holeId);
+        // Initialize stick ends coordinate based on initial pins
+        this.sticks.forEach(stick => {
+            const hA = this.holes.find(h => h.id === stick.pinA);
+            const hB = this.holes.find(h => h.id === stick.pinB);
+            if (hA && hB) {
+                stick.ax = hA.x; stick.ay = hA.y;
+                stick.bx = hB.x; stick.by = hB.y;
+                stick.omega = 0;
+                stick.vy = 0;
+                stick.fallRotation = 0;
+                stick.trailHistory = [];
+                stick.fallen = false;
+            }
+        });
 
-        if (hA && hB) {
-            this.stick.ax = hA.x; this.stick.ay = hA.y;
-            this.stick.bx = hB.x; this.stick.by = hB.y;
-            this.stick.theta = 0;
-            this.stick.omega = 0;
-            this.stick.trailHistory = [];
-        }
-
-        this.syncScrewsToStick();
+        this.syncScrewsToHoles();
         this.updateHUD();
     }
 
-    syncScrewsToStick() {
-        const screwA = this.screws.find(s => s.endName === 'EndA');
-        const screwB = this.screws.find(s => s.endName === 'EndB');
-        if (screwA && screwB) {
-            screwA.x = this.stick.ax; screwA.y = this.stick.ay;
-            screwB.x = this.stick.bx; screwB.y = this.stick.by;
-        }
+    syncScrewsToHoles() {
+        this.screws.forEach(screw => {
+            if (screw.holeId !== null) {
+                const hole = this.holes.find(h => h.id === screw.holeId);
+                if (hole) {
+                    screw.x = hole.x;
+                    screw.y = hole.y;
+                }
+            }
+        });
     }
 
     bindEvents() {
         window.addEventListener('resize', () => this.resizeCanvas());
 
-        const touchHandler = (e) => {
+        const getCoords = (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const clientX = e.clientX - rect.left;
+            const clientY = e.clientY - rect.top;
+            this.pointerX = (clientX - this.offsetX) / this.scale;
+            this.pointerY = (clientY - this.offsetY) / this.scale;
+        };
+
+        const handleDown = (e) => {
             e.preventDefault();
-            this.handleInteraction(e);
+            getCoords(e);
+            this.handleInteraction();
+        };
+
+        const handleMove = (e) => {
+            e.preventDefault();
+            getCoords(e);
         };
 
         const overlay = document.getElementById('interaction-overlay');
-        overlay.addEventListener('pointerdown', touchHandler);
-        this.canvas.addEventListener('pointerdown', touchHandler);
+        overlay.addEventListener('pointerdown', handleDown);
+        overlay.addEventListener('pointermove', handleMove);
+
+        this.canvas.addEventListener('pointerdown', handleDown);
+        this.canvas.addEventListener('pointermove', handleMove);
 
         document.getElementById('start-play-btn').addEventListener('click', () => this.startGame());
         document.getElementById('hud-reset-btn').addEventListener('click', () => this.resetLevel());
@@ -870,9 +971,9 @@ class GameStateCoordinator {
 
     showHint() {
         if (this.level === 1) {
-            alert("Tutorial Hint: Click on Screw B (H1), wait for End B to swing directly onto empty Hole 2, then click Hole 2 to lock it!");
+            alert("Tutorial Hint: Click on Screw B (H1), wait for End B to swing, then click Hole 2 to lock it!");
         } else {
-            alert("Hint: Swing to build momentum, and snap when passing within 40px of cyan holes!");
+            alert("Hint: Unscrew pivots and move them to allow the sticks to fall down completely!");
         }
     }
 
@@ -882,96 +983,54 @@ class GameStateCoordinator {
         document.getElementById('start-cleared-val').textContent = `${this.clearedCount} / 5`;
     }
 
-    handleInteraction(e) {
+    handleInteraction() {
         if (this.gameState !== 'PLAYING') return;
 
-        const rect = this.canvas.getBoundingClientRect();
-        const clientX = e.clientX - rect.left;
-        const clientY = e.clientY - rect.top;
-
-        const virtualX = (clientX - this.offsetX) / this.scale;
-        const virtualY = (clientY - this.offsetY) / this.scale;
-
-        // Check if there is only exactly 1 screw inserted (pivot state)
-        const activePins = this.screws.filter(s => s.holeId !== null);
-        const isPivotState = activePins.length === 1;
-
-        // 1. If no screw is selected, check if user clicked an occupied screw bolt
+        // 1. If no screw is selected, check if user tapped a screw
         if (!this.selectedScrew) {
             let tappedScrew = null;
             this.screws.forEach(screw => {
-                const dist = Math.hypot(screw.x - virtualX, screw.y - virtualY);
-                if (dist <= screw.radius + 12) {
+                const dist = Math.hypot(screw.x - this.pointerX, screw.y - this.pointerY);
+                if (dist <= screw.radius + 15) {
                     tappedScrew = screw;
                 }
             });
 
             if (tappedScrew) {
-                // LAST SCREW PROTECTION: If only 1 screw remains, lock it!
-                if (isPivotState && tappedScrew.holeId !== null) {
-                    synth.playErrorSFX();
-                    this.spawnSparks(tappedScrew.x, tappedScrew.y, '#ff4444');
-                    return; // locked 🔒
-                }
-
-                // Unscrew bolt! It becomes carried on its stick end.
+                // Unscrew bolt! It is now held in pointer/hand.
                 this.selectedScrew = tappedScrew;
-                this.selectedScrew.holeId = null; // detaches from wall!
+                this.originalHoleId = tappedScrew.holeId;
+                tappedScrew.holeId = null;
                 this.spawnSparks(tappedScrew.x, tappedScrew.y, '#ffff00');
                 synth.playTickSFX();
                 this.moves++;
                 this.updateHUD();
             }
         } else {
-            // 2. If a screw is selected/carried, check if player tapped any empty hole
+            // 2. If a screw is selected, check if player tapped an empty hole to place it
             let tappedHole = null;
             this.holes.forEach(hole => {
-                const dist = Math.hypot(hole.x - virtualX, hole.y - virtualY);
+                const dist = Math.hypot(hole.x - this.pointerX, hole.y - this.pointerY);
                 if (dist <= hole.radius + 15) {
                     tappedHole = hole;
                 }
             });
 
-            // Target hole empty check
             const isOccupied = this.screws.some(s => s.holeId === tappedHole?.id);
 
             if (tappedHole && !isOccupied) {
-                // SNAPPING CHECK: Tapped hole must be within 40px radius of active screw end coordinates
-                const stickEndCoordinate = this.selectedScrew.endName === 'EndA' ? 
-                    { x: this.stick.ax, y: this.stick.ay } : { x: this.stick.bx, y: this.stick.by };
-
-                const snapDist = Math.hypot(tappedHole.x - stickEndCoordinate.x, tappedHole.y - stickEndCoordinate.y);
-
-                if (snapDist <= 40) {
-                    // Screw snaps and locks into the new hole!
-                    this.selectedScrew.holeId = tappedHole.id;
-                    this.selectedScrew = null;
-                    this.spawnSparks(tappedHole.x, tappedHole.y, '#39ff14');
-                    synth.playClinkSFX();
-
-                    // Check if both ends occupy designated target goal holes to win
-                    this.checkVictoryCondition();
-                } else {
-                    // Out of snapping range, deselect active screw, it remains carried
-                    synth.playErrorSFX();
-                }
-            } else {
-                // Clicked out of range, deselect active carried screw
+                // Screw is successfully inserted in the new empty hole
+                this.selectedScrew.holeId = tappedHole.id;
                 this.selectedScrew = null;
-                synth.playTickSFX();
-            }
-        }
-    }
-
-    checkVictoryCondition() {
-        const activePins = this.screws.filter(s => s.holeId !== null);
-        if (activePins.length === 2) {
-            // Both screws must occupy 'goal' holes to win
-            const hA = this.holes.find(h => h.id === this.screws[0].holeId);
-            const hB = this.holes.find(h => h.id === this.screws[1].holeId);
-            
-            if (hA && hB && hA.type === 'goal' && hB.type === 'goal') {
-                this.triggerWin();
+                this.originalHoleId = null;
+                this.spawnSparks(tappedHole.x, tappedHole.y, '#39ff14');
+                synth.playClinkSFX();
+            } else {
+                // Tapped empty space or occupied hole, return the screw to original position
+                this.selectedScrew.holeId = this.originalHoleId;
+                this.selectedScrew = null;
+                this.originalHoleId = null;
+                synth.playErrorSFX();
             }
         }
     }
@@ -1011,6 +1070,15 @@ class GameStateCoordinator {
         // Update moving holes
         this.holes.forEach(hole => hole.update(timestamp));
 
+        // Sync static/moving holes coordinates to screws
+        this.syncScrewsToHoles();
+
+        // If a screw is selected, make it follow the pointer
+        if (this.selectedScrew) {
+            this.selectedScrew.x = this.pointerX;
+            this.selectedScrew.y = this.pointerY;
+        }
+
         // Update screws
         this.screws.forEach(s => s.update(dt));
 
@@ -1022,19 +1090,16 @@ class GameStateCoordinator {
         });
         this.particles = this.particles.filter(p => p.alpha > 0);
 
-        // Update stick rigid pendulum kinematics
-        const stickStatus = this.stick.update(dt, this.screws, this.holes, this.obstacles, this.activeGravityDir);
+        // Update all sticks
+        this.sticks.forEach(stick => {
+            stick.update(dt, this.screws, this.holes, this.obstacles, this.activeGravityDir);
+        });
 
-        if (stickStatus === 'FALLING') {
-            this.triggerFail();
+        // Win check: All sticks fallen off the screen
+        const allFallen = this.sticks.length > 0 && this.sticks.every(s => s.fallen);
+        if (allFallen) {
+            this.triggerWin();
         }
-    }
-
-    triggerFail() {
-        this.gameState = 'FAIL';
-        synth.playFallSFX();
-        document.getElementById('fail-screen').classList.add('active');
-        document.querySelector('.hud-header').style.display = 'none';
     }
 
     triggerWin() {
@@ -1042,14 +1107,12 @@ class GameStateCoordinator {
         this.clearedCount = Math.max(this.clearedCount, this.level);
         localStorage.setItem('neonStickClearedCount', this.clearedCount);
 
-        // Star rating calculation based on par
         let rating = 1;
         if (this.moves <= this.parMoves) rating = 3;
         else if (this.moves <= this.parMoves + 2) rating = 2;
 
         synth.playSuccessSFX();
 
-        // Render success overlays stars
         document.getElementById('star-1').className = 'star-item' + (rating >= 1 ? ' active-star' : '');
         document.getElementById('star-2').className = 'star-item' + (rating >= 2 ? ' active-star' : '');
         document.getElementById('star-3').className = 'star-item' + (rating >= 3 ? ' active-star' : '');
@@ -1076,34 +1139,29 @@ class GameStateCoordinator {
         this.obstacles.forEach(wall => wall.draw(this.ctx));
 
         // 3. Draw Board Holes
-        const activePins = this.screws.filter(s => s.holeId !== null);
-        const isPivotState = activePins.length === 1;
-
         this.holes.forEach(hole => {
-            // Hole is snap target if player is holding a screw and it is empty within snap range
             let isSnapTarget = false;
             if (this.selectedScrew) {
-                const stickEnd = this.selectedScrew.endName === 'EndA' ?
-                    { x: this.stick.ax, y: this.stick.ay } : { x: this.stick.bx, y: this.stick.by };
-                const dist = Math.hypot(hole.x - stickEnd.x, hole.y - stickEnd.y);
+                // If a screw is selected, empty holes become snap targets
                 const isOccupied = this.screws.some(s => s.holeId === hole.id);
-                if (dist <= 40 && !isOccupied) {
+                if (!isOccupied) {
                     isSnapTarget = true;
                 }
             }
             hole.draw(this.ctx, isSnapTarget);
         });
 
-        // 4. Draw Neon Stick (magenta rod + trails)
-        if (this.gameState !== 'FAIL') {
-            this.stick.draw(this.ctx);
-        }
+        // 4. Draw Neon Sticks (magenta rods + trails)
+        this.sticks.forEach(stick => {
+            if (!stick.fallen) {
+                stick.draw(this.ctx);
+            }
+        });
 
-        // 5. Draw Screws (yellow bolts + locks🔒)
+        // 5. Draw Screws
         this.screws.forEach(screw => {
             const isSelected = this.selectedScrew === screw;
-            const isLocked = isPivotState && screw.holeId !== null;
-            screw.draw(this.ctx, isSelected, isLocked);
+            screw.draw(this.ctx, isSelected, this.holes);
         });
 
         // 6. Draw fading Sparks
@@ -1128,7 +1186,7 @@ class GameStateCoordinator {
     }
 
     drawTutorialHint() {
-        const screwB = this.screws.find(s => s.endName === 'EndB');
+        const screwB = this.screws.find(s => s.id === 1);
         if (screwB) {
             this.ctx.save();
             this.ctx.strokeStyle = '#ffff00';
