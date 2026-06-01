@@ -259,14 +259,14 @@ class NeonPlate {
         this.damping = 0.988; // pivot friction
     }
 
-    update(dt, holes, screws) {
+    update(dt, holes, screws, selectedScrew) {
         if (this.fallen) return;
 
         // 1. Determine active screws pinning this plate
         let activePins = [];
         this.holeBindings.forEach(binding => {
-            // Find if there is a screw placed at this hole
-            const matchingScrew = screws.find(s => s.holeId === binding.holeId);
+            // Find if there is a screw placed at this hole, excluding any currently selected/unscrewed bolt
+            const matchingScrew = screws.find(s => s.holeId === binding.holeId && s !== selectedScrew);
             if (matchingScrew) {
                 // Determine board hole coordinate
                 const matchingHole = holes.find(h => h.id === binding.holeId);
@@ -311,15 +311,9 @@ class NeonPlate {
 
             if (r > 1) {
                 // Pivot dynamics: Torque = I * alpha
-                // Torque = -m * g * rx_rotated
-                // Since I = m * r^2, alpha = -g * rx_rotated / r^2
-                
-                // Rotated horizontal displacement of CM relative to pivot
-                const cosT = Math.cos(this.theta);
-                const sinT = Math.sin(this.theta);
-                const rxRotated = -(pin.relX * cosT - pin.relY * sinT);
-
-                const alpha = -(this.gravity * rxRotated) / (r * r);
+                // Restore swing torque pull towards center of gravity (moves downwards)
+                const rxWorld = this.x - pin.px;
+                const alpha = (this.gravity * rxWorld) / (r * r);
 
                 // Integrate
                 this.omega += alpha * dt;
@@ -331,6 +325,8 @@ class NeonPlate {
                 if (this.theta < -Math.PI * 2) this.theta += Math.PI * 2;
 
                 // Sync CM position based on new rotation angle around the pivot
+                const cosT = Math.cos(this.theta);
+                const sinT = Math.sin(this.theta);
                 const rotDx = pin.relX * cosT - pin.relY * sinT;
                 const rotDy = pin.relX * sinT + pin.relY * cosT;
                 
@@ -875,7 +871,7 @@ class GameEngine {
         this.screws.forEach(s => s.update(dt));
 
         // Update plates pivot physics & falls
-        this.plates.forEach(p => p.update(dt, this.holes, this.screws));
+        this.plates.forEach(p => p.update(dt, this.holes, this.screws, this.selectedScrew));
 
         // Check level win condition: all plates have fallen off
         const allFallen = this.plates.every(p => p.fallen);

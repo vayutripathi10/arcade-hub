@@ -226,11 +226,16 @@
                                 e.preventDefault();
                             }, { passive: false });
                             
+                            // Prevent mouse wheel and trackpad scroll from bubbling up on laptops/desktops
+                            iframeDoc.addEventListener('wheel', (e) => {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
                             locksBound = true;
-                            console.log("Iframe touch locks bound successfully.");
+                            console.log("Iframe touch/wheel locks bound successfully.");
                         }
                     } catch (err) {
-                        console.warn("Could not bind iframe touch locks:", err);
+                        console.warn("Could not bind iframe touch/wheel locks:", err);
                     }
                 };
 
@@ -239,6 +244,14 @@
                 
                 // Also bind on standard load event in case it loads later
                 iframe.addEventListener('load', attachLocks);
+            }
+
+            // Parent-level wheel lock for extra security over the console container on laptops
+            const container = document.getElementById('playConsoleContainer');
+            if (container) {
+                container.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
             }
 
             // Bulletproof scroll-locking listener for iOS viewport bounces
