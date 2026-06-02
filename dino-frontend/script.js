@@ -14,6 +14,8 @@ const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
 const hintText = document.getElementById('hint-text');
 const gameWrapper = document.querySelector('.game-wrapper');
+let gameWidth = 800;
+let gameHeight = 400;
 
 // Game Constants
 const GRAVITY = 0.8;
@@ -64,17 +66,40 @@ function resizeCanvas() {
     
     const isMobileLandscape = window.innerHeight <= 600 && window.innerWidth > window.innerHeight;
     
+    let layoutW, layoutH;
+    
     if (isMobileLandscape) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight; // Fill full screen in landscape
-        GROUND_Y = canvas.height - 70;
+        layoutW = window.innerWidth;
+        layoutH = window.innerHeight;
+        gameWidth = layoutW;
+        gameHeight = layoutH;
     } else {
-        // Enforce consistent 800x400 coordinate space for portrait and desktop
-        // to maintain perfect gameplay speed, jump heights, and obstacle spawning.
-        canvas.width = 800;
-        canvas.height = 400;
-        GROUND_Y = canvas.height - 70;
+        layoutW = root.clientWidth;
+        // Cap the width and height for a beautiful centered gameplay area
+        layoutW = Math.min(layoutW, 800);
+        layoutH = Math.min(root.clientHeight - header.offsetHeight, 400);
+        
+        // Lock aspect ratio to 2:1 (800x400 coordinate space)
+        if (layoutW > layoutH * 2) {
+            layoutW = layoutH * 2;
+        } else {
+            layoutH = layoutW / 2;
+        }
+        
+        gameWidth = 800;
+        gameHeight = 400;
     }
+    
+    // Set CSS dimensions on the canvas element
+    canvas.style.width = `${layoutW}px`;
+    canvas.style.height = `${layoutH}px`;
+    
+    // Set backing store dimensions scaled by the screen's Device Pixel Ratio
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = layoutW * dpr;
+    canvas.height = layoutH * dpr;
+    
+    GROUND_Y = gameHeight - 70;
     
     if (!dino.isJumping) {
         dino.y = GROUND_Y;
@@ -338,22 +363,22 @@ function update(deltaTime) {
 
 function spawnCloud() {
     const w = 70 + Math.random() * 30;
-    clouds.push({ x: canvas.width, y: 20 + Math.random() * 80, width: w, height: w * (14 / 46) });
+    clouds.push({ x: gameWidth, y: 20 + Math.random() * 80, width: w, height: w * (14 / 46) });
 }
 
 function spawnObstacle() {
     const isBird = score > 50 && Math.random() > 0.7;
     if (isBird) {
         const birdY = Math.random() > 0.5 ? GROUND_Y - 40 : GROUND_Y + 10;
-        obstacles.push({ x: canvas.width, y: birdY, width: 40, height: 30, color: '#ff4d4d', type: 'bird' });
+        obstacles.push({ x: gameWidth, y: birdY, width: 40, height: 30, color: '#ff4d4d', type: 'bird' });
     } else {
         const rand = Math.random();
         if (rand > 0.6) {
-            obstacles.push({ x: canvas.width, y: GROUND_Y, width: 25, height: 60, color: '#00ffcc', type: 'cactus_tall' });
+            obstacles.push({ x: gameWidth, y: GROUND_Y, width: 25, height: 60, color: '#00ffcc', type: 'cactus_tall' });
         } else if (rand > 0.3) {
-            obstacles.push({ x: canvas.width, y: GROUND_Y + 20, width: 50, height: 40, color: '#00ffcc', type: 'cactus_wide' });
+            obstacles.push({ x: gameWidth, y: GROUND_Y + 20, width: 50, height: 40, color: '#00ffcc', type: 'cactus_wide' });
         } else {
-            obstacles.push({ x: canvas.width, y: GROUND_Y + 30, width: 35, height: 30, color: '#00ffcc', type: 'cactus_small' });
+            obstacles.push({ x: gameWidth, y: GROUND_Y + 30, width: 35, height: 30, color: '#00ffcc', type: 'cactus_small' });
         }
     }
 }
@@ -380,6 +405,92 @@ function interpolateColors(c1, c2, t) {
     return `rgb(${Math.floor(lerp(r1, r2, t))}, ${Math.floor(lerp(g1, g2, t))}, ${Math.floor(lerp(b1, b2, t))})`;
 }
 
+const DINO_RUN_1 = [
+    "0000001111110000",
+    "0000011111111000",
+    "0000011011111000",
+    "0000011111110000",
+    "0000011111000000",
+    "0010111111000000",
+    "0111111111100000",
+    "1111111111110000",
+    "1111111111000000",
+    "1111111111000000",
+    "0111111110000000",
+    "0011111100000000",
+    "0001100100000000",
+    "0001000110000000",
+    "0011000000000000"
+];
+
+const DINO_RUN_2 = [
+    "0000001111110000",
+    "0000011111111000",
+    "0000011011111000",
+    "0000011111110000",
+    "0000011111000000",
+    "0010111111000000",
+    "0111111111100000",
+    "1111111111110000",
+    "1111111111000000",
+    "1111111111000000",
+    "0111111110000000",
+    "0011111100000000",
+    "0000100110000000",
+    "0001100100000000",
+    "0000001100000000"
+];
+
+const DINO_JUMP = [
+    "0000001111110000",
+    "0000011111111000",
+    "0000011011111000",
+    "0000011111110000",
+    "0000011111000000",
+    "0010111111000000",
+    "0111111111100000",
+    "1111111111110000",
+    "1111111111000000",
+    "1111111111000000",
+    "0111111110000000",
+    "0011111100000000",
+    "0001100110000000",
+    "0011001100000000",
+    "0000000000000000"
+];
+
+function drawPixelDino(ctx, x, y, width, height, color, eyeColor, isJumping, frameCount) {
+    let frame = DINO_JUMP;
+    if (!isJumping && gameRunning) {
+        frame = (Math.floor(frameCount / 6) % 2 === 0) ? DINO_RUN_1 : DINO_RUN_2;
+    } else if (!gameRunning) {
+        frame = DINO_RUN_1;
+    }
+
+    const rows = frame.length;
+    const cols = frame[0].length;
+    const pxW = width / cols;
+    const pxH = height / rows;
+
+    ctx.save();
+    ctx.fillStyle = color;
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const val = frame[r][c];
+            if (val === '1') {
+                ctx.fillRect(x + c * pxW, y + r * pxH, pxW + 0.5, pxH + 0.5);
+            }
+        }
+    }
+
+    // Draw eye
+    ctx.fillStyle = eyeColor;
+    ctx.fillRect(x + 7 * pxW, y + 2 * pxH, pxW, pxH);
+
+    ctx.restore();
+}
+
 function drawStars(alpha) {
     if (alpha <= 0) return;
     stars.forEach(star => {
@@ -388,7 +499,7 @@ function drawStars(alpha) {
         ctx.globalAlpha = alpha * (0.5 + twinkle * 0.5) * star.opacity;
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(star.x * (canvas.width/800), star.y, star.size, 0, Math.PI * 2);
+        ctx.arc(star.x * (gameWidth/800), star.y, star.size, 0, Math.PI * 2);
         ctx.fill();
     });
     ctx.globalAlpha = 1;
@@ -410,25 +521,101 @@ function drawSun(opacity) {
 }
 
 function draw() {
+    // Reset transform to identity, then clear backing store
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Scale drawings to fit layout coordinate grid
+    const dpr = window.devicePixelRatio || 1;
+    const scaleX = (canvas.width / dpr) / gameWidth;
+    const scaleY = (canvas.height / dpr) / gameHeight;
+    ctx.scale(dpr * scaleX, dpr * scaleY);
+    
     const config = getStageConfigs(score);
     ctx.fillStyle = config.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, gameWidth, gameHeight);
+    
     drawStars(config.stars);
     if (config.celestial === 'moon') drawMoon(config.celestialOpacity || 1); else drawSun(config.celestialOpacity || 1);
-    ctx.strokeStyle = config.ground; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 60); ctx.lineTo(canvas.width, GROUND_Y + 60); ctx.stroke();
+    
+    ctx.strokeStyle = config.ground; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 60); ctx.lineTo(gameWidth, GROUND_Y + 60); ctx.stroke();
+    
     ctx.fillStyle = config.cloudColor; clouds.forEach(cloud => drawPixelCloud(ctx, cloud.x, cloud.y, cloud.width, cloud.height));
-    ctx.shadowBlur = config.bg === '#050508' ? 15 : 0; ctx.shadowColor = config.dinoColor; ctx.fillStyle = config.dinoColor;
-    drawRoundedRect(ctx, dino.x, dino.y, dino.width, dino.height, 12);
-    ctx.fillStyle = config.bg === '#050508' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.8)'; ctx.fillRect(dino.x + 40, dino.y + 15, 8, 8);
-    obstacles.forEach(obs => {
-        ctx.shadowBlur = config.bg === '#050508' ? 15 : 0; ctx.shadowColor = config.obstacleColor; ctx.fillStyle = config.obstacleColor;
-        if (obs.type === 'bird') { ctx.beginPath(); ctx.moveTo(obs.x, obs.y + obs.height); ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2); ctx.lineTo(obs.x, obs.y); ctx.fill(); }
-        else {
-            drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
-            if (obs.type === 'cactus_tall') { drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); }
-            else if (obs.type === 'cactus_wide') { drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); }
+    
+    const isDark = config.bg === '#050508';
+    
+    if (isDark) {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            ctx.shadowBlur = 0;
+            
+            // Draw larger transparent dino as glow
+            ctx.globalAlpha = 0.25;
+            drawPixelDino(ctx, dino.x - 2, dino.y - 2, dino.width + 4, dino.height + 4, config.dinoColor, 'rgba(0,0,0,0)', dino.isJumping, frameCount);
+            ctx.globalAlpha = 1.0;
+            
+            // Draw actual dino
+            drawPixelDino(ctx, dino.x, dino.y, dino.width, dino.height, config.dinoColor, '#000', dino.isJumping, frameCount);
+            
+            // Draw obstacles glow
+            obstacles.forEach(obs => {
+                ctx.fillStyle = obs.color || config.obstacleColor;
+                if (obs.type === 'bird') {
+                    ctx.globalAlpha = 0.25;
+                    ctx.beginPath(); ctx.moveTo(obs.x - 1, obs.y + obs.height + 1); ctx.lineTo(obs.x + obs.width + 1, obs.y + obs.height / 2); ctx.lineTo(obs.x - 1, obs.y - 1); ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                    
+                    ctx.beginPath(); ctx.moveTo(obs.x, obs.y + obs.height); ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2); ctx.lineTo(obs.x, obs.y); ctx.fill();
+                } else {
+                    ctx.globalAlpha = 0.25;
+                    drawRoundedRect(ctx, obs.x - 2, obs.y - 2, obs.width + 4, obs.height + 4, 6);
+                    ctx.globalAlpha = 1.0;
+                    
+                    drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
+                    if (obs.type === 'cactus_tall') { 
+                        drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); 
+                        drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); 
+                    } else if (obs.type === 'cactus_wide') { 
+                        drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); 
+                        drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); 
+                    }
+                }
+            });
+        } else {
+            // Desktop: use native shadowBlur
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = config.dinoColor;
+            
+            drawPixelDino(ctx, dino.x, dino.y, dino.width, dino.height, config.dinoColor, '#000', dino.isJumping, frameCount);
+            
+            obstacles.forEach(obs => {
+                ctx.shadowBlur = 15; ctx.shadowColor = obs.color || config.obstacleColor; ctx.fillStyle = obs.color || config.obstacleColor;
+                if (obs.type === 'bird') { 
+                    ctx.beginPath(); ctx.moveTo(obs.x, obs.y + obs.height); ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2); ctx.lineTo(obs.x, obs.y); ctx.fill(); 
+                } else {
+                    drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
+                    if (obs.type === 'cactus_tall') { drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); }
+                    else if (obs.type === 'cactus_wide') { drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); }
+                }
+            });
         }
-    });
+    } else {
+        // Day mode
+        ctx.shadowBlur = 0;
+        
+        drawPixelDino(ctx, dino.x, dino.y, dino.width, dino.height, config.dinoColor, '#fff', dino.isJumping, frameCount);
+        
+        obstacles.forEach(obs => {
+            ctx.fillStyle = obs.color || config.obstacleColor;
+            if (obs.type === 'bird') { 
+                ctx.beginPath(); ctx.moveTo(obs.x, obs.y + obs.height); ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2); ctx.lineTo(obs.x, obs.y); ctx.fill(); 
+            } else {
+                drawRoundedRect(ctx, obs.x, obs.y, obs.width, obs.height, 5);
+                if (obs.type === 'cactus_tall') { drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); }
+                else if (obs.type === 'cactus_wide') { drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); }
+            }
+        });
+    }
     ctx.shadowBlur = 0;
 }
 
