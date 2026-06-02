@@ -467,7 +467,7 @@
                 const score = document.getElementById('go-final-score').textContent;
                 const best  = document.getElementById('go-best-score').textContent;
                 const text  = `🎮 I scored ${score} on Neon Swing! Best: ${best}\nCan you beat me? Play free at arcadehubplay.com 🕹️`;
-                const url   = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                const url   = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
                 window.open(url, '_blank');
             });
 
