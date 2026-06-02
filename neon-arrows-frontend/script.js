@@ -96,7 +96,7 @@ const LEVELS = [
         gridHeight: 8,
         perfectMoves: 7,
         lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
+            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
             { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 0}, {x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L3)
             { id: 'L3', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L4)
             { id: 'L4', color: 'purple', exitDir: {x: -1, y: 0}, path: [{x: 4, y: 6}, {x: 3, y: 6}, {x: 2, y: 6}] }, // Head (2,6) -> Left (Blocked by L5)
@@ -118,7 +118,7 @@ const LEVELS = [
             { id: 'L5', color: 'orange', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L4)
             { id: 'L6', color: 'green', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 3}, {x: 5, y: 3}] }, // Head (5,3) -> Right (Clear!)
             { id: 'L7', color: 'red', exitDir: {x: 0, y: 1}, path: [{x: 5, y: 2}, {x: 5, y: 1}] }, // Head (5,1) -> Down (Blocked by L6)
-            { id: 'L8', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 2}, {x: 4, y: 2}] } // Head (4,2) -> Right (Blocked by L5)
+            { id: 'L8', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 0}, {x: 4, y: 0}] } // Head (4,0) -> Right (Clear!)
         ]
     },
     {
@@ -127,15 +127,15 @@ const LEVELS = [
         gridHeight: 9,
         perfectMoves: 9,
         lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: -1, y: 0}, path: [{x: 2, y: 2}, {x: 1, y: 2}] }, // Head (1,2) -> Left (Clear!)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: -1}, path: [{x: 2, y: 3}, {x: 2, y: 2}] }, // Head (2,2) -> Up (Blocked by L1)
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 4}, {x: 3, y: 4}] }, // Head (3,4) -> Right (Blocked by L4)
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L5)
-            { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 6}, {x: 5, y: 6}] }, // Head (5,6) -> Right (Clear!)
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 6, y: 6}, {x: 6, y: 5}] }, // Head (6,5) -> Up (Blocked by L7)
-            { id: 'L7', color: 'red', exitDir: {x: -1, y: 0}, path: [{x: 6, y: 4}, {x: 5, y: 4}] }, // Head (5,4) -> Left (Blocked by L8)
-            { id: 'L8', color: 'cyan', exitDir: {x: 0, y: -1}, path: [{x: 4, y: 3}, {x: 4, y: 2}] }, // Head (4,2) -> Up (Blocked by L9)
-            { id: 'L9', color: 'magenta', exitDir: {x: -1, y: 0}, path: [{x: 3, y: 2}, {x: 2, y: 2}] } // Head (2,2) -> Left (Blocked by L1)
+            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
+            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 0}, {x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L3)
+            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L4)
+            { id: 'L4', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 6}, {x: 4, y: 7}, {x: 4, y: 8}] }, // Head (4,8) -> Down (Clear!)
+            { id: 'L5', color: 'orange', exitDir: {x: -1, y: 0}, path: [{x: 3, y: 8}, {x: 2, y: 8}, {x: 1, y: 8}] }, // Head (1,8) -> Left (Clear!)
+            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 7}, {x: 1, y: 6}, {x: 1, y: 5}] }, // Head (1,5) -> Up (Blocked by L7, L1)
+            { id: 'L7', color: 'red', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 4}, {x: 1, y: 3}, {x: 1, y: 2}] }, // Head (1,2) -> Up (Blocked by L1)
+            { id: 'L8', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 2, y: 3}, {x: 2, y: 4}, {x: 2, y: 5}] }, // Head (2,5) -> Down (Blocked by L5)
+            { id: 'L9', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 3, y: 3}, {x: 3, y: 4}, {x: 3, y: 5}] } // Head (3,5) -> Down (Blocked by L5)
         ]
     },
     {
@@ -149,12 +149,12 @@ const LEVELS = [
             { id: 'L3', color: 'green', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 3}, {x: 5, y: 3}] }, // Head (5,3) -> Right (Blocked by L4)
             { id: 'L4', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 6, y: 3}, {x: 6, y: 4}] }, // Head (6,4) -> Down (Blocked by L5)
             { id: 'L5', color: 'orange', exitDir: {x: -1, y: 0}, path: [{x: 6, y: 5}, {x: 5, y: 5}] }, // Head (5,5) -> Left (Blocked by L6)
-            { id: 'L6', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 4, y: 5}, {x: 4, y: 4}] }, // Head (4,4) -> Up (Blocked by L7)
+            { id: 'L6', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L11)
             { id: 'L7', color: 'red', exitDir: {x: -1, y: 0}, path: [{x: 3, y: 4}, {x: 2, y: 4}] }, // Head (2,4) -> Left (Blocked by L8)
             { id: 'L8', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 1, y: 4}, {x: 1, y: 5}] }, // Head (1,5) -> Down (Blocked by L9)
             { id: 'L9', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 6}, {x: 2, y: 6}] }, // Head (2,6) -> Right (Blocked by L10)
             { id: 'L10', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 3, y: 6}, {x: 3, y: 7}] }, // Head (3,7) -> Down (Clear!)
-            { id: 'L11', color: 'green', exitDir: {x: -1, y: 0}, path: [{x: 5, y: 7}, {x: 4, y: 7}, {x: 3, y: 7}] } // Head (3,7) -> Left (Blocked by L10)
+            { id: 'L11', color: 'green', exitDir: {x: -1, y: 0}, path: [{x: 5, y: 7}, {x: 4, y: 7}] } // Head (4,7) -> Left (Blocked by L10)
         ]
     }
 ];
