@@ -150,9 +150,9 @@ const LEVELS = [
             { color: "cyan", x: 280, y: 150 },
             { color: "cyan", x: 320, y: 170 },
             { color: "cyan", x: 300, y: 190 },
-            { color: "white", x: 270, y: 350 },
-            { color: "white", x: 310, y: 370 },
-            { color: "white", x: 290, y: 390 }
+            { color: "white", x: 270, y: 410 },
+            { color: "white", x: 310, y: 430 },
+            { color: "white", x: 290, y: 450 }
         ]
     },
     // --- MEDIUM (4 - 8) ---
@@ -278,7 +278,7 @@ const LEVELS = [
         balls: [
             { color: "yellow", x: 230, y: 150 },
             { color: "yellow", x: 360, y: 150 },
-            { color: "white", x: 300, y: 180 } // must be colored or fails
+            { color: "white", x: 230, y: 200 } // must be colored or fails
         ]
     },
     // --- HARD (9 - 15) ---
@@ -465,18 +465,18 @@ const LEVELS = [
         ],
         pins: [
             { id: "pinA", x: 100, y: 250, w: 130, direction: "left", blockedBy: [] },
-            { id: "pinB", x: 230, y: 250, w: 140, direction: "right", blockedBy: ["pinA"] },
+            { id: "pinB", x: 230, y: 250, w: 140, direction: "left", blockedBy: ["pinA"] },
             { id: "pinC", x: 370, y: 250, w: 130, direction: "right", blockedBy: ["pinB"] },
             { id: "pinD", x: 100, y: 400, w: 400, direction: "left", blockedBy: ["pinC"] }
         ],
         buckets: [
-            { color: "green", x: 200, w: 90 },
-            { color: "purple", x: 400, w: 90 }
+            { color: "green", x: 225, w: 140 },
+            { color: "purple", x: 370, w: 150 }
         ],
         balls: [
             { color: "green", x: 160, y: 150 },
             { color: "purple", x: 300, y: 150 },
-            { color: "green", x: 440, y: 150 }
+            { color: "purple", x: 440, y: 150 }
         ]
     },
     {
@@ -497,9 +497,9 @@ const LEVELS = [
             { id: "pinMain", x: 120, y: 480, w: 360, direction: "left", blockedBy: [] }
         ],
         buckets: [
-            { color: "cyan", x: 180, w: 80 },
-            { color: "pink", x: 300, w: 80 },
-            { color: "yellow", x: 420, w: 80 }
+            { color: "cyan", x: 180, w: 120 },
+            { color: "pink", x: 300, w: 120 },
+            { color: "yellow", x: 420, w: 120 }
         ],
         balls: [
             { color: "cyan", x: 180, y: 180 },
@@ -514,7 +514,7 @@ const LEVELS = [
             { x1: 100, y1: 100, x2: 100, y2: 650 },
             { x1: 500, y1: 100, x2: 500, y2: 650 },
             { x1: 100, y1: 250, x2: 350, y2: 300 },
-            { x1: 250, y1: 420, x2: 500, y2: 470 },
+            { x1: 250, y1: 420, x2: 500, y2: 370 },
             { x1: 100, y1: 650, x2: 230, y2: 700 },
             { x1: 500, y1: 650, x2: 370, y2: 700 }
         ],
@@ -569,7 +569,7 @@ const LEVELS = [
         ],
         pins: [
             { id: "pinL", x: 100, y: 220, w: 130, direction: "left", blockedBy: [] },
-            { id: "pinM", x: 230, y: 220, w: 140, direction: "right", blockedBy: ["pinL"] },
+            { id: "pinM", x: 230, y: 220, w: 140, direction: "left", blockedBy: ["pinL"] },
             { id: "pinR", x: 370, y: 220, w: 130, direction: "right", blockedBy: ["pinM"] },
             { id: "pinGateL", x: 100, y: 380, w: 130, direction: "left", blockedBy: ["pinR"] },
             { id: "pinGateR", x: 370, y: 380, w: 130, direction: "right", blockedBy: ["pinGateL"] },
@@ -972,7 +972,7 @@ class PinPullGame {
     }
 
     loop(timestamp) {
-        const deltaTime = this.lastTime ? Math.min((timestamp - this.lastTime) / 16.67, 3) : 1;
+        const deltaTime = this.lastTime ? Math.min((timestamp - this.lastTime) / 16.67, 1.5) : 1;
         this.lastTime = timestamp;
 
         if (this.gameState === 'PLAYING') {
