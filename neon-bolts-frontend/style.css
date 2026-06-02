@@ -484,6 +484,77 @@ body {
 }
 
 /* ==========================================================================
+   SOCIAL MEDIA SHARE
+   ========================================================================== */
+.share-box {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 8px 0;
+}
+
+.share-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--secondary);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    font-family: var(--font-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.share-btn.twitter:hover {
+    background: rgba(0, 0, 0, 0.7);
+    border-color: #ffffff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
+.share-btn.reddit:hover {
+    background: #ff4500;
+    border-color: #ff4500;
+    box-shadow: 0 0 12px rgba(255, 69, 0, 0.4);
+}
+
+.share-btn.facebook:hover {
+    background: #1877f2;
+    border-color: #1877f2;
+    box-shadow: 0 0 12px rgba(24, 119, 242, 0.4);
+}
+
+.share-btn.copy:hover {
+    background: var(--accent-pink);
+    border-color: var(--accent-pink);
+    box-shadow: 0 0 12px rgba(255, 45, 120, 0.4);
+}
+
+/* ==========================================================================
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 768px) {

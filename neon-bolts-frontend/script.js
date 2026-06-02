@@ -1262,6 +1262,12 @@ class GameStateCoordinator {
         // Success Buttons
         document.getElementById('success-next-btn').addEventListener('click', () => this.nextLevel());
         document.getElementById('success-replay-btn').addEventListener('click', () => this.resetLevel());
+
+        // Share Buttons
+        document.getElementById('share-twitter-btn').addEventListener('click', () => this.shareStatus('twitter'));
+        document.getElementById('share-reddit-btn').addEventListener('click', () => this.shareStatus('reddit'));
+        document.getElementById('share-facebook-btn').addEventListener('click', () => this.shareStatus('facebook'));
+        document.getElementById('share-copy-btn').addEventListener('click', () => this.shareStatus('copy'));
     }
 
     resizeCanvas() {
@@ -1324,6 +1330,43 @@ class GameStateCoordinator {
             document.getElementById('success-screen').classList.remove('active');
             document.getElementById('start-screen').classList.add('active');
             document.querySelector('.hud-header').style.display = 'none';
+        }
+    }
+
+    shareStatus(platform) {
+        let url = 'https://arcadehubplay.com/play-neon-bolts.html';
+        try {
+            if (window.top && window.top.location) {
+                url = window.top.location.href;
+            }
+        } catch (e) {
+            url = document.referrer || window.location.href;
+        }
+
+        const text = `I just decrypted Core Mainframe Stage ${this.level} in Neon Screws & Bolts in ${this.moves} moves! Can you beat my score? 🔩🎮`;
+
+        switch (platform) {
+            case 'twitter':
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+                break;
+            case 'reddit':
+                window.open(`https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`, '_blank');
+                break;
+            case 'facebook':
+                window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(`${text} Play here: ${url}`).then(() => {
+                    const btn = document.getElementById('share-copy-btn');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '✅ Copied!';
+                    setTimeout(() => {
+                        btn.innerHTML = origText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+                break;
         }
     }
 
