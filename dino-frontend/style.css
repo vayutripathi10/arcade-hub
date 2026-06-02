@@ -252,6 +252,12 @@ body {
     align-items: center;
     justify-content: center;
     backdrop-filter: blur(10px);
+    text-align: center;
+    padding: 20px;
+}
+
+.landscape-prompt.dismissed {
+    display: none !important;
 }
 
 .rotate-icon {

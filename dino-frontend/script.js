@@ -13,6 +13,7 @@ const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
 const hintText = document.getElementById('hint-text');
+const gameWrapper = document.querySelector('.game-wrapper');
 
 // Game Constants
 const GRAVITY = 0.8;
@@ -68,9 +69,10 @@ function resizeCanvas() {
         canvas.height = window.innerHeight; // Fill full screen in landscape
         GROUND_Y = canvas.height - 70;
     } else {
-        canvas.width = root.clientWidth;
-        // Subtract header height from available space
-        canvas.height = Math.min(root.clientHeight - header.offsetHeight, 400); 
+        // Enforce consistent 800x400 coordinate space for portrait and desktop
+        // to maintain perfect gameplay speed, jump heights, and obstacle spawning.
+        canvas.width = 800;
+        canvas.height = 400;
         GROUND_Y = canvas.height - 70;
     }
     
@@ -108,13 +110,31 @@ function init() {
         }
     });
 
-    canvas.addEventListener('mousedown', () => {
+    // Dismiss Force Landscape Prompt
+    const dismissBtn = document.getElementById('dismissLandscapeBtn');
+    const landscapePrompt = document.getElementById('landscapePrompt');
+    dismissBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        landscapePrompt?.classList.add('dismissed');
+        window.dispatchEvent(new Event('resize'));
+    });
+
+    // Reset dismissed state if screen is rotated back to landscape
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > window.innerHeight) {
+            landscapePrompt?.classList.remove('dismissed');
+        }
+    });
+
+    gameWrapper?.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.closest('.overlay-content') || e.target.closest('.htp-card')) return;
         if (touchHandled) return;
         if (!gameRunning) startGame();
         else jump();
     });
 
-    canvas.addEventListener('touchstart', (e) => {
+    gameWrapper?.addEventListener('touchstart', (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.closest('.overlay-content') || e.target.closest('.htp-card')) return;
         e.preventDefault();
         touchHandled = true;
         if (!gameRunning) startGame();
