@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Play Neon Pin Pull - a free physics-based neon puzzle game at Arcade Hub! Pull pins in the right order to let colored balls flow into matching buckets.">
+    <meta name="keywords" content="neon pin pull, pin pull game, physics puzzle, browser game, arcade hub">
+    <link rel="canonical" href="https://arcadehubplay.com/neon-pin-pull-frontend/index.html">
+    <meta property="og:title" content="Neon Pin Pull | Arcade Hub">
+    <meta property="og:description" content="Play Neon Pin Pull - a free physics-based neon puzzle game at Arcade Hub! Pull pins in the right order to let colored balls flow into matching buckets.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-pin-pull-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Neon Pin Pull | Arcade Hub">
+    <meta name="twitter:description" content="Play Neon Pin Pull - a free physics-based neon puzzle game at Arcade Hub! Pull pins in the right order to let colored balls flow into matching buckets.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    <title>Neon Pin Pull | Arcade Hub</title>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style id="adsense-compliance-styles">
+        /* === PRE-GAME OVERLAY SYSTEM === */
+        body.show-info-overlay {
+            overflow: hidden !important;
+            height: 100dvh !important;
+        }
+        body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+            display: none !important;
+        }
+        .game-info-overlay {
+            display: none;
+            background: #0a0b0d;
+            width: 100%;
+            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            padding: 40px 24px;
+            box-sizing: border-box;
+        }
+        body.show-info-overlay .game-info-overlay {
+            display: block !important;
+        }
+        .game-info-container { max-width: 780px; margin: 0 auto; }
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,255,204,0.15);
+        }
+        .brand-header .brand-title {
+            color: #00ffcc;
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(0,255,204,0.4);
+            margin: 0 0 6px 0;
+        }
+        .brand-header .brand-sub {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .continue-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            position: sticky;
+            top: 16px;
+            z-index: 1000000;
+        }
+        .continue-game-btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 16px 52px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 28px rgba(0,255,204,0.55);
+            transition: all 0.25s ease;
+            letter-spacing: 1.5px;
+        }
+        .continue-game-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 40px rgba(255,255,255,0.65);
+            transform: scale(1.04);
+        }
+        .continue-game-btn:active { transform: scale(0.97); }
+        .game-info-container h2 {
+            color: #fff;
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .game-info-container h3 {
+            color: #00ffcc;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+        .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+        .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .faq-item {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+        .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+        .page-footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+        }
+        .page-footer-note a { color: #00ffcc; text-decoration: none; }
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .continue-game-btn { width: 100%; padding: 15px 24px; }
+            .game-info-container h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="show-info-overlay">
+
+    <!-- PRE-GAME INFO OVERLAY -->
+    <div class="game-info-overlay" id="game-info-overlay">
+        <div class="game-info-container">
+            <div class="brand-header">
+                <p class="brand-title">🕹️ Arcade Hub</p>
+                <p class="brand-sub">Free Browser Games &mdash; No Download Required</p>
+            </div>
+
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
+            </div>
+
+            <h2>Neon Pin Pull</h2>
+            <p>Neon Pin Pull is a glowing physics-based puzzle arcade game where you steer colored neon balls through gravity-defying chambers to match their corresponding bottom buckets. Unlatch walls, slide barriers, and coordinate pin-pulling paths in the correct sequence to guide balls safely. One wrong sequence and colors mix, causing system overrides and level failure. Exercise spatial timing and strategic planning to solve all cybersecurity cores!</p>
+
+            <h3>🎮 How to Play</h3>
+            <p>Pull barriers strategically. Balls behave as realistic gravity entities. Reach matching color buckets to decrypt nodes.</p>
+            <ul>
+                <li><strong>Pull Pin:</strong> Tap/Click the pin's arrow indicator.</li>
+                <li><strong>Directional Motion:</strong> Pins only pull in the direction of their arrows.</li>
+                <li><strong>Chain Locks:</strong> Blocked pins shake red and cannot be pulled until overlapping pins are removed.</li>
+                <li><strong>Avoid Mixing:</strong> Guiding balls to incorrect buckets or mixing colors causes instant failure.</li>
+            </ul>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚡ Game Features</h3>
+                    <ul>
+                        <li>Smooth, real-time vector gravity ball kinematics</li>
+                        <li>Shaking indicators and lock markers for blocked barriers</li>
+                        <li>Real-time Web Audio synthesized whooshes and chimes</li>
+                        <li>20 progressive logic mainframe encryption levels</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>🏆 Strategy Tips</h3>
+                    <ul>
+                        <li>Trace the bottom goal buckets upwards to find the required sequence.</li>
+                        <li>Pins blocked by others glow red—pull the blocking pin first!</li>
+                        <li>Time your pulls to group same-colored balls together inside intermediate chambers.</li>
+                        <li>In Hard/Expert levels, look for chain dependencies where pulling one pin unlocks another.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="faq-item">
+                <p class="faq-question">Is Neon Pin Pull free to play?</p>
+                <p class="faq-answer">Yes, 100% free with no sign-ups or downloads needed.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">What causes a level failure?</p>
+                <p class="faq-answer">Level fail triggers if any ball lands in a wrong-colored bucket or if colors mix together inside any goal bucket.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Can I play this game offline?</p>
+                <p class="faq-answer">Yes, our Progressive Web App registers and caches all scripts, allowing fully offline browser play.</p>
+            </div>
+
+            <div class="page-footer-note">
+                Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> &mdash; Free Browser Arcade Games
+            </div>
+        </div>
+    </div>
+    <!-- END PRE-GAME INFO OVERLAY -->
+
+    <div class="game-root">
+        <!-- HUD BAR -->
+        <div class="header">
+            <div class="nav-left">
+                <button class="home-btn" id="hub-btn">← Hub</button>
+            </div>
+            <div class="header-center">
+                <div class="hud-pill">
+                    <span id="hud-level">LEVEL 1</span>
+                    <span class="hud-divider">|</span>
+                    <span id="hud-balls">BALLS: 0/0</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+                <button id="btn-pause" class="icon-btn hidden" title="Pause Game">⏸</button>
+            </div>
+        </div>
+
+        <div class="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+
+            <div id="hint-text" class="hint-overlay">
+                TAP AN ARROW TO PULL THE PIN
+            </div>
+
+            <!-- Start Menu / Level Selector -->
+            <div id="startMenu" class="overlay">
+                <div class="overlay-content">
+                    <h2>NEON PIN PULL</h2>
+                    <p class="subtitle">Guide balls to matching buckets. Plan your sequence.</p>
+                    <button id="playBtn" class="btn primary">PLAY GAME</button>
+                    
+                    <div class="level-selector-title">SELECT SECURITY SECTOR</div>
+                    <div id="levelGrid" class="level-grid"></div>
+                </div>
+            </div>
+
+            <!-- Pause Menu -->
+            <div id="pauseMenu" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2>PAUSED</h2>
+                    <div class="action-buttons">
+                        <button id="btn-resume" class="btn primary">RESUME</button>
+                        <button id="btn-restart" class="btn secondary">RESTART</button>
+                        <button id="btn-quit" class="btn secondary">QUIT TO MENU</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Complete Screen -->
+            <div id="successMenu" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2 class="success-title">CORE DECRYPTED!</h2>
+                    <div class="stars-container" id="starsDisplay">⭐⭐⭐</div>
+                    <p id="successMessage">All balls secured.</p>
+                    
+                    <div class="share-container">
+                        <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
+                        <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="btn-next" class="btn primary">NEXT LEVEL ➔</button>
+                        <button id="btn-restart-success" class="btn secondary">RESTART</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level Fail Screen -->
+            <div id="failMenu" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2 class="fail-title">SYSTEM FAIL</h2>
+                    <p id="failMessage">Colors mixed in security core.</p>
+                    
+                    <div class="action-buttons">
+                        <button id="btn-retry" class="btn primary">RETRY CORE</button>
+                        <button id="btn-hint" class="btn secondary">SHOW HINT (Costs 1 Star)</button>
+                        <button id="btn-quit-fail" class="btn secondary">QUIT TO MENU</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievements system reference -->
+    <script src="../shared/achievements.js"></script>
+
+    <!-- Injected synthesizer AudioFX -->
+    <script>
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.gain = null;
+                this.muted = false;
+                try {
+                    this.muted = localStorage.getItem('arcadeHubMuted') === 'true';
+                } catch(e) {}
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                        this.gain = this.ctx.createGain();
+                        this.gain.connect(this.ctx.destination);
+                        this.updateMute();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            toggleMute() {
+                this.muted = !this.muted;
+                try {
+                    localStorage.setItem('arcadeHubMuted', this.muted);
+                } catch(e) {}
+                this.updateMute();
+                return this.muted;
+            }
+            updateMute() {
+                if (!this.gain) return;
+                this.gain.gain.setTargetAtTime(this.muted ? 0 : 0.8, this.ctx.currentTime, 0.05);
+                const btn = document.getElementById('btn-mute');
+                if (btn) btn.innerHTML = this.muted ? '🔇' : '🔊';
+            }
+            playWhoosh() {
+                if (this.muted) return;
+                this.init(); if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                const g = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.exponentialRampToValueAtTime(350, now + 0.3);
+                
+                filter.type = 'lowpass';
+                filter.Q.value = 8;
+                filter.frequency.setValueAtTime(120, now);
+                filter.frequency.exponentialRampToValueAtTime(1200, now + 0.3);
+                
+                g.gain.setValueAtTime(0.3, now);
+                g.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                
+                osc.connect(filter);
+                filter.connect(g);
+                g.connect(this.gain);
+                
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+            playCollect() {
+                if (this.muted) return;
+                this.init(); if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                // Double sine chime
+                [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    g.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.2);
+                    osc.connect(g);
+                    g.connect(this.gain);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.2);
+                });
+            }
+            playWrong() {
+                if (this.muted) return;
+                this.init(); if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(90, now + 0.4);
+                g.gain.setValueAtTime(0.4, now);
+                g.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(g);
+                g.connect(this.gain);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+            playThud() {
+                if (this.muted) return;
+                this.init(); if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.15);
+                g.gain.setValueAtTime(0.5, now);
+                g.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.connect(g);
+                g.connect(this.gain);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+            playVictory() {
+                if (this.muted) return;
+                this.init(); if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const scale = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+                scale.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                    g.gain.setValueAtTime(0.12, now + idx * 0.07);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.07 + 0.25);
+                    osc.connect(g);
+                    g.connect(this.gain);
+                    osc.start(now + idx * 0.07);
+                    osc.stop(now + idx * 0.07 + 0.25);
+                });
+            }
+        }
+        window.audioFX = new SoundEngine();
+        const wakeUpAudio = () => {
+            if (window.audioFX) window.audioFX.init();
+        };
+        window.addEventListener('click', wakeUpAudio, { once: true });
+        window.addEventListener('touchstart', wakeUpAudio, { once: true });
+    </script>
+
+    <script src="script.js"></script>
+    <script>
+        (function() {
+            const gameId = 'neon-pin-pull';
+            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+                continueToGame(true);
+            }
+        })();
+        function continueToGame(isReturning) {
+            const gameId = 'neon-pin-pull';
+            localStorage.setItem('arcade_seen_' + gameId, '1');
+            document.body.classList.remove('show-info-overlay');
+            window.dispatchEvent(new Event('resize'));
+            const overlay = document.getElementById('game-info-overlay');
+            if (overlay) overlay.style.display = 'none';
+            if (typeof initGame === 'function') { initGame(); }
+        }
+    </script>
+</body>
+</html>

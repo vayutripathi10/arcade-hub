@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v7';
+const CACHE_NAME = 'arcade-hub-cache-v8';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -22,6 +22,10 @@ const CORE_ASSETS = [
     'neon-bolts-frontend/style.css',
     'neon-bolts-frontend/script.js',
     'neon-bolts-frontend/thumbnail.jpg',
+    'neon-pin-pull-frontend/index.html',
+    'neon-pin-pull-frontend/style.css',
+    'neon-pin-pull-frontend/script.js',
+    'neon-pin-pull-frontend/thumbnail.jpg',
     'blog.html',
     'blog/evolution-of-cyberpunk-web-games.html',
     'blog/pwa-html5-mobile-gaming-revolution.html',
@@ -29,6 +33,7 @@ const CORE_ASSETS = [
     'play-neon-cypher.html',
     'play-neon-swing.html',
     'play-neon-bolts.html',
+    'play-neon-pin-pull.html',
     'play-neon-snake.html',
     'play-neon-pipes.html',
     'play-neon-helix-drop.html',

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Neon Pin Pull is an addictive, physics-based neon puzzle game. Solve challenging brain teasers by pulling pins in the correct order to guide glowing colored balls into matching goal buckets. Features 20 progressive difficulty levels, intricate interlocks, moving funnels, time-pressure chambers, and dynamic vector gravity stacking. Play online in your browser for free, completely offline-compatible with mobile touch responsive layouts.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/play-neon-pin-pull.html">
+    <title>Neon Pin Pull — Play Online Free | Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    <style>
+        .play-root { background-color: #06070a; color: #cbd5e1; font-family: 'Outfit', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; }
+        .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
+        .play-console-holder { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 12px; }
+        .play-console { width: 100%; height: 750px; background: #0d0e12; border: 3px solid #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); border-radius: 16px; overflow: hidden; position: relative; }
+        .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
+        .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .play-iframe { width: 100%; height: 100%; border: none; display: block; }
+        .console-actions { display: flex; justify-content: flex-end; }
+        .fullscreen-btn {
+            background: rgba(13, 14, 18, 0.7);
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            transition: all 0.25s ease;
+        }
+        .fullscreen-btn:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-sizing: border-box; }
+        .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
+        .play-info-section h3 { color: #00ffcc; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+        .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
+        .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
+        .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
+        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .faq-accordion { margin-top: 20px; }
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0; }
+        .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
+        .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+        @media (max-width: 768px) {
+            .play-main-container { padding: 10px 0; gap: 16px; }
+            .play-console { height: 85dvh; border-left: none; border-right: none; border-radius: 0; }
+            .play-info-section { padding: 20px; margin: 0 10px; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        /* Mobile Zoom and Accidental Text Selection Locks */
+        body, .play-root, .play-console-wrapper, .play-console-holder, .play-console, .play-iframe, .fullscreen-btn, .menu-toggle-btn, .sidebar-nav {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .play-info-section, .play-info-section * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub.html" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements.html" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="blog.html" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="about.html" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact.html" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
+        </div>
+    </nav>
+
+    <div class="play-root">
+        <div class="play-main-container">
+            <div class="play-console-wrapper">
+                <div class="play-console-holder">
+                    <div class="play-console" id="playConsoleContainer">
+                        <iframe class="play-iframe" id="gameIframe" src="neon-pin-pull-frontend/index.html" title="Neon Pin Pull"></iframe>
+                    </div>
+                    <div class="console-actions">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
+                    </div>
+                </div>
+            </div>
+            
+            <section class="play-info-section">
+                <h2>⚡ Play Neon Pin Pull Online</h2>
+                <p>Dive into the vibrant, glowing universe of Neon Pin Pull, a premier physics-based logic puzzle designed to test your spatial reasoning and coordination. Your main directive is simple yet highly engaging: guide trapped neon colored spheres into their matching goal portals at the bottom. However, the path is blocked by a complex labyrinth of sliding neon pins, interlocked triggers, directional blocks, and moving funnels. By pulling pins in the precise order, you'll orchestrate a beautiful cascade of gravity-driven spheres. But make one mistake—pulling the wrong pin or mixing incompatible colors—and your system will suffer an overload, failing the core matrix security stage.</p>
+                
+                <div class="play-grid-2">
+                    <div>
+                        <h3>🕹️ Gameplay & Controls Guide</h3>
+                        <p>To interact with the mainframe, hover and click (or tap on mobile) any pin's directional arrow cap. Pins can only slide in the direction indicated by their arrow. If a pin is blocked by another, it will glow bright red and play a thud sound with a visual shake indicator. You must identify and pull the obstructing pins first. Once a pin is pulled, gravity takes over immediately, causing all balls resting above it to cascade downwards. Guide all spheres to their respective matching color portal to decrypt the level.</p>
+                    </div>
+                    <div>
+                        <h3>💡 Strategy & Tips for Success</h3>
+                        <p>Approach every stage by working backwards from the bottom goals. Look at the colors of the bottom buckets and trace which chambers contain the corresponding spheres. Identify chain dependencies—some pins must be held in place to block certain colors from mixing, while others must be pulled immediately to clear paths. Group similar colors together in intermediate chambers before releasing them into the final portals. If you find yourself stuck, utilize the hint feature to reveal the correct pull sequence, but remember it costs 1 hard-earned star!</p>
+                    </div>
+                </div>
+                
+                <h3>🛠️ Cybernetic Game Specifications</h3>
+                <ul>
+                    <li><strong>Physics System:</strong> Highly accurate 2D vector kinematics engine supporting natural ball stacking, dynamic restitution bounces, and surface friction.</li>
+                    <li><strong>Active Pin Collision:</strong> Real-time bounding box segmentation calculations during slides, ensuring smooth flow gaps.</li>
+                    <li><strong>Audio Synthesis:</strong> Fully custom programmatic sound generator using the HTML5 Web Audio API to trigger retro synthesizers for pull whooshes, drop chiming, and error alerts.</li>
+                    <li><strong>Offline Capability:</strong> Advanced Progressive Web App setup with Service Worker caching, enabling 100% offline browser gameplay.</li>
+                </ul>
+                
+                <h3>❓ Frequently Asked Questions</h3>
+                <div class="faq-accordion">
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: How do I unlock new levels?</strong>
+                        <p class="faq-answer">A: You unlock levels progressively as you successfully decrypt the previous core. You can also view the Level Grid in the start menu to replay any previously completed level to optimize your star ratings.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: What causes a level to fail instantly?</strong>
+                        <p class="faq-answer">A: A stage fails if any ball lands in a goal bucket of a different color, or if balls of different colors mix together inside a bucket. In time-pressure stages, running out of time also triggers a failure.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: Can I share my high scores on social media?</strong>
+                        <p class="faq-answer">A: Yes! When you complete a level, you can click 'Share on X' or 'WhatsApp' to share your level completion status and star ratings with friends.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a> | <a href="blog.html">Blog</a></p>
+    </footer>
+
+    <script src="shared/achievements.js"></script>
+    <script>
+        function toggleFullscreen() {
+            const container = document.getElementById('playConsoleContainer');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.warn(`Error attempting to enable fullscreen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+
+            // Lock parent-level touch-scrolling on mobile devices when playing inside the iframe
+            const iframe = document.getElementById('gameIframe');
+            
+            const lockScroll = () => {
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+            };
+            
+            const unlockScroll = () => {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            };
+
+            if (iframe) {
+                let locksBound = false;
+                const attachLocks = () => {
+                    if (locksBound) return;
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc && iframeDoc.body) {
+                            iframeDoc.addEventListener('touchstart', lockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
+                            
+                            // Prevent parent scroll and iOS viewport bounces on iframe touchmove
+                            iframeDoc.addEventListener('touchmove', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }, { passive: false });
+                            
+                            // Prevent mouse wheel and trackpad scroll from bubbling up on laptops/desktops
+                            iframeDoc.addEventListener('wheel', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }, { passive: false });
+                            
+                            locksBound = true;
+                            console.log("Iframe touch/wheel locks bound successfully.");
+                        }
+                    } catch (err) {
+                        console.warn("Could not bind iframe touch/wheel locks:", err);
+                    }
+                };
+
+                // Try attaching immediately in case the iframe loaded before DOMContentLoaded
+                attachLocks();
+                
+                // Also bind on standard load event in case it loads later
+                iframe.addEventListener('load', attachLocks);
+            }
+
+            // Parent-level wheel lock for extra security over the console container on laptops
+            const container = document.getElementById('playConsoleContainer');
+            if (container) {
+                container.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+            }
+
+            // Bulletproof scroll-locking listener for iOS viewport bounces
+            document.body.addEventListener('touchmove', (e) => {
+                if (document.body.style.overflow === 'hidden') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        });
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>
