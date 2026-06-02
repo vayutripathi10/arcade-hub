@@ -10,7 +10,8 @@ const BALL_COLORS = {
     pink: { hex: '#ff2d78', name: 'Pink' },
     yellow: { hex: '#ffff00', name: 'Yellow' },
     green: { hex: '#39ff14', name: 'Green' },
-    purple: { hex: '#bf00ff', name: 'Purple' }
+    purple: { hex: '#bf00ff', name: 'Purple' },
+    white: { hex: '#ffffff', name: 'White' }
 };
 
 // Collision Utilities
@@ -149,9 +150,9 @@ const LEVELS = [
             { color: "cyan", x: 280, y: 150 },
             { color: "cyan", x: 320, y: 170 },
             { color: "cyan", x: 300, y: 190 },
-            { color: "pink", x: 270, y: 350 },
-            { color: "pink", x: 310, y: 370 },
-            { color: "pink", x: 290, y: 390 }
+            { color: "white", x: 270, y: 350 },
+            { color: "white", x: 310, y: 370 },
+            { color: "white", x: 290, y: 390 }
         ]
     },
     // --- MEDIUM (4 - 8) ---
@@ -271,7 +272,7 @@ const LEVELS = [
         balls: [
             { color: "yellow", x: 230, y: 150 },
             { color: "yellow", x: 360, y: 150 },
-            { color: "pink", x: 300, y: 180 } // must be sorted or fails
+            { color: "white", x: 300, y: 180 } // must be colored or fails
         ]
     },
     // --- HARD (9 - 15) ---
@@ -779,8 +780,13 @@ class PinPullGame {
 
         // Hint System
         document.getElementById('btn-hint')?.addEventListener('click', () => {
-            // Costs 1 star, shows the first correct pin to pull
-            this.mistakesCount += 2; // guarantees max 1 star result
+            // Restart the level to make it playable and dismiss the failure screen
+            this.startLevel(this.currentLevelIndex);
+            
+            // Costs 1 star: set mistakes to 2 so they get max 1 star
+            this.mistakesCount = 2;
+            
+            // Find and shake the first correct pin to pull
             const hint = this.getFirstMoveHint();
             if (hint) {
                 const hintPin = this.pins.find(p => p.id === hint);
@@ -1000,6 +1006,15 @@ class PinPullGame {
                         b2.x += nx * overlap * 0.5;
                         b2.y += ny * overlap * 0.5;
                         
+                        // Color transfer logic for neutral (white) balls
+                        if (b1.colorKey !== 'white' && b2.colorKey === 'white') {
+                            b2.colorKey = b1.colorKey;
+                            b2.color = BALL_COLORS[b1.colorKey].hex;
+                        } else if (b2.colorKey !== 'white' && b1.colorKey === 'white') {
+                            b1.colorKey = b2.colorKey;
+                            b1.color = BALL_COLORS[b2.colorKey].hex;
+                        }
+
                         const rvx = b2.vx - b1.vx;
                         const rvy = b2.vy - b1.vy;
                         const velAlongNormal = rvx * nx + rvy * ny;
