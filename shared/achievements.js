@@ -202,7 +202,11 @@ class AchievementSystem {
             { id: 'survivor_boss_slayer', game: 'survivor', title: 'Boss Slayer', desc: 'Defeat the 2-minute Boss', icon: '👹' },
             // Sky Jumper
             { id: 'skyjumper_lvl5', game: 'skyjumper', title: 'Stratosphere', desc: 'Reach Level 5 in Sky Jumper', icon: '☁️' },
-            { id: 'skyjumper_score1000', game: 'skyjumper', title: 'Sky Legend', desc: 'Score 1,000 points in Sky Jumper', icon: '🌌' }
+            { id: 'skyjumper_score1000', game: 'skyjumper', title: 'Sky Legend', desc: 'Score 1,000 points in Sky Jumper', icon: '🌌' },
+            // Neon Arrows
+            { id: 'arrows_tutorial', game: 'arrows', title: 'Sector Rookie', desc: 'Complete Level 1 (Tutorial) in Neon Arrows', icon: '🏹' },
+            { id: 'arrows_perfect', game: 'arrows', title: 'Arrow Optimizer', desc: 'Achieve a Perfect Run in Neon Arrows', icon: '✨' },
+            { id: 'arrows_master', game: 'arrows', title: 'Mainframe Master', desc: 'Solve all 10 security sectors in Neon Arrows', icon: '👑' }
         ];
     }
 

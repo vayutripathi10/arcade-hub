@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Arrows - Logic Puzzle Game | Arcade Hub</title>
+    <meta name="description" content="Peel away glowing neon lines in this spatial reasoning puzzle game. Slide vector arrow paths off the screen in the correct sequence to solve the grid security key before running out of moves.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+    
+    <style id="adsense-compliance-styles">
+        /* === PRE-GAME OVERLAY SYSTEM === */
+        body.show-info-overlay {
+            overflow: hidden !important;
+            height: 100dvh !important;
+        }
+        
+        /* Bulletproof parent-level hide for everything that is NOT the compliance overlay */
+        body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+            display: none !important;
+        }
+
+        /* Double protection explicit list of selectors */
+        body.show-info-overlay .game-root,
+        body.show-info-overlay #game-root,
+        body.show-info-overlay .game-wrapper,
+        body.show-info-overlay #game-wrapper,
+        body.show-info-overlay canvas,
+        body.show-info-overlay #gameCanvas,
+        body.show-info-overlay .hud,
+        body.show-info-overlay .hud-header,
+        body.show-info-overlay .overlay,
+        body.show-info-overlay .go-overlay,
+        body.show-info-overlay .htp-overlay,
+        body.show-info-overlay .transition-overlay,
+        body.show-info-overlay #mainMenu,
+        body.show-info-overlay #screen-start,
+        body.show-info-overlay #screen-gameover,
+        body.show-info-overlay #screen-pause,
+        body.show-info-overlay #how-to-play,
+        body.show-info-overlay #howToPlayModal,
+        body.show-info-overlay #mainMenuContainer,
+        body.show-info-overlay .menu-overlay,
+        body.show-info-overlay .modal,
+        body.show-info-overlay .ad-container,
+        body.show-info-overlay #ad-box {
+            display: none !important;
+        }
+
+        .game-info-overlay {
+            display: none;
+            background: #0a0b0d;
+            width: 100%;
+            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            padding: 40px 24px;
+            box-sizing: border-box;
+        }
+        body.show-info-overlay .game-info-overlay {
+            display: block !important;
+        }
+        .game-info-container { max-width: 780px; margin: 0 auto; }
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,255,204,0.15);
+        }
+        .brand-header .brand-title {
+            color: #00ffcc;
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(0,255,204,0.4);
+            margin: 0 0 6px 0;
+        }
+        .brand-header .brand-sub {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .continue-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            position: sticky;
+            top: 16px;
+            z-index: 1000000;
+        }
+        .continue-game-btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 16px 52px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 28px rgba(0,255,204,0.55);
+            transition: all 0.25s ease;
+            letter-spacing: 1.5px;
+        }
+        .continue-game-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 40px rgba(255,255,255,0.65);
+            transform: scale(1.04);
+        }
+        .continue-game-btn:active { transform: scale(0.97); }
+        .game-info-container h2 {
+            color: #fff;
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .game-info-container h3 {
+            color: #00ffcc;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+        .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+        .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .faq-item {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+        .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+        .page-footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+        }
+        .page-footer-note a { color: #00ffcc; text-decoration: none; }
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .continue-game-btn { width: 100%; padding: 15px 24px; }
+            .game-info-container h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="show-info-overlay">
+
+    <!-- PRE-GAME INFO OVERLAY (AdSense Thin Content Compliance) -->
+    <div class="game-info-overlay" id="game-info-overlay">
+        <div class="game-info-container">
+            <div class="brand-header">
+                <p class="brand-title">🎮 Arcade Hub</p>
+                <p class="brand-sub">Free Browser Games — No Download Required</p>
+            </div>
+
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
+            </div>
+
+            <h2>Neon Arrows</h2>
+            <p>Neon Arrows is an original spatial logic puzzle game designed to test your sequence planning and geometric reasoning. The grid is packed with glowing neon lines (vectors), each ending in a directional arrowhead. By tapping a line, you slide it forward along its own shape in the direction of the arrow. If the path ahead of the head is clear, the line slides completely off the board. If another line blocks its path, it collides and wiggles. Can you find the perfect sequence of moves to untangle the board and peel away all the glowing paths?</p>
+
+            <h3>🎮 How to Play</h3>
+            <p>Your goal is to completely clear the grid. Tap lines to slide them off the screen. If a line is blocked, it won't move, so you must carefully determine the order of operations.</p>
+            <ul>
+                <li><strong>Tap to Slide:</strong> Click or tap on any glowing line to slide it along its path in the direction of its arrowhead.</li>
+                <li><strong>Clear the Path:</strong> Lines can only slide off the screen if their exit trajectory (extending straight out from the arrow) is completely unobstructed.</li>
+                <li><strong>Collision Indicator:</strong> If you tap a blocked line, it wiggles, showing you which obstacle is in the way.</li>
+                <li><strong>Moves Limit:</strong> Try to clear the board in the minimum possible moves to achieve the "Perfect" trophy.</li>
+            </ul>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚡ Technical Details</h3>
+                    <ul>
+                        <li>HTML5 Canvas vector-rendering core locked at up to 120 FPS.</li>
+                        <li>High-quality programmatic SFX via the Web Audio API.</li>
+                        <li>Responsive grid scaling optimized for mobile and desktop screens.</li>
+                        <li>Progressive Web App (PWA) support for complete offline playability.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>💡 Pro Tips</h3>
+                    <ul>
+                        <li>Look at the outer edges of the grid first. Lines close to the borders are usually the first ones that can exit.</li>
+                        <li>Work backwards: identify which lines are blocking your desired exits, and find a way to clear them first.</li>
+                        <li>Use the Undo button if you make a mistake; it does not count against your score.</li>
+                        <li>No timers: relax and plan your strategy carefully without time pressure.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="faq-item">
+                <p class="faq-question">Is Neon Arrows free to play?</p>
+                <p class="faq-answer">Yes, 100% free with no registrations, sign-ups, or installations required.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Does this game work offline?</p>
+                <p class="faq-answer">Absolutely. Once loaded, the Service Worker caches all assets, allowing you to play offline on planes, trains, or subways.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">How many levels are there?</p>
+                <p class="faq-answer">There are 10 progressively challenging, hand-crafted security sectors to solve.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Where can I play more games like this?</p>
+                <p class="faq-answer">Explore the full catalog of 20+ free browser-based arcade titles at <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a>.</p>
+            </div>
+
+            <div class="page-footer-note">
+                Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> — Free Browser Arcade Games
+            </div>
+        </div>
+    </div>
+    <!-- END PRE-GAME INFO OVERLAY -->
+
+    <!-- HUD Header -->
+    <header class="hud">
+        <div class="hud-left">
+            <button class="hud-btn" id="home-btn" title="Exit to Hub">🏠</button>
+        </div>
+        <div class="hud-center">
+            <div class="stat-item">
+                <span class="stat-label">Level</span>
+                <span class="stat-value" id="level-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Moves</span>
+                <span class="stat-value" id="moves-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Perfect</span>
+                <span class="stat-value" id="perfect-value" style="color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);">0</span>
+            </div>
+        </div>
+        <div class="hud-right">
+            <button class="hud-btn" id="undo-btn" title="Undo Move">↩️</button>
+            <button class="hud-btn" id="reset-btn" title="Reset Level">🔄</button>
+            <button class="hud-btn" id="mute-btn">🔊</button>
+            <button class="hud-btn" id="pause-btn">⏸</button>
+        </div>
+    </header>
+
+    <!-- Game Main Container -->
+    <main class="game-container">
+        <canvas id="game-canvas"></canvas>
+    </main>
+
+    <!-- Start Overlay -->
+    <div class="overlay active" id="start-screen">
+        <div class="modal">
+            <h2>NEON ARROWS</h2>
+            <p>Clear the cyberpunk grid by sliding glowing paths off the screen in the correct order!</p>
+            <button class="btn-main" id="start-btn">Hack Grid</button>
+            <button class="btn-outline" id="htp-btn">💡 How to Play</button>
+        </div>
+    </div>
+
+    <!-- How to Play Modal -->
+    <div class="overlay" id="htp-overlay">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <h2>How to Play</h2>
+            <div class="htp-content">
+                <ul>
+                    <li>Tap a glowing path to slide it along its bends and curves in the direction of its arrowhead.</li>
+                    <li>Lines can only slide off the screen if their exit path is completely clear.</li>
+                    <li>Blocked paths will bounce back and wiggle.</li>
+                    <li>Clear the board in as few moves as possible to match the "Perfect" target and unlock trophies!</li>
+                </ul>
+            </div>
+            <button class="btn-main" id="htp-close">Understood</button>
+        </div>
+    </div>
+
+    <!-- Pause Screen -->
+    <div class="overlay" id="pause-screen">
+        <div class="modal">
+            <h2>HACK PAUSED</h2>
+            <button class="btn-main" id="resume-btn">Resume Decrypt</button>
+            <button class="btn-outline" id="pause-restart-btn">Restart Level</button>
+            <a href="../index.html" target="_top" class="btn-outline" style="display: block; text-decoration: none; margin-top: 10px;">Abort to Hub</a>
+        </div>
+    </div>
+
+    <!-- Level Complete Screen -->
+    <div class="overlay" id="complete-screen">
+        <div class="modal">
+            <h2 style="color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green);">SECTOR CRACKED!</h2>
+            <div id="level-summary" style="margin-bottom: 20px;">
+                <p>Moves Taken: <span id="summary-moves" style="color: var(--neon-cyan);">0</span></p>
+                <p>Perfect Target: <span id="summary-perfect" style="color: var(--neon-yellow);">0</span></p>
+                <p id="perfect-badge" style="color: var(--neon-green); font-weight: 700; margin-top: 15px; display: none;">✨ PERFECT RUN! ✨</p>
+            </div>
+            <button class="btn-main" id="next-btn">Next Sector</button>
+            <div class="social-sharing">
+                <a href="#" class="share-btn wa" id="share-wa" title="Share on WhatsApp">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .01 5.403.007 12.04c0 2.123.543 4.196 1.571 6.03L0 24l6.102-1.6c1.777.969 3.778 1.479 5.811 1.479h.005c6.632 0 12.038-5.404 12.04-12.04.002-3.217-1.252-6.242-3.528-8.517z"/></svg>
+                </a>
+                <a href="#" class="share-btn x" id="share-x" title="Share on X">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory / All Cleared Screen -->
+    <div class="overlay" id="victory-screen">
+        <div class="modal">
+            <h2 style="color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan);">MAINFRAME CLEARED!</h2>
+            <p>Congratulations, you cracked all security sectors of the grid! You are the ultimate Arrow Master!</p>
+            <button class="btn-main" id="victory-home-btn">Return to Hub</button>
+        </div>
+    </div>
+
+    <!-- Audio FX and Achievements Scripts -->
+    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js"></script>
+    
+    <script>
+        (function() {
+            const gameId = 'neon-arrows';
+            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+                continueToGame(true);
+            }
+        })();
+
+        function continueToGame(isReturning) {
+            const gameId = 'neon-arrows';
+            localStorage.setItem('arcade_seen_' + gameId, '1');
+            document.body.classList.remove('show-info-overlay');
+            // Force layout calculations now that content is visible
+            window.dispatchEvent(new Event('resize'));
+            const overlay = document.getElementById('game-info-overlay');
+            if (overlay) overlay.style.display = 'none';
+            if (typeof initGame === 'function') {
+                initGame();
+            }
+        }
+    </script>
+</body>
+</html>

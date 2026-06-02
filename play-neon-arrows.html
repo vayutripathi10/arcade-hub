@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Neon Arrows is a spatial logic puzzle game. Slide glowing vector arrows off the cyber security grid in the correct sequence to decrypt the system mainframe. Master layered lines, directional filters, and complex multi-path grids to beat the sectors and prevent deadlock in the mainframe.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/play-neon-arrows.html">
+    <title>Neon Arrows — Free Play Online | Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    <style>
+        .play-root { background-color: #06070a; color: #cbd5e1; font-family: 'Outfit', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; }
+        .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
+        .play-console-holder { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 12px; }
+        .play-console { width: 100%; height: 750px; background: #0d0e12; border: 3px solid #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); border-radius: 16px; overflow: hidden; position: relative; }
+        .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
+        .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .play-iframe { width: 100%; height: 100%; border: none; display: block; }
+        .console-actions { display: flex; justify-content: flex-end; }
+        .fullscreen-btn {
+            background: rgba(13, 14, 18, 0.7);
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            transition: all 0.25s ease;
+        }
+        .fullscreen-btn:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-sizing: border-box; }
+        .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
+        .play-info-section h3 { color: #00ffcc; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+        .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
+        .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
+        .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
+        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .faq-accordion { margin-top: 20px; }
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0; }
+        .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
+        .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+        @media (max-width: 768px) {
+            .play-main-container { padding: 10px 0; gap: 16px; }
+            .play-console { height: 85dvh; border-left: none; border-right: none; border-radius: 0; }
+            .play-info-section { padding: 20px; margin: 0 10px; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        /* Mobile Zoom and Accidental Text Selection Locks */
+        body, .play-root, .play-console-wrapper, .play-console-holder, .play-console, .play-iframe, .fullscreen-btn, .menu-toggle-btn, .sidebar-nav {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .play-info-section, .play-info-section * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        /* iOS/iPhone Fullscreen Fallback */
+        .play-console.css-fullscreen-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06070a !important;
+        }
+        body.css-fullscreen-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+        }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub.html" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements.html" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="blog.html" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="about.html" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact.html" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
+        </div>
+    </nav>
+
+    <div class="play-root">
+        <div class="play-main-container">
+            <div class="play-console-wrapper">
+                <div class="play-console-holder">
+                    <div class="play-console" id="playConsoleContainer">
+                        <iframe class="play-iframe" id="gameIframe" src="neon-arrows-frontend/index.html" title="Neon Arrows"></iframe>
+                    </div>
+                    <div class="console-actions">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
+                    </div>
+                </div>
+            </div>
+            
+            <section class="play-info-section">
+                <h2>🏹 Play Neon Arrows Online</h2>
+                <p>Neon Arrows is a premium, spatial reasoning logic puzzle game where you are tasked with clearing a security sector grid. Decrypt the glowing cybernetic locks by peeling away paths of color-coded vectors. Each path is a line winding through the grid dots, ending in a directional arrowhead. Select and slide paths off the board in the correct sequence to prevent lockups and decrypt the core database!</p>
+                
+                <div class="play-grid-2">
+                    <div>
+                        <h3>🕹️ Gameplay & Controls Guide</h3>
+                        <p>Click or tap on any glowing path to slide it in the direction of its arrowhead. The path will trace its bends and exit straight off the screen. If another line occupies any cell of its exit trajectory, it will collide and wiggle, meaning you must clear the obstacle first.</p>
+                    </div>
+                    <div>
+                        <h3>💡 Expert Tips & Pro Strategies</h3>
+                        <p>Begin by scanning the outer rows and columns. Lines that exit directly without crossing other paths are your key starting points. Work backwards from blocked heads to identify which dependency lines must be cleared first. Use Undo if you make an incorrect slide!</p>
+                    </div>
+                </div>
+                
+                <h3>⚡ Cybernetic Specifications</h3>
+                <ul>
+                    <li><strong>Rendering Engine:</strong> HTML5 Canvas 2D vector context.</li>
+                    <li><strong>Performance Metrics:</strong> Dynamic FPS matching, supporting up to 120 FPS high-refresh rate displays.</li>
+                    <li><strong>Audio Synthesis:</strong> Built-in programmatic Web Audio API synthesizer for retro synth effects without loading heavy audio assets.</li>
+                    <li><strong>Offline Playability:</strong> Fully cached core via PWA Service Workers, allowing you to load and play offline anywhere.</li>
+                </ul>
+                
+                <h3>❓ Frequently Asked Questions</h3>
+                <div class="faq-accordion">
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: Are the level solutions unique?</strong>
+                        <p class="faq-answer">A: Each hand-crafted puzzle has a specific logical order of clearance. However, some minor non-blocking lines can be removed at multiple points in the sequence.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: What is a "Perfect Run"?</strong>
+                        <p class="faq-answer">A: Every level has a "Perfect" target indicator showing the minimum number of moves required to solve the puzzle. Completing a level within this move limit unlocks the "Perfect" trophy badge.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: Is there any time limit?</strong>
+                        <p class="faq-answer">A: No! Neon Arrows is designed as a relaxing, cozy puzzle game. You have all the time you need to think through and plan your moves without pressure.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy.html">Privacy Policy</a> | <a href="tos.html">Terms of Service</a> | <a href="contact.html">Contact Us</a> | <a href="blog.html">Blog</a></p>
+    </footer>
+
+    <script src="shared/achievements.js"></script>
+    <script>
+        function toggleFullscreen() {
+            const container = document.getElementById('playConsoleContainer');
+            
+            const hasRequestFullscreen = !!(container.requestFullscreen || 
+                                            container.webkitRequestFullscreen || 
+                                            container.mozRequestFullScreen || 
+                                            container.msRequestFullscreen);
+            
+            if (hasRequestFullscreen) {
+                const requestFS = container.requestFullscreen || 
+                                  container.webkitRequestFullscreen || 
+                                  container.mozRequestFullScreen || 
+                                  container.msRequestFullscreen;
+                
+                const exitFS = document.exitFullscreen || 
+                               document.webkitExitFullscreen || 
+                               document.mozCancelFullScreen || 
+                               document.msExitFullscreen;
+                
+                const fsElement = document.fullscreenElement || 
+                                  document.webkitFullscreenElement || 
+                                  document.mozFullScreenElement || 
+                                  document.msFullscreenElement;
+                
+                if (!fsElement) {
+                    requestFS.call(container).catch(err => {
+                        console.warn(`Fullscreen API failed, falling back to CSS fullscreen: ${err.message}`);
+                        toggleCssFullscreen(container);
+                    });
+                } else {
+                    exitFS.call(document);
+                }
+            } else {
+                toggleCssFullscreen(container);
+            }
+        }
+
+        function toggleCssFullscreen(container) {
+            container.classList.toggle('css-fullscreen-active');
+            document.body.classList.toggle('css-fullscreen-open');
+            
+            let exitBtn = document.getElementById('css-fullscreen-exit-btn');
+            if (container.classList.contains('css-fullscreen-active')) {
+                if (!exitBtn) {
+                    exitBtn = document.createElement('button');
+                    exitBtn.id = 'css-fullscreen-exit-btn';
+                    exitBtn.innerHTML = '✕ Exit Fullscreen';
+                    exitBtn.style.position = 'fixed';
+                    exitBtn.style.top = '16px';
+                    exitBtn.style.right = '16px';
+                    exitBtn.style.zIndex = '9999999';
+                    exitBtn.style.background = 'rgba(13, 14, 18, 0.85)';
+                    exitBtn.style.border = '2px solid #00ffcc';
+                    exitBtn.style.color = '#00ffcc';
+                    exitBtn.style.padding = '8px 16px';
+                    exitBtn.style.fontFamily = "'Outfit', sans-serif";
+                    exitBtn.style.fontWeight = '700';
+                    exitBtn.style.fontSize = '0.85rem';
+                    exitBtn.style.textTransform = 'uppercase';
+                    exitBtn.style.borderRadius = '8px';
+                    exitBtn.style.cursor = 'pointer';
+                    exitBtn.style.boxShadow = '0 0 15px rgba(0, 255, 204, 0.2)';
+                    
+                    exitBtn.addEventListener('click', () => {
+                        toggleCssFullscreen(container);
+                    });
+                    
+                    document.body.appendChild(exitBtn);
+                } else {
+                    exitBtn.style.display = 'block';
+                }
+            } else {
+                if (exitBtn) {
+                    exitBtn.style.display = 'none';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+
+            // Lock parent-level touch-scrolling on mobile devices when playing inside the iframe
+            const iframe = document.getElementById('gameIframe');
+            
+            const lockScroll = () => {
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+            };
+            
+            const unlockScroll = () => {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            };
+
+            if (iframe) {
+                let locksBound = false;
+                const attachLocks = () => {
+                    if (locksBound) return;
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc && iframeDoc.body) {
+                            iframeDoc.addEventListener('touchstart', lockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
+                            
+                            // Prevent parent scroll and iOS viewport bounces on iframe touchmove
+                            iframeDoc.addEventListener('touchmove', (e) => {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            // Prevent mouse wheel and trackpad scroll from bubbling up on laptops/desktops
+                            iframeDoc.addEventListener('wheel', (e) => {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            locksBound = true;
+                            console.log("Iframe touch/wheel locks bound successfully.");
+                        }
+                    } catch (err) {
+                        console.warn("Could not bind iframe touch/wheel locks:", err);
+                    }
+                };
+
+                attachLocks();
+                iframe.addEventListener('load', attachLocks);
+            }
+
+            const container = document.getElementById('playConsoleContainer');
+            if (container) {
+                container.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+            }
+
+            document.body.addEventListener('touchmove', (e) => {
+                if (document.body.style.overflow === 'hidden') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        });
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>
