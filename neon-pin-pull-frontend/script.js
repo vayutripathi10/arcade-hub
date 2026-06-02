@@ -432,9 +432,11 @@ const LEVELS = [
         id: 15,
         desc: "Level 15: Drop and Roll",
         walls: [
-            { x1: 150, y1: 100, x2: 150, y2: 600 },
-            { x1: 450, y1: 100, x2: 450, y2: 600 },
-            { x1: 150, y1: 350, x2: 350, y2: 450 } // diagonal wall
+            { x1: 150, y1: 100, x2: 150, y2: 520 },
+            { x1: 450, y1: 100, x2: 450, y2: 520 },
+            { x1: 150, y1: 350, x2: 350, y2: 450 }, // diagonal wall
+            { x1: 150, y1: 520, x2: 240, y2: 680 },
+            { x1: 450, y1: 520, x2: 360, y2: 680 }
         ],
         pins: [
             { id: "pin_top", x: 150, y: 280, w: 300, direction: "right", blockedBy: [] },
