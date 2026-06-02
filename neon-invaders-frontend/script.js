@@ -136,11 +136,11 @@ class Player {
         // Clamp
         this.x = Math.max(0, Math.min(canvas.width - this.w, this.x));
 
-        if (this.invincible > 0) this.invincible -= deltaTime * 60;
+        if (this.invincible > 0) this.invincible -= deltaTime;
         
         // Decay powerups
-        if (this.powerups.triple > 0) this.powerups.triple -= deltaTime * 60;
-        if (this.powerups.rapid > 0) this.powerups.rapid -= deltaTime * 60;
+        if (this.powerups.triple > 0) this.powerups.triple -= deltaTime;
+        if (this.powerups.rapid > 0) this.powerups.rapid -= deltaTime;
     }
 
     hit() {
