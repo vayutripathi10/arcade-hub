@@ -99,7 +99,7 @@ class PowerUp {
             slowdown: { color: '#00ff88', icon: '🐢' },
             multi:    { color: '#ffffff', icon: '🎱' },
             shield:   { color: '#00ffff', icon: '🛡️' },
-            bomb:     { color: '#ffaa00', icon: '💣' },
+            bomb:     { color: '#ff5500', icon: '🔥' },
             life:     { color: '#ff00de', icon: '❤️' }
         };
         this.color = config[type].color;
@@ -243,11 +243,14 @@ class Paddle {
         if (this.x + this.w > canvas.width) this.x = canvas.width - this.w;
 
         if (this.timer > 0) {
-            this.timer -= deltaTime * 60;
+            this.timer -= deltaTime;
             if (this.timer <= 0) {
                 this.timer = 0;
                 this.w = this.baseW;
-                balls.forEach(b => b.tempMulti = 1);
+                balls.forEach(b => {
+                    b.tempMulti = 1;
+                    b.fireball = false;
+                });
             }
         }
     }
@@ -528,12 +531,9 @@ function applyPowerUp(type) {
                          balls.push(new Ball(b.x, b.y, b.speed), new Ball(b.x, b.y, b.speed)); break;
         case 'shield':   paddle.hasShield = true; break;
         case 'bomb':     
-            spawnParticles(paddle.x + paddle.w/2, paddle.y + paddle.h/2, '#ffaa00', 50);
-            if (paddle.hasShield) {
-                paddle.hasShield = false;
-            } else {
-                balls = [];
-            }
+            balls.forEach(b => b.fireball = true);
+            paddle.timer = 300; // 5 seconds of fireball!
+            spawnParticles(paddle.x + paddle.w/2, paddle.y + paddle.h/2, '#ff5500', 40);
             break;
         case 'life':     lives++; updateHUD(); break;
     }
