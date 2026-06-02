@@ -6,7 +6,7 @@
     <meta name="description" content="Neon Pin Pull is an addictive, physics-based neon puzzle game. Solve challenging brain teasers by pulling pins in the correct order to guide glowing colored balls into matching goal buckets. Features 20 progressive difficulty levels, intricate interlocks, moving funnels, time-pressure chambers, and dynamic vector gravity stacking. Play online in your browser for free, completely offline-compatible with mobile touch responsive layouts.">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="canonical" href="https://arcadehubplay.com/play-neon-pin-pull.html">
-    <title>Neon Pin Pull — Play Online Free | Arcade Hub</title>
+    <title>Neon Pin Pull — Free Play Online | Arcade Hub</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="hub-style.css">
     <style>
@@ -14,15 +14,15 @@
         .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; }
         .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
         .play-console-holder { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 12px; }
-        .play-console { width: 100%; height: 750px; background: #0d0e12; border: 3px solid #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); border-radius: 16px; overflow: hidden; position: relative; }
+        .play-console { width: 100%; height: 750px; background: #0d0e12; border: 3px solid #ff007f; box-shadow: 0 0 20px rgba(255, 0, 127, 0.2); border-radius: 16px; overflow: hidden; position: relative; }
         .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
         .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
         .play-iframe { width: 100%; height: 100%; border: none; display: block; }
         .console-actions { display: flex; justify-content: flex-end; }
         .fullscreen-btn {
             background: rgba(13, 14, 18, 0.7);
-            border: 1px solid #00ffcc;
-            color: #00ffcc;
+            border: 1px solid #ff007f;
+            color: #ff007f;
             padding: 8px 16px;
             font-family: 'Outfit', sans-serif;
             font-size: 0.85rem;
@@ -34,17 +34,17 @@
             gap: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
             transition: all 0.25s ease;
         }
         .fullscreen-btn:hover {
-            background: #00ffcc;
+            background: #ff007f;
             color: #000;
-            box-shadow: 0 0 15px #00ffcc;
+            box-shadow: 0 0 15px #ff007f;
         }
         .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-sizing: border-box; }
         .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
-        .play-info-section h3 { color: #00ffcc; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+        .play-info-section h3 { color: #ff007f; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
         .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
         .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
         .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
@@ -74,6 +74,27 @@
             -moz-user-select: text;
             -ms-user-select: text;
             user-select: text;
+        }
+
+        /* iOS/iPhone Fullscreen Fallback */
+        .play-console.css-fullscreen-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06070a !important;
+        }
+        body.css-fullscreen-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+            height: 100dvh !important;
         }
     </style>
     <!-- Google AdSense -->
@@ -120,30 +141,31 @@
             </div>
             
             <section class="play-info-section">
-                <h2>⚡ Play Neon Pin Pull Online</h2>
-                <p>Dive into the vibrant, glowing universe of Neon Pin Pull, a premier physics-based logic puzzle designed to test your spatial reasoning and coordination. Your main directive is simple yet highly engaging: guide trapped neon colored spheres into their matching goal portals at the bottom. However, the path is blocked by a complex labyrinth of sliding neon pins, interlocked triggers, directional blocks, and moving funnels. By pulling pins in the precise order, you'll orchestrate a beautiful cascade of gravity-driven spheres. But make one mistake—pulling the wrong pin or mixing incompatible colors—and your system will suffer an overload, failing the core matrix security stage.</p>
+                <h2>📌 Play Neon Pin Pull Online</h2>
+                <p>Neon Pin Pull is an addictive, physics-based neon puzzle game. Solve challenging brain teasers by pulling pins in the correct order to guide glowing colored balls into matching goal buckets. Features 20 progressive difficulty levels, intricate interlocks, moving funnels, time-pressure chambers, and dynamic vector gravity stacking. Play online in your browser for free, completely offline-compatible with mobile touch responsive layouts.</p>
                 
                 <div class="play-grid-2">
                     <div>
-                        <h3>🕹️ Gameplay & Controls Guide</h3>
-                        <p>To interact with the mainframe, hover and click (or tap on mobile) any pin's directional arrow cap. Pins can only slide in the direction indicated by their arrow. If a pin is blocked by another, it will glow bright red and play a thud sound with a visual shake indicator. You must identify and pull the obstructing pins first. Once a pin is pulled, gravity takes over immediately, causing all balls resting above it to cascade downwards. Guide all spheres to their respective matching color portal to decrypt the level.</p>
+                        <h3>🕹️ Visible Gameplay & Controls Guide</h3>
+                        <p>To interact with the mainframe, hover and click (or tap on mobile) any pin's directional arrow cap. Pins can only slide in the direction indicated by their arrow. If a pin is blocked by another, it will glow bright red and play a thud sound with a visual shake indicator.</p>
                     </div>
                     <div>
-                        <h3>💡 Strategy & Tips for Success</h3>
-                        <p>Approach every stage by working backwards from the bottom goals. Look at the colors of the bottom buckets and trace which chambers contain the corresponding spheres. Identify chain dependencies—some pins must be held in place to block certain colors from mixing, while others must be pulled immediately to clear paths. Group similar colors together in intermediate chambers before releasing them into the final portals. If you find yourself stuck, utilize the hint feature to reveal the correct pull sequence, but remember it costs 1 hard-earned star!</p>
+                        <h3>💡 Expert Tips & Pro Strategies</h3>
+                        <p>Approach every stage by working backwards from the bottom goals. Look at the colors of the bottom buckets and trace which chambers contain the corresponding spheres. Identify chain dependencies—some pins must be held in place to block certain colors from mixing.</p>
                     </div>
                 </div>
                 
-                <h3>🛠️ Cybernetic Game Specifications</h3>
+                <h3>⚡ Cybernetic Specifications</h3>
                 <ul>
-                    <li><strong>Physics System:</strong> Highly accurate 2D vector kinematics engine supporting natural ball stacking, dynamic restitution bounces, and surface friction.</li>
-                    <li><strong>Active Pin Collision:</strong> Real-time bounding box segmentation calculations during slides, ensuring smooth flow gaps.</li>
-                    <li><strong>Audio Synthesis:</strong> Fully custom programmatic sound generator using the HTML5 Web Audio API to trigger retro synthesizers for pull whooshes, drop chiming, and error alerts.</li>
-                    <li><strong>Offline Capability:</strong> Advanced Progressive Web App setup with Service Worker caching, enabling 100% offline browser gameplay.</li>
+                    <li><strong>Rendering Core:</strong> HTML5 Canvas / 2D WebGL execution vectors.</li>
+                    <li><strong>Framerate Limits:</strong> Locked 60 FPS up to fluid 120 FPS high-refresh capabilities.</li>
+                    <li><strong>Audio Synthesizer:</strong> Browser Web Audio API oscillator nodes for live programmatic synthesizer soundtrack rendering.</li>
+                    <li><strong>Offline Capabilities:</strong> Progressive Web App caching via local Service Workers &mdash; 100% playable offline!</li>
                 </ul>
                 
                 <h3>❓ Frequently Asked Questions</h3>
                 <div class="faq-accordion">
+                    
                     <div class="faq-item">
                         <strong class="faq-question">Q: How do I unlock new levels?</strong>
                         <p class="faq-answer">A: You unlock levels progressively as you successfully decrypt the previous core. You can also view the Level Grid in the start menu to replay any previously completed level to optimize your star ratings.</p>
@@ -169,12 +191,79 @@
     <script>
         function toggleFullscreen() {
             const container = document.getElementById('playConsoleContainer');
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(err => {
-                    console.warn(`Error attempting to enable fullscreen mode: ${err.message}`);
-                });
+            
+            const hasRequestFullscreen = !!(container.requestFullscreen || 
+                                            container.webkitRequestFullscreen || 
+                                            container.mozRequestFullScreen || 
+                                            container.msRequestFullscreen);
+            
+            if (hasRequestFullscreen) {
+                const requestFS = container.requestFullscreen || 
+                                  container.webkitRequestFullscreen || 
+                                  container.mozRequestFullScreen || 
+                                  container.msRequestFullscreen;
+                
+                const exitFS = document.exitFullscreen || 
+                               document.webkitExitFullscreen || 
+                               document.mozCancelFullScreen || 
+                               document.msExitFullscreen;
+                
+                const fsElement = document.fullscreenElement || 
+                                  document.webkitFullscreenElement || 
+                                  document.mozFullScreenElement || 
+                                  document.msFullscreenElement;
+                
+                if (!fsElement) {
+                    requestFS.call(container).catch(err => {
+                        console.warn(`Fullscreen API failed, falling back to CSS fullscreen: ${err.message}`);
+                        toggleCssFullscreen(container);
+                    });
+                } else {
+                    exitFS.call(document);
+                }
             } else {
-                document.exitFullscreen();
+                toggleCssFullscreen(container);
+            }
+        }
+
+        function toggleCssFullscreen(container) {
+            container.classList.toggle('css-fullscreen-active');
+            document.body.classList.toggle('css-fullscreen-open');
+            
+            let exitBtn = document.getElementById('css-fullscreen-exit-btn');
+            if (container.classList.contains('css-fullscreen-active')) {
+                if (!exitBtn) {
+                    exitBtn = document.createElement('button');
+                    exitBtn.id = 'css-fullscreen-exit-btn';
+                    exitBtn.innerHTML = '✕ Exit Fullscreen';
+                    exitBtn.style.position = 'fixed';
+                    exitBtn.style.top = '16px';
+                    exitBtn.style.right = '16px';
+                    exitBtn.style.zIndex = '9999999';
+                    exitBtn.style.background = 'rgba(13, 14, 18, 0.85)';
+                    exitBtn.style.border = '2px solid #ff007f';
+                    exitBtn.style.color = '#ff007f';
+                    exitBtn.style.padding = '8px 16px';
+                    exitBtn.style.fontFamily = "'Outfit', sans-serif";
+                    exitBtn.style.fontWeight = '700';
+                    exitBtn.style.fontSize = '0.85rem';
+                    exitBtn.style.textTransform = 'uppercase';
+                    exitBtn.style.borderRadius = '8px';
+                    exitBtn.style.cursor = 'pointer';
+                    exitBtn.style.boxShadow = '0 0 15px rgba(255, 0, 127, 0.2)';
+                    
+                    exitBtn.addEventListener('click', () => {
+                        toggleCssFullscreen(container);
+                    });
+                    
+                    document.body.appendChild(exitBtn);
+                } else {
+                    exitBtn.style.display = 'block';
+                }
+            } else {
+                if (exitBtn) {
+                    exitBtn.style.display = 'none';
+                }
             }
         }
 
@@ -223,13 +312,11 @@
                             // Prevent parent scroll and iOS viewport bounces on iframe touchmove
                             iframeDoc.addEventListener('touchmove', (e) => {
                                 e.preventDefault();
-                                e.stopPropagation();
                             }, { passive: false });
                             
                             // Prevent mouse wheel and trackpad scroll from bubbling up on laptops/desktops
                             iframeDoc.addEventListener('wheel', (e) => {
                                 e.preventDefault();
-                                e.stopPropagation();
                             }, { passive: false });
                             
                             locksBound = true;

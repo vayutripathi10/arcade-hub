@@ -75,6 +75,27 @@
             -ms-user-select: text;
             user-select: text;
         }
+
+        /* iOS/iPhone Fullscreen Fallback */
+        .play-console.css-fullscreen-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06070a !important;
+        }
+        body.css-fullscreen-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+        }
     </style>
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
@@ -170,12 +191,79 @@
     <script>
         function toggleFullscreen() {
             const container = document.getElementById('playConsoleContainer');
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(err => {
-                    console.warn(`Error attempting to enable fullscreen mode: ${err.message}`);
-                });
+            
+            const hasRequestFullscreen = !!(container.requestFullscreen || 
+                                            container.webkitRequestFullscreen || 
+                                            container.mozRequestFullScreen || 
+                                            container.msRequestFullscreen);
+            
+            if (hasRequestFullscreen) {
+                const requestFS = container.requestFullscreen || 
+                                  container.webkitRequestFullscreen || 
+                                  container.mozRequestFullScreen || 
+                                  container.msRequestFullscreen;
+                
+                const exitFS = document.exitFullscreen || 
+                               document.webkitExitFullscreen || 
+                               document.mozCancelFullScreen || 
+                               document.msExitFullscreen;
+                
+                const fsElement = document.fullscreenElement || 
+                                  document.webkitFullscreenElement || 
+                                  document.mozFullScreenElement || 
+                                  document.msFullscreenElement;
+                
+                if (!fsElement) {
+                    requestFS.call(container).catch(err => {
+                        console.warn(`Fullscreen API failed, falling back to CSS fullscreen: ${err.message}`);
+                        toggleCssFullscreen(container);
+                    });
+                } else {
+                    exitFS.call(document);
+                }
             } else {
-                document.exitFullscreen();
+                toggleCssFullscreen(container);
+            }
+        }
+
+        function toggleCssFullscreen(container) {
+            container.classList.toggle('css-fullscreen-active');
+            document.body.classList.toggle('css-fullscreen-open');
+            
+            let exitBtn = document.getElementById('css-fullscreen-exit-btn');
+            if (container.classList.contains('css-fullscreen-active')) {
+                if (!exitBtn) {
+                    exitBtn = document.createElement('button');
+                    exitBtn.id = 'css-fullscreen-exit-btn';
+                    exitBtn.innerHTML = '✕ Exit Fullscreen';
+                    exitBtn.style.position = 'fixed';
+                    exitBtn.style.top = '16px';
+                    exitBtn.style.right = '16px';
+                    exitBtn.style.zIndex = '9999999';
+                    exitBtn.style.background = 'rgba(13, 14, 18, 0.85)';
+                    exitBtn.style.border = '2px solid #39ff14';
+                    exitBtn.style.color = '#39ff14';
+                    exitBtn.style.padding = '8px 16px';
+                    exitBtn.style.fontFamily = "'Outfit', sans-serif";
+                    exitBtn.style.fontWeight = '700';
+                    exitBtn.style.fontSize = '0.85rem';
+                    exitBtn.style.textTransform = 'uppercase';
+                    exitBtn.style.borderRadius = '8px';
+                    exitBtn.style.cursor = 'pointer';
+                    exitBtn.style.boxShadow = '0 0 15px rgba(57, 255, 20, 0.2)';
+                    
+                    exitBtn.addEventListener('click', () => {
+                        toggleCssFullscreen(container);
+                    });
+                    
+                    document.body.appendChild(exitBtn);
+                } else {
+                    exitBtn.style.display = 'block';
+                }
+            } else {
+                if (exitBtn) {
+                    exitBtn.style.display = 'none';
+                }
             }
         }
 
