@@ -162,11 +162,13 @@ const LEVELS = [
         walls: [
             { x1: 150, y1: 100, x2: 150, y2: 600 },
             { x1: 450, y1: 100, x2: 450, y2: 600 },
-            { x1: 300, y1: 100, x2: 300, y2: 400 }
+            { x1: 300, y1: 100, x2: 300, y2: 400 },
+            { x1: 150, y1: 600, x2: 240, y2: 680 },
+            { x1: 450, y1: 600, x2: 360, y2: 680 }
         ],
         pins: [
             { id: "pin1", x: 150, y: 300, w: 150, direction: "left", blockedBy: [] },
-            { id: "pin2", x: 220, y: 450, w: 230, direction: "right", blockedBy: ["pin1"] } // pin 1 blocks pin 2
+            { id: "pin2", x: 150, y: 450, w: 300, direction: "right", blockedBy: ["pin1"] } // pin 1 blocks pin 2
         ],
         buckets: [
             { color: "yellow", x: 300, w: 120 }
@@ -903,7 +905,16 @@ class PinPullGame {
     }
 
     isPinBlocked(pin) {
-        // A pin is blocked if any other unremoved pin intersects its pull path
+        // 1. Check configuration-defined logical blocks
+        if (pin.blockedBy && pin.blockedBy.length > 0) {
+            const hasBlocked = pin.blockedBy.some(id => {
+                const other = this.pins.find(p => p.id === id);
+                return other && !other.isRemoved;
+            });
+            if (hasBlocked) return true;
+        }
+
+        // 2. Check physical bounding box overlaps on pull paths
         const pullPath = this.getPullPath(pin);
         return this.pins.some(other => {
             if (other === pin) return false;
