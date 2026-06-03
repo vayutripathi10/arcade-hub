@@ -287,6 +287,50 @@ let animationFrameId = null;
 // Shaking state for lines
 const shakeStates = {}; // lineId -> { timeStart, duration, intensity }
 
+// Level Selection Screen Curation
+function showLevelSelect() {
+    isAnimating = false; // Pause background game loop while selecting stage
+    const grid = document.getElementById('level-select-grid');
+    grid.innerHTML = '';
+    
+    // Fetch level index from localStorage (default to 0 if not set)
+    const maxUnlocked = parseInt(localStorage.getItem('neon_arrows_level') || '0', 10);
+    
+    LEVELS.forEach((level, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'level-btn';
+        
+        if (idx < maxUnlocked) {
+            btn.classList.add('completed');
+            btn.innerHTML = `${idx + 1}<span style="font-size: 8px; margin-left: 2px;">✔</span>`;
+        } else if (idx === maxUnlocked) {
+            btn.textContent = idx + 1;
+        } else {
+            btn.classList.add('locked');
+            btn.innerHTML = `${idx + 1}<span style="font-size: 8px; margin-left: 2px;">🔒</span>`;
+        }
+        
+        btn.addEventListener('click', () => {
+            if (idx > maxUnlocked) {
+                sound.playBump();
+                return;
+            }
+            sound.playClick();
+            document.getElementById('level-select-screen').classList.remove('active');
+            loadLevel(idx);
+            
+            // Resume loop
+            isAnimating = true;
+            lastTime = performance.now();
+            requestAnimationFrame(animate);
+        });
+        
+        grid.appendChild(btn);
+    });
+    
+    document.getElementById('level-select-screen').classList.add('active');
+}
+
 // Initialization
 function initGame() {
     canvas = document.getElementById('game-canvas');
@@ -300,7 +344,13 @@ function initGame() {
     // Bind UI Buttons
     document.getElementById('start-btn').addEventListener('click', () => {
         document.getElementById('start-screen').classList.remove('active');
+        showLevelSelect();
         sound.playClick();
+    });
+    
+    document.getElementById('abort-to-hub-btn').addEventListener('click', () => {
+        sound.playClick();
+        window.top.location.href = '../index.html';
     });
     
     document.getElementById('htp-btn').addEventListener('click', () => {
@@ -351,7 +401,7 @@ function initGame() {
     
     document.getElementById('home-btn').addEventListener('click', () => {
         sound.playClick();
-        window.top.location.href = '../index.html';
+        showLevelSelect();
     });
     
     // Mute Logic

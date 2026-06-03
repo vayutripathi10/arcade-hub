@@ -50,6 +50,20 @@ def test_neon_arrows():
         # Verify Start Screen is hidden
         assert "active" not in start_screen.get_attribute("class"), "Start screen should be inactive after game start"
         
+        # 4b. Verify Level Select Screen is active and click Level 1
+        print("4b. Verifying Level Select screen and selecting Level 1...")
+        level_select_screen = driver.find_element(By.ID, "level-select-screen")
+        assert "active" in level_select_screen.get_attribute("class"), "Level select screen should be active"
+        
+        level_btns = driver.find_elements(By.CSS_SELECTOR, ".level-btn")
+        assert len(level_btns) == 13, f"Expected 13 level buttons, got {len(level_btns)}"
+        
+        # Click first level button (Level 1)
+        level_btns[0].click()
+        time.sleep(0.5)
+        
+        assert "active" not in level_select_screen.get_attribute("class"), "Level select screen should be hidden after selecting a level"
+        
         # 5. Check game engine states via Javascript execution
         print("5. Verifying Javascript game states...")
         level = driver.execute_script("return currentLevelIndex;")

@@ -234,6 +234,63 @@ body {
 
 .htp-content li { margin-bottom: 12px; }
 
+/* Level Selection Screen Grid & Buttons */
+.level-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.level-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.level-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+
+.level-btn {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.level-btn:hover:not(.locked) {
+    border-color: var(--neon-cyan);
+    color: #fff;
+    background: rgba(0, 255, 204, 0.05);
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.25);
+}
+
+.level-btn.completed {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+    background: rgba(57, 255, 20, 0.04);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.1);
+}
+
+.level-btn.locked {
+    opacity: 0.3;
+    cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
 @media (max-width: 600px) {
     .hud { height: 50px; padding: 0 10px; }
     .stat-value { font-size: 15px; }
