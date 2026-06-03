@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v10';
+const CACHE_NAME = 'arcade-hub-cache-v11';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -29,6 +29,7 @@ const CORE_ASSETS = [
     'neon-arrows-frontend/index.html',
     'neon-arrows-frontend/style.css',
     'neon-arrows-frontend/script.js',
+    'neon-arrows-frontend/thumbnail.png',
     'blog.html',
     'blog/evolution-of-cyberpunk-web-games.html',
     'blog/pwa-html5-mobile-gaming-revolution.html',
