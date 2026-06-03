@@ -56,7 +56,7 @@ def test_neon_arrows():
         assert "active" in level_select_screen.get_attribute("class"), "Level select screen should be active"
         
         level_btns = driver.find_elements(By.CSS_SELECTOR, ".level-btn")
-        assert len(level_btns) == 13, f"Expected 13 level buttons, got {len(level_btns)}"
+        assert len(level_btns) == 14, f"Expected 14 level buttons, got {len(level_btns)}"
         
         # Click first level button (Level 1)
         level_btns[0].click()

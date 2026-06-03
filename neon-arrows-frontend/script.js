@@ -198,6 +198,23 @@ const LEVELS = [
             { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 7, y: 11}, {x: 7, y: 10}, {x: 7, y: 9}] }, // Exits UP
             { id: 'L7', color: 'red', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}] } // Exits RIGHT
         ]
+    },
+    {
+        // Level 14: Master Stage (14x14)
+        gridWidth: 14,
+        gridHeight: 14,
+        perfectMoves: 9,
+        lines: [
+            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}, {x: 3, y: 2}, {x: 2, y: 2}, {x: 1, y: 2}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}, {x: 5, y: 3}, {x: 5, y: 2}, {x: 5, y: 1}] },
+            { id: 'L2', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 1}, {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}] },
+            { id: 'L3', color: 'yellow', exitDir: {x: -1, y: 0}, path: [{x: 9, y: 5}, {x: 8, y: 5}, {x: 7, y: 5}, {x: 6, y: 5}] },
+            { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 5, y: 8}, {x: 5, y: 7}, {x: 5, y: 6}, {x: 5, y: 5}] },
+            { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 4}, {x: 4, y: 4}, {x: 5, y: 4}] },
+            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 11, y: 10}, {x: 11, y: 9}] },
+            { id: 'L7', color: 'red', exitDir: {x: 1, y: 0}, path: [{x: 8, y: 7}, {x: 9, y: 7}, {x: 10, y: 7}, {x: 11, y: 7}] },
+            { id: 'L8', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 12, y: 5}, {x: 12, y: 6}, {x: 12, y: 7}] },
+            { id: 'L9', color: 'orange', exitDir: {x: -1, y: 0}, path: [{x: 12, y: 8}, {x: 11, y: 8}, {x: 10, y: 8}, {x: 9, y: 8}, {x: 8, y: 8}, {x: 7, y: 8}, {x: 6, y: 8}] }
+        ]
     }
 ];
 

@@ -206,7 +206,7 @@ class AchievementSystem {
             // Neon Arrows
             { id: 'arrows_tutorial', game: 'arrows', title: 'Sector Rookie', desc: 'Complete Level 1 (Tutorial) in Neon Arrows', icon: '🏹' },
             { id: 'arrows_perfect', game: 'arrows', title: 'Arrow Optimizer', desc: 'Achieve a Perfect Run in Neon Arrows', icon: '✨' },
-            { id: 'arrows_master', game: 'arrows', title: 'Mainframe Master', desc: 'Solve all 13 security sectors in Neon Arrows', icon: '👑' }
+            { id: 'arrows_master', game: 'arrows', title: 'Mainframe Master', desc: 'Solve all 14 security sectors in Neon Arrows', icon: '👑' }
         ];
     }
 
