@@ -117,7 +117,7 @@ const LEVELS = [
             { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 3, y: 4}, {x: 3, y: 3}] }, // Head (3,3) -> Up (Blocked by L8)
             { id: 'L5', color: 'orange', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L4)
             { id: 'L6', color: 'green', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 3}, {x: 5, y: 3}] }, // Head (5,3) -> Right (Clear!)
-            { id: 'L7', color: 'red', exitDir: {x: 0, y: 1}, path: [{x: 5, y: 2}, {x: 5, y: 1}] }, // Head (5,1) -> Down (Blocked by L6)
+            { id: 'L7', color: 'red', exitDir: {x: 0, y: 1}, path: [{x: 5, y: 1}, {x: 5, y: 2}] }, // Head (5,2) -> Down (Blocked by L6)
             { id: 'L8', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 0}, {x: 4, y: 0}] } // Head (4,0) -> Right (Clear!)
         ]
     },
@@ -165,9 +165,9 @@ const LEVELS = [
         lines: [
             { id: 'L1', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 1, y: 1}, {x: 1, y: 2}, {x: 1, y: 3}, {x: 1, y: 4}, {x: 2, y: 4}, {x: 3, y: 4}, {x: 3, y: 5}, {x: 3, y: 6}, {x: 3, y: 7}, {x: 3, y: 8}] }, // Exits DOWN
             { id: 'L2', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 9}, {x: 3, y: 9}, {x: 4, y: 9}, {x: 5, y: 9}] }, // Exits RIGHT
-            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: -1}, path: [{x: 8, y: 6}, {x: 8, y: 7}, {x: 8, y: 8}, {x: 8, y: 9}] }, // Exits UP
+            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: -1}, path: [{x: 8, y: 9}, {x: 8, y: 8}, {x: 8, y: 7}, {x: 8, y: 6}] }, // Exits UP
             { id: 'L4', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 5, y: 3}, {x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}] }, // Exits RIGHT
-            { id: 'L5', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 9, y: 1}, {x: 9, y: 2}, {x: 9, y: 3}, {x: 9, y: 4}] } // Exits UP
+            { id: 'L5', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 9, y: 4}, {x: 9, y: 3}, {x: 9, y: 2}, {x: 9, y: 1}] } // Exits UP
         ]
     },
     {
@@ -179,7 +179,7 @@ const LEVELS = [
             { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}, {x: 4, y: 1}, {x: 5, y: 1}, {x: 5, y: 2}, {x: 5, y: 3}, {x: 5, y: 4}, {x: 4, y: 4}, {x: 3, y: 4}, {x: 2, y: 4}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}] }, // Spiral, exits RIGHT
             { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 7, y: 2}, {x: 7, y: 3}, {x: 7, y: 4}, {x: 7, y: 5}] }, // Exits DOWN
             { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 8}, {x: 5, y: 8}, {x: 6, y: 8}, {x: 7, y: 8}] }, // Exits RIGHT
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 9, y: 6}, {x: 9, y: 7}, {x: 9, y: 8}, {x: 9, y: 9}] }, // Exits UP
+            { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 9, y: 9}, {x: 9, y: 8}, {x: 9, y: 7}, {x: 9, y: 6}] }, // Exits UP
             { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 0}, {x: 7, y: 0}, {x: 8, y: 0}] }, // Exits RIGHT
             { id: 'L6', color: 'green', exitDir: {x: 0, y: 1}, path: [{x: 10, y: 0}, {x: 10, y: 1}] } // Exits DOWN
         ]
@@ -192,10 +192,10 @@ const LEVELS = [
         lines: [
             { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 1, y: 2}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 2, y: 4}, {x: 2, y: 5}, {x: 3, y: 5}, {x: 4, y: 5}, {x: 4, y: 6}, {x: 4, y: 7}, {x: 5, y: 7}] }, // Zig-zag, exits RIGHT
             { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 6, y: 7}, {x: 6, y: 8}, {x: 6, y: 9}] }, // Exits DOWN
-            { id: 'L3', color: 'yellow', exitDir: {x: -1, y: 0}, path: [{x: 5, y: 10}, {x: 6, y: 10}] }, // Exits LEFT
+            { id: 'L3', color: 'yellow', exitDir: {x: -1, y: 0}, path: [{x: 6, y: 10}, {x: 5, y: 10}] }, // Exits LEFT
             { id: 'L4', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 8}, {x: 4, y: 9}, {x: 4, y: 10}] }, // Exits DOWN
             { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 11}, {x: 4, y: 11}, {x: 5, y: 11}] }, // Exits RIGHT
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 7, y: 9}, {x: 7, y: 10}, {x: 7, y: 11}] }, // Exits UP
+            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 7, y: 11}, {x: 7, y: 10}, {x: 7, y: 9}] }, // Exits UP
             { id: 'L7', color: 'red', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}] } // Exits RIGHT
         ]
     }
