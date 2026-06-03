@@ -187,4 +187,30 @@
     <lastmod>2026-06-02</lastmod>
     <priority>0.9</priority>
   </url>
+  <!-- Blog Pages -->
+  <url>
+    <loc>https://arcadehubplay.com/blog.html</loc>
+    <lastmod>2026-06-03</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://arcadehubplay.com/blog/vibe-coding-with-antigravity.html</loc>
+    <lastmod>2026-06-03</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://arcadehubplay.com/blog/evolution-of-cyberpunk-web-games.html</loc>
+    <lastmod>2026-06-01</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://arcadehubplay.com/blog/pwa-html5-mobile-gaming-revolution.html</loc>
+    <lastmod>2026-06-01</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://arcadehubplay.com/blog/retro-arcade-game-strategy-guide.html</loc>
+    <lastmod>2026-06-01</lastmod>
+    <priority>0.7</priority>
+  </url>
 </urlset>
