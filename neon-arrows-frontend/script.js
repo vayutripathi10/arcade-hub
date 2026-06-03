@@ -614,11 +614,21 @@ function drawLines() {
         
         // 3. Draw Arrowhead Indicator at the End (Head)
         const headPt = canvasPoints[canvasPoints.length - 1];
-        const lastPt = canvasPoints[canvasPoints.length - 2] || canvasPoints[0];
         
-        // Get direction of head segment
-        let angle = Math.atan2(headPt.y - lastPt.y, headPt.x - lastPt.x);
-        if (canvasPoints.length === 2 && headPt.x === lastPt.x && headPt.y === lastPt.y) {
+        // Get direction of head segment by finding the last two distinct points
+        let lastPt = null;
+        for (let i = canvasPoints.length - 2; i >= 0; i--) {
+            const pt = canvasPoints[i];
+            if (Math.abs(pt.x - headPt.x) > 1e-3 || Math.abs(pt.y - headPt.y) > 1e-3) {
+                lastPt = pt;
+                break;
+            }
+        }
+        
+        let angle;
+        if (lastPt) {
+            angle = Math.atan2(headPt.y - lastPt.y, headPt.x - lastPt.x);
+        } else {
             angle = Math.atan2(line.exitDir.y, line.exitDir.x);
         }
         
