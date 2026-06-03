@@ -627,24 +627,45 @@ function drawLines() {
 }
 
 function drawArrowhead(x, y, angle, color) {
-    ctx.fillStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 10;
-    
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
     
+    // 1. Draw Masking Background Arrow (removes line cap overlap and creates crisp contrast)
+    ctx.fillStyle = '#0d0e12'; // Canvas background color
+    ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.moveTo(4, 0);
-    ctx.lineTo(-12, -9);
-    ctx.lineTo(-7, 0);
-    ctx.lineTo(-12, 9);
+    ctx.moveTo(14, 0);
+    ctx.lineTo(-12, -13);
+    ctx.lineTo(-4, 0);
+    ctx.lineTo(-12, 13);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 2. Draw Outer Neon Glowing Arrow
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(12, 0);
+    ctx.lineTo(-10, -11);
+    ctx.lineTo(-4, 0);
+    ctx.lineTo(-10, 11);
+    ctx.closePath();
+    ctx.fill();
+    
+    // 3. Draw Inner White Core Arrow (matches the line's inner core for high contrast)
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(7, 0);
+    ctx.lineTo(-8, -6);
+    ctx.lineTo(-3, 0);
+    ctx.lineTo(-8, 6);
     ctx.closePath();
     ctx.fill();
     
     ctx.restore();
-    ctx.shadowBlur = 0;
 }
 
 // Particle Engine
