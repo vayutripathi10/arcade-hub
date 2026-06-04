@@ -1,4 +1,6 @@
 User-agent: *
+Disallow: /*-frontend/
 Allow: /
 
 Sitemap: https://arcadehubplay.com/sitemap.xml
+

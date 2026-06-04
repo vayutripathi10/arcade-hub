@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v14';
+const CACHE_NAME = 'arcade-hub-cache-v15';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -196,6 +196,40 @@ self.addEventListener('sync', (e) => {
     }
 });
 
+// Clean URL helper to map routes to physical .html files in cache
+function matchCache(request) {
+    return caches.match(request).then((res) => {
+        if (res) return res;
+
+        const url = new URL(request.url);
+        if (url.origin === self.location.origin) {
+            let path = url.pathname;
+            // Clean trailing slash
+            if (path.endsWith('/') && path.length > 1) {
+                path = path.slice(0, -1);
+            }
+            if (path === '/' || path === '') {
+                return caches.match('index.html');
+            }
+            // Strip leading slash for mapping
+            const page = path.substring(1);
+            
+            // Check for direct clean URL routes
+            const cleanRoots = ['about', 'achievements', 'contact', 'privacy', 'tos', 'updates', 'retro-hub', 'blog'];
+            if (cleanRoots.includes(page)) {
+                return caches.match(page + '.html');
+            }
+            if (page.startsWith('play-') && !page.endsWith('.html')) {
+                return caches.match(page + '.html');
+            }
+            if (page.startsWith('blog/') && !page.endsWith('.html')) {
+                return caches.match(page + '.html');
+            }
+        }
+        return null;
+    });
+}
+
 // Fetch Event - Serve with appropriate strategies & capture offline analytics
 self.addEventListener('fetch', (e) => {
     const url = new URL(e.request.url);
@@ -249,7 +283,7 @@ self.addEventListener('fetch', (e) => {
 
     if (isStaticAsset) {
         e.respondWith(
-            caches.match(e.request).then((cachedResponse) => {
+            matchCache(e.request).then((cachedResponse) => {
                 if (cachedResponse) {
                     // Fetch in background to update cache (Stale-While-Revalidate)
                     fetch(e.request).then((networkResponse) => {
@@ -292,7 +326,7 @@ self.addEventListener('fetch', (e) => {
                 return networkResponse;
             }).catch(() => {
                 // On offline network error, fallback to cache
-                return caches.match(e.request).then((cachedResponse) => {
+                return matchCache(e.request).then((cachedResponse) => {
                     if (cachedResponse) return cachedResponse;
                     if (e.request.mode === 'navigate') {
                         return caches.match('index.html');
