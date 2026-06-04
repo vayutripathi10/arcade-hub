@@ -113,7 +113,8 @@ class Player {
         this.w = PLAYER_SIZE;
         this.h = PLAYER_SIZE * 0.6;
         this.x = canvas.width / 2 - this.w / 2;
-        this.y = canvas.height - this.h - 20;
+        const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        this.y = canvas.height - this.h - (isMobile ? 80 : 20);
         this.targetX = this.x;
         this.lives = 3;
         this.invincible = 0;
