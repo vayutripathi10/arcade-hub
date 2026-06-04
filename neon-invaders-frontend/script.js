@@ -328,6 +328,129 @@ class Particle {
     }
 }
 
+class ShieldBlock {
+    constructor(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.hp = 3;
+    }
+
+    draw() {
+        if (this.hp <= 0) return;
+        ctx.save();
+        ctx.shadowBlur = this.hp * 4;
+        ctx.shadowColor = COLORS.primary;
+        ctx.strokeStyle = COLORS.primary;
+        ctx.globalAlpha = 0.3 + 0.7 * (this.hp / 3);
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x, this.y, this.w, this.h);
+        ctx.restore();
+    }
+}
+
+class Shield {
+    constructor(x, y) {
+        this.blocks = [];
+        const rows = 4;
+        const cols = 8;
+        const blockW = 8;
+        const blockH = 8;
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                if (r >= 2 && c >= 2 && c <= 5) continue;
+                this.blocks.push(new ShieldBlock(x + c * blockW, y + r * blockH, blockW, blockH));
+            }
+        }
+    }
+
+    draw() {
+        this.blocks.forEach(b => b.draw());
+    }
+}
+
+class Saucer {
+    constructor() {
+        this.w = 50;
+        this.h = 20;
+        this.x = Math.random() < 0.5 ? -this.w : canvas.width;
+        this.y = 35;
+        this.speed = 3;
+        this.dx = this.x < 0 ? this.speed : -this.speed;
+        this.color = COLORS.secondary;
+        this.points = [50, 100, 150, 300][Math.floor(Math.random() * 4)];
+        this.active = true;
+    }
+
+    update(deltaTime) {
+        this.x += this.dx * deltaTime;
+        if ((this.dx > 0 && this.x > canvas.width) || (this.dx < 0 && this.x < -this.w)) {
+            this.active = false;
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.arc(this.w / 2, this.h * 0.4, this.h * 0.4, Math.PI, 0);
+        ctx.moveTo(0, this.h * 0.7);
+        ctx.quadraticCurveTo(this.w / 2, this.h * 0.2, this.w, this.h * 0.7);
+        ctx.lineTo(this.w * 0.8, this.h);
+        ctx.lineTo(this.w * 0.2, this.h);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
+class ScorePopup {
+    constructor(x, y, text, color) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.life = 1.0;
+    }
+
+    update(deltaTime) {
+        this.y -= 1 * deltaTime;
+        this.life -= 0.02 * deltaTime;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
+    }
+}
+
+function initShields() {
+    shields = [];
+    const numShields = canvas.width < 500 ? 3 : 4;
+    const shieldWidth = 64;
+    const spacing = canvas.width / (numShields + 1);
+    const shieldY = player.y - 70;
+    
+    for (let i = 0; i < numShields; i++) {
+        const shieldX = spacing * (i + 1) - shieldWidth / 2;
+        shields.push(new Shield(shieldX, shieldY));
+    }
+}
+
 // Global Entities
 let player = new Player();
 let invaders = [];
@@ -336,6 +459,12 @@ let particles = [];
 let powerups = [];
 let keys = {};
 let isDragging = false;
+let initialInvadersCount = 0;
+let shields = [];
+let saucer = null;
+let saucerSpawnTimer = 0;
+let saucerSpawnInterval = 15000 + Math.random() * 15000;
+let scorePopups = [];
 
 function spawnWave() {
     invaders = [];
@@ -345,17 +474,23 @@ function spawnWave() {
     const spacingY = 40;
     const startX = (canvas.width - (cols * spacingX)) / 2;
     
+    // Wave Progression starting row offset (invaders start lower on higher waves)
+    const waveDropOffset = Math.min(120, (wave - 1) * 15);
+    
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             const type = (r === 0) ? 3 : (r < 3) ? 2 : 1;
             // Shielded invaders start appearing at wave 2
             let hp = 1;
             if (wave >= 2 && Math.random() < 0.2) hp = 2;
-            invaders.push(new Invader(startX + c * spacingX, 50 + r * spacingY, type, hp));
+            invaders.push(new Invader(startX + c * spacingX, 50 + waveDropOffset + r * spacingY, type, hp));
         }
     }
     
-    invaderMoveInterval = Math.max(200, 1000 - (wave * 100));
+    initialInvadersCount = invaders.length;
+    initShields();
+    
+    invaderMoveInterval = Math.max(200, 1000 - (wave * 80));
     levelTag.textContent = `WAVE ${wave}`;
 }
 
@@ -388,6 +523,9 @@ function restartGame() {
     bullets = [];
     particles = [];
     powerups = [];
+    saucer = null;
+    saucerSpawnTimer = 0;
+    scorePopups = [];
     player = new Player();
     spawnWave();
     updateHUD();
@@ -455,12 +593,16 @@ window.addEventListener('mouseup', () => isDragging = false);
 
 canvas.addEventListener('touchstart', e => {
     if (gameState === 'PLAYING') {
+        e.preventDefault();
         isDragging = true;
         player.targetX = e.touches[0].clientX;
     }
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
-    if (isDragging) player.targetX = e.touches[0].clientX;
+    if (isDragging) {
+        e.preventDefault();
+        player.targetX = e.touches[0].clientX;
+    }
 }, { passive: false });
 window.addEventListener('touchend', () => isDragging = false);
 
@@ -519,10 +661,36 @@ function loop(timestamp) {
     if (gameState === 'PLAYING' && !isPaused) {
         player.update(deltaTime);
         
-        // Move Invaders
+        // Saucer Spawning & Movement
+        if (!saucer) {
+            saucerSpawnTimer += deltaTime * 16.67;
+            if (saucerSpawnTimer >= saucerSpawnInterval) {
+                saucer = new Saucer();
+                saucerSpawnTimer = 0;
+                saucerSpawnInterval = 15000 + Math.random() * 15000;
+            }
+        } else {
+            saucer.update(deltaTime);
+            if (!saucer.active) {
+                saucer = null;
+            }
+        }
+
+        // Update Score Popups
+        for (let i = scorePopups.length - 1; i >= 0; i--) {
+            const sp = scorePopups[i];
+            sp.update(deltaTime);
+            if (sp.life <= 0) scorePopups.splice(i, 1);
+        }
+
+        // Move Invaders (Speed up as their numbers decrease)
         invaderMoveTimer += deltaTime * 16.67;
         
-        if (invaderMoveTimer >= invaderMoveInterval) {
+        const fractionLeft = invaders.length / (initialInvadersCount || 1);
+        const speedFactor = 0.1 + 0.9 * fractionLeft; // speeds up from 1.0x to 0.1x interval
+        const currentInterval = Math.max(80, invaderMoveInterval * speedFactor);
+        
+        if (invaderMoveTimer >= currentInterval) {
             invaderMoveTimer = 0;
             let shouldDrop = false;
             invaders.forEach(inv => {
@@ -567,8 +735,46 @@ function loop(timestamp) {
             b.update(deltaTime);
             if (b.y < 0 || b.y > canvas.height) { bullets.splice(i, 1); continue; }
             
-            // Player bullet hits invader
+            // Bullet hits shield block
+            let shieldCollided = false;
+            for (let s = 0; s < shields.length; s++) {
+                const sh = shields[s];
+                for (let bIdx = sh.blocks.length - 1; bIdx >= 0; bIdx--) {
+                    const block = sh.blocks[bIdx];
+                    if (block.hp > 0 &&
+                        b.x >= block.x && b.x <= block.x + block.w &&
+                        b.y >= block.y && b.y <= block.y + block.h) {
+                        
+                        block.hp--;
+                        if (block.hp <= 0) {
+                            sh.blocks.splice(bIdx, 1);
+                            for (let k = 0; k < 3; k++) particles.push(new Particle(block.x + block.w/2, block.y + block.h/2, COLORS.primary));
+                        }
+                        bullets.splice(i, 1);
+                        soundManager.play('hit');
+                        shieldCollided = true;
+                        break;
+                    }
+                }
+                if (shieldCollided) break;
+            }
+            if (shieldCollided) continue;
+            
+            // Player bullet hits saucer
             if (b.dy < 0) {
+                if (saucer && b.x >= saucer.x && b.x <= saucer.x + saucer.w && b.y >= saucer.y && b.y <= saucer.y + saucer.h) {
+                    updateScore(saucer.points);
+                    scorePopups.push(new ScorePopup(saucer.x + saucer.w/2, saucer.y + saucer.h/2, `+${saucer.points}`, COLORS.secondary));
+                    for (let k = 0; k < 12; k++) {
+                        particles.push(new Particle(saucer.x + saucer.w/2, saucer.y + saucer.h/2, saucer.color));
+                    }
+                    bullets.splice(i, 1);
+                    saucer = null;
+                    soundManager.play('explode');
+                    continue;
+                }
+                
+                // Player bullet hits invader
                 for (let j = invaders.length - 1; j >= 0; j--) {
                     const inv = invaders[j];
                     if (b.x > inv.x && b.x < inv.x + inv.w && b.y > inv.y && b.y < inv.y + inv.h) {
@@ -617,6 +823,10 @@ function loop(timestamp) {
     }
 
     // Draw
+    shields.forEach(sh => sh.draw());
+    if (saucer) saucer.draw();
+    scorePopups.forEach(sp => sp.draw());
+    
     invaders.forEach(inv => inv.draw());
     bullets.forEach(b => b.draw());
     powerups.forEach(p => p.draw());
