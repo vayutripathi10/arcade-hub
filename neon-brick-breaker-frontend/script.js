@@ -231,7 +231,8 @@ class Paddle {
         this.baseW = w;
         this.h = 12;
         this.x = (canvas.width - this.w) / 2;
-        this.y = canvas.height - 40;
+        const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        this.y = canvas.height - (isMobile ? 70 : 40);
         this.targetX = this.x;
         this.color = COLORS.primary;
         this.timer = 0;
@@ -343,7 +344,7 @@ function startGame() {
     
     const config = STAGE_CONFIG[1];
     paddle = new Paddle(config.paddleW);
-    balls = [new Ball(canvas.width / 2, canvas.height - 60, config.speed)];
+    balls = [new Ball(canvas.width / 2, paddle.y - 20, config.speed)];
     powerUps = [];
     particles = [];
     initLevel(level);
@@ -505,7 +506,7 @@ function update(deltaTime) {
             endGame('gameover');
         } else {
             const config = STAGE_CONFIG[level] || STAGE_CONFIG[10];
-            balls.push(new Ball(canvas.width / 2, canvas.height - 60, config.speed));
+            balls = [new Ball(canvas.width / 2, paddle.y - 30, config.speed)];
         }
     }
 
@@ -583,7 +584,7 @@ function nextLevel() {
         const config = STAGE_CONFIG[level] || STAGE_CONFIG[10];
         paddle.baseW = config.paddleW;
         paddle.w = config.paddleW;
-        balls = [new Ball(canvas.width / 2, canvas.height - 60, config.speed)];
+        balls = [new Ball(canvas.width / 2, paddle.y - 20, config.speed)];
         gameState = 'playing';
     }, 2500);
 }
@@ -669,7 +670,8 @@ function resize() {
     canvas.width = rect.width;
     canvas.height = rect.height;
     if (paddle) {
-        paddle.y = canvas.height - 40;
+        const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        paddle.y = canvas.height - (isMobile ? 70 : 40);
     }
 }
 
