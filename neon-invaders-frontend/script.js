@@ -916,9 +916,12 @@ function spawnWave() {
     
     const rows = 5;
     const cols = 8;
-    const spacingX = 50;
-    const spacingY = 40;
-    const startX = (canvas.width - (cols * spacingX)) / 2;
+    
+    // Scale spacing based on screen width to guarantee the grid starts fully in-bounds
+    const maxGridWidth = Math.min(420, canvas.width - 60);
+    const spacingX = maxGridWidth / (cols - 1);
+    const spacingY = Math.min(40, spacingX * 0.8);
+    const startX = (canvas.width - ((cols - 1) * spacingX + INVADER_SIZE)) / 2;
     
     // Wave Progression starting row offset (invaders start lower on higher waves)
     const waveDropOffset = Math.min(120, (wave - 1) * 15);
@@ -1159,7 +1162,9 @@ function loop(timestamp) {
             
             const fractionLeft = invaders.length / (initialInvadersCount || 1);
             const speedFactor = 0.1 + 0.9 * fractionLeft; // speeds up from 1.0x to 0.1x interval
-            const currentInterval = Math.max(80, invaderMoveInterval * speedFactor);
+            // Scale interval based on screen width to keep visual travel speed consistent
+            const screenScale = Math.max(1.0, Math.min(2.0, 800 / canvas.width));
+            const currentInterval = Math.max(80, invaderMoveInterval * speedFactor * screenScale);
             
             if (invaderMoveTimer >= currentInterval) {
                 invaderMoveTimer = 0;
