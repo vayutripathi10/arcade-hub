@@ -1122,7 +1122,18 @@ function spawnWave() {
         return;
     }
     
-    const rows = 5;
+    let rows = 5;
+    if (canvas.height < 400) {
+        rows = 3;
+    } else if (canvas.height < 550) {
+        rows = 4;
+    } else if (canvas.height < 700) {
+        rows = 5;
+    } else if (canvas.height < 850) {
+        rows = 6;
+    } else {
+        rows = 7;
+    }
     const isMobile = canvas.width < 500;
     const cols = isMobile ? 6 : 8;
     
@@ -1135,7 +1146,7 @@ function spawnWave() {
     const waveDropOffset = Math.min(maxDrop, (wave - 1) * (isMobile ? 8 : 15));
     
     const centerCol = Math.floor((cols - 1) / 2);
-    const centerRow = 2;
+    const centerRow = Math.floor(rows / 2);
     
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -1148,7 +1159,7 @@ function spawnWave() {
                 case 1:
                     // Stage 1: Classic Swarm
                     shouldSpawn = true;
-                    type = (r === 0) ? 3 : (r < 3) ? 2 : 1;
+                    type = (r === 0) ? 3 : (r < Math.floor(rows * 0.6)) ? 2 : 1;
                     break;
                 case 2:
                     // Stage 2: Chevron / V-Formation
@@ -1162,7 +1173,7 @@ function spawnWave() {
                     // Stage 3: Alternating Checkerboard
                     if ((r + c) % 2 === 0) {
                         shouldSpawn = true;
-                        type = (r === 0) ? 3 : (r === 2) ? 2 : 1;
+                        type = (r === 0) ? 3 : (r === Math.floor(rows / 2)) ? 2 : 1;
                         if (Math.random() < 0.25) hp = 2; // Armored
                     }
                     break;
@@ -1178,41 +1189,41 @@ function spawnWave() {
                 case 6:
                     // Stage 6: X-Cross Corridor
                     const xDist = Math.abs(c - Math.floor(cols/2));
-                    if (xDist === r || xDist === 4 - r) {
+                    if (xDist === r || xDist === (rows - 1) - r) {
                         shouldSpawn = true;
-                        type = (r === 2) ? 3 : (r === 1 || r === 3) ? 2 : 1;
+                        type = (r === centerRow) ? 3 : (r < centerRow) ? 2 : 1;
                     }
                     break;
                 case 7:
                     // Stage 7: Defensive Columns / Wall
                     if (c % 2 === 0) {
                         shouldSpawn = true;
-                        type = (r === 0) ? 3 : (r === 1 || r === 2) ? 2 : 1;
-                        if (r === 4) hp = 2; // Armored front line
+                        type = (r === 0) ? 3 : (r < Math.floor(rows * 0.6)) ? 2 : 1;
+                        if (r === rows - 1) hp = 2; // Armored front line
                     }
                     break;
                 case 8:
                     // Stage 8: Double Wedge
                     if ((c < cols/2 && r >= c) || (c >= cols/2 && r >= (cols - 1 - c))) {
                         shouldSpawn = true;
-                        type = (r === 4) ? 3 : (r === 2 || r === 3) ? 2 : 1;
+                        type = (r === rows - 1) ? 3 : (r >= Math.floor(rows / 2)) ? 2 : 1;
                         if (Math.random() < 0.3) hp = 2;
                     }
                     break;
                 case 9:
                     // Stage 9: Concentric Fortress Ring
-                    const outerRing = (r === 0 || r === 4 || c === 0 || c === cols - 1);
+                    const outerRing = (r === 0 || r === rows - 1 || c === 0 || c === cols - 1);
                     const innerCore = (r === centerRow && Math.abs(c - centerCol) <= 1);
                     if (outerRing || innerCore) {
                         shouldSpawn = true;
-                        type = innerCore ? 3 : (r === 0 || r === 4) ? 2 : 1;
+                        type = innerCore ? 3 : (r === 0 || r === rows - 1) ? 2 : 1;
                         if (innerCore) hp = 2;
                     }
                     break;
                 default:
                     // Fallback for any other stages
                     shouldSpawn = true;
-                    type = (r === 0) ? 3 : (r < 3) ? 2 : 1;
+                    type = (r === 0) ? 3 : (r < Math.floor(rows * 0.6)) ? 2 : 1;
             }
             
             if (shouldSpawn) {
@@ -1440,9 +1451,46 @@ function initStars() {
 
 function resize() {
     const hud = document.getElementById('hud');
+    const oldWidth = canvas.width;
+    
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - hud.clientHeight;
+    
     initStars();
+    
+    if (typeof player !== 'undefined' && player) {
+        const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        player.y = canvas.height - player.h - (isMobile ? 80 : 20);
+        
+        if (oldWidth) {
+            player.x = (player.x / oldWidth) * canvas.width;
+        }
+        player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+        
+        if (typeof shields !== 'undefined' && shields && shields.length > 0) {
+            const numShields = canvas.width < 500 ? 3 : 4;
+            const shieldWidth = 64;
+            const spacing = canvas.width / (numShields + 1);
+            const shieldY = player.y - Math.min(70, canvas.height * 0.18);
+            
+            shields.forEach((shield, i) => {
+                const shieldX = spacing * (i + 1) - shieldWidth / 2;
+                let blockIndex = 0;
+                const blockW = 8;
+                const blockH = 8;
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if (r >= 2 && c >= 2 && c <= 5) continue;
+                        const block = shield.blocks[blockIndex++];
+                        if (block) {
+                            block.x = shieldX + c * blockW;
+                            block.y = shieldY + r * blockH;
+                        }
+                    }
+                }
+            });
+        }
+    }
 }
 window.addEventListener('resize', resize);
 resize();
@@ -1619,7 +1667,7 @@ function loop(timestamp) {
             invaderMoveTimer += deltaTime * 16.67;
             
             const fractionLeft = invaders.length / (initialInvadersCount || 1);
-            const speedFactor = 0.1 + 0.9 * fractionLeft; // speeds up from 1.0x to 0.1x interval
+            const speedFactor = 0.25 + 0.75 * fractionLeft; // speeds up from 1.0x to 0.25x interval (4x speedup)
             // Scale interval based on screen width to keep visual travel speed consistent
             const screenScale = Math.max(1.0, Math.min(2.5, 900 / canvas.width));
             const currentInterval = Math.max(80, invaderMoveInterval * speedFactor * screenScale);
@@ -1629,20 +1677,21 @@ function loop(timestamp) {
             
             if (invaderMoveTimer >= currentInterval) {
                 invaderMoveTimer = 0;
-                let shouldDrop = false;
+                let hitWall = false;
                 invaders.forEach(inv => {
-                    inv.x += 10 * invaderDirection;
-                    if (inv.x > canvas.width - inv.w || inv.x < 0) shouldDrop = true;
+                    const nextX = inv.x + 10 * invaderDirection;
+                    if (nextX > canvas.width - inv.w || nextX < 0) {
+                        hitWall = true;
+                    }
                 });
                 
-                if (shouldDrop) {
+                if (hitWall) {
                     invaderDirection *= -1;
-                    invaders.forEach(inv => {
-                        const isMobile = canvas.width < 500;
-                        inv.y += isMobile ? 12 : INVADER_DROP_DIST;
-                        if (inv.y + inv.h > player.y) gameOver();
-                    });
                 }
+                
+                invaders.forEach(inv => {
+                    inv.x += 10 * invaderDirection;
+                });
             }
             
             // Invader Fire

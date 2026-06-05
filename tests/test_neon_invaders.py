@@ -58,10 +58,24 @@ def test_neon_invaders():
         initial_invaders_count = driver.execute_script("return initialInvadersCount;")
         player_lives = driver.execute_script("return player.lives;")
         
+        canvas_height = driver.execute_script("return canvas.height;")
+        if canvas_height < 400:
+            expected_rows = 3
+        elif canvas_height < 550:
+            expected_rows = 4
+        elif canvas_height < 700:
+            expected_rows = 5
+        elif canvas_height < 850:
+            expected_rows = 6
+        else:
+            expected_rows = 7
+        expected_cols = 8 # desktop width >= 500
+        expected_invaders = expected_rows * expected_cols
+
         assert gamestate == "PLAYING", f"Expected gameState = 'PLAYING', got {gamestate}"
-        assert invaders_count == 40, f"Expected 40 invaders (5 rows x 8 cols), got {invaders_count}"
+        assert invaders_count == expected_invaders, f"Expected {expected_invaders} invaders ({expected_rows} rows x {expected_cols} cols), got {invaders_count}"
         assert shields_count == 4, f"Expected 4 shields on desktop, got {shields_count}"
-        assert initial_invaders_count == 40, f"Expected initialInvadersCount = 40, got {initial_invaders_count}"
+        assert initial_invaders_count == expected_invaders, f"Expected initialInvadersCount = {expected_invaders}, got {initial_invaders_count}"
         is_mobile = driver.execute_script("return window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);")
         expected_lives = 4 if is_mobile else 3
         assert player_lives == expected_lives, f"Expected {expected_lives} lives, got {player_lives}"
