@@ -174,7 +174,7 @@ class Player {
         const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         this.y = canvas.height - this.h - (isMobile ? 80 : 20);
         this.targetX = this.x;
-        this.lives = 3;
+        this.lives = isMobile ? 4 : 3;
         this.invincible = 0;
         this.powerups = {
             triple: 0,
@@ -1118,6 +1118,17 @@ function loop(timestamp) {
     if (gameState === 'PLAYING' && !isPaused) {
         player.update(deltaTime);
         
+        // Auto-fire on mobile/touch screens when dragging
+        if (isDragging && (window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))) {
+            if (!player.autoFireTimer) player.autoFireTimer = 0;
+            player.autoFireTimer += deltaTime;
+            const fireInterval = player.powerups.rapid > 0 ? 6 : 15;
+            if (player.autoFireTimer >= fireInterval) {
+                firePlayer();
+                player.autoFireTimer = 0;
+            }
+        }
+        
         // Saucer Spawning & Movement
         if (!saucer) {
             saucerSpawnTimer += deltaTime * 16.67;
@@ -1179,6 +1190,15 @@ function loop(timestamp) {
             const p = powerups[i];
             p.update(deltaTime);
             if (p.y > canvas.height) { powerups.splice(i, 1); continue; }
+            
+            // Magnet attraction: powerups float towards player horizontally when close
+            const distY = player.y - p.y;
+            if (distY > 0 && distY < 250) {
+                const distX = (player.x + player.w/2) - p.x;
+                if (Math.abs(distX) < 180) {
+                    p.x += Math.sign(distX) * 2 * deltaTime;
+                }
+            }
             
             if (p.x > player.x && p.x < player.x + player.w && p.y > player.y && p.y < player.y + player.h) {
                 if (p.type === 'triple') player.powerups.triple = 600;
@@ -1260,7 +1280,7 @@ function loop(timestamp) {
                             for (let k = 0; k < 6; k++) particles.push(new Particle(inv.x + inv.w/2, inv.y + inv.h/2, inv.color, 'debris'));
                             
                             // Drop Powerup
-                            if (Math.random() < 0.12) {
+                            if (Math.random() < 0.20) {
                                 const types = ['triple', 'rapid', 'shield'];
                                 powerups.push(new PowerUp(inv.x + inv.w/2, inv.y + inv.h/2, types[Math.floor(Math.random()*types.length)]));
                             }
