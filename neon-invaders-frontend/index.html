@@ -341,7 +341,7 @@
     <script src="script.js"></script>
     
     <script>
-    var safeStorage = {
+    var storage = (typeof safeStorage !== 'undefined') ? safeStorage : {
         getItem: function(key) {
             try { return localStorage.getItem(key); } catch(e) { return this._fallback[key] || null; }
         },
@@ -352,13 +352,13 @@
     };
     (function() {
         var gameId = 'neon-invaders';
-        if (safeStorage.getItem('arcade_seen_' + gameId) === '1') {
+        if (storage.getItem('arcade_seen_' + gameId) === '1') {
             continueToGame(true);
         }
     })();
     function continueToGame(isReturning) {
         var gameId = 'neon-invaders';
-        safeStorage.setItem('arcade_seen_' + gameId, '1');
+        storage.setItem('arcade_seen_' + gameId, '1');
         document.body.classList.remove('show-info-overlay');
         // Trigger a window resize event to force canvas and layout recalculation now that display is visible
         window.dispatchEvent(new Event('resize'));
