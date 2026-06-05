@@ -40,6 +40,16 @@ class SoundManager {
     constructor() {
         this.ctx = null;
         this.muted = false;
+        
+        // Music sequencer properties
+        this.musicInterval = null;
+        this.musicStep = 0;
+        this.musicBpm = 110;
+        this.musicPlaying = false;
+        
+        // 8-step bass line in C-Minor
+        // C2 = 65.41 Hz, Eb2 = 77.78 Hz, G2 = 98.00 Hz, F2 = 87.31 Hz
+        this.bassSequence = [65.41, 65.41, 77.78, 77.78, 98.00, 98.00, 87.31, 87.31];
     }
 
     init() {
@@ -47,7 +57,78 @@ class SoundManager {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    setMuted(muted) { this.muted = muted; }
+    setMuted(muted) { 
+        this.muted = muted; 
+    }
+
+    startMusic() {
+        if (this.musicPlaying) return;
+        this.init();
+        this.musicPlaying = true;
+        this.musicStep = 0;
+        this.scheduleNextBeat();
+    }
+
+    stopMusic() {
+        this.musicPlaying = false;
+        if (this.musicInterval) {
+            clearTimeout(this.musicInterval);
+            this.musicInterval = null;
+        }
+    }
+
+    setBpm(bpm) {
+        this.musicBpm = Math.min(200, Math.max(90, bpm));
+    }
+
+    scheduleNextBeat() {
+        if (!this.musicPlaying) return;
+
+        const now = this.ctx.currentTime;
+        const noteFreq = this.bassSequence[this.musicStep];
+        this.playBassNote(noteFreq, now);
+
+        this.musicStep = (this.musicStep + 1) % this.bassSequence.length;
+        
+        const beatDuration = 60 / this.musicBpm / 2; // eighth notes
+        this.musicInterval = setTimeout(() => {
+            this.scheduleNextBeat();
+        }, beatDuration * 1000);
+    }
+
+    playBassNote(freq, time) {
+        if (this.muted || !this.ctx) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const osc = this.ctx.createOscillator();
+        const subOsc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, time);
+
+        subOsc.type = 'sine';
+        subOsc.frequency.setValueAtTime(freq / 2, time);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(150, time);
+        filter.frequency.exponentialRampToValueAtTime(800, time + 0.02);
+        filter.frequency.exponentialRampToValueAtTime(100, time + 0.15);
+
+        gain.gain.setValueAtTime(0.03, time); // slightly lower bass to not overpower SFX
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
+
+        osc.connect(filter);
+        subOsc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(time);
+        subOsc.start(time);
+        osc.stop(time + 0.25);
+        subOsc.stop(time + 0.25);
+    }
 
     play(type) {
         if (!this.ctx || this.muted) return;
@@ -162,6 +243,25 @@ class SoundManager {
                 osc.start(now);
                 osc.stop(now + 0.32);
                 break;
+            case 'victory':
+                // Triumphant ascending synth arpeggio chord for game completion
+                const chordNotes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
+                chordNotes.forEach((f, idx) => {
+                    const noteOsc = this.ctx.createOscillator();
+                    const noteGain = this.ctx.createGain();
+                    noteOsc.type = 'sawtooth';
+                    noteOsc.frequency.setValueAtTime(f, now + idx * 0.08);
+                    
+                    noteGain.gain.setValueAtTime(0.06, now + idx * 0.08);
+                    noteGain.gain.linearRampToValueAtTime(0.06, now + idx * 0.08 + 0.3);
+                    noteGain.gain.linearRampToValueAtTime(0, now + idx * 0.08 + 0.5);
+                    
+                    noteOsc.connect(noteGain);
+                    noteGain.connect(this.ctx.destination);
+                    noteOsc.start(now + idx * 0.08);
+                    noteOsc.stop(now + idx * 0.08 + 0.5);
+                });
+                break;
         }
     }
 }
@@ -205,10 +305,12 @@ class Player {
     }
 
     update(deltaTime) {
+        // Spaceship movement speed scales slightly on higher stages
+        const speedScale = 1.0 + (wave - 1) * 0.04;
         if (isDragging) {
-            this.x += (this.targetX - (this.x + this.w/2)) * 0.2 * deltaTime;
+            this.x += (this.targetX - (this.x + this.w/2)) * 0.2 * deltaTime * speedScale;
         } else {
-            const moveSpeed = 7 * deltaTime;
+            const moveSpeed = 7 * deltaTime * speedScale;
             if (keys.ArrowLeft || keys.a) this.x -= moveSpeed;
             if (keys.ArrowRight || keys.d) this.x += moveSpeed;
         }
@@ -441,7 +543,7 @@ class Bullet {
     constructor(x, y, dy, color, dx = 0) {
         this.x = x;
         this.y = y;
-        this.w = 3;
+        this.w = (dy < 0 && wave >= 7) ? 5 : 3;
         this.h = 10;
         this.dy = dy;
         this.dx = dx;
@@ -706,17 +808,18 @@ class ScorePopup {
 }
 
 class Boss {
-    constructor() {
-        this.w = 160;
-        this.h = 60;
+    constructor(isFinal = false) {
+        this.w = isFinal ? 180 : 160;
+        this.h = isFinal ? 70 : 60;
         this.x = canvas.width / 2 - this.w / 2;
         this.y = 80;
         this.targetX = this.x;
-        this.hp = 100;
-        this.maxHp = 100;
-        this.speed = 1.5;
+        this.isFinal = isFinal;
+        this.hp = isFinal ? 250 : 100;
+        this.maxHp = this.hp;
+        this.speed = isFinal ? 2.5 : 1.5;
         this.dir = 1;
-        this.color = COLORS.danger;
+        this.color = isFinal ? '#ff00ea' : COLORS.danger;
         this.shootCooldown = 60;
         this.attackPattern = 0; // 0: spread, 1: homing, 2: sweep
         this.attackTimer = 0;
@@ -740,39 +843,71 @@ class Boss {
 
     firePattern() {
         // Switch patterns occasionally
-        if (Math.random() < 0.2) {
+        if (Math.random() < 0.25) {
             this.attackPattern = (this.attackPattern + 1) % 3;
         }
 
-        if (this.attackPattern === 0) {
-            // Spread pattern: 5 bullets fired in an arc
-            for (let angle = -0.4; angle <= 0.4; angle += 0.2) {
+        if (this.isFinal) {
+            // Neon Overlord attacks (Stage 10 final boss)
+            if (this.attackPattern === 0) {
+                // Heavy spread: 7 bullets in an arc
+                for (let angle = -0.6; angle <= 0.6; angle += 0.2) {
+                    const bx = this.x + this.w / 2;
+                    const by = this.y + this.h;
+                    const dx = Math.sin(angle) * BULLET_SPEED * 0.6;
+                    const dy = Math.cos(angle) * BULLET_SPEED * 0.6;
+                    bullets.push(new Bullet(bx, by, dy, this.color, dx));
+                }
+                this.shootCooldown = 70;
+            } else if (this.attackPattern === 1) {
+                // Triple homing laser burst
                 const bx = this.x + this.w / 2;
                 const by = this.y + this.h;
-                const dx = Math.sin(angle) * BULLET_SPEED * 0.5;
-                const dy = Math.cos(angle) * BULLET_SPEED * 0.5;
-                bullets.push(new Bullet(bx, by, dy, COLORS.danger, dx));
+                const px = player.x + player.w / 2;
+                const py = player.y;
+                
+                const angle = Math.atan2(py - by, px - bx);
+                
+                bullets.push(new Bullet(bx, by, Math.sin(angle) * BULLET_SPEED * 0.7, this.color, Math.cos(angle) * BULLET_SPEED * 0.7));
+                bullets.push(new Bullet(bx, by, Math.sin(angle - 0.15) * BULLET_SPEED * 0.7, this.color, Math.cos(angle - 0.15) * BULLET_SPEED * 0.7));
+                bullets.push(new Bullet(bx, by, Math.sin(angle + 0.15) * BULLET_SPEED * 0.7, this.color, Math.cos(angle + 0.15) * BULLET_SPEED * 0.7));
+                this.shootCooldown = 50;
+            } else {
+                // High-speed sweep spray
+                const bx = this.x + (Math.sin(Date.now() / 150) * 0.45 + 0.5) * this.w;
+                const by = this.y + this.h;
+                bullets.push(new Bullet(bx, by, BULLET_SPEED * 0.7, this.color, 0));
+                this.shootCooldown = 8;
             }
-            this.shootCooldown = 90; // delay between attacks
-        } else if (this.attackPattern === 1) {
-            // Homing burst: shoot a targeted bullet towards the player
-            const bx = this.x + this.w / 2;
-            const by = this.y + this.h;
-            const px = player.x + player.w / 2;
-            const py = player.y;
-            
-            const angle = Math.atan2(py - by, px - bx);
-            const dx = Math.cos(angle) * BULLET_SPEED * 0.6;
-            const dy = Math.sin(angle) * BULLET_SPEED * 0.6;
-            
-            bullets.push(new Bullet(bx, by, dy, COLORS.danger, dx));
-            this.shootCooldown = 40;
         } else {
-            // Sweep fire: spray bullets left and right
-            const bx = this.x + (Math.sin(Date.now() / 200) * 0.4 + 0.5) * this.w;
-            const by = this.y + this.h;
-            bullets.push(new Bullet(bx, by, BULLET_SPEED * 0.5, COLORS.danger, 0));
-            this.shootCooldown = 15;
+            // Commander Mothership attacks (Stage 5 boss)
+            if (this.attackPattern === 0) {
+                for (let angle = -0.4; angle <= 0.4; angle += 0.2) {
+                    const bx = this.x + this.w / 2;
+                    const by = this.y + this.h;
+                    const dx = Math.sin(angle) * BULLET_SPEED * 0.5;
+                    const dy = Math.cos(angle) * BULLET_SPEED * 0.5;
+                    bullets.push(new Bullet(bx, by, dy, COLORS.danger, dx));
+                }
+                this.shootCooldown = 90;
+            } else if (this.attackPattern === 1) {
+                const bx = this.x + this.w / 2;
+                const by = this.y + this.h;
+                const px = player.x + player.w / 2;
+                const py = player.y;
+                
+                const angle = Math.atan2(py - by, px - bx);
+                const dx = Math.cos(angle) * BULLET_SPEED * 0.6;
+                const dy = Math.sin(angle) * BULLET_SPEED * 0.6;
+                
+                bullets.push(new Bullet(bx, by, dy, COLORS.danger, dx));
+                this.shootCooldown = 40;
+            } else {
+                const bx = this.x + (Math.sin(Date.now() / 200) * 0.4 + 0.5) * this.w;
+                const by = this.y + this.h;
+                bullets.push(new Bullet(bx, by, BULLET_SPEED * 0.5, COLORS.danger, 0));
+                this.shootCooldown = 15;
+            }
         }
     }
 
@@ -780,10 +915,8 @@ class Boss {
         this.hp -= damage;
         triggerScreenshake(4, 6);
         if (this.hp <= 0) {
-            // Trigger boss defeat
             triggerScreenshake(25, 60);
             soundManager.play('explode');
-            // Spawn tons of particles
             for (let k = 0; k < 30; k++) {
                 particles.push(new Particle(this.x + Math.random() * this.w, this.y + Math.random() * this.h, this.color, 'spark'));
                 particles.push(new Particle(this.x + Math.random() * this.w, this.y + Math.random() * this.h, this.color, 'debris'));
@@ -791,19 +924,21 @@ class Boss {
             for (let k = 0; k < 5; k++) {
                 particles.push(new Particle(this.x + this.w/2, this.y + this.h/2, this.color, 'ring'));
             }
-            // Add boss points
             updateScore(1000 * wave);
             scorePopups.push(new ScorePopup(this.x + this.w/2, this.y + this.h/2, `BOSS DEFEATED +${1000 * wave}`, COLORS.secondary));
             
-            // Drop multiple powerups!
             const types = ['triple', 'rapid', 'shield'];
             types.forEach((type, idx) => {
                 powerups.push(new PowerUp(this.x + this.w * (0.25 + idx * 0.25), this.y + this.h, type));
             });
             
             boss = null;
-            wave++;
-            spawnWave();
+            if (wave === 10) {
+                victory();
+            } else {
+                wave++;
+                spawnWave();
+            }
         } else {
             soundManager.play('hit');
         }
@@ -815,36 +950,91 @@ class Boss {
         ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
         ctx.strokeStyle = this.color;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = this.isFinal ? 4 : 3;
 
-        // Draw Mothership frame
-        ctx.beginPath();
-        // Outer spikes
-        ctx.moveTo(0, this.h * 0.3);
-        ctx.lineTo(this.w * 0.25, 0);
-        // Core
-        ctx.lineTo(this.w * 0.75, 0);
-        ctx.lineTo(this.w, this.h * 0.3);
-        // Back wings
-        ctx.lineTo(this.w * 0.9, this.h * 0.6);
-        ctx.lineTo(this.w * 0.7, this.h * 0.5);
-        ctx.lineTo(this.w * 0.5, this.h * 0.95);
-        ctx.lineTo(this.w * 0.3, this.h * 0.5);
-        ctx.lineTo(this.w * 0.1, this.h * 0.6);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(10, 5, 5, 0.8)';
-        ctx.fill();
-        ctx.stroke();
+        if (this.isFinal) {
+            // Draw Neon Overlord (Final Boss) Spiked Crown Citadel shape
+            ctx.beginPath();
+            ctx.moveTo(this.w * 0.5, 0); // Top spike
+            ctx.lineTo(this.w * 0.58, this.h * 0.2);
+            ctx.lineTo(this.w * 0.8, this.h * 0.1); // Inner spike
+            ctx.lineTo(this.w * 0.72, this.h * 0.4);
+            ctx.lineTo(this.w, this.h * 0.3); // Outer spike
+            ctx.lineTo(this.w * 0.85, this.h * 0.75);
+            ctx.lineTo(this.w * 0.62, this.h * 0.6); // Wing notch
+            ctx.lineTo(this.w * 0.5, this.h); // Bottom central cannon
+            ctx.lineTo(this.w * 0.38, this.h * 0.6); // Wing notch left
+            ctx.lineTo(this.w * 0.15, this.h * 0.75);
+            ctx.lineTo(0, this.h * 0.3); // Outer left spike
+            ctx.lineTo(this.w * 0.28, this.h * 0.4);
+            ctx.lineTo(this.w * 0.2, this.h * 0.1); // Inner left spike
+            ctx.lineTo(this.w * 0.42, this.h * 0.2);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(5, 5, 15, 0.95)';
+            ctx.fill();
+            ctx.stroke();
 
-        // Core shield orb (glowing center circle)
-        ctx.beginPath();
-        ctx.arc(this.w / 2, this.h * 0.35, 15, 0, Math.PI * 2);
-        ctx.strokeStyle = '#fff';
-        ctx.shadowColor = '#fff';
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-        ctx.fill();
-        ctx.stroke();
+            // Draw glowing matrix lines inside Overlord
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(this.w * 0.3, this.h * 0.3);
+            ctx.lineTo(this.w * 0.45, this.h * 0.5);
+            ctx.moveTo(this.w * 0.7, this.h * 0.3);
+            ctx.lineTo(this.w * 0.55, this.h * 0.5);
+            ctx.stroke();
+
+            // Core shield orb
+            ctx.beginPath();
+            ctx.arc(this.w / 2, this.h * 0.35, 22, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ff00ea';
+            ctx.shadowColor = '#ff00ea';
+            ctx.shadowBlur = 25;
+            ctx.fillStyle = 'rgba(255, 0, 234, 0.35)';
+            ctx.fill();
+            ctx.stroke();
+
+            // Rotating cyan orbital ring
+            const angle = Date.now() / 200;
+            ctx.save();
+            ctx.translate(this.w / 2, this.h * 0.35);
+            ctx.rotate(angle);
+            ctx.strokeStyle = '#00f3ff';
+            ctx.shadowColor = '#00f3ff';
+            ctx.shadowBlur = 12;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(0, 0, 32, 0, Math.PI * 2);
+            ctx.setLineDash([8, 12]);
+            ctx.stroke();
+            ctx.restore();
+        } else {
+            // Draw Commander Mothership frame
+            ctx.beginPath();
+            ctx.moveTo(0, this.h * 0.3);
+            ctx.lineTo(this.w * 0.25, 0);
+            ctx.lineTo(this.w * 0.75, 0);
+            ctx.lineTo(this.w, this.h * 0.3);
+            ctx.lineTo(this.w * 0.9, this.h * 0.6);
+            ctx.lineTo(this.w * 0.7, this.h * 0.5);
+            ctx.lineTo(this.w * 0.5, this.h * 0.95);
+            ctx.lineTo(this.w * 0.3, this.h * 0.5);
+            ctx.lineTo(this.w * 0.1, this.h * 0.6);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(10, 5, 5, 0.8)';
+            ctx.fill();
+            ctx.stroke();
+
+            // Core shield orb
+            ctx.beginPath();
+            ctx.arc(this.w / 2, this.h * 0.35, 15, 0, Math.PI * 2);
+            ctx.strokeStyle = '#fff';
+            ctx.shadowColor = '#fff';
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fill();
+            ctx.stroke();
+        }
 
         // Animated engines
         const pulse = Math.sin(Date.now() / 40) * 10;
@@ -861,28 +1051,24 @@ class Boss {
         const barY = 20;
 
         ctx.save();
-        // Background
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
         ctx.fillRect(barX, barY, barW, barH);
         
-        // Glow Border
         ctx.strokeStyle = this.color;
         ctx.lineWidth = 1;
         ctx.strokeRect(barX, barY, barW, barH);
 
-        // Health Fill
         const fillRatio = this.hp / this.maxHp;
         ctx.fillStyle = this.color;
         ctx.shadowBlur = 12;
         ctx.shadowColor = this.color;
         ctx.fillRect(barX, barY, barW * fillRatio, barH);
         
-        // Label
         ctx.fillStyle = '#fff';
         ctx.shadowBlur = 0;
         ctx.font = '900 12px Outfit, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('COMMANDER MOTHERSHIP', canvas.width / 2, barY - 6);
+        ctx.fillText(this.isFinal ? 'NEON OVERLORD - FINAL BOSS' : 'COMMANDER MOTHERSHIP', canvas.width / 2, barY - 6);
         ctx.restore();
     }
 }
@@ -928,10 +1114,11 @@ function spawnWave() {
     boss = null;
     bullets = [];
     
-    if (wave > 0 && wave % 5 === 0) {
-        boss = new Boss();
+    // Wave 5 is standard boss, Wave 10 is the Final Overlord boss
+    if (wave === 5 || wave === 10) {
+        boss = new Boss(wave === 10);
         initShields();
-        levelTag.textContent = `WAVE ${wave} - BOSS`;
+        levelTag.textContent = `WAVE ${wave} - ${wave === 10 ? 'FINAL BOSS' : 'BOSS'}`;
         return;
     }
     
@@ -939,22 +1126,99 @@ function spawnWave() {
     const isMobile = canvas.width < 500;
     const cols = isMobile ? 6 : 8;
     
-    // Scale spacing based on screen width to guarantee the grid starts fully in-bounds
+    // Scale spacing based on screen width
     const maxGridWidth = Math.min(isMobile ? 280 : 420, canvas.width - 80);
     const spacingX = maxGridWidth / (cols - 1);
     const spacingY = Math.min(40, spacingX * 0.8);
     const startX = (canvas.width - ((cols - 1) * spacingX + INVADER_SIZE)) / 2;
-    
-    // Wave Progression starting row offset (invaders start higher up on mobile/higher waves)
     const waveDropOffset = Math.min(isMobile ? 60 : 120, (wave - 1) * (isMobile ? 8 : 15));
+    
+    const centerCol = (cols - 1) / 2;
+    const centerRow = 2;
     
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-            const type = (r === 0) ? 3 : (r < 3) ? 2 : 1;
-            // Shielded invaders start appearing at wave 2
+            let shouldSpawn = false;
+            let type = 1;
             let hp = 1;
-            if (wave >= 2 && Math.random() < 0.2) hp = 2;
-            invaders.push(new Invader(startX + c * spacingX, 50 + waveDropOffset + r * spacingY, type, hp));
+            
+            // Layout formations by Wave
+            switch (wave) {
+                case 1:
+                    // Stage 1: Classic Swarm
+                    shouldSpawn = true;
+                    type = (r === 0) ? 3 : (r < 3) ? 2 : 1;
+                    break;
+                case 2:
+                    // Stage 2: Chevron / V-Formation
+                    const vDist = Math.abs(c - centerCol);
+                    if (r === vDist || r === vDist + 1) {
+                        shouldSpawn = true;
+                        type = (vDist === 0) ? 3 : (vDist < 2) ? 2 : 1;
+                    }
+                    break;
+                case 3:
+                    // Stage 3: Alternating Checkerboard
+                    if ((r + c) % 2 === 0) {
+                        shouldSpawn = true;
+                        type = (r === 0) ? 3 : (r === 2) ? 2 : 1;
+                        if (Math.random() < 0.25) hp = 2; // Armored
+                    }
+                    break;
+                case 4:
+                    // Stage 4: Diamond Shield
+                    const dDist = Math.abs(c - centerCol) + Math.abs(r - centerRow);
+                    if (dDist <= 3) {
+                        shouldSpawn = true;
+                        type = (dDist === 0) ? 3 : (dDist === 1) ? 2 : 1;
+                        if (dDist === 0) hp = 2;
+                    }
+                    break;
+                case 6:
+                    // Stage 6: X-Cross Corridor
+                    const xDist = Math.abs(c - Math.floor(cols/2));
+                    if (xDist === r || xDist === 4 - r) {
+                        shouldSpawn = true;
+                        type = (r === 2) ? 3 : (r === 1 || r === 3) ? 2 : 1;
+                    }
+                    break;
+                case 7:
+                    // Stage 7: Defensive Columns / Wall
+                    if (c % 2 === 0) {
+                        shouldSpawn = true;
+                        type = (r === 0) ? 3 : (r === 1 || r === 2) ? 2 : 1;
+                        if (r === 4) hp = 2; // Armored front line
+                    }
+                    break;
+                case 8:
+                    // Stage 8: Double Wedge
+                    if ((c < cols/2 && r >= c) || (c >= cols/2 && r >= (cols - 1 - c))) {
+                        shouldSpawn = true;
+                        type = (r === 4) ? 3 : (r === 2 || r === 3) ? 2 : 1;
+                        if (Math.random() < 0.3) hp = 2;
+                    }
+                    break;
+                case 9:
+                    // Stage 9: Concentric Fortress Ring
+                    const outerRing = (r === 0 || r === 4 || c === 0 || c === cols - 1);
+                    const innerCore = (r === centerRow && Math.abs(c - centerCol) <= 1);
+                    if (outerRing || innerCore) {
+                        shouldSpawn = true;
+                        type = innerCore ? 3 : (r === 0 || r === 4) ? 2 : 1;
+                        if (innerCore) hp = 2;
+                    }
+                    break;
+                default:
+                    // Fallback for any other stages
+                    shouldSpawn = true;
+                    type = (r === 0) ? 3 : (r < 3) ? 2 : 1;
+            }
+            
+            if (shouldSpawn) {
+                // armored scaling on higher levels
+                if (wave >= 6 && Math.random() < 0.3) hp = 2;
+                invaders.push(new Invader(startX + c * spacingX, 50 + waveDropOffset + r * spacingY, type, hp));
+            }
         }
     }
     
@@ -982,10 +1246,24 @@ function updateScore(val) {
 
 function gameOver() {
     gameState = 'GAMEOVER';
+    soundManager.stopMusic();
     soundManager.play('explode');
     document.getElementById('game-over').classList.remove('hidden');
     document.getElementById('final-level').textContent = wave;
     document.getElementById('final-score').textContent = score;
+}
+
+function victory() {
+    gameState = 'VICTORY';
+    soundManager.stopMusic();
+    soundManager.play('victory'); // Play epic levelup/victory chime
+    document.getElementById('game-victory').classList.remove('hidden');
+    document.getElementById('vic-score').textContent = score;
+    // Save best score
+    if (score > bestScore) {
+        bestScore = score;
+        safeStorage.setItem('neonInvadersBest', bestScore);
+    }
 }
 
 function restartGame() {
@@ -1002,8 +1280,11 @@ function restartGame() {
     spawnWave();
     updateHUD();
     gameState = 'PLAYING';
+    soundManager.setBpm(110);
+    soundManager.startMusic();
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over').classList.add('hidden');
+    document.getElementById('game-victory').classList.add('hidden');
 }
 
 function togglePause() {
@@ -1032,15 +1313,50 @@ function toggleHelp(show) {
 function firePlayer() {
     if (gameState !== 'PLAYING' || isPaused) return;
     
-    const limit = player.powerups.rapid > 0 ? 8 : 3;
+    // Firing limits scale up as stage level increases to match target difficulty and multi-bullet count
+    const baseLimit = player.powerups.rapid > 0 ? 15 : 6;
+    const waveBonus = wave * 2;
+    const limit = baseLimit + waveBonus;
+    
     if (bullets.filter(b => b.dy < 0).length < limit) {
-        if (player.powerups.triple > 0) {
-            bullets.push(new Bullet(player.x + player.w/2, player.y, -BULLET_SPEED, COLORS.primary));
-            bullets.push(new Bullet(player.x, player.y + 10, -BULLET_SPEED, COLORS.primary));
-            bullets.push(new Bullet(player.x + player.w, player.y + 10, -BULLET_SPEED, COLORS.primary));
+        const firedBullets = [];
+        const bulletColor = (wave >= 9) ? '#ffffff' : (wave >= 7) ? '#ff00ea' : (wave >= 5) ? '#ffff00' : (wave >= 3) ? '#39ff14' : COLORS.primary;
+        
+        if (wave <= 2) {
+            // Wave 1-2: 1 central bullet
+            firedBullets.push(new Bullet(player.x + player.w / 2, player.y, -BULLET_SPEED, bulletColor));
+        } else if (wave <= 4) {
+            // Wave 3-4: 2 parallel bullets
+            firedBullets.push(new Bullet(player.x + player.w * 0.25, player.y, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.75, player.y, -BULLET_SPEED, bulletColor));
+        } else if (wave <= 6) {
+            // Wave 5-6: 3 parallel bullets
+            firedBullets.push(new Bullet(player.x + player.w / 2, player.y, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.15, player.y + 5, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.85, player.y + 5, -BULLET_SPEED, bulletColor));
+        } else if (wave <= 8) {
+            // Wave 7-8: 4 parallel bullets
+            firedBullets.push(new Bullet(player.x + player.w * 0.1, player.y + 5, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.35, player.y, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.65, player.y, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.9, player.y + 5, -BULLET_SPEED, bulletColor));
         } else {
-            bullets.push(new Bullet(player.x + player.w/2, player.y, -BULLET_SPEED, COLORS.primary));
+            // Wave 9-10: 5 parallel heavy bullets
+            firedBullets.push(new Bullet(player.x + player.w / 2, player.y, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.1, player.y + 5, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.3, player.y + 2, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.7, player.y + 2, -BULLET_SPEED, bulletColor));
+            firedBullets.push(new Bullet(player.x + player.w * 0.9, player.y + 5, -BULLET_SPEED, bulletColor));
         }
+        
+        // Triple shot powerup adds two diagonal side wing bullets
+        if (player.powerups.triple > 0) {
+            firedBullets.push(new Bullet(player.x, player.y + 10, -BULLET_SPEED, bulletColor, -2.5));
+            firedBullets.push(new Bullet(player.x + player.w, player.y + 10, -BULLET_SPEED, bulletColor, 2.5));
+        }
+        
+        // Push all fired bullets to active list
+        bullets.push(...firedBullets);
         soundManager.play('shoot');
     }
 }
@@ -1080,6 +1396,7 @@ window.addEventListener('touchend', () => isDragging = false);
 
 document.getElementById('btn-start').addEventListener('click', () => { soundManager.init(); restartGame(); });
 document.getElementById('btn-restart').addEventListener('click', restartGame);
+document.getElementById('btn-restart-vic').addEventListener('click', restartGame);
 document.getElementById('btn-pause').addEventListener('click', togglePause);
 document.getElementById('btn-sound').addEventListener('click', toggleSound);
 document.getElementById('btn-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(true); });
@@ -1094,6 +1411,14 @@ document.getElementById('share-wa').addEventListener('click', () => {
 });
 document.getElementById('share-x').addEventListener('click', () => {
     const text = `I cleared ${wave} waves and scored ${score} in Neon Invaders! 👾 #NeonInvaders #ArcadeHub`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+});
+document.getElementById('share-wa-vic').addEventListener('click', () => {
+    const text = `I completed Neon Invaders and scored ${score}! 🏆 Defend the grid: ${window.location.href}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+});
+document.getElementById('share-x-vic').addEventListener('click', () => {
+    const text = `I completed Neon Invaders and scored ${score}! 🏆 #NeonInvaders #ArcadeHub`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
 });
 
@@ -1172,6 +1497,7 @@ function loop(timestamp) {
 
         if (boss) {
             boss.update(deltaTime);
+            soundManager.setBpm(boss.isFinal ? 160 : 140);
         } else {
             // Move Invaders (Speed up as their numbers decrease)
             invaderMoveTimer += deltaTime * 16.67;
@@ -1181,6 +1507,9 @@ function loop(timestamp) {
             // Scale interval based on screen width to keep visual travel speed consistent
             const screenScale = Math.max(1.0, Math.min(2.5, 900 / canvas.width));
             const currentInterval = Math.max(80, invaderMoveInterval * speedFactor * screenScale);
+            
+            // Adjust music BPM based on remaining invaders (110 BPM to 160 BPM)
+            soundManager.setBpm(110 + (1 - fractionLeft) * 50);
             
             if (invaderMoveTimer >= currentInterval) {
                 invaderMoveTimer = 0;
@@ -1223,8 +1552,9 @@ function loop(timestamp) {
             }
             
             if (p.x > player.x && p.x < player.x + player.w && p.y > player.y && p.y < player.y + player.h) {
-                if (p.type === 'triple') player.powerups.triple = 600;
-                else if (p.type === 'rapid') player.powerups.rapid = 600;
+                const durationScale = 1.0 + (wave - 1) * 0.10;
+                if (p.type === 'triple') player.powerups.triple = 600 * durationScale;
+                else if (p.type === 'rapid') player.powerups.rapid = 600 * durationScale;
                 else if (p.type === 'shield') player.powerups.shield = true;
                 
                 soundManager.play('powerup');
@@ -1301,8 +1631,9 @@ function loop(timestamp) {
                             for (let k = 0; k < 10; k++) particles.push(new Particle(inv.x + inv.w/2, inv.y + inv.h/2, inv.color, 'spark'));
                             for (let k = 0; k < 6; k++) particles.push(new Particle(inv.x + inv.w/2, inv.y + inv.h/2, inv.color, 'debris'));
                             
-                            // Drop Powerup
-                            if (Math.random() < 0.20) {
+                            // Drop Powerup (Drop rate increases on higher stages to power up the spaceship)
+                            const dropChance = 0.20 + (wave - 1) * 0.02;
+                            if (Math.random() < dropChance) {
                                 const types = ['triple', 'rapid', 'shield'];
                                 powerups.push(new PowerUp(inv.x + inv.w/2, inv.y + inv.h/2, types[Math.floor(Math.random()*types.length)]));
                             }
@@ -1338,9 +1669,13 @@ function loop(timestamp) {
         }
 
         if (invaders.length === 0 && !boss) {
-            wave++;
-            spawnWave();
-            soundManager.play('levelup');
+            if (wave === 10) {
+                victory();
+            } else {
+                wave++;
+                spawnWave();
+                soundManager.play('levelup');
+            }
         }
     }
 
