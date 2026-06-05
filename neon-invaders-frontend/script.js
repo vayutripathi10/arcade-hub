@@ -1078,7 +1078,7 @@ function initShields() {
     const numShields = canvas.width < 500 ? 3 : 4;
     const shieldWidth = 64;
     const spacing = canvas.width / (numShields + 1);
-    const shieldY = player.y - 70;
+    const shieldY = player.y - Math.min(70, canvas.height * 0.18);
     
     for (let i = 0; i < numShields; i++) {
         const shieldX = spacing * (i + 1) - shieldWidth / 2;
@@ -1129,9 +1129,10 @@ function spawnWave() {
     // Scale spacing based on screen width
     const maxGridWidth = Math.min(isMobile ? 280 : 420, canvas.width - 80);
     const spacingX = maxGridWidth / (cols - 1);
-    const spacingY = Math.min(40, spacingX * 0.8);
+    const spacingY = Math.min(40, Math.min(spacingX * 0.8, canvas.height * 0.09));
     const startX = (canvas.width - ((cols - 1) * spacingX + INVADER_SIZE)) / 2;
-    const waveDropOffset = Math.min(isMobile ? 60 : 120, (wave - 1) * (isMobile ? 8 : 15));
+    const maxDrop = Math.min(isMobile ? 60 : 120, canvas.height * 0.15);
+    const waveDropOffset = Math.min(maxDrop, (wave - 1) * (isMobile ? 8 : 15));
     
     const centerCol = Math.floor((cols - 1) / 2);
     const centerRow = 2;
