@@ -1,3 +1,24 @@
+// Safe localStorage Wrapper to prevent SecurityErrors in sandboxed/third-party iframe environments
+const safeStorage = {
+    getItem(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            console.warn("localStorage.getItem access denied:", e);
+            return this._fallback[key] || null;
+        }
+    },
+    setItem(key, val) {
+        try {
+            localStorage.setItem(key, val);
+        } catch (e) {
+            console.warn("localStorage.setItem access denied:", e);
+            this._fallback[key] = String(val);
+        }
+    },
+    _fallback: {}
+};
+
 // Game Constants
 const PLAYER_SIZE = 40;
 const INVADER_SIZE = 30;
@@ -159,7 +180,7 @@ let gameState = 'START';
 let isPaused = false;
 let isMuted = false;
 let score = 0;
-let bestScore = localStorage.getItem('neonInvadersBest') || 0;
+let bestScore = safeStorage.getItem('neonInvadersBest') || 0;
 let wave = 1;
 let invaderDirection = 1;
 let invaderMoveInterval = 1000; // ms
@@ -954,7 +975,7 @@ function updateScore(val) {
     score += val;
     if (score > bestScore) {
         bestScore = score;
-        localStorage.setItem('neonInvadersBest', bestScore);
+        safeStorage.setItem('neonInvadersBest', bestScore);
     }
     updateHUD();
 }
