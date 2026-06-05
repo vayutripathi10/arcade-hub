@@ -1064,13 +1064,7 @@ document.getElementById('btn-sound').addEventListener('click', toggleSound);
 document.getElementById('btn-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(true); });
 document.getElementById('btn-close-help').addEventListener('click', () => { soundManager.play('click'); toggleHelp(false); });
 
-const btnFire = document.getElementById('btn-fire');
-const handleFire = (e) => {
-    e.preventDefault();
-    firePlayer();
-};
-btnFire.addEventListener('touchstart', handleFire, { passive: false });
-btnFire.addEventListener('mousedown', handleFire);
+
 
 // Social
 document.getElementById('share-wa').addEventListener('click', () => {
