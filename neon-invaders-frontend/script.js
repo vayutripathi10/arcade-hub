@@ -1422,13 +1422,127 @@ document.getElementById('share-x-vic').addEventListener('click', () => {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
 });
 
+let stars = [];
+function initStars() {
+    stars = [];
+    const numStars = Math.floor((canvas.width * canvas.height) / 8000);
+    for (let i = 0; i < numStars; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.8 + 0.5,
+            alpha: Math.random() * 0.7 + 0.3,
+            twinkleSpeed: 0.01 + Math.random() * 0.03
+        });
+    }
+}
+
 function resize() {
     const hud = document.getElementById('hud');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - hud.clientHeight;
+    initStars();
 }
 window.addEventListener('resize', resize);
 resize();
+
+function drawBackground() {
+    // 1. Draw Starfield
+    ctx.save();
+    stars.forEach(star => {
+        star.alpha += star.twinkleSpeed;
+        const alpha = 0.3 + 0.7 * Math.abs(Math.sin(star.alpha));
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.restore();
+
+    // 2. Draw Half Earth in the bottom-right corner
+    const earthRadius = Math.min(220, canvas.width * 0.3);
+    const cx = canvas.width - earthRadius * 0.2;
+    const cy = canvas.height - earthRadius * 0.2;
+    
+    ctx.save();
+    
+    // Glowing Atmosphere Layer (Cyan outer glow)
+    const atmosphereGlow = ctx.createRadialGradient(cx, cy, earthRadius * 0.8, cx, cy, earthRadius * 1.1);
+    atmosphereGlow.addColorStop(0, 'rgba(0, 243, 255, 0.4)');
+    atmosphereGlow.addColorStop(0.2, 'rgba(0, 150, 255, 0.2)');
+    atmosphereGlow.addColorStop(0.6, 'rgba(0, 50, 150, 0.05)');
+    atmosphereGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = atmosphereGlow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, earthRadius * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Earth Base Sphere (Shadow/Dark side)
+    ctx.beginPath();
+    ctx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
+    ctx.fillStyle = '#02040c';
+    ctx.fill();
+    
+    // Landmasses Masked to Earth Sphere
+    ctx.beginPath();
+    ctx.arc(cx, cy, earthRadius, 0, Math.PI * 2);
+    ctx.clip();
+    
+    ctx.fillStyle = '#0a3a40'; // Ocean teal-blue base
+    
+    // Continent 1 (Top-Left)
+    ctx.beginPath();
+    ctx.moveTo(cx - earthRadius * 0.8, cy - earthRadius * 0.4);
+    ctx.bezierCurveTo(cx - earthRadius * 0.6, cy - earthRadius * 0.8, cx - earthRadius * 0.2, cy - earthRadius * 0.7, cx - earthRadius * 0.1, cy - earthRadius * 0.4);
+    ctx.bezierCurveTo(cx - earthRadius * 0.2, cy - earthRadius * 0.2, cx - earthRadius * 0.5, cy - earthRadius * 0.1, cx - earthRadius * 0.8, cy - earthRadius * 0.4);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Continent 2 (Mid-Left)
+    ctx.beginPath();
+    ctx.moveTo(cx - earthRadius * 0.5, cy + earthRadius * 0.1);
+    ctx.bezierCurveTo(cx - earthRadius * 0.2, cy + earthRadius * 0.2, cx - earthRadius * 0.1, cy + earthRadius * 0.6, cx - earthRadius * 0.4, cy + earthRadius * 0.7);
+    ctx.bezierCurveTo(cx - earthRadius * 0.6, cy + earthRadius * 0.8, cx - earthRadius * 0.7, cy + earthRadius * 0.4, cx - earthRadius * 0.5, cy + earthRadius * 0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Continent 3 (Right)
+    ctx.beginPath();
+    ctx.moveTo(cx + earthRadius * 0.1, cy - earthRadius * 0.2);
+    ctx.bezierCurveTo(cx + earthRadius * 0.3, cy - earthRadius * 0.4, cx + earthRadius * 0.5, cy - earthRadius * 0.1, cx + earthRadius * 0.4, cy + earthRadius * 0.2);
+    ctx.bezierCurveTo(cx + earthRadius * 0.2, cy + earthRadius * 0.3, cx + earthRadius * 0.1, cy + earthRadius * 0.0, cx + earthRadius * 0.1, cy - earthRadius * 0.2);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3D Spherical Light Terminator Shading (linear gradient)
+    const earthShading = ctx.createLinearGradient(cx - earthRadius, cy - earthRadius, cx + earthRadius * 0.2, cy + earthRadius * 0.2);
+    earthShading.addColorStop(0, 'rgba(0, 170, 255, 0.4)');
+    earthShading.addColorStop(0.35, 'rgba(0, 100, 200, 0.1)');
+    earthShading.addColorStop(0.65, 'rgba(0, 0, 0, 0.8)');
+    earthShading.addColorStop(1, 'rgba(0, 0, 0, 0.98)');
+    ctx.fillStyle = earthShading;
+    ctx.beginPath();
+    ctx.arc(cx, cy, earthRadius + 1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // City lights on the dark shadow side (Tiny glowing yellow dots)
+    ctx.fillStyle = 'rgba(255, 230, 100, 0.85)';
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = '#ffe664';
+    const cityLightOffsets = [
+        {dx: 0.1, dy: 0.2}, {dx: 0.15, dy: 0.25}, {dx: 0.2, dy: 0.18}, {dx: 0.22, dy: 0.3},
+        {dx: 0.35, dy: 0.4}, {dx: 0.4, dy: 0.38}, {dx: 0.42, dy: 0.45},
+        {dx: 0.5, dy: 0.55}, {dx: 0.55, dy: 0.5}, {dx: 0.58, dy: 0.62},
+        {dx: 0.7, dy: 0.72}, {dx: 0.75, dy: 0.68}, {dx: 0.8, dy: 0.75}
+    ];
+    cityLightOffsets.forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(cx + earthRadius * pt.dx, cy + earthRadius * pt.dy, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.restore();
+}
 
 function drawGrid() {
     ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
@@ -1457,6 +1571,7 @@ function loop(timestamp) {
             shakeIntensity = 0;
         }
     }
+    drawBackground();
     drawGrid();
 
     if (gameState === 'PLAYING' && !isPaused) {
