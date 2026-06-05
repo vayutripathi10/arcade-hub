@@ -62,7 +62,9 @@ def test_neon_invaders():
         assert invaders_count == 40, f"Expected 40 invaders (5 rows x 8 cols), got {invaders_count}"
         assert shields_count == 4, f"Expected 4 shields on desktop, got {shields_count}"
         assert initial_invaders_count == 40, f"Expected initialInvadersCount = 40, got {initial_invaders_count}"
-        assert player_lives == 3, f"Expected 3 lives, got {player_lives}"
+        is_mobile = driver.execute_script("return window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);")
+        expected_lives = 4 if is_mobile else 3
+        assert player_lives == expected_lives, f"Expected {expected_lives} lives, got {player_lives}"
         
         print(f" -> Game engine status: gameState={gamestate}, Invaders={invaders_count}, Shields={shields_count}, InitialCount={initial_invaders_count}, Lives={player_lives}")
 
