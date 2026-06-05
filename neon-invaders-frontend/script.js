@@ -1133,7 +1133,7 @@ function spawnWave() {
     const startX = (canvas.width - ((cols - 1) * spacingX + INVADER_SIZE)) / 2;
     const waveDropOffset = Math.min(isMobile ? 60 : 120, (wave - 1) * (isMobile ? 8 : 15));
     
-    const centerCol = (cols - 1) / 2;
+    const centerCol = Math.floor((cols - 1) / 2);
     const centerRow = 2;
     
     for (let r = 0; r < rows; r++) {
@@ -1680,6 +1680,7 @@ function loop(timestamp) {
         // Bullets
         for (let i = bullets.length - 1; i >= 0; i--) {
             const b = bullets[i];
+            if (!b) continue;
             b.update(deltaTime);
             if (b.y < 0 || b.y > canvas.height) { bullets.splice(i, 1); continue; }
             
