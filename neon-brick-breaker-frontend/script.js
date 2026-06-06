@@ -571,6 +571,7 @@ class Paddle {
         // Laser cannons
         this.hasLasers = false;
         this.laserTimer = 0;
+        this.lastFireTime = 0;
 
         // Speed tracker for curve physics
         this.prevX = this.x;
@@ -597,11 +598,20 @@ class Paddle {
             }
         }
 
-        if (this.laserTimer > 0) {
-            this.laserTimer -= deltaTime;
-            if (this.laserTimer <= 0) {
-                this.laserTimer = 0;
-                this.hasLasers = false;
+        if (this.hasLasers) {
+            if (this.laserTimer !== Infinity) {
+                this.laserTimer -= deltaTime;
+                if (this.laserTimer <= 0) {
+                    this.laserTimer = 0;
+                    this.hasLasers = false;
+                }
+            }
+            
+            // Autofire lasers every 300ms
+            const nowMs = Date.now();
+            if (!this.lastFireTime || nowMs - this.lastFireTime > 300) {
+                this.lastFireTime = nowMs;
+                fireLasers();
             }
         }
 
@@ -804,11 +814,19 @@ function initLevel(lvl) {
     if (lvl === 5) {
         boss = new Boss('sentinel', 60);
         updateColors(lvl);
+        if (paddle) {
+            paddle.hasLasers = true;
+            paddle.laserTimer = Infinity;
+        }
         return;
     }
     if (lvl === 10) {
         boss = new Boss('overlord', 150);
         updateColors(lvl);
+        if (paddle) {
+            paddle.hasLasers = true;
+            paddle.laserTimer = Infinity;
+        }
         return;
     }
 
@@ -1414,6 +1432,10 @@ function nextLevel() {
     gridRipples = [];
     bossProjectiles = [];
     laserBullets = [];
+    if (paddle) {
+        paddle.hasLasers = false;
+        paddle.laserTimer = 0;
+    }
     boss = null;
     
     setTimeout(() => {
