@@ -1132,7 +1132,6 @@ let timeDilationTimer = 0;
 let slowMoVictoryPending = false;
 let screenFlashAlpha = 0.0;
 let gridRipples = [];
-let leaderboard = [];
 
 function addGridRipple(x, y, intensity = 15, maxRadius = 150) {
     if (gridRipples) {
@@ -1145,71 +1144,6 @@ function addGridRipple(x, y, intensity = 15, maxRadius = 150) {
             intensity: intensity
         });
     }
-}
-
-function initLeaderboard() {
-    const stored = safeStorage.getItem('neonInvadersLeaderboard');
-    if (stored) {
-        try {
-            leaderboard = JSON.parse(stored);
-        } catch(e) {
-            leaderboard = getDefaultLeaderboard();
-        }
-    } else {
-        leaderboard = getDefaultLeaderboard();
-        safeStorage.setItem('neonInvadersLeaderboard', JSON.stringify(leaderboard));
-    }
-    renderLeaderboardUI();
-}
-
-function getDefaultLeaderboard() {
-    return [
-        { name: 'NTN', score: 9000 },
-        { name: 'AGR', score: 7000 },
-        { name: 'CYB', score: 5000 },
-        { name: 'RTR', score: 3000 },
-        { name: 'GRD', score: 1000 }
-    ];
-}
-
-function saveLeaderboard() {
-    safeStorage.setItem('neonInvadersLeaderboard', JSON.stringify(leaderboard));
-}
-
-function checkHighScore(scoreVal) {
-    if (leaderboard.length < 5) return true;
-    return scoreVal > leaderboard[leaderboard.length - 1].score;
-}
-
-function addHighScore(name, scoreVal) {
-    leaderboard.push({ name: name.toUpperCase().slice(0, 3), score: scoreVal });
-    leaderboard.sort((a, b) => b.score - a.score);
-    leaderboard = leaderboard.slice(0, 5);
-    saveLeaderboard();
-    renderLeaderboardUI();
-}
-
-function renderLeaderboardUI() {
-    const screens = ['start-leaderboard', 'gameover-leaderboard', 'victory-leaderboard'];
-    screens.forEach(id => {
-        const container = document.getElementById(id);
-        if (container) {
-            let html = `<div class="leaderboard-title">SYSTEM HIGH LOGS</div>`;
-            html += `<table class="leaderboard-table">`;
-            leaderboard.forEach((entry, i) => {
-                const isHighlight = (score === entry.score && score > 0);
-                html += `
-                    <tr class="leaderboard-row ${isHighlight ? 'highlight' : ''}">
-                        <td class="leaderboard-rank">#${i + 1}</td>
-                        <td class="leaderboard-name">${entry.name}</td>
-                        <td class="leaderboard-score">${entry.score}</td>
-                    </tr>
-                `;
-            });
-            html += `</table>`;
-            container.innerHTML = html;
-        }
-    });
 }
 
 function spawnWave() {
@@ -1365,15 +1299,7 @@ function gameOver() {
     soundManager.play('explode');
     document.getElementById('final-level').textContent = wave;
     document.getElementById('final-score').textContent = score;
-    
-    if (checkHighScore(score)) {
-        document.getElementById('high-score-input-screen').classList.remove('hidden');
-        const input = document.getElementById('callsign-input');
-        input.value = '';
-        setTimeout(() => input.focus(), 150);
-    } else {
-        document.getElementById('game-over').classList.remove('hidden');
-    }
+    document.getElementById('game-over').classList.remove('hidden');
 }
 
 function victory() {
@@ -1386,15 +1312,7 @@ function victory() {
         bestScore = score;
         safeStorage.setItem('neonInvadersBest', bestScore);
     }
-    
-    if (checkHighScore(score)) {
-        document.getElementById('high-score-input-screen').classList.remove('hidden');
-        const input = document.getElementById('callsign-input');
-        input.value = '';
-        setTimeout(() => input.focus(), 150);
-    } else {
-        document.getElementById('game-victory').classList.remove('hidden');
-    }
+    document.getElementById('game-victory').classList.remove('hidden');
 }
 
 function restartGame() {
@@ -1416,8 +1334,6 @@ function restartGame() {
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over').classList.add('hidden');
     document.getElementById('game-victory').classList.add('hidden');
-    document.getElementById('high-score-input-screen').classList.add('hidden');
-    renderLeaderboardUI();
 }
 
 function togglePause() {
@@ -2152,26 +2068,5 @@ function loop(timestamp) {
     requestAnimationFrame(loop);
 }
 
-// High score submission event listeners
-document.getElementById('btn-submit-score').addEventListener('click', () => {
-    const input = document.getElementById('callsign-input');
-    const name = input.value.trim() || 'AAA';
-    addHighScore(name, score);
-    
-    document.getElementById('high-score-input-screen').classList.add('hidden');
-    if (gameState === 'VICTORY') {
-        document.getElementById('game-victory').classList.remove('hidden');
-    } else {
-        document.getElementById('game-over').classList.remove('hidden');
-    }
-});
-
-document.getElementById('callsign-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        document.getElementById('btn-submit-score').click();
-    }
-});
-
 bestScoreEl.textContent = bestScore;
-initLeaderboard();
 loop();
