@@ -1450,6 +1450,7 @@ function initStars() {
 }
 
 function resize() {
+    try { window.focus(); } catch(e) {}
     const hud = document.getElementById('hud');
     const oldWidth = canvas.width;
     const oldHeight = canvas.height;

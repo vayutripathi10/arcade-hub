@@ -132,7 +132,7 @@
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
                     <div class="play-console" id="playConsoleContainer">
-                        <iframe class="play-iframe" id="gameIframe" src="neon-invaders-frontend/index.html?v=19" title="Neon Invaders"></iframe>
+                        <iframe class="play-iframe" id="gameIframe" src="neon-invaders-frontend/index.html?v=20" title="Neon Invaders"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
@@ -189,6 +189,48 @@
 
     <script src="shared/achievements.js"></script>
     <script>
+        function focusGameIframe() {
+            const iframe = document.getElementById('gameIframe');
+            if (iframe) {
+                iframe.focus();
+                if (iframe.contentWindow) {
+                    try {
+                        iframe.contentWindow.focus();
+                    } catch(e) {}
+                }
+            }
+        }
+
+        // Focus game iframe when fullscreen changes
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                focusGameIframe();
+                setTimeout(focusGameIframe, 150);
+                setTimeout(focusGameIframe, 400);
+            }
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (document.webkitFullscreenElement) {
+                focusGameIframe();
+                setTimeout(focusGameIframe, 150);
+                setTimeout(focusGameIframe, 400);
+            }
+        });
+        document.addEventListener('mozfullscreenchange', () => {
+            if (document.mozFullScreenElement) {
+                focusGameIframe();
+                setTimeout(focusGameIframe, 150);
+                setTimeout(focusGameIframe, 400);
+            }
+        });
+        document.addEventListener('MSFullscreenChange', () => {
+            if (document.msFullscreenElement) {
+                focusGameIframe();
+                setTimeout(focusGameIframe, 150);
+                setTimeout(focusGameIframe, 400);
+            }
+        });
+
         function toggleFullscreen() {
             const container = document.getElementById('playConsoleContainer');
             
@@ -218,6 +260,9 @@
                         console.warn(`Fullscreen API failed, falling back to CSS fullscreen: ${err.message}`);
                         toggleCssFullscreen(container);
                     });
+                    focusGameIframe();
+                    setTimeout(focusGameIframe, 150);
+                    setTimeout(focusGameIframe, 400);
                 } else {
                     exitFS.call(document);
                 }
@@ -229,6 +274,11 @@
         function toggleCssFullscreen(container) {
             container.classList.toggle('css-fullscreen-active');
             document.body.classList.toggle('css-fullscreen-open');
+            
+            if (container.classList.contains('css-fullscreen-active')) {
+                focusGameIframe();
+                setTimeout(focusGameIframe, 150);
+            }
             
             let exitBtn = document.getElementById('css-fullscreen-exit-btn');
             if (container.classList.contains('css-fullscreen-active')) {
