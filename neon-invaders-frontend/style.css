@@ -263,3 +263,83 @@ body {
 .share-btn.x { background: #000; color: #fff; border: 1px solid #333; }
 
 .share-btn:active { opacity: 0.7; }
+
+/* === Leaderboard & High Score Input CSS === */
+.leaderboard-container {
+    width: 100%;
+    max-width: 320px;
+    margin: 15px 0 25px 0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 243, 255, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    box-sizing: border-box;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.05);
+}
+
+.leaderboard-title {
+    font-size: 13px;
+    color: #00f3ff;
+    letter-spacing: 3px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-row.highlight {
+    color: #ffff00;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+}
+
+.leaderboard-rank { color: rgba(255, 255, 255, 0.4); font-weight: bold; width: 20px; text-align: left; }
+.leaderboard-name { flex-grow: 1; text-align: left; padding-left: 10px; letter-spacing: 2px; }
+.leaderboard-score { text-align: right; color: #ffff00; font-weight: 600; }
+
+.score-input-container {
+    margin: 25px 0 35px 0;
+}
+
+#callsign-input {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid #ffff00;
+    color: #ffff00;
+    font-family: 'Outfit', sans-serif;
+    font-size: 32px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 12px;
+    padding: 10px 5px 10px 15px;
+    width: 150px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(255, 255, 0, 0.2);
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#callsign-input:focus {
+    border-color: #00ffcc;
+    color: #00ffcc;
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+}

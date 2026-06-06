@@ -333,6 +333,7 @@ class Player {
             this.invincible = 60;
             soundManager.play('explode');
             triggerScreenshake(8, 12);
+            addGridRipple(this.x + this.w/2, this.y + this.h/2, 15, 120);
             return;
         }
 
@@ -341,6 +342,7 @@ class Player {
         updateHUD();
         soundManager.play('hit');
         triggerScreenshake(18, 25);
+        addGridRipple(this.x + this.w/2, this.y + this.h/2, 22, 180);
         
         if (this.lives <= 0) gameOver();
     }
@@ -914,6 +916,7 @@ class Boss {
     hit(damage = 1) {
         this.hp -= damage;
         triggerScreenshake(4, 6);
+        addGridRipple(this.x + this.w/2, this.y + this.h/2, 8, 120);
         if (this.hp <= 0) {
             triggerScreenshake(25, 60);
             soundManager.play('explode');
@@ -927,6 +930,8 @@ class Boss {
             updateScore(1000 * wave);
             scorePopups.push(new ScorePopup(this.x + this.w/2, this.y + this.h/2, `BOSS DEFEATED +${1000 * wave}`, COLORS.secondary));
             
+            addGridRipple(this.x + this.w/2, this.y + this.h/2, 35, 300);
+            
             const types = ['triple', 'rapid', 'shield'];
             types.forEach((type, idx) => {
                 powerups.push(new PowerUp(this.x + this.w * (0.25 + idx * 0.25), this.y + this.h, type));
@@ -934,7 +939,19 @@ class Boss {
             
             boss = null;
             if (wave === 10) {
-                victory();
+                timeDilation = 0.15;
+                timeDilationTimer = 1500; // 1.5 seconds in real time
+                slowMoVictoryPending = true;
+                screenFlashAlpha = 1.0;
+                
+                // Add extra massive delayed explosions for the finale
+                for (let k = 1; k <= 3; k++) {
+                    setTimeout(() => {
+                        soundManager.play('explode');
+                        triggerScreenshake(15, 20);
+                        addGridRipple(canvas.width / 2 + (Math.random() - 0.5) * 200, canvas.height * 0.3 + (Math.random() - 0.5) * 100, 25, 250);
+                    }, k * 300);
+                }
             } else {
                 wave++;
                 spawnWave();
@@ -1109,6 +1126,92 @@ function triggerScreenshake(intensity, duration) {
     shakeDuration = Math.max(shakeDuration, duration);
 }
 
+// === Premium Enhancements: High Score Leaderboard, Time-Dilation, and Grid Ripples ===
+let timeDilation = 1.0;
+let timeDilationTimer = 0;
+let slowMoVictoryPending = false;
+let screenFlashAlpha = 0.0;
+let gridRipples = [];
+let leaderboard = [];
+
+function addGridRipple(x, y, intensity = 15, maxRadius = 150) {
+    if (gridRipples) {
+        gridRipples.push({
+            x: x,
+            y: y,
+            radius: 0,
+            maxRadius: maxRadius,
+            speed: 6,
+            intensity: intensity
+        });
+    }
+}
+
+function initLeaderboard() {
+    const stored = safeStorage.getItem('neonInvadersLeaderboard');
+    if (stored) {
+        try {
+            leaderboard = JSON.parse(stored);
+        } catch(e) {
+            leaderboard = getDefaultLeaderboard();
+        }
+    } else {
+        leaderboard = getDefaultLeaderboard();
+        safeStorage.setItem('neonInvadersLeaderboard', JSON.stringify(leaderboard));
+    }
+    renderLeaderboardUI();
+}
+
+function getDefaultLeaderboard() {
+    return [
+        { name: 'NTN', score: 9000 },
+        { name: 'AGR', score: 7000 },
+        { name: 'CYB', score: 5000 },
+        { name: 'RTR', score: 3000 },
+        { name: 'GRD', score: 1000 }
+    ];
+}
+
+function saveLeaderboard() {
+    safeStorage.setItem('neonInvadersLeaderboard', JSON.stringify(leaderboard));
+}
+
+function checkHighScore(scoreVal) {
+    if (leaderboard.length < 5) return true;
+    return scoreVal > leaderboard[leaderboard.length - 1].score;
+}
+
+function addHighScore(name, scoreVal) {
+    leaderboard.push({ name: name.toUpperCase().slice(0, 3), score: scoreVal });
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 5);
+    saveLeaderboard();
+    renderLeaderboardUI();
+}
+
+function renderLeaderboardUI() {
+    const screens = ['start-leaderboard', 'gameover-leaderboard', 'victory-leaderboard'];
+    screens.forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            let html = `<div class="leaderboard-title">SYSTEM HIGH LOGS</div>`;
+            html += `<table class="leaderboard-table">`;
+            leaderboard.forEach((entry, i) => {
+                const isHighlight = (score === entry.score && score > 0);
+                html += `
+                    <tr class="leaderboard-row ${isHighlight ? 'highlight' : ''}">
+                        <td class="leaderboard-rank">#${i + 1}</td>
+                        <td class="leaderboard-name">${entry.name}</td>
+                        <td class="leaderboard-score">${entry.score}</td>
+                    </tr>
+                `;
+            });
+            html += `</table>`;
+            container.innerHTML = html;
+        }
+    });
+}
+
 function spawnWave() {
     invaders = [];
     boss = null;
@@ -1260,21 +1363,37 @@ function gameOver() {
     gameState = 'GAMEOVER';
     soundManager.stopMusic();
     soundManager.play('explode');
-    document.getElementById('game-over').classList.remove('hidden');
     document.getElementById('final-level').textContent = wave;
     document.getElementById('final-score').textContent = score;
+    
+    if (checkHighScore(score)) {
+        document.getElementById('high-score-input-screen').classList.remove('hidden');
+        const input = document.getElementById('callsign-input');
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+    } else {
+        document.getElementById('game-over').classList.remove('hidden');
+    }
 }
 
 function victory() {
     gameState = 'VICTORY';
     soundManager.stopMusic();
     soundManager.play('victory'); // Play epic levelup/victory chime
-    document.getElementById('game-victory').classList.remove('hidden');
     document.getElementById('vic-score').textContent = score;
     // Save best score
     if (score > bestScore) {
         bestScore = score;
         safeStorage.setItem('neonInvadersBest', bestScore);
+    }
+    
+    if (checkHighScore(score)) {
+        document.getElementById('high-score-input-screen').classList.remove('hidden');
+        const input = document.getElementById('callsign-input');
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+    } else {
+        document.getElementById('game-victory').classList.remove('hidden');
     }
 }
 
@@ -1297,6 +1416,8 @@ function restartGame() {
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over').classList.add('hidden');
     document.getElementById('game-victory').classList.add('hidden');
+    document.getElementById('high-score-input-screen').classList.add('hidden');
+    renderLeaderboardUI();
 }
 
 function togglePause() {
@@ -1370,6 +1491,15 @@ function firePlayer() {
         // Push all fired bullets to active list
         bullets.push(...firedBullets);
         soundManager.play('shoot');
+        
+        // Weapon recoil screenshakes
+        if (wave >= 9) {
+            triggerScreenshake(2.0, 4);
+        } else if (wave >= 7) {
+            triggerScreenshake(1.2, 3);
+        } else if (wave >= 5) {
+            triggerScreenshake(0.8, 2);
+        }
     }
 }
 
@@ -1654,20 +1784,106 @@ function drawBackground() {
 }
 
 function drawGrid() {
-    ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.08)';
     ctx.lineWidth = 1;
-    const step = 40;
-    for (let x = 0; x < canvas.width; x += step) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    
+    const vpX = canvas.width / 2;
+    const vpY = canvas.height * 0.25;
+    const startY = canvas.height * 0.4;
+    const endY = canvas.height;
+    
+    // Update grid ripples
+    for (let i = gridRipples.length - 1; i >= 0; i--) {
+        const rip = gridRipples[i];
+        rip.radius += rip.speed;
+        rip.intensity *= 0.96;
+        if (rip.radius > rip.maxRadius || rip.intensity < 0.1) {
+            gridRipples.splice(i, 1);
+        }
     }
-    for (let y = 0; y < canvas.height; y += step) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    
+    // Helper to warp coordinates based on active ripples
+    function warpPoint(px, py) {
+        let wx = px;
+        let wy = py;
+        gridRipples.forEach(rip => {
+            const dx = px - rip.x;
+            const dy = py - rip.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0 && Math.abs(dist - rip.radius) < 40) {
+                const force = (1 - Math.abs(dist - rip.radius) / 40) * rip.intensity;
+                wx += (dx / dist) * force;
+                wy += (dy / dist) * force;
+            }
+        });
+        return { x: wx, y: wy };
     }
+    
+    // Draw 12 Horizontal lines spaced exponentially for depth
+    const numSegments = 30;
+    for (let i = 0; i <= 12; i++) {
+        const t = i / 12;
+        const y = startY + (endY - startY) * Math.pow(t, 1.8);
+        
+        ctx.beginPath();
+        let first = true;
+        for (let s = 0; s <= numSegments; s++) {
+            const x = (s / numSegments) * canvas.width;
+            const wp = warpPoint(x, y);
+            if (first) {
+                ctx.moveTo(wp.x, wp.y);
+                first = false;
+            } else {
+                ctx.lineTo(wp.x, wp.y);
+            }
+        }
+        ctx.stroke();
+    }
+    
+    // Draw 18 perspective vertical lines
+    const numVerticalLines = 18;
+    for (let i = 0; i <= numVerticalLines; i++) {
+        const xBottom = (i / numVerticalLines) * canvas.width;
+        
+        ctx.beginPath();
+        let first = true;
+        for (let s = 0; s <= numSegments; s++) {
+            const t = s / numSegments;
+            const rawX = vpX + (xBottom - vpX) * t;
+            const rawY = vpY + (endY - vpY) * t;
+            
+            if (rawY >= startY) {
+                const wp = warpPoint(rawX, rawY);
+                if (first) {
+                    ctx.moveTo(wp.x, wp.y);
+                    first = false;
+                } else {
+                    ctx.lineTo(wp.x, wp.y);
+                }
+            }
+        }
+        ctx.stroke();
+    }
+    ctx.restore();
 }
 
 function loop(timestamp) {
-    const deltaTime = lastTimestamp ? Math.min((timestamp - lastTimestamp) / 16.67, 3) : 1;
+    const elapsedMs = lastTimestamp ? (timestamp - lastTimestamp) : 16.67;
+    const deltaTime = lastTimestamp ? Math.min(elapsedMs / 16.67, 3) : 1;
     lastTimestamp = timestamp;
+
+    // Epic victory time dilation decay
+    if (slowMoVictoryPending) {
+        timeDilationTimer -= elapsedMs;
+        if (timeDilationTimer <= 0) {
+            slowMoVictoryPending = false;
+            timeDilation = 1.0;
+            victory();
+        }
+    }
+
+    const dt = deltaTime * timeDilation;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
@@ -1684,12 +1900,12 @@ function loop(timestamp) {
     drawGrid();
 
     if (gameState === 'PLAYING' && !isPaused) {
-        player.update(deltaTime);
+        player.update(dt);
         
         // Auto-fire on mobile/touch screens when dragging
         if (isDragging && (window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0))) {
             if (!player.autoFireTimer) player.autoFireTimer = 0;
-            player.autoFireTimer += deltaTime;
+            player.autoFireTimer += dt;
             const fireInterval = player.powerups.rapid > 0 ? 6 : 15;
             if (player.autoFireTimer >= fireInterval) {
                 firePlayer();
@@ -1699,14 +1915,14 @@ function loop(timestamp) {
         
         // Saucer Spawning & Movement
         if (!saucer) {
-            saucerSpawnTimer += deltaTime * 16.67;
+            saucerSpawnTimer += dt * 16.67;
             if (saucerSpawnTimer >= saucerSpawnInterval) {
                 saucer = new Saucer();
                 saucerSpawnTimer = 0;
                 saucerSpawnInterval = 15000 + Math.random() * 15000;
             }
         } else {
-            saucer.update(deltaTime);
+            saucer.update(dt);
             if (!saucer.active) {
                 saucer = null;
             }
@@ -1715,16 +1931,16 @@ function loop(timestamp) {
         // Update Score Popups
         for (let i = scorePopups.length - 1; i >= 0; i--) {
             const sp = scorePopups[i];
-            sp.update(deltaTime);
+            sp.update(dt);
             if (sp.life <= 0) scorePopups.splice(i, 1);
         }
 
         if (boss) {
-            boss.update(deltaTime);
+            boss.update(dt);
             soundManager.setBpm(boss.isFinal ? 160 : 140);
         } else {
             // Move Invaders (Speed up as their numbers decrease)
-            invaderMoveTimer += deltaTime * 16.67;
+            invaderMoveTimer += dt * 16.67;
             
             const fractionLeft = invaders.length / (initialInvadersCount || 1);
             const speedFactor = 0.25 + 0.75 * fractionLeft; // speeds up from 1.0x to 0.25x interval (4x speedup)
@@ -1755,7 +1971,7 @@ function loop(timestamp) {
             }
             
             // Invader Fire
-            if (Math.random() < (0.01 + (wave * 0.005)) * deltaTime) {
+            if (Math.random() < (0.01 + (wave * 0.005)) * dt) {
                 const shooter = invaders[Math.floor(Math.random() * invaders.length)];
                 if (shooter) bullets.push(new Bullet(shooter.x + shooter.w/2, shooter.y + shooter.h, BULLET_SPEED * 0.6, COLORS.danger));
             }
@@ -1764,7 +1980,7 @@ function loop(timestamp) {
         // Powerups
         for (let i = powerups.length - 1; i >= 0; i--) {
             const p = powerups[i];
-            p.update(deltaTime);
+            p.update(dt);
             if (p.y > canvas.height) { powerups.splice(i, 1); continue; }
             
             // Magnet attraction: powerups float towards player horizontally when close
@@ -1772,7 +1988,7 @@ function loop(timestamp) {
             if (distY > 0 && distY < 250) {
                 const distX = (player.x + player.w/2) - p.x;
                 if (Math.abs(distX) < 180) {
-                    p.x += Math.sign(distX) * 2 * deltaTime;
+                    p.x += Math.sign(distX) * 2 * dt;
                 }
             }
             
@@ -1791,7 +2007,7 @@ function loop(timestamp) {
         for (let i = bullets.length - 1; i >= 0; i--) {
             const b = bullets[i];
             if (!b) continue;
-            b.update(deltaTime);
+            b.update(dt);
             if (b.y < 0 || b.y > canvas.height) { bullets.splice(i, 1); continue; }
             
             // Bullet hits shield block
@@ -1810,8 +2026,10 @@ function loop(timestamp) {
                             for (let k = 0; k < 3; k++) particles.push(new Particle(block.x + block.w/2, block.y + block.h/2, COLORS.primary, 'debris'));
                             for (let k = 0; k < 3; k++) particles.push(new Particle(block.x + block.w/2, block.y + block.h/2, COLORS.primary, 'spark'));
                             triggerScreenshake(2, 5);
+                            addGridRipple(block.x + block.w/2, block.y + block.h/2, 6, 80);
                         } else {
                             triggerScreenshake(1, 3);
+                            addGridRipple(b.x, b.y, 3, 50);
                         }
                         bullets.splice(i, 1);
                         soundManager.play('hit');
@@ -1839,6 +2057,7 @@ function loop(timestamp) {
                     for (let k = 0; k < 15; k++) particles.push(new Particle(saucer.x + saucer.w/2, saucer.y + saucer.h/2, saucer.color, 'spark'));
                     for (let k = 0; k < 10; k++) particles.push(new Particle(saucer.x + saucer.w/2, saucer.y + saucer.h/2, saucer.color, 'debris'));
                     bullets.splice(i, 1);
+                    addGridRipple(saucer.x + saucer.w/2, saucer.y + saucer.h/2, 18, 160);
                     saucer = null;
                     soundManager.play('explode');
                     triggerScreenshake(8, 15);
@@ -1856,6 +2075,8 @@ function loop(timestamp) {
                             particles.push(new Particle(inv.x + inv.w/2, inv.y + inv.h/2, inv.color, 'ring'));
                             for (let k = 0; k < 10; k++) particles.push(new Particle(inv.x + inv.w/2, inv.y + inv.h/2, inv.color, 'spark'));
                             for (let k = 0; k < 6; k++) particles.push(new Particle(inv.x + inv.w/2, inv.y + inv.h/2, inv.color, 'debris'));
+                            
+                            addGridRipple(inv.x + inv.w/2, inv.y + inv.h/2, 8, 100);
                             
                             // Drop Powerup (Drop rate increases on higher stages to power up the spaceship)
                             const dropChance = 0.20 + (wave - 1) * 0.02;
@@ -1890,11 +2111,11 @@ function loop(timestamp) {
         // Particles
         for (let i = particles.length - 1; i >= 0; i--) {
             const p = particles[i];
-            p.update(deltaTime);
+            p.update(dt);
             if (p.life <= 0) particles.splice(i, 1);
         }
 
-        if (invaders.length === 0 && !boss) {
+        if (invaders.length === 0 && !boss && !slowMoVictoryPending) {
             if (wave === 10) {
                 victory();
             } else {
@@ -1916,10 +2137,41 @@ function loop(timestamp) {
     powerups.forEach(p => p.draw());
     particles.forEach(p => p.draw());
     player.draw();
+    
+    // Draw white screen flash overlay for cinematic impact
+    if (screenFlashAlpha > 0) {
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${screenFlashAlpha})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        screenFlashAlpha -= elapsedMs * 0.0015; // decays fully in ~0.66s
+    }
+    
     ctx.restore();
 
     requestAnimationFrame(loop);
 }
 
+// High score submission event listeners
+document.getElementById('btn-submit-score').addEventListener('click', () => {
+    const input = document.getElementById('callsign-input');
+    const name = input.value.trim() || 'AAA';
+    addHighScore(name, score);
+    
+    document.getElementById('high-score-input-screen').classList.add('hidden');
+    if (gameState === 'VICTORY') {
+        document.getElementById('game-victory').classList.remove('hidden');
+    } else {
+        document.getElementById('game-over').classList.remove('hidden');
+    }
+});
+
+document.getElementById('callsign-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('btn-submit-score').click();
+    }
+});
+
 bestScoreEl.textContent = bestScore;
+initLeaderboard();
 loop();

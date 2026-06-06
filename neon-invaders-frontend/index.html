@@ -311,6 +311,16 @@
             <h1 class="game-title">NEON<br>INVADERS</h1>
             <p class="instruction">DEFEND THE GRID. SURVIVE THE PULSE.</p>
             <button id="btn-start" class="primary-btn">INITIALIZE</button>
+            <div id="start-leaderboard" class="leaderboard-container"></div>
+        </div>
+
+        <div id="high-score-input-screen" class="overlay hidden">
+            <h2 class="overlay-title" style="color: #ffff00; text-shadow: 0 0 20px #ffff00;">NEW HIGH SCORE</h2>
+            <p class="instruction" style="letter-spacing: 2px;">ENTER YOUR RETRO CALLSIGN</p>
+            <div class="score-input-container">
+                <input type="text" id="callsign-input" maxlength="3" placeholder="AAA" autocomplete="off" autofocus>
+            </div>
+            <button id="btn-submit-score" class="primary-btn" style="box-shadow: 0 0 25px rgba(255, 255, 0, 0.3);">RECORD SYSTEM LOG</button>
         </div>
 
         <div id="game-over" class="overlay hidden">
@@ -323,6 +333,8 @@
                 <span>FINAL SCORE</span>
                 <span id="final-score">0</span>
             </div>
+            
+            <div id="gameover-leaderboard" class="leaderboard-container"></div>
             
             <div class="share-section">
                 <p>SHARE DATA</p>
@@ -344,6 +356,8 @@
                 <span id="vic-score">0</span>
             </div>
             
+            <div id="victory-leaderboard" class="leaderboard-container"></div>
+            
             <div class="share-section">
                 <p>SHARE DATA</p>
                 <div class="share-btns">
@@ -358,7 +372,7 @@
     </div>
 
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=20"></script>
+    <script src="script.js?v=21"></script>
     
     <script>
     var storage = (typeof safeStorage !== 'undefined') ? safeStorage : {
