@@ -1452,6 +1452,7 @@ function initStars() {
 function resize() {
     const hud = document.getElementById('hud');
     const oldWidth = canvas.width;
+    const oldHeight = canvas.height;
     
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight - hud.clientHeight;
@@ -1467,11 +1468,12 @@ function resize() {
         }
         player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
         
+        const shieldY = player.y - Math.min(70, canvas.height * 0.18);
+        
         if (typeof shields !== 'undefined' && shields && shields.length > 0) {
             const numShields = canvas.width < 500 ? 3 : 4;
             const shieldWidth = 64;
             const spacing = canvas.width / (numShields + 1);
-            const shieldY = player.y - Math.min(70, canvas.height * 0.18);
             
             shields.forEach((shield, i) => {
                 const shieldX = spacing * (i + 1) - shieldWidth / 2;
@@ -1489,6 +1491,63 @@ function resize() {
                     }
                 }
             });
+        }
+        
+        if (typeof invaders !== 'undefined' && invaders && invaders.length > 0) {
+            invaders.forEach(inv => {
+                if (oldWidth) {
+                    inv.x = (inv.x / oldWidth) * canvas.width;
+                }
+                inv.x = Math.max(0, Math.min(canvas.width - inv.w, inv.x));
+                
+                if (oldHeight) {
+                    inv.y = (inv.y / oldHeight) * canvas.height;
+                }
+                const maxInvaderY = shieldY - inv.h - 15;
+                inv.y = Math.max(10, Math.min(maxInvaderY, inv.y));
+            });
+        }
+        
+        if (typeof boss !== 'undefined' && boss) {
+            if (oldWidth) {
+                boss.x = (boss.x / oldWidth) * canvas.width;
+            }
+            boss.x = Math.max(20, Math.min(canvas.width - boss.w - 20, boss.x));
+            boss.targetX = boss.x;
+            
+            if (oldHeight) {
+                boss.y = (boss.y / oldHeight) * canvas.height;
+            }
+            boss.y = Math.max(40, Math.min(120, boss.y));
+        }
+        
+        if (typeof bullets !== 'undefined' && bullets && bullets.length > 0) {
+            bullets.forEach(b => {
+                if (oldWidth) {
+                    b.x = (b.x / oldWidth) * canvas.width;
+                }
+                if (oldHeight) {
+                    b.y = (b.y / oldHeight) * canvas.height;
+                }
+            });
+        }
+        
+        if (typeof powerups !== 'undefined' && powerups && powerups.length > 0) {
+            powerups.forEach(p => {
+                if (oldWidth) {
+                    p.x = (p.x / oldWidth) * canvas.width;
+                }
+                if (oldHeight) {
+                    p.y = (p.y / oldHeight) * canvas.height;
+                }
+            });
+        }
+        
+        if (typeof saucer !== 'undefined' && saucer) {
+            if (oldWidth) {
+                saucer.x = (saucer.x / oldWidth) * canvas.width;
+            }
+            saucer.y = 35;
         }
     }
 }
