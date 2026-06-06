@@ -33,6 +33,16 @@ let bricks = [];
 let powerUps = [];
 let particles = [];
 
+// Premium Juice additions
+let gridRipples = [];
+let stars = [];
+let scorePopups = [];
+let shakeIntensity = 0;
+let shakeDuration = 0;
+let timeDilation = 1.0;
+let slowMoClearPending = false;
+let screenFlashAlpha = 0.0;
+
 const COLORS = {
     primary: '#00f3ff',
     secondary: '#ff00de',
@@ -73,6 +83,7 @@ class Particle {
         this.life -= 0.02 * deltaTime;
     }
     draw() {
+        ctx.save();
         ctx.globalAlpha = this.life;
         ctx.fillStyle = this.color;
         ctx.shadowBlur = 5;
@@ -80,6 +91,33 @@ class Particle {
         ctx.fillRect(this.x, this.y, this.size, this.size);
         ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+}
+
+class ScorePopup {
+    constructor(x, y, text, color = '#fff') {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.life = 1.0;
+        this.vy = -1.5;
+    }
+    update(deltaTime) {
+        this.y += this.vy * deltaTime;
+        this.life -= 0.035 * deltaTime;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.font = 'bold 15px var(--font-ui)';
+        ctx.textAlign = 'center';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
     }
 }
 
@@ -192,30 +230,68 @@ class Ball {
         this.fireball = false;
         this.color = '#fff';
         this.tempMulti = 1;
+        this.trail = [];
     }
     update(deltaTime) {
         const s = this.speed * this.tempMulti;
-        // Normalize velocity
         const mag = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
         this.dx = (this.dx / mag) * s;
         this.dy = (this.dy / mag) * s;
+
+        // Save trail position
+        this.trail.push({x: this.x, y: this.y});
+        if (this.trail.length > 8) this.trail.shift();
 
         this.x += this.dx * deltaTime;
         this.y += this.dy * deltaTime;
 
         // Wall collisions
-        if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+        if (this.x - this.radius < 0) {
+            this.x = this.radius;
             this.dx *= -1;
             if (window.audioFX) window.audioFX.playHit();
+            addGridRipple(this.x, this.y, 8, 120);
+            triggerScreenshake(2, 60);
+        } else if (this.x + this.radius > canvas.width) {
+            this.x = canvas.width - this.radius;
+            this.dx *= -1;
+            if (window.audioFX) window.audioFX.playHit();
+            addGridRipple(this.x, this.y, 8, 120);
+            triggerScreenshake(2, 60);
         }
         if (this.y - this.radius < 0) {
+            this.y = this.radius;
             this.dy *= -1;
             if (window.audioFX) window.audioFX.playHit();
+            addGridRipple(this.x, this.y, 8, 120);
+            triggerScreenshake(2, 60);
+        }
+
+        // Spawn custom fireball flame particles
+        if (this.fireball && Math.random() < 0.4) {
+            particles.push(new Particle(this.x, this.y, COLORS.secondary));
         }
     }
     draw() {
         ctx.save();
-        ctx.shadowBlur = this.fireball ? 20 : 10;
+        
+        // Draw trailing ghost balls
+        const colorBase = this.fireball ? COLORS.secondary : COLORS.primary;
+        this.trail.forEach((t, index) => {
+            const ratio = (index + 1) / this.trail.length; // 0 to 1
+            ctx.save();
+            ctx.globalAlpha = ratio * 0.25;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = colorBase;
+            ctx.fillStyle = colorBase;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, this.radius * (0.4 + ratio * 0.6), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Draw main ball
+        ctx.shadowBlur = this.fireball ? 20 : 12;
         ctx.shadowColor = this.fireball ? COLORS.secondary : COLORS.primary;
         ctx.fillStyle = this.fireball ? COLORS.secondary : '#fff';
         ctx.beginPath();
@@ -237,6 +313,12 @@ class Paddle {
         this.color = COLORS.primary;
         this.timer = 0;
         this.hasShield = false;
+        
+        // Squash & stretch spring animation values
+        this.squashY = 1.0;
+        this.stretchX = 1.0;
+        this.squashYVelocity = 0;
+        this.stretchXVelocity = 0;
     }
     update(deltaTime) {
         this.x += (this.targetX - (this.x + this.w / 2)) * 0.2 * deltaTime;
@@ -254,12 +336,36 @@ class Paddle {
                 });
             }
         }
+
+        // Squash & Stretch Spring Simulation
+        const springK = 0.15;
+        const damping = 0.8;
+        const targetSquashY = 1.0;
+        const targetStretchX = 1.0;
+        
+        const diffY = targetSquashY - this.squashY;
+        const diffX = targetStretchX - this.stretchX;
+        
+        this.squashYVelocity = this.squashYVelocity * damping + diffY * springK;
+        this.squashY += this.squashYVelocity * deltaTime;
+        
+        this.stretchXVelocity = this.stretchXVelocity * damping + diffX * springK;
+        this.stretchX += this.stretchXVelocity * deltaTime;
     }
     draw() {
         ctx.save();
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
         ctx.fillStyle = this.color;
+        
+        // Center of the paddle
+        const centerX = this.x + this.w / 2;
+        const centerY = this.y + this.h / 2;
+        
+        // Apply Squash & Stretch Transform
+        ctx.translate(centerX, centerY);
+        ctx.scale(this.stretchX, this.squashY);
+        ctx.translate(-centerX, -centerY);
         
         const r = 6;
         ctx.beginPath();
@@ -270,14 +376,142 @@ class Paddle {
         ctx.lineWidth = 2;
         ctx.stroke();
 
+        ctx.restore();
+
         if (this.hasShield) {
+            ctx.save();
+            ctx.shadowBlur = 15;
             ctx.shadowColor = COLORS.primary;
             ctx.strokeStyle = COLORS.primary;
             ctx.setLineDash([4, 2]);
             ctx.strokeRect(0, canvas.height - 5, canvas.width, 5);
+            ctx.restore();
         }
-        ctx.restore();
     }
+}
+
+function initStars() {
+    stars = [];
+    const count = 45;
+    for (let i = 0; i < count; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.5 + 0.5,
+            speed: 0.01 + Math.random() * 0.03,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+}
+
+function drawStars() {
+    ctx.save();
+    stars.forEach(s => {
+        const alpha = 0.15 + Math.abs(Math.sin(Date.now() * s.speed + s.phase)) * 0.5;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+    });
+    ctx.restore();
+}
+
+function addGridRipple(x, y, intensity = 12, maxRadius = 160) {
+    gridRipples.push({
+        x: x,
+        y: y,
+        radius: 0,
+        maxRadius: maxRadius,
+        speed: 8,
+        intensity: intensity
+    });
+}
+
+function getGridRippleOffset(px, py) {
+    let offsetX = 0;
+    let offsetY = 0;
+    gridRipples.forEach(rip => {
+        const dx = px - rip.x;
+        const dy = py - rip.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 0 && dist < rip.radius) {
+            const cycle = dist / rip.radius; // 0 to 1
+            const force = Math.sin(cycle * Math.PI) * rip.intensity * (1.0 - rip.radius / rip.maxRadius);
+            offsetX += (dx / dist) * force;
+            offsetY += (dy / dist) * force;
+        }
+    });
+    return { x: offsetX, y: offsetY };
+}
+
+function drawBackground() {
+    // 1. Draw radial gradient background
+    const grad = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 10, canvas.width / 2, canvas.height / 2, canvas.height);
+    grad.addColorStop(0, '#11121d');
+    grad.addColorStop(1, '#05060a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Draw stars
+    drawStars();
+
+    // 3. Draw 3D Perspective Grid
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.08)';
+    ctx.lineWidth = 1;
+
+    const horizonY = 80;
+    const centerPointX = canvas.width / 2;
+
+    // A. Perspective line dividers projected from vanishing point to bottom
+    const numLines = 14;
+    for (let i = 0; i <= numLines; i++) {
+        const xBottom = (canvas.width / numLines) * i;
+        ctx.beginPath();
+        
+        // Draw segment by segment to apply ripple displacements
+        const segments = 16;
+        for (let j = 0; j <= segments; j++) {
+            const ratio = j / segments;
+            const py = horizonY + (canvas.height - horizonY) * ratio;
+            // Linear interpolation of X
+            const px = centerPointX + (xBottom - centerPointX) * ratio;
+            
+            const offset = getGridRippleOffset(px, py);
+            if (j === 0) {
+                ctx.moveTo(px + offset.x, py + offset.y);
+            } else {
+                ctx.lineTo(px + offset.x, py + offset.y);
+            }
+        }
+        ctx.stroke();
+    }
+
+    // B. Exponentially spaced horizontal lines
+    const numHorizontal = 16;
+    for (let i = 0; i < numHorizontal; i++) {
+        // exponential spacing
+        const ratio = Math.pow(i / (numHorizontal - 1), 1.6);
+        const py = horizonY + (canvas.height - horizonY) * ratio;
+        ctx.beginPath();
+        
+        const segments = 20;
+        for (let j = 0; j <= segments; j++) {
+            const px = (canvas.width / segments) * j;
+            const offset = getGridRippleOffset(px, py);
+            if (j === 0) {
+                ctx.moveTo(px + offset.x, py + offset.y);
+            } else {
+                ctx.lineTo(px + offset.x, py + offset.y);
+            }
+        }
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+function triggerScreenshake(intensity, duration) {
+    shakeIntensity = Math.max(shakeIntensity, intensity);
+    shakeDuration = Math.max(shakeDuration, duration);
 }
 
 function initLevel(lvl) {
@@ -347,13 +581,20 @@ function startGame() {
     balls = [new Ball(canvas.width / 2, paddle.y - 20, config.speed)];
     powerUps = [];
     particles = [];
+    scorePopups = [];
+    gridRipples = [];
+    initStars();
     initLevel(level);
     
     gameState = 'playing';
     updateHUD();
     mainMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        window.audioFX.stopMusic();
+        window.audioFX.startMusic();
+    }
 }
 
 function updateHUD() {
@@ -389,9 +630,35 @@ canvas.addEventListener('touchmove', e => {
 function update(deltaTime) {
     if (gameState !== 'playing') return;
 
-    paddle.update(deltaTime);
+    // Decay screenshake
+    if (shakeDuration > 0) {
+        shakeDuration -= deltaTime * 16.67;
+        if (shakeDuration <= 0) {
+            shakeDuration = 0;
+            shakeIntensity = 0;
+        }
+    }
+
+    // Update ripples
+    for (let i = gridRipples.length - 1; i >= 0; i--) {
+        const r = gridRipples[i];
+        r.radius += r.speed * deltaTime;
+        if (r.radius >= r.maxRadius) {
+            gridRipples.splice(i, 1);
+        }
+    }
+
+    // Decay screen flash
+    if (screenFlashAlpha > 0) {
+        screenFlashAlpha -= deltaTime * 0.035;
+    }
+
+    // Game speed scaling via time dilation
+    const gameDelta = deltaTime * timeDilation;
+
+    paddle.update(gameDelta);
     if (comboTimer > 0) {
-        comboTimer -= deltaTime * 16.67;
+        comboTimer -= gameDelta * 16.67;
         if (comboTimer <= 0) {
             comboStreak = 0;
             comboMultiplier = 1;
@@ -400,30 +667,31 @@ function update(deltaTime) {
 
     for (let i = balls.length - 1; i >= 0; i--) {
         const ball = balls[i];
-        ball.update(deltaTime);
+        ball.update(gameDelta);
 
         // Paddle Collision
         if (ball.y + ball.radius > paddle.y && 
             ball.y - ball.radius < paddle.y + paddle.h &&
             ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
             
-            if (paddle.hasShield && ball.y > paddle.y) {
-                // Should have hit shield instead of falling? 
-                // But normally handled by death check.
-            }
-
             ball.dy *= -1;
             ball.y = paddle.y - ball.radius;
             const hitPos = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
             ball.dx = hitPos * 7;
             if (window.audioFX) window.audioFX.playPaddle();
+            
+            // Squash paddle and add ripple
+            paddle.squashY = 0.5;
+            paddle.stretchX = 1.4;
+            addGridRipple(ball.x, paddle.y, 14, 160);
+            triggerScreenshake(4, 100);
         }
 
         // Brick Collision
         for (let j = bricks.length - 1; j >= 0; j--) {
             const brick = bricks[j];
             if (brick.destroyed) continue;
-            brick.update(deltaTime);
+            brick.update(gameDelta);
             
             if (ball.x + ball.radius > brick.x && ball.x - ball.radius < brick.x + brick.w &&
                 ball.y + ball.radius > brick.y && ball.y - ball.radius < brick.y + brick.h) {
@@ -431,6 +699,8 @@ function update(deltaTime) {
                 if (brick.type === 'shield') {
                     ball.dy *= -1;
                     if (window.audioFX) window.audioFX.playHit();
+                    addGridRipple(ball.x, ball.y, 12, 150);
+                    triggerScreenshake(3, 80);
                     break;
                 }
 
@@ -442,15 +712,20 @@ function update(deltaTime) {
                 }
 
                 brick.life--;
+                addGridRipple(ball.x, ball.y, 10, 140);
+                triggerScreenshake(3, 80);
+
                 if (brick.life <= 0) {
                     brick.destroyed = true;
                     comboStreak++;
-                    comboTimer = 2000; // 2 seconds to keep combo
+                    comboTimer = 2000;
                     if (comboStreak >= 20) { comboMultiplier = 3; showCombo(20); }
                     else if (comboStreak >= 10) { comboMultiplier = 2; showCombo(10); }
                     else if (comboStreak >= 5) { showCombo(5); }
                     
-                    score += 10 * comboMultiplier;
+                    const earned = 10 * comboMultiplier;
+                    score += earned;
+                    scorePopups.push(new ScorePopup(brick.x + brick.w / 2, brick.y + brick.h / 2, `+${earned}`, brick.color));
                     spawnParticles(brick.x + brick.w / 2, brick.y + brick.h / 2, brick.color);
                     
                     if (brick.type === 'bomb') triggerBomb(brick);
@@ -475,6 +750,8 @@ function update(deltaTime) {
                 paddle.hasShield = false;
                 ball.dy *= -1;
                 ball.y = canvas.height - 20;
+                addGridRipple(ball.x, canvas.height, 20, 200);
+                triggerScreenshake(8, 250);
             } else {
                 balls.splice(i, 1);
             }
@@ -484,13 +761,15 @@ function update(deltaTime) {
     // PowerUp Updates
     for (let i = powerUps.length - 1; i >= 0; i--) {
         const pu = powerUps[i];
-        pu.update(deltaTime);
+        pu.update(gameDelta);
         if (pu.y + 15 > paddle.y && pu.y - 15 < paddle.y + paddle.h &&
             pu.x + 15 > paddle.x && pu.x - 15 < paddle.x + paddle.w) {
             
             applyPowerUp(pu.type);
             powerUps.splice(i, 1);
             if (window.audioFX) window.audioFX.playPowerUp();
+            addGridRipple(pu.x, paddle.y, 15, 180);
+            triggerScreenshake(5, 120);
         } else if (pu.y > canvas.height) {
             powerUps.splice(i, 1);
         }
@@ -502,6 +781,7 @@ function update(deltaTime) {
         comboStreak = 0;
         comboMultiplier = 1;
         updateHUD();
+        triggerScreenshake(12, 300);
         if (lives <= 0) {
             endGame('gameover');
         } else {
@@ -510,15 +790,41 @@ function update(deltaTime) {
         }
     }
 
-    // Level Clear
+    // Level Clear with time dilation
     if (bricks.every(b => b.destroyed || b.type === 'shield')) {
-        nextLevel();
+        if (!slowMoClearPending) {
+            slowMoClearPending = true;
+            timeDilation = 0.15;
+            screenFlashAlpha = 1.0;
+            triggerScreenshake(14, 500);
+            if (window.audioFX) window.audioFX.playLevelUp();
+            setTimeout(() => {
+                slowMoClearPending = false;
+                timeDilation = 1.0;
+                nextLevel();
+            }, 1200);
+        }
     }
 
-    // Particles
+    // Particles (Update at full speed for visual liquidity)
     for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].update(deltaTime);
         if (particles[i].life <= 0) particles.splice(i, 1);
+    }
+
+    // Floating Score Popups (Update at full speed)
+    for (let i = scorePopups.length - 1; i >= 0; i--) {
+        scorePopups[i].update(deltaTime);
+        if (scorePopups[i].life <= 0) scorePopups.splice(i, 1);
+    }
+
+    // Dynamic music BPM acceleration
+    if (bricks.length > 0) {
+        const totalActive = bricks.filter(b => !b.destroyed && b.type !== 'shield').length;
+        const fraction = totalActive / Math.max(1, bricks.length);
+        if (window.audioFX) {
+            window.audioFX.setBpm(110 + (1 - fraction) * 50);
+        }
     }
 }
 
@@ -547,12 +853,16 @@ function triggerBomb(brick) {
             const dist = Math.sqrt(Math.pow(b.x - brick.x, 2) + Math.pow(b.y - brick.y, 2));
             if (dist < radius) {
                 b.destroyed = true;
-                score += 10 * comboMultiplier;
-                spawnParticles(b.x + b.w/2, b.y + b.h/2, b.color, 5);
+                const earned = 10 * comboMultiplier;
+                score += earned;
+                scorePopups.push(new ScorePopup(b.x + b.w / 2, b.y + b.h / 2, `+${earned}`, b.color));
+                spawnParticles(b.x + b.w/2, b.y + b.h/2, b.color, 8);
             }
         }
     });
     spawnParticles(brick.x + brick.w/2, brick.y + brick.h/2, '#ffaa00', 30);
+    triggerScreenshake(14, 400);
+    addGridRipple(brick.x + brick.w / 2, brick.y + brick.h / 2, 30, 260);
 }
 
 function showCombo(count) {
@@ -567,16 +877,18 @@ function nextLevel() {
     gameState = 'transition';
     const transition = document.getElementById('stageTransition');
     const levelText = document.getElementById('trans-level-text');
-    const stars = document.getElementById('trans-stars');
+    const starsEl = document.getElementById('trans-stars');
     const mechanicDesc = document.getElementById('trans-mechanic-desc');
     
     levelText.textContent = `STAGE ${level-1} COMPLETE!`;
-    stars.textContent = lives >= 3 ? '⭐⭐⭐' : lives === 2 ? '⭐⭐' : '⭐';
+    starsEl.textContent = lives >= 3 ? '⭐⭐⭐' : lives === 2 ? '⭐⭐' : '⭐';
     
     const config = STAGE_CONFIG[level] || STAGE_CONFIG[10];
     mechanicDesc.textContent = config.desc || "Endless Madness Increasing!";
     
     transition.classList.remove('hidden');
+    scorePopups = [];
+    gridRipples = [];
     
     setTimeout(() => {
         transition.classList.add('hidden');
@@ -591,6 +903,7 @@ function nextLevel() {
 
 function endGame(state) {
     gameState = state;
+    if (window.audioFX) window.audioFX.stopMusic();
     if (score > highScore) {
         highScore = Math.floor(score);
         localStorage.setItem('brickBreakerBest', highScore);
@@ -610,10 +923,12 @@ function togglePause() {
     if (gameState === 'playing') {
         gameState = 'paused';
         pauseMenu.classList.remove('hidden');
+        if (window.audioFX) window.audioFX.stopMusic();
     } else if (gameState === 'paused') {
         gameState = 'playing';
         pauseMenu.classList.add('hidden');
         lastTime = performance.now();
+        if (window.audioFX) window.audioFX.startMusic();
     }
 }
 
@@ -637,13 +952,24 @@ function shareGame(platform) {
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 1. Draw grid background & twinkling stars
+    drawBackground();
 
+    // 2. Draw normal entities
     if (paddle) paddle.draw();
     if (bricks.length > 0) bricks.forEach(b => b.draw());
     if (balls.length > 0) balls.forEach(b => b.draw());
     if (powerUps.length > 0) powerUps.forEach(p => p.draw());
     if (particles.length > 0) particles.forEach(p => p.draw());
+    if (scorePopups.length > 0) scorePopups.forEach(sp => sp.draw());
+
+    // 3. Draw screen flash
+    if (screenFlashAlpha > 0) {
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${screenFlashAlpha})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    }
 }
 
 function loop(t) {
@@ -660,7 +986,17 @@ function loop(t) {
     if (gameState === 'playing') {
         update(deltaTime);
     }
+    
+    ctx.save();
+    if (shakeDuration > 0) {
+        const dx = (Math.random() - 0.5) * shakeIntensity;
+        const dy = (Math.random() - 0.5) * shakeIntensity;
+        ctx.translate(dx, dy);
+    }
+    
     draw();
+    
+    ctx.restore();
     requestAnimationFrame(loop);
 }
 
@@ -710,6 +1046,7 @@ btnQuit.addEventListener('click', () => {
     mainMenu.classList.remove('hidden');
     gameState = 'title';
     updateHUD();
+    if (window.audioFX) window.audioFX.stopMusic();
 });
 
 // Keyboard Shortcuts
