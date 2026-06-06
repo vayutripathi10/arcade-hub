@@ -43,6 +43,12 @@ let timeDilation = 1.0;
 let slowMoClearPending = false;
 let screenFlashAlpha = 0.0;
 
+// Action Revamp additions
+let boss = null;
+let bossProjectiles = [];
+let deflectors = [];
+let laserBullets = [];
+
 const COLORS = {
     primary: '#00f3ff',
     secondary: '#ff00de',
@@ -57,14 +63,14 @@ const COLORS = {
 const STAGE_CONFIG = {
     1:  { speed: 5, paddleW: 120, rows: 4, puFreq: 0.3,  desc: "Tutorial: Frequent Power-ups!" },
     2:  { speed: 5, paddleW: 120, rows: 4, puFreq: 0.3,  desc: "Keep it up!" },
-    3:  { speed: 5.7, paddleW: 100, rows: 5, puFreq: 0.15, desc: "Double-Hit Bricks added!", hasDouble: true },
-    4:  { speed: 5.7, paddleW: 100, rows: 5, puFreq: 0.15, desc: "Watch out for speed increase!", hasDouble: true },
-    5:  { speed: 6.5, paddleW: 85,  rows: 6, puFreq: 0.1,  desc: "Moving Bricks & Triple-Hits!", hasTriple: true, hasMoving: true },
-    6:  { speed: 6.5, paddleW: 85,  rows: 6, puFreq: 0.1,  desc: "Things are getting serious!", hasTriple: true, hasMoving: true },
-    7:  { speed: 7.5, paddleW: 70,  rows: 7, puFreq: 0.08, desc: "Shield & Ghost Bricks!", hasShield: true, hasGhost: true },
-    8:  { speed: 7.5, paddleW: 70,  rows: 7, puFreq: 0.08, desc: "Precision is key now!", hasShield: true, hasGhost: true },
-    9:  { speed: 8.5, paddleW: 60,  rows: 8, puFreq: 0.06, desc: "Bombs & Teleports!", hasBomb: true, hasTeleport: true },
-    10: { speed: 9.0, paddleW: 60,  rows: 8, puFreq: 0.06, desc: "Nightmare Mode!", hasAll: true }
+    3:  { speed: 5.7, paddleW: 100, rows: 5, puFreq: 0.2,  desc: "Double-Hit Bricks added!", hasDouble: true },
+    4:  { speed: 5.7, paddleW: 100, rows: 5, puFreq: 0.2,  desc: "Watch out for Cyber Deflectors!", hasDouble: true },
+    5:  { speed: 6.5, paddleW: 85,  rows: 0, puFreq: 0.0,  desc: "BOSS FIGHT: NEON SENTINEL!" },
+    6:  { speed: 6.5, paddleW: 85,  rows: 6, puFreq: 0.15, desc: "Moving Bricks & Triple-Hits!", hasTriple: true, hasMoving: true },
+    7:  { speed: 7.5, paddleW: 70,  rows: 7, puFreq: 0.15, desc: "Shield & Ghost Bricks!", hasShield: true, hasGhost: true },
+    8:  { speed: 7.5, paddleW: 70,  rows: 7, puFreq: 0.15, desc: "Triple Cyber Deflectors!", hasShield: true, hasGhost: true },
+    9:  { speed: 8.5, paddleW: 60,  rows: 8, puFreq: 0.12, desc: "Bombs & Teleports!", hasBomb: true, hasTeleport: true },
+    10: { speed: 9.0, paddleW: 60,  rows: 0, puFreq: 0.0,  desc: "FINAL BOSS: CYBER OVERLORD!" }
 };
 
 class Particle {
@@ -127,7 +133,7 @@ class PowerUp {
         this.y = y;
         this.w = 30;
         this.h = 30;
-        this.type = type; // expand, shrink, speedup, slowdown, multi, shield, bomb, life
+        this.type = type; // expand, shrink, speedup, slowdown, multi, shield, bomb, life, laser
         this.speed = 3;
         
         const config = {
@@ -138,7 +144,8 @@ class PowerUp {
             multi:    { color: '#ffffff', icon: '🎱' },
             shield:   { color: '#00ffff', icon: '🛡️' },
             bomb:     { color: '#ff5500', icon: '🔥' },
-            life:     { color: '#ff00de', icon: '❤️' }
+            life:     { color: '#ff00de', icon: '❤️' },
+            laser:    { color: '#ffff00', icon: '🔫' }
         };
         this.color = config[type].color;
         this.icon = config[type].icon;
@@ -161,6 +168,231 @@ class PowerUp {
         ctx.fillText(this.icon, this.x, this.y);
         ctx.restore();
     }
+}
+
+class LaserBullet {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.w = 4;
+        this.h = 16;
+        this.speed = 10;
+        this.color = COLORS.secondary;
+    }
+    update(deltaTime) {
+        this.y -= this.speed * deltaTime;
+    }
+    draw() {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fillRect(this.x - this.w / 2, this.y, this.w, this.h);
+        ctx.restore();
+    }
+}
+
+class BossProjectile {
+    constructor(x, y, vx, vy) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.radius = 6;
+        this.color = '#ff3366';
+    }
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+    }
+    draw() {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class Deflector {
+    constructor(x, y, w = 70, speed = 2) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = 14;
+        this.vx = speed;
+        this.color = COLORS.warning;
+    }
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        if (this.x < 15 || this.x + this.w > canvas.width - 15) {
+            this.vx *= -1;
+        }
+    }
+    draw() {
+        ctx.save();
+        ctx.strokeStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = 0.15;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.restore();
+    }
+}
+
+class Boss {
+    constructor(type, hp) {
+        this.type = type; // 'sentinel' or 'overlord'
+        this.x = canvas.width / 2;
+        this.y = 130;
+        this.w = type === 'sentinel' ? 120 : 160;
+        this.h = type === 'sentinel' ? 45 : 65;
+        this.vx = 2.0;
+        this.hp = hp;
+        this.maxHp = hp;
+        this.color = type === 'sentinel' ? COLORS.secondary : COLORS.accent;
+        this.shootTimer = 0;
+        
+        // Sentinel Orbital Shields
+        this.orbitAngle = 0;
+        this.shields = []; 
+        if (type === 'sentinel') {
+            this.shields = [true, true, true, true]; 
+        }
+    }
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        const limit = 40;
+        if (this.x - this.w / 2 < limit) {
+            this.x = limit + this.w / 2;
+            this.vx *= -1;
+        } else if (this.x + this.w / 2 > canvas.width - limit) {
+            this.x = canvas.width - limit - this.w / 2;
+            this.vx *= -1;
+        }
+
+        this.orbitAngle += 0.025 * deltaTime;
+
+        // Shoot Projectiles
+        this.shootTimer += deltaTime * 16.67;
+        const shootInterval = this.type === 'sentinel' ? 1600 : 1000;
+        if (this.shootTimer >= shootInterval) {
+            this.shootTimer = 0;
+            this.shootProjectiles();
+        }
+    }
+    shootProjectiles() {
+        if (gameState !== 'playing') return;
+        if (this.type === 'sentinel') {
+            bossProjectiles.push(new BossProjectile(this.x - 30, this.y + 10, 0, 4.5));
+            bossProjectiles.push(new BossProjectile(this.x + 30, this.y + 10, 0, 4.5));
+        } else {
+            // Overlord fires a 3-way spread targeting bottom
+            bossProjectiles.push(new BossProjectile(this.x, this.y + 20, -1.2, 5.0));
+            bossProjectiles.push(new BossProjectile(this.x, this.y + 20, 0, 5.0));
+            bossProjectiles.push(new BossProjectile(this.x, this.y + 20, 1.2, 5.0));
+        }
+    }
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3;
+        
+        // Draw main body
+        ctx.strokeRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = 0.15;
+        ctx.fillRect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
+        ctx.globalAlpha = 1.0;
+
+        // Draw core
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Sentinel Orbital Shields
+        if (this.type === 'sentinel') {
+            ctx.strokeStyle = COLORS.primary;
+            ctx.shadowColor = COLORS.primary;
+            ctx.lineWidth = 4;
+            const radius = 90;
+            for (let i = 0; i < 4; i++) {
+                if (this.shields[i]) {
+                    const angle = this.orbitAngle + (i * Math.PI / 2);
+                    const sx = this.x + Math.cos(angle) * radius;
+                    const sy = this.y + Math.sin(angle) * radius;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = COLORS.primary;
+                    ctx.globalAlpha = 0.2;
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                }
+            }
+        }
+        ctx.restore();
+        drawBossUI(this);
+    }
+    hit(damage) {
+        this.hp -= damage;
+        triggerScreenshake(6, 120);
+        addGridRipple(this.x, this.y, 15, 160);
+        spawnParticles(this.x, this.y, this.color, 12);
+        
+        if (this.hp <= 0) {
+            this.hp = 0;
+            triggerScreenshake(25, 600);
+            addGridRipple(this.x, this.y, 40, 300);
+            spawnParticles(this.x, this.y, this.color, 50);
+            if (window.audioFX) window.audioFX.playLevelUp();
+            
+            if (!slowMoClearPending) {
+                slowMoClearPending = true;
+                timeDilation = 0.15;
+                screenFlashAlpha = 1.0;
+                setTimeout(() => {
+                    slowMoClearPending = false;
+                    timeDilation = 1.0;
+                    nextLevel();
+                }, 1500);
+            }
+        }
+    }
+}
+
+function drawBossUI(boss) {
+    ctx.save();
+    const barW = 240;
+    const barH = 8;
+    const bx = (canvas.width - barW) / 2;
+    const by = 90;
+    
+    // Border
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, barW, barH);
+    
+    // Fill
+    const ratio = boss.hp / boss.maxHp;
+    ctx.fillStyle = boss.color;
+    ctx.fillRect(bx + 1, by + 1, (barW - 2) * ratio, barH - 2);
+
+    // Label
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 9px var(--font-arcade)';
+    ctx.textAlign = 'center';
+    ctx.fillText(boss.type === 'sentinel' ? 'NEON SENTINEL' : 'CYBER OVERLORD', canvas.width / 2, by - 8);
+    ctx.restore();
 }
 
 class Brick {
@@ -231,12 +463,26 @@ class Ball {
         this.color = '#fff';
         this.tempMulti = 1;
         this.trail = [];
+        this.spin = 0;
     }
     update(deltaTime) {
         const s = this.speed * this.tempMulti;
+        
+        // Apply spin curve physics
+        this.dx += this.spin * deltaTime;
+        this.spin *= Math.pow(0.96, deltaTime);
+
         const mag = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
         this.dx = (this.dx / mag) * s;
         this.dy = (this.dy / mag) * s;
+
+        // Clamp dy so it doesn't get completely horizontal
+        if (Math.abs(this.dy) < s * 0.2) {
+            this.dy = (this.dy < 0 ? -1 : 1) * s * 0.2;
+            const newMag = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+            this.dx = (this.dx / newMag) * s;
+            this.dy = (this.dy / newMag) * s;
+        }
 
         // Save trail position
         this.trail.push({x: this.x, y: this.y});
@@ -308,7 +554,9 @@ class Paddle {
         this.h = 12;
         this.x = (canvas.width - this.w) / 2;
         const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        this.y = canvas.height - (isMobile ? 70 : 40);
+        
+        // Lifted the paddle bar higher up (100px desktop, 130px mobile) to keep gameplay fast-paced
+        this.y = canvas.height - (isMobile ? 130 : 100);
         this.targetX = this.x;
         this.color = COLORS.primary;
         this.timer = 0;
@@ -319,11 +567,23 @@ class Paddle {
         this.stretchX = 1.0;
         this.squashYVelocity = 0;
         this.stretchXVelocity = 0;
+
+        // Laser cannons
+        this.hasLasers = false;
+        this.laserTimer = 0;
+
+        // Speed tracker for curve physics
+        this.prevX = this.x;
+        this.vx = 0;
     }
     update(deltaTime) {
+        // Calculate velocity
         this.x += (this.targetX - (this.x + this.w / 2)) * 0.2 * deltaTime;
         if (this.x < 0) this.x = 0;
         if (this.x + this.w > canvas.width) this.x = canvas.width - this.w;
+
+        this.vx = (this.x - this.prevX) / (deltaTime || 1);
+        this.prevX = this.x;
 
         if (this.timer > 0) {
             this.timer -= deltaTime;
@@ -334,6 +594,14 @@ class Paddle {
                     b.tempMulti = 1;
                     b.fireball = false;
                 });
+            }
+        }
+
+        if (this.laserTimer > 0) {
+            this.laserTimer -= deltaTime;
+            if (this.laserTimer <= 0) {
+                this.laserTimer = 0;
+                this.hasLasers = false;
             }
         }
 
@@ -358,6 +626,17 @@ class Paddle {
         ctx.shadowColor = this.color;
         ctx.fillStyle = this.color;
         
+        // Draw dual guns if hasLasers is active
+        if (this.hasLasers) {
+            ctx.save();
+            ctx.fillStyle = COLORS.secondary;
+            ctx.shadowColor = COLORS.secondary;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(this.x + 4, this.y - 7, 6, 9);
+            ctx.fillRect(this.x + this.w - 10, this.y - 7, 6, 9);
+            ctx.restore();
+        }
+
         // Center of the paddle
         const centerX = this.x + this.w / 2;
         const centerY = this.y + this.h / 2;
@@ -516,6 +795,23 @@ function triggerScreenshake(intensity, duration) {
 
 function initLevel(lvl) {
     bricks = [];
+    boss = null;
+    bossProjectiles = [];
+    deflectors = [];
+    laserBullets = [];
+
+    // Spawning bosses on Wave 5 & 10
+    if (lvl === 5) {
+        boss = new Boss('sentinel', 60);
+        updateColors(lvl);
+        return;
+    }
+    if (lvl === 10) {
+        boss = new Boss('overlord', 150);
+        updateColors(lvl);
+        return;
+    }
+
     const config = STAGE_CONFIG[lvl] || STAGE_CONFIG[10];
     const rows = config.rows;
     const cols = Math.floor(canvas.width / 60);
@@ -543,14 +839,23 @@ function initLevel(lvl) {
             else if (config.hasGhost && Math.random() < 0.1) type = 'ghost';
             else if (config.hasBomb && Math.random() < 0.05) type = 'bomb';
             else if (config.hasTeleport && Math.random() < 0.05) type = 'teleport';
-            else if (config.hasAll) {
-                const types = ['moving', 'shield', 'ghost', 'bomb', 'teleport'];
-                if (Math.random() < 0.2) type = types[Math.floor(Math.random() * types.length)];
-            }
 
             const color = palette[r % palette.length];
             bricks.push(new Brick(c * brickW, r * brickH + 120, brickW, brickH, color, life, type));
         }
+    }
+
+    // Spawn Mid-Field Bumpers/Deflectors
+    if (lvl === 4) {
+        deflectors.push(new Deflector(80, 240, 70, 2));
+        deflectors.push(new Deflector(280, 280, 70, -2));
+    } else if (lvl === 6) {
+        deflectors.push(new Deflector(40, 240, 80, 2.5));
+        deflectors.push(new Deflector(240, 290, 80, -2.5));
+    } else if (lvl === 8) {
+        deflectors.push(new Deflector(50, 210, 60, 3));
+        deflectors.push(new Deflector(150, 250, 60, -3));
+        deflectors.push(new Deflector(250, 290, 60, 3));
     }
 }
 
@@ -583,6 +888,10 @@ function startGame() {
     particles = [];
     scorePopups = [];
     gridRipples = [];
+    laserBullets = [];
+    bossProjectiles = [];
+    deflectors = [];
+    boss = null;
     initStars();
     initLevel(level);
     
@@ -627,6 +936,25 @@ canvas.addEventListener('touchmove', e => {
     handleInput(e.touches[0].clientX);
 }, { passive: false });
 
+function fireLasers() {
+    if (gameState === 'playing' && paddle && paddle.hasLasers) {
+        laserBullets.push(new LaserBullet(paddle.x + 10, paddle.y));
+        laserBullets.push(new LaserBullet(paddle.x + paddle.w - 10, paddle.y));
+        if (window.audioFX) window.audioFX.playShoot();
+        triggerScreenshake(3, 70);
+        addGridRipple(paddle.x + paddle.w/2, paddle.y, 8, 100);
+    }
+}
+
+canvas.addEventListener('click', e => {
+    fireLasers();
+});
+canvas.addEventListener('touchstart', e => {
+    if (gameState === 'playing') {
+        fireLasers();
+    }
+});
+
 function update(deltaTime) {
     if (gameState !== 'playing') return;
 
@@ -665,6 +993,125 @@ function update(deltaTime) {
         }
     }
 
+    // Update boss & boss projectiles
+    if (boss) {
+        boss.update(gameDelta);
+        
+        // Update boss projectiles
+        for (let i = bossProjectiles.length - 1; i >= 0; i--) {
+            const proj = bossProjectiles[i];
+            proj.update(gameDelta);
+            
+            // Collision with paddle
+            if (proj.y + proj.radius > paddle.y && proj.y - proj.radius < paddle.y + paddle.h &&
+                proj.x + proj.radius > paddle.x && proj.x - proj.radius < paddle.x + paddle.w) {
+                
+                bossProjectiles.splice(i, 1);
+                
+                if (paddle.hasShield) {
+                    paddle.hasShield = false;
+                } else {
+                    lives--;
+                    updateHUD();
+                    triggerScreenshake(15, 350);
+                    addGridRipple(paddle.x + paddle.w/2, paddle.y, 25, 200);
+                    spawnParticles(proj.x, proj.y, '#ff3366', 20);
+                    if (lives <= 0) {
+                        endGame('gameover');
+                        return;
+                    } else {
+                        // Glitch shrink paddle
+                        paddle.w = Math.max(45, paddle.w - 30);
+                        paddle.timer = 180; // shrink for 3s
+                    }
+                }
+            } else if (proj.y > canvas.height) {
+                bossProjectiles.splice(i, 1);
+            }
+        }
+    }
+
+    // Update laser bullets
+    for (let i = laserBullets.length - 1; i >= 0; i--) {
+        const bullet = laserBullets[i];
+        bullet.update(gameDelta);
+        
+        let bulletHit = false;
+        
+        if (boss) {
+            // Hit boss
+            if (bullet.x > boss.x - boss.w/2 && bullet.x < boss.x + boss.w/2 &&
+                bullet.y > boss.y - boss.h/2 && bullet.y < boss.y + boss.h/2) {
+                boss.hit(1.2);
+                bulletHit = true;
+            }
+            
+            // Hit sentinel shields
+            if (!bulletHit && boss.type === 'sentinel') {
+                const radius = 90;
+                for (let k = 0; k < 4; k++) {
+                    if (boss.shields[k]) {
+                        const angle = boss.orbitAngle + (k * Math.PI / 2);
+                        const sx = boss.x + Math.cos(angle) * radius;
+                        const sy = boss.y + Math.sin(angle) * radius;
+                        const dist = Math.sqrt(Math.pow(bullet.x - sx, 2) + Math.pow(bullet.y - sy, 2));
+                        if (dist < 18) {
+                            boss.shields[k] = false;
+                            bulletHit = true;
+                            if (window.audioFX) window.audioFX.playHit();
+                            triggerScreenshake(3, 80);
+                            addGridRipple(sx, sy, 10, 120);
+                            spawnParticles(sx, sy, COLORS.primary, 8);
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Hit bricks
+            for (let j = bricks.length - 1; j >= 0; j--) {
+                const brick = bricks[j];
+                if (brick.destroyed || brick.type === 'shield') continue;
+                if (bullet.x > brick.x && bullet.x < brick.x + brick.w &&
+                    bullet.y > brick.y && bullet.y < brick.y + brick.h) {
+                    
+                    brick.life--;
+                    bulletHit = true;
+                    addGridRipple(bullet.x, bullet.y, 8, 110);
+                    triggerScreenshake(2, 60);
+
+                    if (brick.life <= 0) {
+                        brick.destroyed = true;
+                        comboStreak++;
+                        comboTimer = 2000;
+                        if (comboStreak >= 20) { comboMultiplier = 3; showCombo(20); }
+                        else if (comboStreak >= 10) { comboMultiplier = 2; showCombo(10); }
+                        else if (comboStreak >= 5) { showCombo(5); }
+                        
+                        const earned = 10 * comboMultiplier;
+                        score += earned;
+                        scorePopups.push(new ScorePopup(brick.x + brick.w/2, brick.y + brick.h/2, `+${earned}`, brick.color));
+                        spawnParticles(brick.x + brick.w/2, brick.y + brick.h/2, brick.color);
+                        
+                        if (brick.type === 'bomb') triggerBomb(brick);
+                    }
+                    if (window.audioFX) window.audioFX.playHit();
+                    updateHUD();
+                    break;
+                }
+            }
+        }
+        
+        if (bulletHit || bullet.y < 0) {
+            laserBullets.splice(i, 1);
+        }
+    }
+
+    // Update mid-field deflectors & check ball collision
+    deflectors.forEach(def => {
+        def.update(gameDelta);
+    });
+
     for (let i = balls.length - 1; i >= 0; i--) {
         const ball = balls[i];
         ball.update(gameDelta);
@@ -685,6 +1132,70 @@ function update(deltaTime) {
             paddle.stretchX = 1.4;
             addGridRipple(ball.x, paddle.y, 14, 160);
             triggerScreenshake(4, 100);
+
+            // Set ball spin curve based on paddle horizontal velocity
+            ball.spin = paddle.vx * 0.35;
+
+            // Speed scaling on hits (up to 1.6x)
+            ball.speed = Math.min(ball.baseSpeed * 1.6, ball.speed + 0.3);
+        }
+
+        // Deflector Collision
+        deflectors.forEach(def => {
+            if (ball.x + ball.radius > def.x && ball.x - ball.radius < def.x + def.w &&
+                ball.y + ball.radius > def.y && ball.y - ball.radius < def.y + def.h) {
+                
+                // Bounce ball
+                const overlapX = Math.min(ball.x + ball.radius - def.x, (def.x + def.w) - (ball.x - ball.radius));
+                const overlapY = Math.min(ball.y + ball.radius - def.y, (def.y + def.h) - (ball.y - ball.radius));
+                if (overlapX < overlapY) ball.dx *= -1;
+                else ball.dy *= -1;
+                
+                if (window.audioFX) window.audioFX.playHit();
+                addGridRipple(ball.x, ball.y, 10, 130);
+                triggerScreenshake(3, 70);
+            }
+        });
+
+        // Boss Collision
+        if (boss) {
+            if (ball.x + ball.radius > boss.x - boss.w/2 && ball.x - ball.radius < boss.x + boss.w/2 &&
+                ball.y + ball.radius > boss.y - boss.h/2 && ball.y - ball.radius < boss.y + boss.h/2) {
+                
+                if (!ball.fireball) {
+                    const overlapX = Math.min(ball.x + ball.radius - (boss.x - boss.w/2), (boss.x + boss.w/2) - (ball.x - ball.radius));
+                    const overlapY = Math.min(ball.y + ball.radius - (boss.y - boss.h/2), (boss.y + boss.h/2) - (ball.y - ball.radius));
+                    if (overlapX < overlapY) ball.dx *= -1;
+                    else ball.dy *= -1;
+                } else {
+                    ball.dy *= -1;
+                }
+                
+                boss.hit(ball.fireball ? 3.0 : 1.0);
+            }
+            
+            // Boss orbital shields collision
+            if (boss.type === 'sentinel') {
+                const radius = 90;
+                for (let k = 0; k < 4; k++) {
+                    if (boss.shields[k]) {
+                        const angle = boss.orbitAngle + (k * Math.PI / 2);
+                        const sx = boss.x + Math.cos(angle) * radius;
+                        const sy = boss.y + Math.sin(angle) * radius;
+                        const dist = Math.sqrt(Math.pow(ball.x - sx, 2) + Math.pow(ball.y - sy, 2));
+                        if (dist < ball.radius + 12) {
+                            ball.dy *= -1;
+                            ball.dx += (Math.random() - 0.5) * 4;
+                            
+                            boss.shields[k] = false;
+                            if (window.audioFX) window.audioFX.playHit();
+                            triggerScreenshake(4, 100);
+                            addGridRipple(sx, sy, 12, 140);
+                            spawnParticles(sx, sy, COLORS.primary, 8);
+                        }
+                    }
+                }
+            }
         }
 
         // Brick Collision
@@ -733,7 +1244,7 @@ function update(deltaTime) {
 
                     const config = STAGE_CONFIG[level] || STAGE_CONFIG[10];
                     if (Math.random() < (config.puFreq || 0.15)) {
-                        const types = ['expand', 'shrink', 'speedup', 'slowdown', 'multi', 'shield', 'bomb', 'life'];
+                        const types = ['expand', 'shrink', 'speedup', 'slowdown', 'multi', 'shield', 'bomb', 'life', 'laser'];
                         powerUps.push(new PowerUp(brick.x + brick.w / 2, brick.y + brick.h / 2, types[Math.floor(Math.random() * types.length)]));
                     }
                 }
@@ -791,7 +1302,8 @@ function update(deltaTime) {
     }
 
     // Level Clear with time dilation
-    if (bricks.every(b => b.destroyed || b.type === 'shield')) {
+    const isLevelFinished = boss ? (boss.hp <= 0) : bricks.every(b => b.destroyed || b.type === 'shield');
+    if (isLevelFinished) {
         if (!slowMoClearPending) {
             slowMoClearPending = true;
             timeDilation = 0.15;
@@ -806,7 +1318,7 @@ function update(deltaTime) {
         }
     }
 
-    // Particles (Update at full speed for visual liquidity)
+    // Particles (Update at full speed)
     for (let i = particles.length - 1; i >= 0; i--) {
         particles[i].update(deltaTime);
         if (particles[i].life <= 0) particles.splice(i, 1);
@@ -819,7 +1331,11 @@ function update(deltaTime) {
     }
 
     // Dynamic music BPM acceleration
-    if (bricks.length > 0) {
+    if (boss) {
+        if (window.audioFX) {
+            window.audioFX.setBpm(boss.type === 'sentinel' ? 140 : 165);
+        }
+    } else if (bricks.length > 0) {
         const totalActive = bricks.filter(b => !b.destroyed && b.type !== 'shield').length;
         const fraction = totalActive / Math.max(1, bricks.length);
         if (window.audioFX) {
@@ -829,6 +1345,9 @@ function update(deltaTime) {
 }
 
 function applyPowerUp(type) {
+    // Show notification popup for collected powerups
+    scorePopups.push(new ScorePopup(paddle.x + paddle.w/2, paddle.y - 30, type.toUpperCase(), COLORS.success));
+
     switch(type) {
         case 'expand':   paddle.w = paddle.baseW + 50; paddle.timer = 480; break;
         case 'shrink':   paddle.w = Math.max(40, paddle.baseW - 30); paddle.timer = 360; break;
@@ -839,10 +1358,14 @@ function applyPowerUp(type) {
         case 'shield':   paddle.hasShield = true; break;
         case 'bomb':     
             balls.forEach(b => b.fireball = true);
-            paddle.timer = 300; // 5 seconds of fireball!
+            paddle.timer = 300; 
             spawnParticles(paddle.x + paddle.w/2, paddle.y + paddle.h/2, '#ff5500', 40);
             break;
         case 'life':     lives++; updateHUD(); break;
+        case 'laser':    
+            paddle.hasLasers = true; 
+            paddle.laserTimer = 360; // 6 seconds of laser guns
+            break;
     }
 }
 
@@ -889,6 +1412,9 @@ function nextLevel() {
     transition.classList.remove('hidden');
     scorePopups = [];
     gridRipples = [];
+    bossProjectiles = [];
+    laserBullets = [];
+    boss = null;
     
     setTimeout(() => {
         transition.classList.add('hidden');
@@ -955,15 +1481,23 @@ function draw() {
     // 1. Draw grid background & twinkling stars
     drawBackground();
 
-    // 2. Draw normal entities
+    // 2. Draw moving deflectors
+    if (deflectors.length > 0) deflectors.forEach(def => def.draw());
+
+    // 3. Draw boss if active
+    if (boss) boss.draw();
+
+    // 4. Draw normal entities
     if (paddle) paddle.draw();
     if (bricks.length > 0) bricks.forEach(b => b.draw());
     if (balls.length > 0) balls.forEach(b => b.draw());
     if (powerUps.length > 0) powerUps.forEach(p => p.draw());
+    if (laserBullets.length > 0) laserBullets.forEach(lb => lb.draw());
+    if (bossProjectiles.length > 0) bossProjectiles.forEach(bp => bp.draw());
     if (particles.length > 0) particles.forEach(p => p.draw());
     if (scorePopups.length > 0) scorePopups.forEach(sp => sp.draw());
 
-    // 3. Draw screen flash
+    // 5. Draw screen flash
     if (screenFlashAlpha > 0) {
         ctx.save();
         ctx.fillStyle = `rgba(255, 255, 255, ${screenFlashAlpha})`;
@@ -1007,7 +1541,7 @@ function resize() {
     canvas.height = rect.height;
     if (paddle) {
         const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-        paddle.y = canvas.height - (isMobile ? 70 : 40);
+        paddle.y = canvas.height - (isMobile ? 130 : 100);
     }
 }
 
@@ -1054,4 +1588,8 @@ window.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'p') togglePause();
     if (e.key.toLowerCase() === 'm') toggleMute();
     if (e.key === 'Escape' && gameState === 'playing') togglePause();
+    if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        fireLasers();
+    }
 });
