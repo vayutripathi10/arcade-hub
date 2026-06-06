@@ -1581,6 +1581,14 @@ document.getElementById('btn-restart-go').addEventListener('click', () => {
     startGame();
 });
 
+document.getElementById('btn-home-go').addEventListener('click', () => {
+    gameOverMenu.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+    gameState = 'title';
+    updateHUD();
+    if (window.audioFX) window.audioFX.stopMusic();
+});
+
 document.getElementById('btn-howtoplay-go').addEventListener('click', () => {
     howToPlayModal.classList.remove('hidden');
 });
