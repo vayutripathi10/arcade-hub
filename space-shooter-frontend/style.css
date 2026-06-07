@@ -200,6 +200,32 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 255, 204, 0.5);
 }
+.btn.btn-hub {
+    display: block;
+    width: 100%;
+    max-width: 260px;
+    margin: 12px auto;
+    padding: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: 1px solid rgba(0, 255, 204, 0.4);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(0, 255, 204, 0.05);
+    color: var(--accent-color);
+    box-shadow: 0 4px 15px rgba(0, 255, 204, 0.1);
+}
+.btn.btn-hub:hover {
+    transform: translateY(-2px);
+    background: rgba(0, 255, 204, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 255, 204, 0.3);
+}
+.btn.btn-hub.hidden {
+    display: none;
+}
 
 .share-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
 .share-container.hidden { display: none; }

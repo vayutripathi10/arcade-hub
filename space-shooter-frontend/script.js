@@ -12,6 +12,7 @@ const pauseMenu = document.getElementById('pauseMenu');
 const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
+const hubBtn = document.getElementById('hubBtn');
 
 // --- Spaceship Sprite & Chroma Key Transparentizer ---
 const spaceshipSprite = new Image();
@@ -156,8 +157,8 @@ function getFaceAverageZ(face, vertices, rotX, rotY, rotZ) {
 
 class Player {
     constructor() {
-        this.width = 40;
-        this.height = 40;
+        this.width = 48;
+        this.height = 48;
         this.reset();
         this.color = '#00ffcc';
         this.shootCooldown = 280;
@@ -715,8 +716,8 @@ class Boss {
             }
         } else if (this.laserActive) {
             // Collision with player
-            const py = player.y + 20;
-            const px = player.x + 20;
+            const py = player.y + player.height / 2;
+            const px = player.x + player.width / 2;
             
             if (py > this.y + 30) {
                 if (this.laserType === 'double') {
@@ -832,8 +833,8 @@ class Boss {
             } else if (this.attackType === 'omega') {
                 if (this.phase === 1) {
                     // Aimed 3-way burst
-                    const dx = player.x + 20 - this.x;
-                    const dy = player.y + 20 - this.y;
+                    const dx = player.x + player.width / 2 - this.x;
+                    const dy = player.y + player.height / 2 - this.y;
                     const dist = Math.sqrt(dx*dx + dy*dy);
                     if (dist > 10) {
                         const vx = (dx/dist) * 6;
@@ -871,8 +872,8 @@ class Boss {
     }
 
     fireAtPlayer(speed) {
-        const dx = player.x + 20 - this.x;
-        const dy = player.y + 20 - this.y;
+        const dx = player.x + player.width / 2 - this.x;
+        const dy = player.y + player.height / 2 - this.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
         if (dist > 10) {
             bossBullets.push(new BossBullet(this.x, this.y + 40, (dx/dist) * speed, (dy/dist) * speed, this.color));
@@ -1980,8 +1981,8 @@ function update(deltaTime) {
         }
 
         // Boss bullet hit player
-        const dx = b.x - (player.x + 20);
-        const dy = b.y - (player.y + 20);
+        const dx = b.x - (player.x + player.width / 2);
+        const dy = b.y - (player.y + player.height / 2);
         if (Math.sqrt(dx*dx + dy*dy) < 20) {
             bossBullets.splice(i, 1);
             handleCollision(b, i, 'bullet');
@@ -2003,8 +2004,8 @@ function update(deltaTime) {
     if (bossState === 'active' && boss) {
         boss.update(deltaTime);
         boss.segments.forEach(seg => {
-            const dx = seg.x - (player.x + 20);
-            const dy = seg.y - (player.y + 20);
+            const dx = seg.x - (player.x + player.width / 2);
+            const dy = seg.y - (player.y + player.height / 2);
             if (Math.sqrt(dx*dx + dy*dy) < 35 * boss.scale) {
                 handleCollision(seg, 0, 'boss');
             }
@@ -2046,7 +2047,7 @@ function update(deltaTime) {
         if (a.y > canvas.height + 50) asteroids.splice(i, 1);
 
         // Player hit asteroid
-        const dist = Math.sqrt((player.x + 20 - a.x)**2 + (player.y + 20 - a.y)**2);
+        const dist = Math.sqrt((player.x + player.width / 2 - a.x)**2 + (player.y + player.height / 2 - a.y)**2);
         if (dist < a.radius + 15) {
             handleCollision(a, i, 'asteroid');
         }
@@ -2098,8 +2099,8 @@ function handleCollision(entity, index, type) {
         player.shield = false;
         player.invulnerable = true;
         player.invulnTimer = 60;
-        createExplosion(player.x + 20, player.y + 20, '#00ffff');
-        addGridRipple(player.x + 20, player.y + 20, 16, 120, 4);
+        createExplosion(player.x + player.width / 2, player.y + player.height / 2, '#00ffff');
+        addGridRipple(player.x + player.width / 2, player.y + player.height / 2, 16, 120, 4);
         playExplosionSound('heavy');
         if (type === 'enemy') enemies.splice(index, 1);
         else if (type === 'asteroid') asteroids.splice(index, 1);
@@ -2110,8 +2111,8 @@ function handleCollision(entity, index, type) {
     player.weaponTier = Math.max(player.minWeaponTier, player.weaponTier - 1); // Degrade firepower by 1 tier on hit!
     player.invulnerable = true;
     player.invulnTimer = 90; // 1.5s safety window
-    createExplosion(player.x + 20, player.y + 20, '#ff0000');
-    addGridRipple(player.x + 20, player.y + 20, 22, 160, 4.5);
+    createExplosion(player.x + player.width / 2, player.y + player.height / 2, '#ff0000');
+    addGridRipple(player.x + player.width / 2, player.y + player.height / 2, 22, 160, 4.5);
     playExplosionSound('heavy');
     
     // Trigger impact red flash overlay
@@ -2270,6 +2271,7 @@ function startGame() {
     initStars();
     
     overlay.classList.add('hidden');
+    hubBtn?.classList.add('hidden');
     isPaused = false;
     pauseBtn?.classList.remove('hidden');
     
@@ -2306,6 +2308,7 @@ function gameOver() {
     overlayMessage.textContent = `Final Score: ${score}`;
     overlay.classList.remove('hidden');
     document.getElementById('shareContainer').classList.remove('hidden');
+    hubBtn?.classList.remove('hidden');
     startBtn.textContent = "Retry Mission";
 }
 
@@ -2339,6 +2342,13 @@ try { resizeCanvas(); } catch(e) {}
 
 startBtn.addEventListener('click', startGame);
 
+hubBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (window.top && window.top.location) {
+        window.top.location.href = '../index.html';
+    }
+});
+
 pauseBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     togglePause();
@@ -2361,6 +2371,7 @@ btnQuit?.addEventListener('click', (e) => {
     overlayMessage.textContent = "Fly through the cosmos. Eliminate all hostiles.";
     startBtn.textContent = "Launch Mission";
     document.getElementById('shareContainer')?.classList.add('hidden');
+    hubBtn?.classList.add('hidden');
     overlay.classList.remove('hidden');
     pauseBtn?.classList.add('hidden');
     
