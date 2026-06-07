@@ -70,6 +70,12 @@ def test_space_shooter():
         import traceback
         print(f"Test failed: {e}")
         traceback.print_exc()
+        try:
+            print("Browser console logs:")
+            for entry in driver.get_log('browser'):
+                print(entry)
+        except Exception as log_err:
+            print(f"Could not retrieve browser logs: {log_err}")
         raise e
     finally:
         driver.quit()

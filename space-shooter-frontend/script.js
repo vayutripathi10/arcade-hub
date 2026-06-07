@@ -13,6 +13,45 @@ const btnResume = document.getElementById('btn-resume');
 const btnQuit = document.getElementById('btn-quit');
 const btnMute = document.getElementById('btn-mute');
 
+// --- Spaceship Sprite & Chroma Key Transparentizer ---
+const spaceshipSprite = new Image();
+spaceshipSprite.src = 'player_ship.png';
+let spaceshipCanvas = null; // Cached transparent canvas version
+
+function processSpaceshipSprite() {
+    if (!spaceshipSprite.complete) return;
+    try {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = spaceshipSprite.width;
+        tempCanvas.height = spaceshipSprite.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(spaceshipSprite, 0, 0);
+        
+        const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+        const data = imgData.data;
+        
+        // Remove black background (colors close to black)
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i+1];
+            const b = data[i+2];
+            // If color is very dark (r, g, b all below 15)
+            if (r < 15 && g < 15 && b < 15) {
+                data[i+3] = 0; // Transparent
+            }
+        }
+        tempCtx.putImageData(imgData, 0, 0);
+        spaceshipCanvas = tempCanvas;
+    } catch (e) {
+        console.warn("Failed to transparentize spaceship sprite, falling back to raw image:", e);
+        spaceshipCanvas = spaceshipSprite;
+    }
+}
+spaceshipSprite.onload = processSpaceshipSprite;
+if (spaceshipSprite.complete) {
+    processSpaceshipSprite();
+}
+
 // Game State
 const SafeStorage = {
     getItem: (key) => {
@@ -131,10 +170,11 @@ class Player {
         this.invulnTimer = 0;
         
         // Juice properties
+        this.minWeaponTier = 1; // Unlocked permanently by boss progression
         this.weaponTier = 1;
         this.trail = [];
 
-        // 3D Model definition
+        // 3D Model definition (fallback when image is not loaded)
         this.vertices = [
             { x: 0, y: 0, z: 25 },    // 0: Nose (front tip)
             { x: 0, y: 5, z: 5 },     // 1: Cockpit top
@@ -146,18 +186,9 @@ class Player {
             { x: 6, y: -3, z: -20 }    // 7: Right engine corner
         ];
         this.faces = [
-            [0, 1, 2], // Cockpit-left-wing upper
-            [0, 3, 1], // Cockpit-right-wing upper
-            [0, 2, 4], // Bottom nose-left-wing lower
-            [0, 4, 3], // Bottom nose-right-wing lower
-            [1, 5, 2], // Left wing to fin upper
-            [3, 5, 1], // Right wing to fin upper
-            [2, 6, 4], // Left wing to bottom center lower
-            [4, 7, 3], // Right wing to bottom center lower
-            [5, 6, 2], // Left engine outer
-            [5, 3, 7], // Right engine outer
-            [6, 7, 5], // Engine block to fin back
-            [4, 6, 7]  // Bottom engine block back
+            [0, 1, 2], [0, 3, 1], [0, 2, 4], [0, 4, 3],
+            [1, 5, 2], [3, 5, 1], [2, 6, 4], [4, 7, 3],
+            [5, 6, 2], [5, 3, 7], [6, 7, 5], [4, 6, 7]
         ];
         this.rotY = 0;
         this.roll = 0;
@@ -172,6 +203,7 @@ class Player {
         this.speed = 6;
         this.roll = 0;
         this.pitch = 0.2;
+        this.weaponTier = this.minWeaponTier || 1;
     }
 
     update(deltaTime) {
@@ -232,7 +264,7 @@ class Player {
             this.speedBoostTimer -= deltaTime;
             if (this.speedBoostTimer <= 0) {
                 this.speedBoost = false;
-                this.weaponTier = Math.max(1, this.weaponTier - 1);
+                this.weaponTier = Math.max(this.minWeaponTier, this.weaponTier - 1);
             }
         }
 
@@ -244,7 +276,7 @@ class Player {
     }
 
     shoot() {
-        const bulletColor = this.weaponTier === 4 ? '#ff00ff' : (this.weaponTier === 3 ? '#ffcc00' : (this.weaponTier === 2 ? '#00ff66' : '#00ffcc'));
+        const bulletColor = this.weaponTier >= 5 ? '#ff0055' : (this.weaponTier === 4 ? '#ff00ff' : (this.weaponTier === 3 ? '#ffcc00' : (this.weaponTier === 2 ? '#00ff66' : '#00ffcc')));
         
         if (this.weaponTier === 1) {
             bullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -12, bulletColor));
@@ -255,14 +287,28 @@ class Player {
             bullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -12, bulletColor));
             bullets.push(new Bullet(this.x + 4, this.y, -2.5, -11.5, bulletColor));
             bullets.push(new Bullet(this.x + this.width - 4, this.y, 2.5, -11.5, bulletColor));
-        } else { // Tier 4 (Mega)
+        } else if (this.weaponTier === 4) {
             bullets.push(new Bullet(this.x + this.width / 2 - 8, this.y, 0, -12, bulletColor));
             bullets.push(new Bullet(this.x + this.width / 2 + 8, this.y, 0, -12, bulletColor));
-            bullets.push(new Bullet(this.x, this.y, -3.5, -11, bulletColor));
-            bullets.push(new Bullet(this.x + this.width, this.y, 3.5, -11, bulletColor));
-            
-            // Add a tracking plasma ball or center heavy blast
-            bullets.push(new Bullet(this.x + this.width / 2, this.y - 10, 0, -14, '#ffffff'));
+            bullets.push(new Bullet(this.x, this.y, -2.5, -11.5, bulletColor, true)); // Homing
+            bullets.push(new Bullet(this.x + this.width, this.y, 2.5, -11.5, bulletColor, true)); // Homing
+        } else if (this.weaponTier === 5) {
+            // 5-way spread + dual homing
+            bullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -12.5, bulletColor));
+            bullets.push(new Bullet(this.x + 6, this.y, -2.5, -12, bulletColor));
+            bullets.push(new Bullet(this.x + this.width - 6, this.y, 2.5, -12, bulletColor));
+            bullets.push(new Bullet(this.x - 4, this.y, -4.5, -11, bulletColor, true)); // Homing
+            bullets.push(new Bullet(this.x + this.width + 4, this.y, 4.5, -11, bulletColor, true)); // Homing
+        } else { // Tier 6 (Hyper)
+            // 6 main bullets + 2 automated wingtip missiles!
+            bullets.push(new Bullet(this.x + this.width / 2 - 10, this.y, 0, -13, '#ffffff'));
+            bullets.push(new Bullet(this.x + this.width / 2 + 10, this.y, 0, -13, '#ffffff'));
+            bullets.push(new Bullet(this.x + 6, this.y, -3.0, -12.5, bulletColor));
+            bullets.push(new Bullet(this.x + this.width - 6, this.y, 3.0, -12.5, bulletColor));
+            bullets.push(new Bullet(this.x - 4, this.y, -5.5, -11.5, bulletColor, true)); // Homing
+            bullets.push(new Bullet(this.x + this.width + 4, this.y, 5.5, -11.5, bulletColor, true)); // Homing
+            bullets.push(new Bullet(this.x - 12, this.y, -8.0, -11.0, '#ffffff', true)); // Homing
+            bullets.push(new Bullet(this.x + this.width + 12, this.y, 8.0, -11.0, '#ffffff', true)); // Homing
         }
 
         if (typeof playLaserSound === 'function') {
@@ -286,70 +332,90 @@ class Player {
         const offsetX = this.x + this.width / 2;
         const offsetY = this.y + this.height / 2;
 
-        // Draw trailing motion ghost ships in 3D wireframe
+        // Draw trailing motion ghost ships in 3D wireframe or image trails
         if (this.speedBoost || this.invulnerable) {
             this.trail.forEach((t, index) => {
                 const ratio = (index + 1) / this.trail.length; // 0 to 1
                 ctx.save();
                 ctx.globalAlpha = ratio * 0.22;
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 1;
                 ctx.shadowBlur = 4;
                 ctx.shadowColor = this.color;
                 
                 const ghostX = t.x + this.width / 2;
                 const ghostY = t.y + this.height / 2;
-                const projected = this.vertices.map(v => 
-                    project3D(v, t.pitch, 0, t.roll, 1.1, ghostX, ghostY)
-                );
-                
-                this.faces.forEach(face => {
-                    ctx.beginPath();
-                    face.forEach((idx, i) => {
-                        const p = projected[idx];
-                        if (i === 0) ctx.moveTo(p.x, p.y);
-                        else ctx.lineTo(p.x, p.y);
+
+                if (spaceshipCanvas) {
+                    ctx.translate(ghostX, ghostY);
+                    ctx.rotate(t.roll * 0.4);
+                    ctx.scale(Math.cos(t.roll * 0.8), 1.0);
+                    ctx.drawImage(spaceshipCanvas, -this.width / 2, -this.height / 2, this.width, this.height);
+                } else {
+                    ctx.strokeStyle = this.color;
+                    ctx.lineWidth = 1;
+                    const projected = this.vertices.map(v => 
+                        project3D(v, t.pitch, 0, t.roll, 1.1, ghostX, ghostY)
+                    );
+                    
+                    this.faces.forEach(face => {
+                        ctx.beginPath();
+                        face.forEach((idx, i) => {
+                            const p = projected[idx];
+                            if (i === 0) ctx.moveTo(p.x, p.y);
+                            else ctx.lineTo(p.x, p.y);
+                        });
+                        ctx.closePath();
+                        ctx.stroke();
                     });
-                    ctx.closePath();
-                    ctx.stroke();
-                });
+                }
                 ctx.restore();
             });
         }
 
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
-        ctx.fillStyle = 'rgba(0, 255, 204, 0.15)'; // Hologram fill
-        ctx.lineWidth = 2.5;
+        if (spaceshipCanvas) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = this.color;
+            if (this.invulnerable && frameCount % 10 < 5) {
+                ctx.globalAlpha = 0.3; // Flicker
+            }
+            ctx.translate(offsetX, offsetY);
+            ctx.rotate(this.roll * 0.4);
+            ctx.scale(Math.cos(this.roll * 0.8), 1.0);
+            ctx.drawImage(spaceshipCanvas, -this.width / 2, -this.height / 2, this.width, this.height);
+        } else {
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = this.color;
+            ctx.strokeStyle = this.color;
+            ctx.fillStyle = 'rgba(0, 255, 204, 0.15)'; // Hologram fill
+            ctx.lineWidth = 2.5;
 
-        if (this.invulnerable && frameCount % 10 < 5) {
-            ctx.globalAlpha = 0.3; // Flicker
-        }
+            if (this.invulnerable && frameCount % 10 < 5) {
+                ctx.globalAlpha = 0.3; // Flicker
+            }
 
-        // Project spaceship vertices
-        const projected = this.vertices.map(v => 
-            project3D(v, this.pitch, this.rotY, this.roll, 1.1, offsetX, offsetY)
-        );
+            // Project spaceship vertices
+            const projected = this.vertices.map(v => 
+                project3D(v, this.pitch, this.rotY, this.roll, 1.1, offsetX, offsetY)
+            );
 
-        // Sort faces by depth
-        const sortedFaces = this.faces.map(face => {
-            const zAvg = getFaceAverageZ(face, this.vertices, this.pitch, this.rotY, this.roll);
-            return { face, zAvg };
-        }).sort((a, b) => b.zAvg - a.zAvg);
+            // Sort faces by depth
+            const sortedFaces = this.faces.map(face => {
+                const zAvg = getFaceAverageZ(face, this.vertices, this.pitch, this.rotY, this.roll);
+                return { face, zAvg };
+            }).sort((a, b) => b.zAvg - a.zAvg);
 
-        // Draw sorted faces
-        sortedFaces.forEach(fd => {
-            ctx.beginPath();
-            fd.face.forEach((idx, i) => {
-                const p = projected[idx];
-                if (i === 0) ctx.moveTo(p.x, p.y);
-                else ctx.lineTo(p.x, p.y);
+            // Draw sorted faces
+            sortedFaces.forEach(fd => {
+                ctx.beginPath();
+                fd.face.forEach((idx, i) => {
+                    const p = projected[idx];
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
             });
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-        });
+        }
 
         ctx.globalAlpha = 1.0;
 
@@ -386,7 +452,7 @@ class Player {
 }
 
 class Bullet {
-    constructor(x, y, vx = 0, vy = -12, color = '#fff') {
+    constructor(x, y, vx = 0, vy = -12, color = '#fff', isHoming = false) {
         this.x = x;
         this.y = y;
         this.vx = vx;
@@ -394,9 +460,62 @@ class Bullet {
         this.width = 4;
         this.height = 15;
         this.color = color;
+        this.isHoming = isHoming;
+
+        if (isHoming) {
+            this.width = 6;
+            this.height = 18;
+            this.color = '#ff3366'; // Distinct hot pink color for homing missiles
+        }
     }
 
     update(deltaTime) {
+        if (this.isHoming) {
+            let target = null;
+            let minDist = Infinity;
+
+            // Prioritize boss if active
+            if (boss && bossState === 'active') {
+                target = boss;
+            } else {
+                // Find closest enemy
+                enemies.forEach(e => {
+                    const dx = (e.x + e.width / 2) - this.x;
+                    const dy = (e.y + e.height / 2) - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        target = e;
+                    }
+                });
+
+                // Check asteroids
+                asteroids.forEach(a => {
+                    const dx = a.x - this.x;
+                    const dy = a.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        target = a;
+                    }
+                });
+            }
+
+            if (target) {
+                const tx = (target.x + (target.width ? target.width / 2 : 0)) - this.x;
+                const ty = (target.y + (target.height ? target.height / 2 : 0)) - this.y;
+                const dist = Math.sqrt(tx * tx + ty * ty);
+
+                if (dist > 10) {
+                    const targetVx = (tx / dist) * 14;
+                    const targetVy = (ty / dist) * 14;
+                    // Interpolate velocity towards target
+                    this.vx = this.vx * 0.88 + targetVx * 0.12;
+                    this.vy = this.vy * 0.88 + targetVy * 0.12;
+                }
+            }
+        }
+
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
     }
@@ -444,45 +563,94 @@ class BossBullet {
     }
 }
 
+const BOSS_TEMPLATES = [
+    {
+        name: "MECHA DRAGON V1",
+        color: "#ff00ff", // Magenta
+        baseHealth: 150,
+        scale: 1.0,
+        hornLength: 25,
+        attackType: "dragon_v1"
+    },
+    {
+        name: "HYPERION CRIMSON",
+        color: "#ff3300", // Crimson/Orange-Red
+        baseHealth: 250,
+        scale: 1.25,
+        hornLength: 35,
+        attackType: "crimson"
+    },
+    {
+        name: "VOID SENTINEL",
+        color: "#00ff88", // Green/Emerald
+        baseHealth: 400,
+        scale: 1.45,
+        hornLength: 45,
+        attackType: "void"
+    },
+    {
+        name: "OMEGA DOOMSDAY",
+        color: "#00ffff", // Cyan/Electric Blue
+        baseHealth: 600,
+        scale: 1.7,
+        hornLength: 55,
+        attackType: "omega"
+    }
+];
+
 class Boss {
     constructor() {
-        this.width = 120;
-        this.height = 80;
+        const templateIndex = bossDefeatedCount % BOSS_TEMPLATES.length;
+        const loopCount = Math.floor(bossDefeatedCount / BOSS_TEMPLATES.length);
+        const template = BOSS_TEMPLATES[templateIndex];
+
+        this.name = template.name + (loopCount > 0 ? ` Mk.${loopCount + 1}` : "");
+        this.color = template.color;
+        this.scale = template.scale * (1 + loopCount * 0.15);
+        this.maxHealth = Math.floor(template.baseHealth * (1 + loopCount * 0.5));
+        this.health = this.maxHealth;
+        this.hornLength = template.hornLength * (1 + loopCount * 0.1);
+        this.attackType = template.attackType;
+
+        this.width = 120 * this.scale;
+        this.height = 80 * this.scale;
         this.x = canvas.width / 2;
         this.y = -200; // Start off-screen
-        this.maxHealth = 100 + (bossDefeatedCount * 50);
-        this.health = this.maxHealth;
         this.phase = 1;
-        this.color = '#ff00ff';
-        this.speed = 2;
+        this.speed = 2 * (1 + loopCount * 0.1);
         this.targetX = canvas.width / 2;
         this.lastShot = 0;
         this.lastSpawn = 0;
         this.entryFinished = false;
         this.floatOffset = 0;
+        
+        const s = this.scale;
+        const hl = this.hornLength;
+
         this.segments = []; // For dragon body
         for (let i = 0; i < 5; i++) {
-            this.segments.push({ x: this.x, y: this.y - (i * 30), size: 40 - i * 5 });
+            this.segments.push({ x: this.x, y: this.y - (i * 30 * s), size: (40 - i * 5) * s });
         }
         
         // Laser state
         this.laserCharging = false;
         this.laserActive = false;
         this.laserTimer = 0;
+        this.laserType = 'standard';
 
         // 3D Dragon Skull Head model
         this.vertices = [
-            { x: 0, y: -5, z: -35 },    // 0: Nose tip (front)
-            { x: -15, y: -10, z: -15 }, // 1: Left front jaw
-            { x: 15, y: -10, z: -15 },  // 2: Right front jaw
-            { x: 0, y: 15, z: -10 },    // 3: Forehead center
-            { x: -25, y: 5, z: 0 },     // 4: Left eye deck
-            { x: 25, y: 5, z: 0 },      // 5: Right eye deck
-            { x: -35, y: 25, z: 25 },   // 6: Left horn tip
-            { x: 35, y: 25, z: 25 },    // 7: Right horn tip
-            { x: 0, y: 20, z: 20 },     // 8: Crown center
-            { x: 0, y: -15, z: 15 },    // 9: Rear bottom jaw
-            { x: 0, y: 0, z: 30 }       // 10: Spine connection
+            { x: 0 * s, y: -5 * s, z: -35 * s },             // 0: Nose tip (front)
+            { x: -15 * s, y: -10 * s, z: -15 * s },          // 1: Left front jaw
+            { x: 15 * s, y: -10 * s, z: -15 * s },           // 2: Right front jaw
+            { x: 0 * s, y: 15 * s, z: -10 * s },             // 3: Forehead center
+            { x: -25 * s, y: 5 * s, z: 0 * s },              // 4: Left eye deck
+            { x: 25 * s, y: 5 * s, z: 0 * s },               // 5: Right eye deck
+            { x: -35 * s - (hl - 25) * 0.8, y: 25 * s + (hl - 25) * 0.5, z: 25 * s + (hl - 25) * 0.8 }, // 6: Left horn tip
+            { x: 35 * s + (hl - 25) * 0.8, y: 25 * s + (hl - 25) * 0.5, z: 25 * s + (hl - 25) * 0.8 },  // 7: Right horn tip
+            { x: 0 * s, y: 20 * s, z: 20 * s },              // 8: Crown center
+            { x: 0 * s, y: -15 * s, z: 15 * s },             // 9: Rear bottom jaw
+            { x: 0 * s, y: 0 * s, z: 30 * s }                // 10: Spine connection
         ];
         this.faces = [
             [0, 3, 1], [0, 2, 3], // Snout top
@@ -542,17 +710,46 @@ class Boss {
             if (this.laserTimer <= 0) {
                 this.laserCharging = false;
                 this.laserActive = true;
-                this.laserTimer = 120; // Fire for 2 seconds
-                screenShake = 15;
+                this.laserTimer = 150; // Fire for 2.5 seconds
+                screenShake = 20;
             }
         } else if (this.laserActive) {
             // Collision with player
-            const playerCx = player.x + 20;
-            if (Math.abs(playerCx - this.x) < 40 && player.y > this.y) {
-                handleCollision(this, 0, 'laser');
+            const py = player.y + 20;
+            const px = player.x + 20;
+            
+            if (py > this.y + 30) {
+                if (this.laserType === 'double') {
+                    // Two lasers
+                    const lx1 = this.x - 35 * this.scale;
+                    const lx2 = this.x + 35 * this.scale;
+                    if (Math.abs(px - lx1) < 25 || Math.abs(px - lx2) < 25) {
+                        handleCollision(this, 0, 'laser');
+                    }
+                } else if (this.laserType === 'sweep') {
+                    // Sweeping laser
+                    const laserEndX = this.x + Math.sin(this.laserTimer * 0.06) * 350;
+                    const t = (py - (this.y + 30)) / (canvas.height - (this.y + 30));
+                    const lx = this.x + t * (laserEndX - this.x);
+                    if (Math.abs(px - lx) < 30) {
+                        handleCollision(this, 0, 'laser');
+                    }
+                } else if (this.laserType === 'hyper') {
+                    // Hyper laser (massive beam)
+                    if (Math.abs(px - this.x) < 70 * this.scale) {
+                        handleCollision(this, 0, 'laser');
+                    }
+                } else {
+                    // Standard laser
+                    if (Math.abs(px - this.x) < 40 * this.scale) {
+                        handleCollision(this, 0, 'laser');
+                    }
+                }
             }
+            
             if (this.laserTimer <= 0) {
                 this.laserActive = false;
+                this.laserType = 'standard';
                 this.lastShot = Date.now(); // Reset cooldown
             }
         }
@@ -561,25 +758,112 @@ class Boss {
     shoot(deltaTime) {
         const now = Date.now();
         let cooldown = 1500 - (this.phase * 300);
+        if (this.attackType === 'void') cooldown -= 200;
+        else if (this.attackType === 'omega') cooldown -= 300;
+
         if (now - this.lastShot > cooldown) {
             this.lastShot = now;
             
-            if (this.phase === 1) {
-                // Single aimed shot
-                this.fireAtPlayer(5);
-            } else if (this.phase === 2) {
-                // Spread 3
-                for (let angle = -0.5; angle <= 0.5; angle += 0.5) {
-                    bossBullets.push(new BossBullet(this.x, this.y + 40, Math.sin(angle) * 5, 5));
+            if (this.attackType === 'dragon_v1') {
+                if (this.phase === 1) {
+                    this.fireAtPlayer(5);
+                } else if (this.phase === 2) {
+                    for (let angle = -0.4; angle <= 0.4; angle += 0.4) {
+                        bossBullets.push(new BossBullet(this.x, this.y + 40, Math.sin(angle) * 5, 5, this.color));
+                    }
+                } else if (this.phase === 3) {
+                    if (Math.random() > 0.6) {
+                        this.laserCharging = true;
+                        this.laserTimer = 90; // 1.5s charge
+                        this.laserType = 'standard';
+                    } else {
+                        this.fireAtPlayer(6);
+                    }
                 }
-            } else if (this.phase === 3) {
-                // Chance to start laser or rapid spread
-                if (Math.random() > 0.5) {
-                    this.laserCharging = true;
-                    this.laserTimer = 90; // 1.5s charge
-                } else {
-                    for (let angle = -1; angle <= 1; angle += 0.5) {
-                        bossBullets.push(new BossBullet(this.x, this.y + 40, Math.sin(angle) * 7, 7, '#ff8c00'));
+            } else if (this.attackType === 'crimson') {
+                if (this.phase === 1) {
+                    // Alternating dual streams
+                    const offset = (frameCount % 2 === 0) ? -25 * this.scale : 25 * this.scale;
+                    bossBullets.push(new BossBullet(this.x + offset, this.y + 20, 0, 6, this.color));
+                } else if (this.phase === 2) {
+                    // 5-bullet fan spread
+                    for (let angle = -0.8; angle <= 0.8; angle += 0.4) {
+                        bossBullets.push(new BossBullet(this.x, this.y + 30, Math.sin(angle) * 5.5, Math.cos(angle) * 5.5, this.color));
+                    }
+                } else if (this.phase === 3) {
+                    if (Math.random() > 0.6) {
+                        this.laserCharging = true;
+                        this.laserTimer = 75; // 1.25s charge
+                        this.laserType = 'standard';
+                    } else {
+                        // Circle burst (8 bullets)
+                        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+                            bossBullets.push(new BossBullet(this.x, this.y + 30, Math.cos(angle) * 5, Math.sin(angle) * 5, this.color));
+                        }
+                    }
+                }
+            } else if (this.attackType === 'void') {
+                if (this.phase === 1) {
+                    // Spiral pattern
+                    const angle = (frameCount * 0.15);
+                    bossBullets.push(new BossBullet(this.x, this.y + 30, Math.cos(angle) * 5, Math.sin(angle) * 5, this.color));
+                } else if (this.phase === 2) {
+                    // Double spiral
+                    const angle1 = (frameCount * 0.2);
+                    const angle2 = angle1 + Math.PI;
+                    bossBullets.push(new BossBullet(this.x, this.y + 30, Math.cos(angle1) * 5.5, Math.sin(angle1) * 5.5, this.color));
+                    bossBullets.push(new BossBullet(this.x, this.y + 30, Math.cos(angle2) * 5.5, Math.sin(angle2) * 5.5, this.color));
+                    if (Math.random() > 0.7) {
+                        this.fireAtPlayer(6.5);
+                    }
+                } else if (this.phase === 3) {
+                    if (Math.random() > 0.5) {
+                        this.laserCharging = true;
+                        this.laserTimer = 90;
+                        this.laserType = 'double';
+                    } else {
+                        // Rapid spiral
+                        for (let i = 0; i < 3; i++) {
+                            const angle = (frameCount * 0.1) + (i * Math.PI / 1.5);
+                            bossBullets.push(new BossBullet(this.x, this.y + 30, Math.cos(angle) * 6, Math.sin(angle) * 6, this.color));
+                        }
+                    }
+                }
+            } else if (this.attackType === 'omega') {
+                if (this.phase === 1) {
+                    // Aimed 3-way burst
+                    const dx = player.x + 20 - this.x;
+                    const dy = player.y + 20 - this.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > 10) {
+                        const vx = (dx/dist) * 6;
+                        const vy = (dy/dist) * 6;
+                        bossBullets.push(new BossBullet(this.x, this.y + 30, vx, vy, this.color));
+                        bossBullets.push(new BossBullet(this.x, this.y + 30, vx - 1.5, vy, this.color));
+                        bossBullets.push(new BossBullet(this.x, this.y + 30, vx + 1.5, vy, this.color));
+                    }
+                } else if (this.phase === 2) {
+                    if (Math.random() > 0.5) {
+                        this.laserCharging = true;
+                        this.laserTimer = 90;
+                        this.laserType = 'sweep';
+                    } else {
+                        // Curtain of 7 bullets dropping down
+                        for (let i = -3; i <= 3; i++) {
+                            bossBullets.push(new BossBullet(this.x + i * 20 * this.scale, this.y + 30, i * 0.5, 6.5, this.color));
+                        }
+                    }
+                } else if (this.phase === 3) {
+                    if (Math.random() > 0.4) {
+                        this.laserCharging = true;
+                        this.laserTimer = 90;
+                        this.laserType = Math.random() > 0.5 ? 'sweep' : 'hyper';
+                    } else {
+                        // Circle of 12 bullets
+                        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 6) {
+                            bossBullets.push(new BossBullet(this.x, this.y + 30, Math.cos(angle) * 6.5, Math.sin(angle) * 6.5, this.color));
+                        }
+                        this.fireAtPlayer(8);
                     }
                 }
             }
@@ -590,14 +874,33 @@ class Boss {
         const dx = player.x + 20 - this.x;
         const dy = player.y + 20 - this.y;
         const dist = Math.sqrt(dx*dx + dy*dy);
-        bossBullets.push(new BossBullet(this.x, this.y + 40, (dx/dist) * speed, (dy/dist) * speed));
+        if (dist > 10) {
+            bossBullets.push(new BossBullet(this.x, this.y + 40, (dx/dist) * speed, (dy/dist) * speed, this.color));
+        }
     }
 
     spawnMinions(deltaTime) {
         const now = Date.now();
-        if (now - this.lastSpawn > 4000) {
+        let spawnCooldown = 4000;
+        if (this.attackType === 'crimson') spawnCooldown = 3500;
+        else if (this.attackType === 'void') spawnCooldown = 3000;
+        else if (this.attackType === 'omega') spawnCooldown = 2000;
+
+        if (now - this.lastSpawn > spawnCooldown) {
             this.lastSpawn = now;
-            enemies.push(new Enemy('basic'));
+            
+            let type = 'basic';
+            if (this.attackType === 'crimson') {
+                type = Math.random() > 0.4 ? 'zigzag' : 'basic';
+            } else if (this.attackType === 'void') {
+                const r = Math.random();
+                type = r > 0.6 ? 'tank' : (r > 0.3 ? 'zigzag' : 'basic');
+            } else if (this.attackType === 'omega') {
+                const r = Math.random();
+                type = r > 0.5 ? 'tank' : (r > 0.25 ? 'zigzag' : 'basic');
+            }
+            
+            enemies.push(new Enemy(type));
         }
     }
 
@@ -629,8 +932,8 @@ class Boss {
             const angle = Math.random() * Math.PI * 2;
             const spd = 2 + Math.random() * 10;
             particles.push(new Particle(
-                this.x + (Math.random() - 0.5) * 80, 
-                this.y + (Math.random() - 0.5) * 80, 
+                this.x + (Math.random() - 0.5) * 80 * this.scale, 
+                this.y + (Math.random() - 0.5) * 80 * this.scale, 
                 this.color,
                 Math.cos(angle) * spd,
                 Math.sin(angle) * spd,
@@ -724,37 +1027,115 @@ class Boss {
         const eyeRight = projectedHead[5];
         
         ctx.beginPath();
-        ctx.arc(eyeLeft.x, eyeLeft.y, 6, 0, Math.PI * 2);
-        ctx.arc(eyeRight.x, eyeRight.y, 6, 0, Math.PI * 2);
+        ctx.arc(eyeLeft.x, eyeLeft.y, 6 * this.scale, 0, Math.PI * 2);
+        ctx.arc(eyeRight.x, eyeRight.y, 6 * this.scale, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
         // Draw Laser Beam
         if (this.laserCharging) {
+            ctx.save();
             ctx.shadowBlur = 15;
             ctx.shadowColor = '#00ffff';
             ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y + 30);
-            ctx.lineTo(this.x, canvas.height);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            
+            if (this.laserType === 'double') {
+                const lx1 = this.x - 35 * this.scale;
+                const lx2 = this.x + 35 * this.scale;
+                ctx.beginPath();
+                ctx.moveTo(lx1, this.y + 30);
+                ctx.lineTo(lx1, canvas.height);
+                ctx.moveTo(lx2, this.y + 30);
+                ctx.lineTo(lx2, canvas.height);
+                ctx.stroke();
+            } else if (this.laserType === 'sweep') {
+                const laserEndX = this.x + Math.sin(this.laserTimer * 0.06) * 350;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + 30);
+                ctx.lineTo(laserEndX, canvas.height);
+                ctx.stroke();
+            } else if (this.laserType === 'hyper') {
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + 30);
+                ctx.lineTo(this.x, canvas.height);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + 30);
+                ctx.lineTo(this.x, canvas.height);
+                ctx.stroke();
+            }
+            ctx.restore();
         } else if (this.laserActive) {
-            const grad = ctx.createLinearGradient(this.x - 30, 0, this.x + 30, 0);
-            grad.addColorStop(0, 'rgba(0, 255, 255, 0)');
-            grad.addColorStop(0.5, 'rgba(0, 255, 255, 1)');
-            grad.addColorStop(1, 'rgba(0, 255, 255, 0)');
-            
-            ctx.shadowBlur = 30;
-            ctx.shadowColor = '#00ffff';
-            ctx.fillStyle = grad;
-            ctx.fillRect(this.x - 30, this.y + 30, 60, canvas.height - this.y);
-            
-            // Core beam
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(this.x - 5, this.y + 30, 10, canvas.height - this.y);
+            ctx.save();
+            if (this.laserType === 'double') {
+                const lx1 = this.x - 35 * this.scale;
+                const lx2 = this.x + 35 * this.scale;
+                [lx1, lx2].forEach(lx => {
+                    const grad = ctx.createLinearGradient(lx - 20, 0, lx + 20, 0);
+                    grad.addColorStop(0, 'rgba(0, 255, 255, 0)');
+                    grad.addColorStop(0.5, 'rgba(0, 255, 255, 1)');
+                    grad.addColorStop(1, 'rgba(0, 255, 255, 0)');
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = '#00ffff';
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(lx - 20, this.y + 30, 40, canvas.height - this.y);
+                    
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(lx - 4, this.y + 30, 8, canvas.height - this.y);
+                });
+            } else if (this.laserType === 'sweep') {
+                const laserEndX = this.x + Math.sin(this.laserTimer * 0.06) * 350;
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#00ffff';
+                
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+                ctx.lineWidth = 50;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + 30);
+                ctx.lineTo(laserEndX, canvas.height);
+                ctx.stroke();
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 10;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y + 30);
+                ctx.lineTo(laserEndX, canvas.height);
+                ctx.stroke();
+            } else if (this.laserType === 'hyper') {
+                const w = 120 * this.scale;
+                const grad = ctx.createLinearGradient(this.x - w/2, 0, this.x + w/2, 0);
+                grad.addColorStop(0, 'rgba(0, 255, 255, 0)');
+                grad.addColorStop(0.3, 'rgba(0, 255, 255, 0.8)');
+                grad.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
+                grad.addColorStop(0.7, 'rgba(0, 255, 255, 0.8)');
+                grad.addColorStop(1, 'rgba(0, 255, 255, 0)');
+                
+                ctx.shadowBlur = 40;
+                ctx.shadowColor = '#00ffff';
+                ctx.fillStyle = grad;
+                ctx.fillRect(this.x - w/2, this.y + 30, w, canvas.height - this.y);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(this.x - 12, this.y + 30, 24, canvas.height - this.y);
+            } else {
+                const grad = ctx.createLinearGradient(this.x - 30, 0, this.x + 30, 0);
+                grad.addColorStop(0, 'rgba(0, 255, 255, 0)');
+                grad.addColorStop(0.5, 'rgba(0, 255, 255, 1)');
+                grad.addColorStop(1, 'rgba(0, 255, 255, 0)');
+                
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#00ffff';
+                ctx.fillStyle = grad;
+                ctx.fillRect(this.x - 30, this.y + 30, 60, canvas.height - this.y);
+                
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.x - 5, this.y + 30, 10, canvas.height - this.y);
+            }
+            ctx.restore();
         }
 
         ctx.restore();
@@ -764,7 +1145,7 @@ class Boss {
     drawHealthBar() {
         const h = 10;
         const isMobile = canvas.width < 800;
-        const y = isMobile ? canvas.height - 40 : 30; // Move to bottom on mobile, safe margin
+        const y = isMobile ? canvas.height - 40 : 30;
         const barWidth = Math.min(400, canvas.width - 60);
         const x = (canvas.width - barWidth) / 2;
 
@@ -783,10 +1164,10 @@ class Boss {
         ctx.fillStyle = gradient;
         ctx.fillRect(x, y, barWidth * ratio, h);
         
-ctx.font = '700 14px Outfit, sans-serif';
+        ctx.font = '700 14px Outfit, sans-serif';
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
-        ctx.fillText('MECHANICAL DRAGON', canvas.width / 2, y - 10);
+        ctx.fillText(this.name, canvas.width / 2, y - 10);
     }
 }
 
@@ -1216,6 +1597,9 @@ function spawnEntity(deltaTime) {
     if (score >= bossSpawnScore) {
         bossState = 'incoming';
         bossMessageTimer = 120; // 2 seconds
+        // Upgrade weapon permanently to prepare for the boss fight!
+        player.minWeaponTier = Math.min(6, player.minWeaponTier + 1);
+        player.weaponTier = Math.max(player.weaponTier, player.minWeaponTier);
         return;
     }
 
@@ -1576,8 +1960,10 @@ function update(deltaTime) {
         if (bossState === 'active' && boss && boss.entryFinished) {
             const dx = b.x - boss.x;
             const dy = b.y - boss.y;
-            if (Math.abs(dx) < 60 && Math.abs(dy) < 40) {
-                boss.takeDamage(1);
+            const limitX = 60 * boss.scale;
+            const limitY = 40 * boss.scale;
+            if (Math.abs(dx) < limitX && Math.abs(dy) < limitY) {
+                boss.takeDamage(b.isHoming ? 2 : 1);
                 addGridRipple(b.x, b.y, 6, 80, 3);
                 playExplosionSound('light');
                 bullets.splice(i, 1);
@@ -1616,11 +2002,10 @@ function update(deltaTime) {
 
     if (bossState === 'active' && boss) {
         boss.update(deltaTime);
-        // Collision dragon body with player
         boss.segments.forEach(seg => {
             const dx = seg.x - (player.x + 20);
             const dy = seg.y - (player.y + 20);
-            if (Math.sqrt(dx*dx + dy*dy) < 35) {
+            if (Math.sqrt(dx*dx + dy*dy) < 35 * boss.scale) {
                 handleCollision(seg, 0, 'boss');
             }
         });
@@ -1722,7 +2107,7 @@ function handleCollision(entity, index, type) {
     }
 
     player.lives--;
-    player.weaponTier = 1; // Reset firepower on hit!
+    player.weaponTier = Math.max(player.minWeaponTier, player.weaponTier - 1); // Degrade firepower by 1 tier on hit!
     player.invulnerable = true;
     player.invulnTimer = 90; // 1.5s safety window
     createExplosion(player.x + 20, player.y + 20, '#ff0000');
