@@ -30,19 +30,54 @@ function processSpaceshipSprite() {
         
         const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
         const data = imgData.data;
+        const width = tempCanvas.width;
+        const height = tempCanvas.height;
         
         // Remove black background (colors close to black)
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i+1];
             const b = data[i+2];
-            // If color is very dark (r, g, b all below 15)
-            if (r < 15 && g < 15 && b < 15) {
+            // If color is very dark (r, g, b all below 25)
+            if (r < 25 && g < 25 && b < 25) {
                 data[i+3] = 0; // Transparent
             }
         }
         tempCtx.putImageData(imgData, 0, 0);
-        spaceshipCanvas = tempCanvas;
+        
+        // Find crop bounding box of non-transparent pixels
+        let minX = width;
+        let maxX = 0;
+        let minY = height;
+        let maxY = 0;
+        let hasContent = false;
+        
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const alpha = data[(y * width + x) * 4 + 3];
+                if (alpha > 0) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                    hasContent = true;
+                }
+            }
+        }
+        
+        if (hasContent) {
+            const cropW = maxX - minX + 1;
+            const cropH = maxY - minY + 1;
+            // Create final cropped canvas
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = cropW;
+            cropCanvas.height = cropH;
+            const cropCtx = cropCanvas.getContext('2d');
+            cropCtx.drawImage(tempCanvas, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+            spaceshipCanvas = cropCanvas;
+        } else {
+            spaceshipCanvas = tempCanvas;
+        }
     } catch (e) {
         console.warn("Failed to transparentize spaceship sprite, falling back to raw image:", e);
         spaceshipCanvas = spaceshipSprite;
