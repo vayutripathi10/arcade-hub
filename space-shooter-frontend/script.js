@@ -70,6 +70,49 @@ let currentSpeedMultiplier = 1;
 
 highScoreElement.textContent = highScore;
 
+// --- 3D Projection Utilities ---
+function rotateX(x, y, z, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return { x: x, y: y * cos - z * sin, z: y * sin + z * cos };
+}
+function rotateY(x, y, z, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return { x: x * cos + z * sin, y: y, z: -x * sin + z * cos };
+}
+function rotateZ(x, y, z, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    return { x: x * cos - y * sin, y: x * sin + y * cos, z: z };
+}
+function project3D(v, rotX, rotY, rotZ, scale, offsetX, offsetY) {
+    let r = rotateX(v.x, v.y, v.z, rotX);
+    r = rotateY(r.x, r.y, r.z, rotY);
+    r = rotateZ(r.x, r.y, r.z, rotZ);
+    const d = 260; // Camera distance / focal length
+    const distZ = 120; // Shift depth back to avoid division by zero
+    const pZ = r.z + distZ;
+    const px = (r.x * d) / pZ;
+    const py = (r.y * d) / pZ;
+    return {
+        x: px * scale + offsetX,
+        y: -py * scale + offsetY,
+        z: r.z
+    };
+}
+function getFaceAverageZ(face, vertices, rotX, rotY, rotZ) {
+    let zSum = 0;
+    face.forEach(idx => {
+        const v = vertices[idx];
+        let r = rotateX(v.x, v.y, v.z, rotX);
+        r = rotateY(r.x, r.y, r.z, rotY);
+        r = rotateZ(r.x, r.y, r.z, rotZ);
+        zSum += r.z;
+    });
+    return zSum / face.length;
+}
+
 // --- Classes ---
 
 class Player {
@@ -90,6 +133,35 @@ class Player {
         // Juice properties
         this.weaponTier = 1;
         this.trail = [];
+
+        // 3D Model definition
+        this.vertices = [
+            { x: 0, y: 0, z: 25 },    // 0: Nose (front tip)
+            { x: 0, y: 5, z: 5 },     // 1: Cockpit top
+            { x: -20, y: -4, z: -15 }, // 2: Left wingtip
+            { x: 20, y: -4, z: -15 },  // 3: Right wingtip
+            { x: 0, y: -6, z: -20 },   // 4: Bottom center rear
+            { x: 0, y: 12, z: -20 },   // 5: Tail fin top
+            { x: -6, y: -3, z: -20 },  // 6: Left engine corner
+            { x: 6, y: -3, z: -20 }    // 7: Right engine corner
+        ];
+        this.faces = [
+            [0, 1, 2], // Cockpit-left-wing upper
+            [0, 3, 1], // Cockpit-right-wing upper
+            [0, 2, 4], // Bottom nose-left-wing lower
+            [0, 4, 3], // Bottom nose-right-wing lower
+            [1, 5, 2], // Left wing to fin upper
+            [3, 5, 1], // Right wing to fin upper
+            [2, 6, 4], // Left wing to bottom center lower
+            [4, 7, 3], // Right wing to bottom center lower
+            [5, 6, 2], // Left engine outer
+            [5, 3, 7], // Right engine outer
+            [6, 7, 5], // Engine block to fin back
+            [4, 6, 7]  // Bottom engine block back
+        ];
+        this.rotY = 0;
+        this.roll = 0;
+        this.pitch = 0.2;
     }
 
     reset() {
@@ -98,15 +170,36 @@ class Player {
         this.vx = 0;
         this.vy = 0;
         this.speed = 6;
+        this.roll = 0;
+        this.pitch = 0.2;
     }
 
     update(deltaTime) {
         // Keyboard movement
         const moveSpeed = this.speed * deltaTime;
-        if (keys['ArrowLeft'] || keys['KeyA']) this.x -= moveSpeed;
-        if (keys['ArrowRight'] || keys['KeyD']) this.x += moveSpeed;
-        if (keys['ArrowUp'] || keys['KeyW']) this.y -= moveSpeed;
-        if (keys['ArrowDown'] || keys['KeyS']) this.y += moveSpeed;
+        let rollTarget = 0;
+        let pitchTarget = 0.2; // slight nose down normally
+
+        if (keys['ArrowLeft'] || keys['KeyA']) {
+            this.x -= moveSpeed;
+            rollTarget = -0.45;
+        }
+        if (keys['ArrowRight'] || keys['KeyD']) {
+            this.x += moveSpeed;
+            rollTarget = 0.45;
+        }
+        if (keys['ArrowUp'] || keys['KeyW']) {
+            this.y -= moveSpeed;
+            pitchTarget = 0.45;
+        }
+        if (keys['ArrowDown'] || keys['KeyS']) {
+            this.y += moveSpeed;
+            pitchTarget = -0.15;
+        }
+
+        // Interpolate roll/pitch smooth transition
+        this.roll = this.roll * 0.82 + rollTarget * 0.18;
+        this.pitch = this.pitch * 0.82 + pitchTarget * 0.18;
 
         // Boundaries
         if (this.x < 0) this.x = 0;
@@ -123,7 +216,7 @@ class Player {
         }
 
         // Motion Trails
-        this.trail.push({ x: this.x, y: this.y });
+        this.trail.push({ x: this.x, y: this.y, roll: this.roll, pitch: this.pitch });
         if (this.trail.length > 8) this.trail.shift();
 
         // Auto-shoot
@@ -190,51 +283,84 @@ class Player {
     draw() {
         ctx.save();
         
-        // Draw trailing motion ghost ships
+        const offsetX = this.x + this.width / 2;
+        const offsetY = this.y + this.height / 2;
+
+        // Draw trailing motion ghost ships in 3D wireframe
         if (this.speedBoost || this.invulnerable) {
             this.trail.forEach((t, index) => {
                 const ratio = (index + 1) / this.trail.length; // 0 to 1
                 ctx.save();
-                ctx.globalAlpha = ratio * 0.25;
-                ctx.shadowBlur = 5;
+                ctx.globalAlpha = ratio * 0.22;
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 1;
+                ctx.shadowBlur = 4;
                 ctx.shadowColor = this.color;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.moveTo(t.x + this.width / 2, t.y);
-                ctx.lineTo(t.x + this.width, t.y + this.height);
-                ctx.lineTo(t.x + this.width / 2, t.y + this.height - 10);
-                ctx.lineTo(t.x, t.y + this.height);
-                ctx.closePath();
-                ctx.fill();
+                
+                const ghostX = t.x + this.width / 2;
+                const ghostY = t.y + this.height / 2;
+                const projected = this.vertices.map(v => 
+                    project3D(v, t.pitch, 0, t.roll, 1.1, ghostX, ghostY)
+                );
+                
+                this.faces.forEach(face => {
+                    ctx.beginPath();
+                    face.forEach((idx, i) => {
+                        const p = projected[idx];
+                        if (i === 0) ctx.moveTo(p.x, p.y);
+                        else ctx.lineTo(p.x, p.y);
+                    });
+                    ctx.closePath();
+                    ctx.stroke();
+                });
                 ctx.restore();
             });
         }
 
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
-        
-        // Draw spaceship polygon
-        ctx.beginPath();
+        ctx.strokeStyle = this.color;
+        ctx.fillStyle = 'rgba(0, 255, 204, 0.15)'; // Hologram fill
+        ctx.lineWidth = 2.5;
+
         if (this.invulnerable && frameCount % 10 < 5) {
-            ctx.globalAlpha = 0.5; // Flicker
+            ctx.globalAlpha = 0.3; // Flicker
         }
-        ctx.moveTo(this.x + this.width / 2, this.y);
-        ctx.lineTo(this.x + this.width, this.y + this.height);
-        ctx.lineTo(this.x + this.width / 2, this.y + this.height - 10);
-        ctx.lineTo(this.x, this.y + this.height);
-        ctx.closePath();
-        ctx.fill();
+
+        // Project spaceship vertices
+        const projected = this.vertices.map(v => 
+            project3D(v, this.pitch, this.rotY, this.roll, 1.1, offsetX, offsetY)
+        );
+
+        // Sort faces by depth
+        const sortedFaces = this.faces.map(face => {
+            const zAvg = getFaceAverageZ(face, this.vertices, this.pitch, this.rotY, this.roll);
+            return { face, zAvg };
+        }).sort((a, b) => b.zAvg - a.zAvg);
+
+        // Draw sorted faces
+        sortedFaces.forEach(fd => {
+            ctx.beginPath();
+            fd.face.forEach((idx, i) => {
+                const p = projected[idx];
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        });
+
         ctx.globalAlpha = 1.0;
 
         // Draw shield ring
         if (this.shield) {
             ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = 20;
+            ctx.lineWidth = 2.5;
+            ctx.shadowBlur = 25;
             ctx.shadowColor = '#00ffff';
             ctx.beginPath();
-            ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width - 5, 0, Math.PI * 2);
+            ctx.arc(offsetX, offsetY, this.width - 5, 0, Math.PI * 2);
             ctx.stroke();
         }
 
@@ -343,6 +469,31 @@ class Boss {
         this.laserCharging = false;
         this.laserActive = false;
         this.laserTimer = 0;
+
+        // 3D Dragon Skull Head model
+        this.vertices = [
+            { x: 0, y: -5, z: -35 },    // 0: Nose tip (front)
+            { x: -15, y: -10, z: -15 }, // 1: Left front jaw
+            { x: 15, y: -10, z: -15 },  // 2: Right front jaw
+            { x: 0, y: 15, z: -10 },    // 3: Forehead center
+            { x: -25, y: 5, z: 0 },     // 4: Left eye deck
+            { x: 25, y: 5, z: 0 },      // 5: Right eye deck
+            { x: -35, y: 25, z: 25 },   // 6: Left horn tip
+            { x: 35, y: 25, z: 25 },    // 7: Right horn tip
+            { x: 0, y: 20, z: 20 },     // 8: Crown center
+            { x: 0, y: -15, z: 15 },    // 9: Rear bottom jaw
+            { x: 0, y: 0, z: 30 }       // 10: Spine connection
+        ];
+        this.faces = [
+            [0, 3, 1], [0, 2, 3], // Snout top
+            [0, 1, 9], [0, 9, 2], // Snout bottom
+            [3, 4, 1], [3, 2, 5], // Forehead sides
+            [4, 6, 8], [5, 8, 7], // Horns upper connection
+            [3, 8, 4], [3, 5, 8], // Skull top plates
+            [4, 9, 6], [5, 7, 9], // Jaw to horns outer
+            [6, 10, 8], [7, 8, 10], // Horns to spine back
+            [9, 10, 6], [9, 7, 10]  // Jaw to spine back lower
+        ];
     }
 
     update(deltaTime) {
@@ -495,30 +646,90 @@ class Boss {
         ctx.save();
         ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
 
-        // Draw segments
-        for (let i = this.segments.length - 1; i >= 0; i--) {
+        // Draw 3D gyroscopic segment body cages (gyro-orbs)
+        for (let i = this.segments.length - 1; i > 0; i--) {
             const seg = this.segments[i];
+            ctx.save();
             ctx.globalAlpha = 1 - (i * 0.15);
-            ctx.beginPath();
-            ctx.arc(seg.x, seg.y, seg.size, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Neon glow ring
-            ctx.strokeStyle = '#fff';
+            ctx.strokeStyle = this.color;
             ctx.lineWidth = 2;
+            
+            const rotAngle = (frameCount * 0.04) + i * 0.5;
+            
+            // Horizontal ring projected in 3D
+            ctx.beginPath();
+            for (let phi = 0; phi <= Math.PI * 2 + 0.1; phi += Math.PI / 6) {
+                const pt = { x: Math.cos(phi) * seg.size, y: 0, z: Math.sin(phi) * seg.size };
+                const p = project3D(pt, 0.4, rotAngle, 0.2, 1.0, seg.x, seg.y);
+                if (phi === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            }
             ctx.stroke();
-        }
-        
-        // Draw Eyes/Head Detail
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(this.x - 15, this.y - 5, 8, 0, Math.PI * 2);
-        ctx.arc(this.x + 15, this.y - 5, 8, 0, Math.PI * 2);
-        ctx.fill();
 
-        // Draw Laser
+            // Vertical ring projected in 3D
+            ctx.beginPath();
+            for (let phi = 0; phi <= Math.PI * 2 + 0.1; phi += Math.PI / 6) {
+                const pt = { x: 0, y: Math.cos(phi) * seg.size, z: Math.sin(phi) * seg.size };
+                const p = project3D(pt, rotAngle, 0.3, 0.1, 1.0, seg.x, seg.y);
+                if (phi === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        // Draw 3D Dragon Skull Head
+        ctx.strokeStyle = this.color;
+        ctx.fillStyle = this.color + '40'; // 25% opacity solid fill
+        ctx.lineWidth = 2.5;
+
+        // Nodding pitch + steering roll/yaw
+        const headRotY = (this.targetX - this.x) * 0.0015;
+        const headRotX = 0.3 + Math.sin(this.floatOffset * 1.5) * 0.1;
+
+        // Project head vertices
+        const projectedHead = this.vertices.map(v => 
+            project3D(v, headRotX, headRotY, 0, 1.1, this.x, this.y)
+        );
+
+        // Sort faces
+        const sortedHeadFaces = this.faces.map(face => {
+            const zAvg = getFaceAverageZ(face, this.vertices, headRotX, headRotY, 0);
+            return { face, zAvg };
+        }).sort((a, b) => b.zAvg - a.zAvg);
+
+        // Draw head
+        sortedHeadFaces.forEach(fd => {
+            ctx.beginPath();
+            fd.face.forEach((idx, i) => {
+                const p = projectedHead[idx];
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // Draw glowing laser charge nodes (eyes)
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ffffff';
+        
+        // Find screen coordinates of the eyes (vertices 4 & 5)
+        const eyeLeft = projectedHead[4];
+        const eyeRight = projectedHead[5];
+        
+        ctx.beginPath();
+        ctx.arc(eyeLeft.x, eyeLeft.y, 6, 0, Math.PI * 2);
+        ctx.arc(eyeRight.x, eyeRight.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Draw Laser Beam
         if (this.laserCharging) {
             ctx.shadowBlur = 15;
             ctx.shadowColor = '#00ffff';
@@ -526,7 +737,7 @@ class Boss {
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
-            ctx.moveTo(this.x, this.y + 40);
+            ctx.moveTo(this.x, this.y + 30);
             ctx.lineTo(this.x, canvas.height);
             ctx.stroke();
             ctx.setLineDash([]);
@@ -539,11 +750,11 @@ class Boss {
             ctx.shadowBlur = 30;
             ctx.shadowColor = '#00ffff';
             ctx.fillStyle = grad;
-            ctx.fillRect(this.x - 30, this.y + 40, 60, canvas.height - this.y);
+            ctx.fillRect(this.x - 30, this.y + 30, 60, canvas.height - this.y);
             
             // Core beam
             ctx.fillStyle = '#fff';
-            ctx.fillRect(this.x - 5, this.y + 40, 10, canvas.height - this.y);
+            ctx.fillRect(this.x - 5, this.y + 30, 10, canvas.height - this.y);
         }
 
         ctx.restore();
@@ -572,7 +783,7 @@ class Boss {
         ctx.fillStyle = gradient;
         ctx.fillRect(x, y, barWidth * ratio, h);
         
-        ctx.font = '700 14px Outfit, sans-serif';
+ctx.font = '700 14px Outfit, sans-serif';
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.fillText('MECHANICAL DRAGON', canvas.width / 2, y - 10);
@@ -588,11 +799,37 @@ class Enemy {
         this.isZigzag = false;
         this.zigzagPhase = 0;
         
+        // 3D rotations & speeds
+        this.rotX = 0;
+        this.rotY = 0;
+        this.rotZ = 0;
+        this.rotSpeedX = 0;
+        this.rotSpeedY = 0;
+        this.rotSpeedZ = 0;
+
         if (type === 'basic') {
             this.width = 30;
             this.height = 30;
             this.color = '#ff00ff';
             this.speed = 3 * currentSpeedMultiplier;
+            
+            // Sleek delta wing structure
+            this.vertices = [
+                { x: 0, y: 0, z: -15 },    // 0: Nose tip (front)
+                { x: -15, y: -4, z: 12 },  // 1: Left wing back
+                { x: 15, y: -4, z: 12 },   // 2: Right wing back
+                { x: 0, y: 8, z: 8 },      // 3: Cockpit/fin top
+                { x: 0, y: -6, z: 5 }      // 4: Bottom hull
+            ];
+            this.faces = [
+                [0, 3, 1], // Top left
+                [0, 2, 3], // Top right
+                [0, 1, 4], // Bottom left
+                [0, 4, 2], // Bottom right
+                [1, 3, 2], // Back top
+                [1, 2, 4]  // Back bottom
+            ];
+            this.rotSpeedY = 0.025; // Hovering rotation
         } else if (type === 'zigzag') {
             this.width = 35;
             this.height = 35;
@@ -600,12 +837,52 @@ class Enemy {
             this.speed = 2.5 * currentSpeedMultiplier;
             this.isZigzag = true;
             this.startX = this.x;
+            
+            // Rapidly spinning octahedron (stealth diamond fighter)
+            this.vertices = [
+                { x: 0, y: 0, z: -18 },   // 0: Nose tip
+                { x: 0, y: 0, z: 18 },    // 1: Rear tail
+                { x: -15, y: 0, z: 0 },   // 2: Left wingtip
+                { x: 15, y: 0, z: 0 },    // 3: Right wingtip
+                { x: 0, y: 15, z: 0 },    // 4: Top fin peak
+                { x: 0, y: -15, z: 0 }    // 5: Keel bottom
+            ];
+            this.faces = [
+                [0, 2, 4], [0, 4, 3], [0, 3, 5], [0, 5, 2],
+                [1, 4, 2], [1, 3, 4], [1, 5, 3], [1, 2, 5]
+            ];
+            this.rotSpeedZ = 0.06;
+            this.rotSpeedY = 0.03;
         } else if (type === 'tank') {
             this.width = 60;
             this.height = 50;
             this.color = '#ff4444';
             this.speed = 1.5 * currentSpeedMultiplier;
             this.health = 3;
+            
+            // Heavy Battle Cruiser destroyer wedge
+            this.vertices = [
+                { x: 0, y: 0, z: -25 },    // 0: Wedge front nose
+                { x: -22, y: 0, z: -5 },   // 1: Left mid wing
+                { x: 22, y: 0, z: -5 },    // 2: Right mid wing
+                { x: -18, y: 0, z: 20 },   // 3: Back left hull plate
+                { x: 18, y: 0, z: 20 },    // 4: Back right hull plate
+                { x: 0, y: 12, z: 10 },    // 5: Bridge top deck
+                { x: 0, y: -10, z: 5 },    // 6: Underbelly thruster shield
+                { x: 0, y: 6, z: 22 },     // 7: Exhaust nozzle top
+                { x: 0, y: -6, z: 22 }     // 8: Exhaust nozzle bottom
+            ];
+            this.faces = [
+                [0, 5, 1], [0, 2, 5], // Nose deck
+                [0, 1, 6], [0, 6, 2], // Nose keel
+                [1, 5, 3], [2, 4, 5], // Mid decks upper
+                [1, 3, 6], [2, 6, 4], // Mid decks lower
+                [5, 7, 3], [5, 4, 7], // Bridge to rear
+                [6, 3, 8], [6, 8, 4], // Keel to rear
+                [3, 7, 8], [3, 8, 4]  // Back nozzle plate
+            ];
+            this.rotSpeedX = 0.015; // Slow battleship drift
+            this.rotSpeedZ = 0.005;
         }
     }
 
@@ -615,37 +892,46 @@ class Enemy {
             this.zigzagPhase += 0.05 * deltaTime;
             this.x = this.startX + Math.sin(this.zigzagPhase) * 100;
         }
+        this.rotX += this.rotSpeedX * deltaTime;
+        this.rotY += this.rotSpeedY * deltaTime;
+        this.rotZ += this.rotSpeedZ * deltaTime;
     }
 
     draw() {
         ctx.save();
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.fillStyle = this.color + '26'; // 15% opacity fill
+        ctx.lineWidth = 2;
 
-        ctx.beginPath();
-        if (this.type === 'basic') {
-            // Triangle down
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(this.x + this.width, this.y);
-            ctx.lineTo(this.x + this.width / 2, this.y + this.height);
-        } else if (this.type === 'zigzag') {
-            // Diamond
-            ctx.moveTo(this.x + this.width / 2, this.y);
-            ctx.lineTo(this.x + this.width, this.y + this.height / 2);
-            ctx.lineTo(this.x + this.width / 2, this.y + this.height);
-            ctx.lineTo(this.x, this.y + this.height / 2);
-        } else if (this.type === 'tank') {
-            // Hexagon
-            const cx = this.x + this.width / 2;
-            const cy = this.y + this.height / 2;
-            const size = this.width / 2;
-            for (let i = 0; i < 6; i++) {
-                ctx.lineTo(cx + size * Math.cos(i * Math.PI / 3), cy + size * Math.sin(i * Math.PI / 3));
-            }
-        }
-        ctx.closePath();
-        ctx.fill();
+        const offsetX = this.x + this.width / 2;
+        const offsetY = this.y + this.height / 2;
+
+        // Project vertices
+        const projected = this.vertices.map(v => 
+            project3D(v, this.rotX, this.rotY, this.rotZ, 1.0, offsetX, offsetY)
+        );
+
+        // Sort faces by depth
+        const sortedFaces = this.faces.map(face => {
+            const zAvg = getFaceAverageZ(face, this.vertices, this.rotX, this.rotY, this.rotZ);
+            return { face, zAvg };
+        }).sort((a, b) => b.zAvg - a.zAvg);
+
+        // Draw sorted faces
+        sortedFaces.forEach(fd => {
+            ctx.beginPath();
+            fd.face.forEach((idx, i) => {
+                const p = projected[idx];
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        });
+
         ctx.restore();
     }
 }
@@ -657,38 +943,96 @@ class Asteroid {
         this.y = -50;
         this.vx = (Math.random() - 0.5) * 4;
         this.vy = 2 + Math.random() * 3;
-        this.rotation = 0;
-        this.rotationSpeed = (Math.random() - 0.5) * 0.1;
-        this.points = [];
-        const sides = 5 + Math.floor(Math.random() * 5);
-        for (let i = 0; i < sides; i++) {
-            const angle = (i / sides) * Math.PI * 2;
-            const dist = this.radius * (0.8 + Math.random() * 0.4);
-            this.points.push({ x: Math.cos(angle) * dist, y: Math.sin(angle) * dist });
+        
+        // 3D rotation parameters
+        this.rotX = Math.random() * Math.PI;
+        this.rotY = Math.random() * Math.PI;
+        this.rotZ = Math.random() * Math.PI;
+        this.rotSpeedX = (Math.random() - 0.5) * 0.08;
+        this.rotSpeedY = (Math.random() - 0.5) * 0.08;
+        this.rotSpeedZ = (Math.random() - 0.5) * 0.08;
+        
+        // Generate irregular 3D polyhedron vertices
+        this.vertices = [];
+        this.faces = [];
+        
+        const latDivs = 4;
+        const lonDivs = 5;
+        for (let lat = 0; lat <= latDivs; lat++) {
+            const theta = (lat / latDivs) * Math.PI;
+            const sinTheta = Math.sin(theta);
+            const cosTheta = Math.cos(theta);
+            
+            for (let lon = 0; lon < lonDivs; lon++) {
+                const phi = (lon / lonDivs) * Math.PI * 2;
+                const sinPhi = Math.sin(phi);
+                const cosPhi = Math.cos(phi);
+                
+                // Add noise to radius to make it look bumpy
+                const rOffset = this.radius * (0.8 + Math.random() * 0.4);
+                
+                const vx = rOffset * sinTheta * cosPhi;
+                const vy = rOffset * sinTheta * sinPhi;
+                const vz = rOffset * cosTheta;
+                this.vertices.push({ x: vx, y: vy, z: vz });
+            }
+        }
+        
+        // Connect vertices to create triangular faces
+        for (let lat = 0; lat < latDivs; lat++) {
+            for (let lon = 0; lon < lonDivs; lon++) {
+                const nextLon = (lon + 1) % lonDivs;
+                const i00 = lat * lonDivs + lon;
+                const i10 = (lat + 1) * lonDivs + lon;
+                const i01 = lat * lonDivs + nextLon;
+                const i11 = (lat + 1) * lonDivs + nextLon;
+                
+                this.faces.push([i00, i01, i11]);
+                this.faces.push([i00, i11, i10]);
+            }
         }
     }
 
     update(deltaTime) {
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
-        this.rotation += this.rotationSpeed * deltaTime;
+        this.rotX += this.rotSpeedX * deltaTime;
+        this.rotY += this.rotSpeedY * deltaTime;
+        this.rotZ += this.rotSpeedZ * deltaTime;
     }
 
     draw() {
         ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.rotation);
-        ctx.strokeStyle = '#4a4a4a';
-        ctx.fillStyle = '#1a1a1a';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        this.points.forEach((p, i) => {
-            if (i === 0) ctx.moveTo(p.x, p.y);
-            else ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = '#6a6a6a';
+        ctx.fillStyle = 'rgba(26, 26, 26, 0.85)';
+        ctx.lineWidth = 1.5;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(100, 100, 100, 0.3)';
+
+        // Project vertices
+        const projected = this.vertices.map(v => 
+            project3D(v, this.rotX, this.rotY, this.rotZ, 1.0, this.x, this.y)
+        );
+
+        // Sort faces by depth
+        const sortedFaces = this.faces.map(face => {
+            const zAvg = getFaceAverageZ(face, this.vertices, this.rotX, this.rotY, this.rotZ);
+            return { face, zAvg };
+        }).sort((a, b) => b.zAvg - a.zAvg);
+
+        // Draw sorted faces
+        sortedFaces.forEach(fd => {
+            ctx.beginPath();
+            fd.face.forEach((idx, i) => {
+                const p = projected[idx];
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
         });
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+
         ctx.restore();
     }
 }
@@ -702,19 +1046,87 @@ class Powerup {
         this.type = Math.random() > 0.5 ? 'speed' : 'shield';
         this.color = this.type === 'speed' ? '#ffcc00' : '#00ffff';
         this.vy = 2;
+        
+        // 3D rotation parameters
+        this.rotX = Math.random() * Math.PI;
+        this.rotY = Math.random() * Math.PI;
+        this.rotZ = Math.random() * Math.PI;
+        this.rotSpeedX = 0.03;
+        this.rotSpeedY = 0.04;
+        this.rotSpeedZ = 0.02;
+
+        this.vertices = [
+            { x: -10, y: -10, z: -10 },
+            { x: 10, y: -10, z: -10 },
+            { x: 10, y: 10, z: -10 },
+            { x: -10, y: 10, z: -10 },
+            { x: -10, y: -10, z: 10 },
+            { x: 10, y: -10, z: 10 },
+            { x: 10, y: 10, z: 10 },
+            { x: -10, y: 10, z: 10 }
+        ];
+
+        this.faces = [
+            [0, 1, 2, 3], // Front
+            [5, 4, 7, 6], // Back
+            [3, 2, 6, 7], // Top
+            [4, 5, 1, 0], // Bottom
+            [4, 0, 3, 7], // Left
+            [1, 5, 6, 2]  // Right
+        ];
     }
 
     update(deltaTime) {
         this.y += this.vy * deltaTime;
+        this.rotX += this.rotSpeedX * deltaTime;
+        this.rotY += this.rotSpeedY * deltaTime;
+        this.rotZ += this.rotSpeedZ * deltaTime;
     }
 
     draw() {
         ctx.save();
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
-        ctx.font = '20px Arial';
-        ctx.fillText(this.type === 'speed' ? '⚡' : '🛡️', this.x, this.y + 20);
+        ctx.strokeStyle = this.color;
+        ctx.fillStyle = this.color + '26'; // 15% opacity fill
+        ctx.lineWidth = 1.5;
+
+        const offsetX = this.x + this.width / 2;
+        const offsetY = this.y + this.height / 2;
+
+        // Project vertices
+        const projected = this.vertices.map(v => 
+            project3D(v, this.rotX, this.rotY, this.rotZ, 1.0, offsetX, offsetY)
+        );
+
+        // Sort faces by depth
+        const sortedFaces = this.faces.map(face => {
+            const zAvg = getFaceAverageZ(face, this.vertices, this.rotX, this.rotY, this.rotZ);
+            return { face, zAvg };
+        }).sort((a, b) => b.zAvg - a.zAvg);
+
+        // Draw sorted faces
+        sortedFaces.forEach(fd => {
+            ctx.beginPath();
+            fd.face.forEach((idx, i) => {
+                const p = projected[idx];
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // Draw central floating abbreviation
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '700 12px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#ffffff';
+        ctx.fillText(this.type === 'speed' ? 'PWR' : 'SHD', offsetX, offsetY);
+
         ctx.restore();
     }
 }
