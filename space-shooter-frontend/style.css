@@ -147,7 +147,9 @@ body {
 .overlay {
     position: absolute;
     inset: 0;
-    background: rgba(12, 14, 20, 0.95);
+    background: rgba(5, 7, 10, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -160,8 +162,17 @@ body {
     opacity: 0;
     pointer-events: none;
 }
-.overlay-content { text-align: center; width: 100%; max-width: 400px; }
-.overlay-content h2 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; }
+.overlay-content {
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 255, 204, 0.05);
+}
+.overlay-content h2 { font-size: 2.2rem; margin-bottom: 0.5rem; color: #fff; text-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
 .overlay-content p { color: var(--text-secondary); margin-bottom: 2rem; }
 
 /* Buttons */
@@ -185,7 +196,10 @@ body {
     color: #0c0e14;
     box-shadow: 0 4px 15px var(--accent-glow);
 }
-.btn.primary:hover { transform: translateY(-2px); }
+.btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 255, 204, 0.5);
+}
 
 .share-container { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
 .share-container.hidden { display: none; }

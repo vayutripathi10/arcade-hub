@@ -34,6 +34,15 @@ let lastTime = 0;
 let animationFrameId;
 let dayPhase = 0;
 
+// Juice System variables
+let gridRipples = [];
+let gridOffset = 0;
+let flashAlpha = 0;
+let flashActive = false;
+let flashColor = '#fff';
+let timeDilation = 1.0;
+let slowMoTimer = 0;
+
 // Boss State
 let bossState = 'none'; // 'none', 'incoming', 'active', 'defeated'
 let boss = null;
@@ -69,7 +78,7 @@ class Player {
         this.height = 40;
         this.reset();
         this.color = '#00ffcc';
-        this.shootCooldown = 300;
+        this.shootCooldown = 280;
         this.lastShot = 0;
         this.lives = 3;
         this.shield = false;
@@ -77,6 +86,10 @@ class Player {
         this.speedBoostTimer = 0;
         this.invulnerable = false;
         this.invulnTimer = 0;
+        
+        // Juice properties
+        this.weaponTier = 1;
+        this.trail = [];
     }
 
     reset() {
@@ -101,9 +114,21 @@ class Player {
         if (this.y < 0) this.y = 0;
         if (this.y > canvas.height - this.height) this.y = canvas.height - this.height;
 
+        // Exhaust Particles
+        if (gameRunning && Math.random() < 0.65 * deltaTime) {
+            const px = this.x + this.width / 2 + (Math.random() - 0.5) * 8;
+            const py = this.y + this.height - 3;
+            // Spawn flame particles shooting downwards
+            particles.push(new Particle(px, py, this.color, (Math.random() - 0.5) * 2, 4 + Math.random() * 2, Math.random() * 2.5 + 1.5, 0.04));
+        }
+
+        // Motion Trails
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 8) this.trail.shift();
+
         // Auto-shoot
         const now = Date.now();
-        const cooldown = this.speedBoost ? this.shootCooldown / 2 : this.shootCooldown;
+        const cooldown = this.speedBoost ? this.shootCooldown / 2.2 : this.shootCooldown;
         if (now - this.lastShot > cooldown && gameRunning) {
             this.shoot();
             this.lastShot = now;
@@ -112,7 +137,10 @@ class Player {
         // Powerup Timers
         if (this.speedBoost) {
             this.speedBoostTimer -= deltaTime;
-            if (this.speedBoostTimer <= 0) this.speedBoost = false;
+            if (this.speedBoostTimer <= 0) {
+                this.speedBoost = false;
+                this.weaponTier = Math.max(1, this.weaponTier - 1);
+            }
         }
 
         // Invulnerability Timer
@@ -123,12 +151,65 @@ class Player {
     }
 
     shoot() {
-        bullets.push(new Bullet(this.x + this.width / 2, this.y));
-        if (window.audioFX) window.audioFX.playJump(); // Reuse jump sound for shot
+        const bulletColor = this.weaponTier === 4 ? '#ff00ff' : (this.weaponTier === 3 ? '#ffcc00' : (this.weaponTier === 2 ? '#00ff66' : '#00ffcc'));
+        
+        if (this.weaponTier === 1) {
+            bullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -12, bulletColor));
+        } else if (this.weaponTier === 2) {
+            bullets.push(new Bullet(this.x + 8, this.y, 0, -12, bulletColor));
+            bullets.push(new Bullet(this.x + this.width - 8, this.y, 0, -12, bulletColor));
+        } else if (this.weaponTier === 3) {
+            bullets.push(new Bullet(this.x + this.width / 2, this.y, 0, -12, bulletColor));
+            bullets.push(new Bullet(this.x + 4, this.y, -2.5, -11.5, bulletColor));
+            bullets.push(new Bullet(this.x + this.width - 4, this.y, 2.5, -11.5, bulletColor));
+        } else { // Tier 4 (Mega)
+            bullets.push(new Bullet(this.x + this.width / 2 - 8, this.y, 0, -12, bulletColor));
+            bullets.push(new Bullet(this.x + this.width / 2 + 8, this.y, 0, -12, bulletColor));
+            bullets.push(new Bullet(this.x, this.y, -3.5, -11, bulletColor));
+            bullets.push(new Bullet(this.x + this.width, this.y, 3.5, -11, bulletColor));
+            
+            // Add a tracking plasma ball or center heavy blast
+            bullets.push(new Bullet(this.x + this.width / 2, this.y - 10, 0, -14, '#ffffff'));
+        }
+
+        if (typeof playLaserSound === 'function') {
+            playLaserSound(this.weaponTier);
+        } else if (window.audioFX) {
+            window.audioFX.playJump();
+        }
+        
+        // Small recoil screenshake
+        screenShake = Math.max(screenShake, this.weaponTier * 1.2);
+        
+        // Spawn small launch ripples at the gun tips
+        if (typeof addGridRipple === 'function') {
+            addGridRipple(this.x + this.width / 2, this.y, 4, 40, 2);
+        }
     }
 
     draw() {
         ctx.save();
+        
+        // Draw trailing motion ghost ships
+        if (this.speedBoost || this.invulnerable) {
+            this.trail.forEach((t, index) => {
+                const ratio = (index + 1) / this.trail.length; // 0 to 1
+                ctx.save();
+                ctx.globalAlpha = ratio * 0.25;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(t.x + this.width / 2, t.y);
+                ctx.lineTo(t.x + this.width, t.y + this.height);
+                ctx.lineTo(t.x + this.width / 2, t.y + this.height - 10);
+                ctx.lineTo(t.x, t.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
         ctx.shadowBlur = 15;
         ctx.shadowColor = this.color;
         ctx.fillStyle = this.color;
@@ -150,13 +231,14 @@ class Player {
         if (this.shield) {
             ctx.strokeStyle = '#00ffff';
             ctx.lineWidth = 2;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ffff';
             ctx.beginPath();
-            ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width, 0, Math.PI * 2);
+            ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width - 5, 0, Math.PI * 2);
             ctx.stroke();
         }
 
         ctx.restore();
-        // Lives are drawn by draw() outside shake transform
     }
 
     drawLives() {
@@ -178,25 +260,34 @@ class Player {
 }
 
 class Bullet {
-    constructor(x, y) {
-        this.x = x - 2;
+    constructor(x, y, vx = 0, vy = -12, color = '#fff') {
+        this.x = x;
         this.y = y;
+        this.vx = vx;
+        this.vy = vy;
         this.width = 4;
         this.height = 15;
-        this.speed = 10;
-        this.color = '#fff';
+        this.color = color;
     }
 
     update(deltaTime) {
-        this.y -= this.speed * deltaTime;
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
     }
 
     draw() {
+        ctx.save();
         ctx.shadowBlur = 10;
-        ctx.shadowColor = '#fff';
+        ctx.shadowColor = this.color;
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        ctx.shadowBlur = 0;
+        
+        // Align bullet visual orientation with its velocity vector
+        const angle = Math.atan2(this.vy, this.vx) + Math.PI / 2;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(angle);
+        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+        
+        ctx.restore();
     }
 }
 
@@ -370,9 +461,31 @@ class Boss {
         bossMessageTimer = 120;
         bossDefeatedCount++;
         score += 2000;
+        
+        // Visual impact juice: time dilation, flash and screenshake
+        timeDilation = 0.15;
+        slowMoTimer = 90;
+        flashActive = true;
+        flashAlpha = 1.0;
+        flashColor = '#ffffff';
+        screenShake = 30;
+        
         createExplosion(this.x, this.y, this.color);
-        for (let i = 0; i < 50; i++) {
-            particles.push(new Particle(this.x + (Math.random()-0.5)*100, this.y + (Math.random()-0.5)*100, this.color));
+        addGridRipple(this.x, this.y, 25, 200, 3.8);
+        playExplosionSound('heavy');
+
+        for (let i = 0; i < 60; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const spd = 2 + Math.random() * 10;
+            particles.push(new Particle(
+                this.x + (Math.random() - 0.5) * 80, 
+                this.y + (Math.random() - 0.5) * 80, 
+                this.color,
+                Math.cos(angle) * spd,
+                Math.sin(angle) * spd,
+                Math.random() * 4 + 2,
+                0.015 + Math.random() * 0.015
+            ));
         }
         bossSpawnScore += 3000;
         if(window.achievements) window.achievements.unlock('space', 'boss_slayer', 'Dragon Slayer');
@@ -607,27 +720,29 @@ class Powerup {
 }
 
 class Particle {
-    constructor(x, y, color) {
+    constructor(x, y, color, vx = null, vy = null, size = null, alphaDecay = 0.02) {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.size = Math.random() * 4 + 2;
-        this.vx = (Math.random() - 0.5) * 10;
-        this.vy = (Math.random() - 0.5) * 10;
+        this.size = size !== null ? size : (Math.random() * 4 + 2);
+        this.vx = vx !== null ? vx : (Math.random() - 0.5) * 10;
+        this.vy = vy !== null ? vy : (Math.random() - 0.5) * 10;
         this.alpha = 1;
+        this.alphaDecay = alphaDecay;
     }
 
     update(deltaTime) {
         this.x += this.vx * deltaTime;
         this.y += this.vy * deltaTime;
-        this.alpha -= 0.02 * deltaTime;
+        this.alpha -= this.alphaDecay * deltaTime;
     }
 
     draw() {
+        ctx.save();
         ctx.globalAlpha = this.alpha;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.size, this.size);
-        ctx.globalAlpha = 1;
+        ctx.restore();
     }
 }
 
@@ -706,20 +821,341 @@ function spawnEntity(deltaTime) {
     }
 }
 
+// Ripple class
+class GridRipple {
+    constructor(x, y, intensity = 15, maxRadius = 120, speed = 4) {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.maxRadius = maxRadius;
+        this.speed = speed;
+        this.intensity = intensity;
+    }
+    update(deltaTime) {
+        this.radius += this.speed * deltaTime;
+    }
+}
+
+function addGridRipple(x, y, intensity = 15, maxRadius = 120, speed = 4) {
+    gridRipples.push(new GridRipple(x, y, intensity, maxRadius, speed));
+}
+
+function drawBackgroundGrid() {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.09)';
+    ctx.lineWidth = 1;
+
+    const horizonY = -120;
+    const vanishX = canvas.width / 2;
+    const numDivisions = 20;
+
+    // Perspective lines
+    for (let i = 0; i <= numDivisions; i++) {
+        const angle = -Math.PI / 3 + (i / numDivisions) * (Math.PI / 1.5);
+        const startX = vanishX;
+        const startY = horizonY;
+        const endX = vanishX + Math.tan(angle) * (canvas.height - horizonY);
+        const endY = canvas.height;
+
+        ctx.beginPath();
+        const steps = 10;
+        for (let j = 0; j <= steps; j++) {
+            const t = j / steps;
+            let px = startX + (endX - startX) * t;
+            let py = startY + (endY - startY) * t;
+
+            gridRipples.forEach(r => {
+                const dx = px - r.x;
+                const dy = py - r.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < r.radius && r.radius > 0) {
+                    const factor = 1 - (dist / r.radius);
+                    const force = Math.sin(r.radius * 0.1 - dist * 0.08) * r.intensity * factor;
+                    px += (dx / (dist || 1)) * force;
+                    py += (dy / (dist || 1)) * force;
+                }
+            });
+
+            if (j === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    }
+
+    // Horizontal lines
+    const baseGap = 20;
+    const numHoriz = 16;
+    for (let i = 0; i < numHoriz; i++) {
+        const yOffset = ((i * baseGap + gridOffset) % (numHoriz * baseGap));
+        const pyTrue = horizonY + Math.pow(yOffset / (numHoriz * baseGap), 1.6) * (canvas.height - horizonY);
+        
+        ctx.beginPath();
+        const steps = 20;
+        for (let j = 0; j <= steps; j++) {
+            let px = (j / steps) * canvas.width;
+            let py = pyTrue;
+
+            gridRipples.forEach(r => {
+                const dx = px - r.x;
+                const dy = py - r.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < r.radius && r.radius > 0) {
+                    const factor = 1 - (dist / r.radius);
+                    const force = Math.sin(r.radius * 0.1 - dist * 0.08) * r.intensity * factor;
+                    px += (dx / (dist || 1)) * force;
+                    py += (dy / (dist || 1)) * force;
+                }
+            });
+
+            if (j === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
+
+// Procedural Music & Sound Synthesis Engine
+const MusicSynth = {
+    audioCtx: null,
+    isPlaying: false,
+    bpm: 115,
+    step: 0,
+    notes: [
+        55, 55, 65.41, 65.41, 73.42, 73.42, 82.41, 82.41
+    ],
+    init() {
+        if (this.audioCtx) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.audioCtx = new AudioCtx();
+    },
+    start() {
+        this.init();
+        if (!this.audioCtx || this.isPlaying) return;
+        this.isPlaying = true;
+        this.step = 0;
+        
+        const scheduleNextStep = () => {
+            if (!this.isPlaying) return;
+            const stepTime = 60 / this.bpm / 2;
+            
+            this.playBassNote(this.notes[this.step % this.notes.length], stepTime * 0.85);
+            
+            if (this.step % 2 === 1) {
+                this.playHiHat(stepTime * 0.25);
+            }
+            
+            this.step++;
+            setTimeout(scheduleNextStep, stepTime * 1000);
+        };
+        
+        scheduleNextStep();
+    },
+    stop() {
+        this.isPlaying = false;
+    },
+    playBassNote(freq, duration) {
+        if (window.audioFX && window.audioFX.isMuted) return;
+        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+        
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        const filter = this.audioCtx.createBiquadFilter();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(160, this.audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0.18, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.005, this.audioCtx.currentTime + duration);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        osc.start();
+        osc.stop(this.audioCtx.currentTime + duration);
+    },
+    playHiHat(duration) {
+        if (window.audioFX && window.audioFX.isMuted) return;
+        
+        const bufferSize = this.audioCtx.sampleRate * duration;
+        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        
+        const source = this.audioCtx.createBufferSource();
+        source.buffer = buffer;
+        
+        const filter = this.audioCtx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(7000, this.audioCtx.currentTime);
+        
+        const gain = this.audioCtx.createGain();
+        gain.gain.setValueAtTime(0.04, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duration);
+        
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        
+        source.start();
+        source.stop(this.audioCtx.currentTime + duration);
+    }
+};
+
+function playLaserSound(tier = 1) {
+    if (window.audioFX && window.audioFX.isMuted) return;
+    MusicSynth.init();
+    const ctx = MusicSynth.audioCtx;
+    if (!ctx) return;
+    
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    if (tier === 1) {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.15);
+    } else if (tier === 2) {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+        gain.gain.setValueAtTime(0.24, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.15);
+    } else if (tier === 3) {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.2);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.2);
+    } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.exponentialRampToValueAtTime(90, now + 0.25);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(now + 0.25);
+    }
+}
+
+function playExplosionSound(intensity = 'medium') {
+    if (window.audioFX && window.audioFX.isMuted) return;
+    MusicSynth.init();
+    const ctx = MusicSynth.audioCtx;
+    if (!ctx) return;
+    
+    const duration = intensity === 'heavy' ? 0.75 : (intensity === 'medium' ? 0.35 : 0.18);
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
+    
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(intensity === 'heavy' ? 350 : (intensity === 'medium' ? 550 : 750), ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + duration);
+    
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(intensity === 'heavy' ? 0.45 : (intensity === 'medium' ? 0.3 : 0.15), ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    
+    source.start();
+    source.stop(ctx.currentTime + duration);
+}
+
+function playPickupSound() {
+    if (window.audioFX && window.audioFX.isMuted) return;
+    MusicSynth.init();
+    const ctx = MusicSynth.audioCtx;
+    if (!ctx) return;
+    
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.08);
+        gain.gain.setValueAtTime(0.12, now + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.08);
+        osc.stop(now + i * 0.08 + 0.2);
+    });
+}
+
 // --- Core Loops ---
 
 function update(deltaTime) {
     frameCount += deltaTime;
     currentSpeedMultiplier += SPEED_INC * deltaTime;
 
+    // Update perspective grid offset & ripples
+    gridOffset = (gridOffset + 1.8 * deltaTime) % 360;
+    for (let i = gridRipples.length - 1; i >= 0; i--) {
+        const r = gridRipples[i];
+        r.update(deltaTime);
+        if (r.radius > r.maxRadius) {
+            gridRipples.splice(i, 1);
+        }
+    }
+
+    // Update visual camera full-screen flashes
+    if (flashActive) {
+        flashAlpha -= 0.03 * deltaTime;
+        if (flashAlpha <= 0) {
+            flashAlpha = 0;
+            flashActive = false;
+        }
+    }
+
+    // Accelerate MusicSynth BPM relative to wave progression/boss spawning
+    if (MusicSynth.isPlaying) {
+        MusicSynth.bpm = 115 + Math.min(45, (score / bossSpawnScore) * 35);
+    }
+
     updateStars(deltaTime);
     player.update(deltaTime);
 
-    if (screenShake > 0) screenShake *= 0.9;
+    if (screenShake > 0) screenShake *= Math.pow(0.88, deltaTime);
 
     bullets.forEach((b, i) => {
         b.update(deltaTime);
-        if (b.y < -20) {
+        if (b.y < -20 || b.x < -20 || b.x > canvas.width + 20) {
             bullets.splice(i, 1);
             return;
         }
@@ -730,6 +1166,8 @@ function update(deltaTime) {
             const dy = b.y - boss.y;
             if (Math.abs(dx) < 60 && Math.abs(dy) < 40) {
                 boss.takeDamage(1);
+                addGridRipple(b.x, b.y, 6, 80, 3);
+                playExplosionSound('light');
                 bullets.splice(i, 1);
                 return;
             }
@@ -787,6 +1225,8 @@ function update(deltaTime) {
                 e.health--;
                 if (e.health <= 0) {
                     createExplosion(e.x + e.width / 2, e.y + e.height / 2, e.color);
+                    addGridRipple(e.x + e.width / 2, e.y + e.height / 2, 10, 100, 3.5);
+                    playExplosionSound(e.type === 'tank' ? 'heavy' : 'medium');
                     score += e.type === 'tank' ? 50 : (e.type === 'zigzag' ? 20 : 10);
                     if (e.type === 'tank') {
                         powerups.push(new Powerup(e.x + e.width/2, e.y + e.height/2));
@@ -820,6 +1260,8 @@ function update(deltaTime) {
             if (bDist < a.radius) {
                 bullets.splice(bi, 1);
                 createExplosion(a.x, a.y, '#4a4a4a');
+                addGridRipple(a.x, a.y, 8, 90, 3);
+                playExplosionSound('medium');
                 asteroids.splice(i, 1);
                 score += 5;
                 checkAchievements();
@@ -833,9 +1275,12 @@ function update(deltaTime) {
             if (p.type === 'speed') {
                 player.speedBoost = true;
                 player.speedBoostTimer = 300;
+                player.weaponTier = Math.min(4, player.weaponTier + 1); // Upgrade gun tier!
             } else {
                 player.shield = true;
             }
+            playPickupSound();
+            addGridRipple(p.x, p.y, 14, 110, 2.5);
             powerups.splice(i, 1);
         }
     });
@@ -857,15 +1302,27 @@ function handleCollision(entity, index, type) {
         player.invulnerable = true;
         player.invulnTimer = 60;
         createExplosion(player.x + 20, player.y + 20, '#00ffff');
+        addGridRipple(player.x + 20, player.y + 20, 16, 120, 4);
+        playExplosionSound('heavy');
         if (type === 'enemy') enemies.splice(index, 1);
         else if (type === 'asteroid') asteroids.splice(index, 1);
         return;
     }
 
     player.lives--;
+    player.weaponTier = 1; // Reset firepower on hit!
     player.invulnerable = true;
-    player.invulnTimer = 90; // 1.5s of safety after hit
+    player.invulnTimer = 90; // 1.5s safety window
     createExplosion(player.x + 20, player.y + 20, '#ff0000');
+    addGridRipple(player.x + 20, player.y + 20, 22, 160, 4.5);
+    playExplosionSound('heavy');
+    
+    // Trigger impact red flash overlay
+    flashActive = true;
+    flashAlpha = 0.55;
+    flashColor = 'rgba(255, 0, 0, 0.4)';
+    screenShake = 18;
+
     if (navigator.vibrate) navigator.vibrate(100);
     
     if (type === 'enemy') enemies.splice(index, 1);
@@ -889,6 +1346,7 @@ function draw() {
     }
 
     drawStars();
+    drawBackgroundGrid();
     particles.forEach(p => p.draw());
     bullets.forEach(b => b.draw());
     bossBullets.forEach(b => b.draw());
@@ -905,6 +1363,15 @@ function draw() {
         drawBossMessage('BOSS DEFEATED!', '#00ffcc');
     }
     ctx.restore();
+
+    // Draw full-screen camera flash overlays
+    if (flashActive) {
+        ctx.save();
+        ctx.fillStyle = flashColor;
+        ctx.globalAlpha = flashAlpha;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    }
 
     // Draw lives outside shake so hearts are always at fixed position
     player.drawLives();
@@ -960,7 +1427,15 @@ function animate(timestamp) {
     const deltaTime = Math.min((timestamp - lastTime) / 16.67, 3); // Cap at 3x to avoid huge jumps
     lastTime = timestamp;
 
-    update(deltaTime);
+    // Decaying slow-motion timer
+    if (slowMoTimer > 0) {
+        slowMoTimer -= deltaTime;
+        if (slowMoTimer <= 0) {
+            timeDilation = 1.0;
+        }
+    }
+
+    update(deltaTime * timeDilation);
     draw();
 }
 
@@ -982,6 +1457,13 @@ function startGame() {
     asteroids = [];
     powerups = [];
     particles = [];
+    gridRipples = [];
+    gridOffset = 0;
+    flashAlpha = 0;
+    flashActive = false;
+    timeDilation = 1.0;
+    slowMoTimer = 0;
+
     bossState = 'none';
     bossMessageTimer = 0;
     boss = null;
@@ -993,6 +1475,10 @@ function startGame() {
     overlay.classList.add('hidden');
     isPaused = false;
     pauseBtn?.classList.remove('hidden');
+    
+    // Start procedural synth soundtrack loop
+    MusicSynth.start();
+    
     animate(performance.now());
 }
 
@@ -1001,7 +1487,17 @@ function gameOver() {
     isPaused = false;
     pauseBtn?.classList.add('hidden');
     cancelAnimationFrame(animationFrameId);
+    
+    // Stop soundtrack loop
+    MusicSynth.stop();
+    
     if (window.audioFX) window.audioFX.playGameOver();
+
+    // Trigger full red crash flash
+    flashActive = true;
+    flashAlpha = 1.0;
+    flashColor = '#ff0000';
+    screenShake = 25;
 
     if (score > highScore) {
         highScore = score;
@@ -1059,6 +1555,10 @@ btnQuit?.addEventListener('click', (e) => {
     gameRunning = false;
     isPaused = false;
     cancelAnimationFrame(animationFrameId);
+    
+    // Stop procedural synth soundtrack loop
+    MusicSynth.stop();
+
     pauseMenu.classList.add('hidden');
     overlayTitle.textContent = "Neon Shooter";
     overlayMessage.textContent = "Fly through the cosmos. Eliminate all hostiles.";
@@ -1104,10 +1604,17 @@ function togglePause(forcePause) {
         cancelAnimationFrame(animationFrameId);
         pauseMenu.classList.remove('hidden');
         if (pauseIcon) pauseIcon.textContent = "▶";
+        
+        // Stop music loop when paused
+        MusicSynth.stop();
     } else {
         pauseMenu.classList.add('hidden');
         if (pauseIcon) pauseIcon.textContent = "||";
         lastTime = performance.now();
+        
+        // Resume music loop when resumed
+        MusicSynth.start();
+        
         animate(lastTime);
     }
 }
