@@ -632,7 +632,8 @@ body::before {
     box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.8);
 }
 
-.card-video-container video {
+.card-video-container video,
+.card-video-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -640,7 +641,8 @@ body::before {
     transition: all 0.3s ease;
 }
 
-.game-card:hover .card-video-container video {
+.game-card:hover .card-video-container video,
+.game-card:hover .card-video-container img {
     opacity: 1;
     transform: scale(1.05);
 }
