@@ -22,7 +22,7 @@ const GRAVITY = 0.8;
 const JUMP_FORCE = -15;
 let GROUND_Y = 230; 
 const INITIAL_SPEED = 8;
-const SPEED_INCREMENT = 0.002;
+const SPEED_INCREMENT = 0.0005;
 let distanceSinceLastObstacle = 0;
 
 // Game State
