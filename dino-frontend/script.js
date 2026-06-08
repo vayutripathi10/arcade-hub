@@ -34,7 +34,10 @@ let dino = {
     dy: 0,
     isJumping: false,
     canDoubleJump: false,
-    color: '#8a2be2'
+    color: '#8a2be2',
+    scaleX: 1.0,
+    scaleY: 1.0,
+    wasJumping: false
 };
 
 let obstacles = [];
@@ -46,6 +49,16 @@ let gameRunning = false;
 let isPaused = false;
 let gameSpeed = INITIAL_SPEED;
 let animationFrameId;
+
+// Game Juice States
+let shakeTime = 0;
+let shakeIntensity = 0;
+let shakeX = 0;
+let shakeY = 0;
+let flashAlpha = 0;
+let gridOffset = 0;
+let ripples = [];
+let juiceParticles = [];
 
 const stars = Array.from({length: 35}, () => ({
     x: Math.random() * 800,
@@ -99,7 +112,7 @@ function resizeCanvas() {
     canvas.width = layoutW * dpr;
     canvas.height = layoutH * dpr;
     
-    GROUND_Y = gameHeight - 70;
+    GROUND_Y = gameHeight - 110;
     
     if (!dino.isJumping) {
         dino.y = GROUND_Y;
@@ -205,6 +218,9 @@ function init() {
         hintText?.classList.remove('hidden');
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         
+        // Stop music
+        MusicSynth.stop();
+        
         dino.y = GROUND_Y;
         dino.dy = 0;
         obstacles = [];
@@ -221,6 +237,13 @@ function init() {
     document.getElementById('htp-close')?.addEventListener('click', () => {
         document.getElementById('htpOverlay')?.classList.remove('active');
     });
+    
+    // Return to Hub Game Over Button
+    document.getElementById('hub-gameover-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log('Hub button clicked from game over screen');
+        window.top.location.href = '../index.html';
+    });
 }
 
 function startGame() {
@@ -235,8 +258,12 @@ function startGame() {
     dino.dy = 0;
     dino.isJumping = false;
     dino.canDoubleJump = false;
+    dino.scaleX = 1.0;
+    dino.scaleY = 1.0;
     obstacles = [];
     clouds = [];
+    ripples = [];
+    juiceParticles = [];
     score = 0;
     gameSpeed = INITIAL_SPEED;
     frameCount = 0;
@@ -247,6 +274,9 @@ function startGame() {
     overlay.classList.add('hidden');
     pauseBtn?.classList.remove('hidden');
     hintText?.classList.add('hidden');
+    
+    // Start procedural music
+    MusicSynth.start();
     
     if (animationFrameId) cancelAnimationFrame(animationFrameId);
     lastTime = performance.now();
@@ -259,8 +289,10 @@ function togglePause(forcePause) {
     
     if (isPaused) {
         pauseMenu.classList.remove('hidden');
+        MusicSynth.stop();
     } else {
         pauseMenu.classList.add('hidden');
+        MusicSynth.start();
         lastTime = performance.now();
         animate(lastTime);
     }
@@ -273,17 +305,257 @@ function jump() {
         dino.dy = JUMP_FORCE;
         dino.isJumping = true;
         dino.canDoubleJump = true;
+        
+        // Juice: jump stretch
+        dino.scaleY = 1.35;
+        dino.scaleX = 0.75;
+        triggerShake(4, 2.5);
+        spawnRipple(dino.x + dino.width / 2, GROUND_Y + 60, 60, 4, 3.5);
     } else if (dino.canDoubleJump) {
         if (window.audioFX) window.audioFX.playJump();
         dino.dy = JUMP_FORCE * 0.8;
         dino.canDoubleJump = false;
         if (window.achievements) window.achievements.unlock('dino', 'double_jump', 'Acrobat');
+        
+        // Juice: double jump stretch
+        dino.scaleY = 1.45;
+        dino.scaleX = 0.7;
+        triggerShake(6, 3.5);
+        
+        // Juice: spawn double jump ring particle
+        spawnParticle({
+            type: 'ring',
+            x: dino.x + dino.width / 2,
+            y: dino.y + dino.height / 2,
+            vx: 0,
+            vy: 0,
+            radius: 5,
+            maxRadius: 60,
+            expand: 4.0,
+            alpha: 1.0,
+            decay: 0.04
+        });
     }
 }
+
+// Game Juice Helpers
+function triggerShake(time, intensity) {
+    shakeTime = time;
+    shakeIntensity = intensity;
+}
+
+function spawnRipple(x, y, maxRadius, maxStrength, speed) {
+    ripples.push({
+        x: x,
+        y: y,
+        radius: 0,
+        maxRadius: maxRadius,
+        strength: maxStrength,
+        speed: speed,
+        life: 1.0
+    });
+}
+
+function spawnParticle(p) {
+    juiceParticles.push(p);
+}
+
+// Procedural Music Synth Object
+const MusicSynth = {
+    isPlaying: false,
+    nextNoteTime: 0,
+    stepIndex: 0,
+    bpm: 110,
+    schedulerId: null,
+    
+    start() {
+        if (this.isPlaying) return;
+        if (!window.audioFX || !window.audioFX.ctx) return;
+        
+        window.audioFX.init();
+        this.isPlaying = true;
+        this.nextNoteTime = window.audioFX.ctx.currentTime;
+        this.stepIndex = 0;
+        
+        this.run();
+    },
+    
+    stop() {
+        this.isPlaying = false;
+        if (this.schedulerId) {
+            clearTimeout(this.schedulerId);
+            this.schedulerId = null;
+        }
+    },
+    
+    run() {
+        if (!this.isPlaying) return;
+        
+        const ctx = window.audioFX.ctx;
+        while (this.nextNoteTime < ctx.currentTime + 0.15) {
+            this.scheduleNote(this.stepIndex, this.nextNoteTime);
+            
+            const stepDuration = 60 / this.bpm / 4; // 16th note
+            this.nextNoteTime += stepDuration;
+            this.stepIndex = (this.stepIndex + 1) % 16;
+        }
+        
+        // Scale BPM dynamically with speed
+        this.bpm = 110 + (gameSpeed - INITIAL_SPEED) * 5;
+        this.bpm = Math.min(this.bpm, 180);
+        
+        this.schedulerId = setTimeout(() => this.run(), 50);
+    },
+    
+    scheduleNote(step, time) {
+        if (!window.audioFX || window.audioFX.isMuted) return;
+        const ctx = window.audioFX.ctx;
+        const compressor = window.audioFX.compressor;
+        if (!ctx || !compressor) return;
+        
+        // Galloping bassline notes: E (82Hz / 41Hz), G (98Hz / 49Hz), A (110Hz / 55Hz), C (65Hz / 32Hz)
+        const notes = [
+            [82.41, 41.20], // E
+            [98.00, 49.00], // G
+            [110.00, 55.00], // A
+            [65.41, 32.70]  // C
+        ];
+        
+        const chordIdx = Math.floor(step / 4) % 4;
+        const isOffbeat = step % 2 === 1;
+        const freq = isOffbeat ? notes[chordIdx][1] : notes[chordIdx][0];
+        
+        this.playBass(freq, time, ctx, compressor);
+        
+        if (step % 4 === 0) {
+            this.playKick(time, ctx, compressor);
+        }
+        
+        if (step % 8 === 4) {
+            this.playSnare(time, ctx, compressor);
+        }
+        
+        if (step === 0 || step === 3 || step === 7 || step === 10) {
+            const melodyNotes = [164.81, 196.00, 220.00, 261.63];
+            const melFreq = melodyNotes[chordIdx] * 2;
+            this.playMelody(melFreq, time, ctx, compressor);
+        }
+    },
+    
+    playBass(freq, time, ctx, dest) {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(300, time);
+        filter.frequency.exponentialRampToValueAtTime(100, time + 0.15);
+        
+        gainNode.gain.setValueAtTime(0.08, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.005, time + 0.18);
+        
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(dest);
+        
+        osc.start(time);
+        osc.stop(time + 0.2);
+    },
+    
+    playKick(time, ctx, dest) {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(130, time);
+        osc.frequency.exponentialRampToValueAtTime(40, time + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.2, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+        
+        osc.connect(gainNode);
+        gainNode.connect(dest);
+        
+        osc.start(time);
+        osc.stop(time + 0.15);
+    },
+    
+    playSnare(time, ctx, dest) {
+        const bufferSize = ctx.sampleRate * 0.12;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1000, time);
+        
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.05, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+        
+        noise.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(dest);
+        
+        noise.start(time);
+        noise.stop(time + 0.12);
+    },
+    
+    playMelody(freq, time, ctx, dest) {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        gainNode.gain.setValueAtTime(0.02, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
+        
+        osc.connect(gainNode);
+        gainNode.connect(dest);
+        
+        osc.start(time);
+        osc.stop(time + 0.3);
+    }
+};
 
 function update(deltaTime) {
     frameCount++;
     gameSpeed = Math.min(gameSpeed + SPEED_INCREMENT * deltaTime, 25);
+    
+    // Squash/stretch scale decay
+    dino.scaleX += (1.0 - dino.scaleX) * 0.12 * deltaTime;
+    dino.scaleY += (1.0 - dino.scaleY) * 0.12 * deltaTime;
+    
+    // Scroll grid offset
+    gridOffset += gameSpeed * deltaTime;
+    
+    // Update camera shake
+    if (shakeTime > 0) {
+        shakeX = (Math.random() - 0.5) * shakeIntensity;
+        shakeY = (Math.random() - 0.5) * shakeIntensity;
+        shakeTime -= deltaTime;
+    } else {
+        shakeX = 0;
+        shakeY = 0;
+    }
+    
+    // Update flash overlay
+    if (flashAlpha > 0) {
+        flashAlpha -= 0.04 * deltaTime;
+    }
+    
+    // Track landing transition
+    const wasJumping = dino.isJumping;
     
     dino.dy += GRAVITY * deltaTime;
     dino.y += dino.dy * deltaTime;
@@ -292,6 +564,82 @@ function update(deltaTime) {
         dino.y = GROUND_Y;
         dino.dy = 0;
         dino.isJumping = false;
+        
+        if (wasJumping) {
+            // Landing impact squash
+            dino.scaleY = 0.65;
+            dino.scaleX = 1.35;
+            triggerShake(6, 3.5);
+            spawnRipple(dino.x + dino.width / 2, GROUND_Y + 60, 90, 6, 4.0);
+            
+            // Landing puff dust particles
+            for (let i = 0; i < 8; i++) {
+                spawnParticle({
+                    type: 'dust',
+                    x: dino.x + dino.width / 2 + (Math.random() - 0.5) * 15,
+                    y: GROUND_Y + 55,
+                    vx: (Math.random() - 0.5) * 4 - 2,
+                    vy: -Math.random() * 2 - 1,
+                    size: Math.random() * 3 + 2,
+                    alpha: 1.0,
+                    decay: 0.04 + Math.random() * 0.02
+                });
+            }
+        }
+    }
+    
+    // Spawn running dust particles
+    if (!dino.isJumping && gameRunning && frameCount % 5 === 0) {
+        spawnParticle({
+            type: 'dust',
+            x: dino.x + 8,
+            y: GROUND_Y + 55,
+            vx: -gameSpeed * 0.45 - Math.random() * 2,
+            vy: -Math.random() * 1.5,
+            size: Math.random() * 2 + 2,
+            alpha: 0.8,
+            decay: 0.05
+        });
+    }
+    
+    // Spawn high-speed wind speed lines
+    if (gameRunning && gameSpeed > 11 && Math.random() < 0.15) {
+        spawnParticle({
+            type: 'wind',
+            x: gameWidth,
+            y: 40 + Math.random() * 220,
+            vx: -gameSpeed * 1.6 - Math.random() * 5,
+            vy: 0,
+            length: 25 + Math.random() * 35,
+            alpha: 0.15 + Math.random() * 0.2,
+            decay: 0
+        });
+    }
+    
+    // Update grid ripples
+    for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.radius += r.speed * deltaTime;
+        r.life -= 0.02 * deltaTime;
+        if (r.life <= 0 || r.radius >= r.maxRadius) {
+            ripples.splice(i, 1);
+        }
+    }
+    
+    // Update particles
+    for (let i = juiceParticles.length - 1; i >= 0; i--) {
+        const p = juiceParticles[i];
+        p.x += p.vx * deltaTime;
+        p.y += p.vy * deltaTime;
+        if (p.decay > 0) {
+            p.alpha -= p.decay * deltaTime;
+        }
+        if (p.expand > 0) {
+            p.radius += p.expand * deltaTime;
+        }
+        if (p.alpha <= 0 || (p.expand > 0 && p.radius >= p.maxRadius) || p.x < -100) {
+            juiceParticles.splice(i, 1);
+        }
     }
     
     if (gameRunning) {
@@ -531,6 +879,9 @@ function draw() {
     const scaleY = (canvas.height / dpr) / gameHeight;
     ctx.scale(dpr * scaleX, dpr * scaleY);
     
+    // Apply camera screenshake translation
+    ctx.translate(shakeX, shakeY);
+    
     const config = getStageConfigs(score);
     ctx.fillStyle = config.bg;
     ctx.fillRect(0, 0, gameWidth, gameHeight);
@@ -538,24 +889,153 @@ function draw() {
     drawStars(config.stars);
     if (config.celestial === 'moon') drawMoon(config.celestialOpacity || 1); else drawSun(config.celestialOpacity || 1);
     
-    ctx.strokeStyle = config.ground; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 60); ctx.lineTo(gameWidth, GROUND_Y + 60); ctx.stroke();
+    // Draw 3D Perspective Ground Grid with Ripples
+    const H = GROUND_Y + 60; // Horizon Y
+    ctx.save();
     
-    ctx.fillStyle = config.cloudColor; clouds.forEach(cloud => drawPixelCloud(ctx, cloud.x, cloud.y, cloud.width, cloud.height));
+    // Draw horizontal grid lines
+    const numHorizontalLines = 9;
+    const spacing = 15;
+    const phase = (gridOffset / spacing) % 1;
+    
+    ctx.lineWidth = 2;
+    for (let i = 0; i < numHorizontalLines; i++) {
+        // Perspective mapping of horizontal lines
+        const u = (i - phase) / numHorizontalLines;
+        if (u < 0) continue;
+        const v = Math.pow(u, 2.2); // stretch near bottom
+        const gy = H + (gameHeight - H) * v;
+        
+        ctx.strokeStyle = config.ground;
+        ctx.beginPath();
+        
+        // Draw the line as segments to apply ripples
+        for (let x = 0; x <= gameWidth; x += 15) {
+            let dy = 0;
+            // Solve ripples at (x, gy)
+            ripples.forEach(r => {
+                const dx = x - r.x;
+                const dy_origin = gy - r.y;
+                const d = Math.sqrt(dx * dx + dy_origin * dy_origin);
+                const waveWidth = 50;
+                if (Math.abs(d - r.radius) < waveWidth) {
+                    const factor = 1 - Math.abs(d - r.radius) / waveWidth;
+                    dy += Math.sin((d - r.radius) / waveWidth * Math.PI) * r.strength * r.life * factor;
+                }
+            });
+            
+            if (x === 0) {
+                ctx.moveTo(x, gy + dy);
+            } else {
+                ctx.lineTo(x, gy + dy);
+            }
+        }
+        ctx.stroke();
+    }
+    
+    // Draw perspective vertical lines converging to vanishing point
+    const vanishingX = gameWidth / 2;
+    const vanishingY = H - 40; // slightly above horizon
+    const numPerspectiveLines = 14;
+    const bottomSpacing = 70; // spacing at the bottom of the screen
+    
+    for (let col = -numPerspectiveLines/2; col <= numPerspectiveLines/2; col++) {
+        const targetXBottom = vanishingX + col * bottomSpacing;
+        
+        ctx.beginPath();
+        // Draw the vertical line as segments
+        for (let step = 0; step <= 10; step++) {
+            const t = step / 10;
+            const gy = H + (gameHeight - H) * t;
+            const gx = vanishingX + (targetXBottom - vanishingX) * t;
+            
+            let dy = 0;
+            // Solve ripples at (gx, gy)
+            ripples.forEach(r => {
+                const dx = gx - r.x;
+                const dy_origin = gy - r.y;
+                const d = Math.sqrt(dx * dx + dy_origin * dy_origin);
+                const waveWidth = 50;
+                if (Math.abs(d - r.radius) < waveWidth) {
+                    const factor = 1 - Math.abs(d - r.radius) / waveWidth;
+                    dy += Math.sin((d - r.radius) / waveWidth * Math.PI) * r.strength * r.life * factor;
+                }
+            });
+            
+            if (step === 0) {
+                ctx.moveTo(gx, gy + dy);
+            } else {
+                ctx.lineTo(gx, gy + dy);
+            }
+        }
+        ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Draw clouds
+    ctx.fillStyle = config.cloudColor;
+    clouds.forEach(cloud => drawPixelCloud(ctx, cloud.x, cloud.y, cloud.width, cloud.height));
+    
+    // Draw juice particles
+    juiceParticles.forEach(p => {
+        ctx.save();
+        if (p.type === 'dust') {
+            ctx.fillStyle = `rgba(255, 0, 180, ${p.alpha})`; // glowing pink dust
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (p.type === 'wind') {
+            ctx.strokeStyle = `rgba(0, 255, 204, ${p.alpha})`; // cyan wind speed lines
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + p.length, p.y);
+            ctx.stroke();
+        } else if (p.type === 'ring') {
+            ctx.strokeStyle = `rgba(0, 255, 204, ${p.alpha})`; // cyan shockwave ring
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.restore();
+    });
     
     const isDark = config.bg === '#050508';
+    
+    // Helper to draw dino centered at bottom-center with scale transformations
+    const drawDinoScaled = (isGlow) => {
+        ctx.save();
+        const cx = dino.x + dino.width / 2;
+        const cy = dino.y + dino.height;
+        ctx.translate(cx, cy);
+        ctx.scale(dino.scaleX, dino.scaleY);
+        
+        const eyeColor = isGlow ? 'rgba(0,0,0,0)' : (isDark ? '#000' : '#fff');
+        const color = config.dinoColor;
+        const drawX = -dino.width / 2;
+        const drawY = -dino.height;
+        
+        if (isGlow) {
+            ctx.globalAlpha = 0.25;
+            drawPixelDino(ctx, drawX - 2, drawY - 2, dino.width + 4, dino.height + 4, color, eyeColor, dino.isJumping, frameCount);
+            ctx.globalAlpha = 1.0;
+        } else {
+            drawPixelDino(ctx, drawX, drawY, dino.width, dino.height, color, eyeColor, dino.isJumping, frameCount);
+        }
+        ctx.restore();
+    };
     
     if (isDark) {
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         if (isMobile) {
             ctx.shadowBlur = 0;
             
-            // Draw larger transparent dino as glow
-            ctx.globalAlpha = 0.25;
-            drawPixelDino(ctx, dino.x - 2, dino.y - 2, dino.width + 4, dino.height + 4, config.dinoColor, 'rgba(0,0,0,0)', dino.isJumping, frameCount);
-            ctx.globalAlpha = 1.0;
+            // mobile glow pass
+            drawDinoScaled(true);
             
-            // Draw actual dino
-            drawPixelDino(ctx, dino.x, dino.y, dino.width, dino.height, config.dinoColor, '#000', dino.isJumping, frameCount);
+            // actual dino
+            drawDinoScaled(false);
             
             // Draw obstacles glow
             obstacles.forEach(obs => {
@@ -583,12 +1063,14 @@ function draw() {
             });
         } else {
             // Desktop: use native shadowBlur
+            ctx.save();
             ctx.shadowBlur = 15;
             ctx.shadowColor = config.dinoColor;
-            
-            drawPixelDino(ctx, dino.x, dino.y, dino.width, dino.height, config.dinoColor, '#000', dino.isJumping, frameCount);
+            drawDinoScaled(false);
+            ctx.restore();
             
             obstacles.forEach(obs => {
+                ctx.save();
                 ctx.shadowBlur = 15; ctx.shadowColor = obs.color || config.obstacleColor; ctx.fillStyle = obs.color || config.obstacleColor;
                 if (obs.type === 'bird') { 
                     ctx.beginPath(); ctx.moveTo(obs.x, obs.y + obs.height); ctx.lineTo(obs.x + obs.width, obs.y + obs.height / 2); ctx.lineTo(obs.x, obs.y); ctx.fill(); 
@@ -597,13 +1079,14 @@ function draw() {
                     if (obs.type === 'cactus_tall') { drawRoundedRect(ctx, obs.x - 10, obs.y + 20, 15, 8, 3); drawRoundedRect(ctx, obs.x + obs.width - 5, obs.y + 10, 15, 8, 3); }
                     else if (obs.type === 'cactus_wide') { drawRoundedRect(ctx, obs.x + 5, obs.y - 10, 12, 15, 3); drawRoundedRect(ctx, obs.x + 30, obs.y - 5, 12, 10, 3); }
                 }
+                ctx.restore();
             });
         }
     } else {
         // Day mode
         ctx.shadowBlur = 0;
         
-        drawPixelDino(ctx, dino.x, dino.y, dino.width, dino.height, config.dinoColor, '#fff', dino.isJumping, frameCount);
+        drawDinoScaled(false);
         
         obstacles.forEach(obs => {
             ctx.fillStyle = obs.color || config.obstacleColor;
@@ -616,6 +1099,15 @@ function draw() {
             }
         });
     }
+    
+    // Draw impact flash overlay
+    if (flashAlpha > 0) {
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 0, 128, ${flashAlpha})`;
+        ctx.fillRect(0, 0, gameWidth, gameHeight);
+        ctx.restore();
+    }
+    
     ctx.shadowBlur = 0;
 }
 
@@ -651,6 +1143,15 @@ function gameOver() {
     pauseBtn?.classList.add('hidden');
     cancelAnimationFrame(animationFrameId);
     if (window.audioFX) window.audioFX.playGameOver();
+    
+    // Stop procedural music
+    MusicSynth.stop();
+    
+    // Crash visual effects
+    triggerShake(20, 11);
+    flashAlpha = 0.8;
+    spawnRipple(dino.x + dino.width / 2, GROUND_Y + 30, 240, 12, 5.0);
+    
     overlayTitle.textContent = "Game Over";
     overlayMessage.textContent = `Final Score: ${Math.floor(score)}`;
     const shareContainer = document.getElementById('shareContainer');
