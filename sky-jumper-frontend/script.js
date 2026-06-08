@@ -496,14 +496,87 @@ class Player {
         ctx.scale(this.scaleX, this.scaleY);
         ctx.translate(-this.w / 2, -this.h / 2);
 
-        ctx.fillStyle = this.color;
-        ctx.fillRect(0, 0, this.w, this.h);
-        
-        // Visor
-        ctx.fillStyle = '#111';
-        ctx.fillRect(this.vx > 0 ? 10 : (this.vx < 0 ? 5 : 8), 5, 15, 10);
+        // Helper to draw rounded rects easily
+        const drawRoundRect = (x, y, w, h, r, fill, stroke = null, strokeW = 1) => {
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, r);
+            if (fill) {
+                ctx.fillStyle = fill;
+                ctx.fill();
+            }
+            if (stroke) {
+                ctx.strokeStyle = stroke;
+                ctx.lineWidth = strokeW;
+                ctx.stroke();
+            }
+        };
 
-        // Jetpack flame
+        // 1. Draw Jetpack behind suit
+        drawRoundRect(2, 12, 26, 22, 5, '#1b202e', '#ff2d78', 1.5);
+        // glowing fuel gauge on jetpack
+        ctx.fillStyle = '#ff2d78';
+        ctx.fillRect(6, 16, 4, 6);
+
+        // 2. Draw Main Suit Body
+        drawRoundRect(4, 12, 22, 22, 6, '#f0f4f8', '#00f5ff', 1);
+
+        // 3. Draw Helmet Top Dome & Neck Base
+        ctx.fillStyle = '#e1e8f0';
+        ctx.beginPath();
+        ctx.arc(15, 12, 9, Math.PI, 0); // top dome
+        ctx.fill();
+        ctx.fillRect(6, 11, 18, 3); // connector neck
+
+        // 4. Draw Helmet Visor shifting with vx
+        let visorX = 15;
+        if (this.vx > 1) visorX = 18;
+        else if (this.vx < -1) visorX = 12;
+        
+        ctx.save();
+        ctx.shadowColor = '#00f5ff';
+        ctx.shadowBlur = 10;
+        
+        // visor outline
+        ctx.fillStyle = '#0f1115';
+        ctx.beginPath();
+        ctx.arc(visorX, 9, 6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // visor glow gradient
+        let visGrad = ctx.createLinearGradient(visorX - 4, 5, visorX + 4, 13);
+        visGrad.addColorStop(0, '#00f5ff');
+        visGrad.addColorStop(0.4, '#00a8cc');
+        visGrad.addColorStop(1, '#0c1015');
+        ctx.fillStyle = visGrad;
+        ctx.beginPath();
+        ctx.arc(visorX, 9, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 5. Glowing circular chest reactor/core (pulses with frames)
+        ctx.save();
+        let coreGlow = 6 + Math.sin(frames * 0.1) * 3;
+        ctx.shadowColor = '#39ff14';
+        ctx.shadowBlur = coreGlow;
+        ctx.fillStyle = '#39ff14';
+        ctx.beginPath();
+        ctx.arc(15, 22, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 6. Suit belt panel line
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(7, 28);
+        ctx.lineTo(23, 28);
+        ctx.stroke();
+
+        // 7. Dark Boots at the bottom
+        drawRoundRect(4, 34, 8, 6, 2, '#1b202e', '#00f5ff', 0.8);
+        drawRoundRect(18, 34, 8, 6, 2, '#1b202e', '#00f5ff', 0.8);
+
+        // 8. Jetpack flame (if moving upwards / jumping)
         if (this.vy < 0) {
             ctx.save();
             ctx.fillStyle = '#ff2d78';
