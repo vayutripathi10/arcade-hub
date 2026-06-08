@@ -618,84 +618,12 @@ function getRippleDeformation(x, y) {
 }
 
 function drawGround() {
-    const groundY = CANVAS_H - 70;
-    
-    // Solid dark background block for the ground region
-    ctx.fillStyle = '#0a0d14';
-    ctx.fillRect(0, groundY, CANVAS_W, 70);
-    
-    // Horizon glowing edge
-    ctx.save();
-    ctx.shadowColor = '#00ffcc';
-    ctx.shadowBlur = 8;
-    ctx.strokeStyle = '#00ffcc';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, groundY);
-    ctx.lineTo(CANVAS_W, groundY);
-    ctx.stroke();
-    ctx.restore();
-    
-    // 3D Perspective horizontal lines
-    const numHorizontalLines = 7;
-    const scroll = (gridOffset / 35) % 1;
-    
-    for (let i = 0; i <= numHorizontalLines; i++) {
-        const v = (i - scroll) / numHorizontalLines;
-        if (v < 0 || v > 1) continue;
-        
-        const progress = v * v;
-        const y_base = groundY + 70 * progress;
-        const alpha = 0.1 + 0.6 * v;
-        
-        ctx.strokeStyle = `rgba(0, 255, 204, ${alpha})`;
-        ctx.lineWidth = 1 + 1 * v;
-        
-        ctx.beginPath();
-        let first = true;
-        for (let x = -20; x <= CANVAS_W + 20; x += 15) {
-            const { dx, dy } = getRippleDeformation(x, y_base);
-            const px = x + dx;
-            const py = y_base + dy;
-            if (first) {
-                ctx.moveTo(px, py);
-                first = false;
-            } else {
-                ctx.lineTo(px, py);
-            }
-        }
-        ctx.stroke();
-    }
-    
-    // 3D Perspective vertical lines converging to vanishing point
-    const spacing = 30;
-    const vpX = CANVAS_W / 2;
-    const vpY = groundY - 30;
-    
-    for (let x_bot = -150; x_bot <= CANVAS_W + 150; x_bot += spacing) {
-        ctx.beginPath();
-        let first = true;
-        
-        for (let v = 0; v <= 1.01; v += 0.05) {
-            const progress = v * v;
-            const y_base = groundY + 70 * progress;
-            const x_base = vpX + (x_bot - vpX) * (y_base - vpY) / (CANVAS_H - vpY);
-            
-            const { dx, dy } = getRippleDeformation(x_base, y_base);
-            const px = x_base + dx;
-            const py = y_base + dy;
-            
-            if (first) {
-                ctx.moveTo(px, py);
-                first = false;
-            } else {
-                ctx.lineTo(px, py);
-            }
-        }
-        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-    }
+    const gH = 70;
+    const gy = CANVAS_H - gH;
+    ctx.fillStyle = '#0d2a2a';
+    ctx.fillRect(0, gy, CANVAS_W, gH);
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillRect(0, gy, CANVAS_W, 2);
 }
 
 function drawPipes() {
