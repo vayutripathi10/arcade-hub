@@ -192,8 +192,8 @@ function getFaceAverageZ(face, vertices, rotX, rotY, rotZ) {
 
 class Player {
     constructor() {
-        this.width = 48;
-        this.height = 48;
+        this.width = 60;
+        this.height = 60;
         this.reset();
         this.color = '#00ffcc';
         this.shootCooldown = 280;
