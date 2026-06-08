@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v42';
+const CACHE_NAME = 'arcade-hub-cache-v43';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -67,7 +67,19 @@ const CORE_ASSETS = [
     'dino-frontend/thumbnail.jpg',
     'flappy-frontend/thumbnail.jpg',
     'neon-snake-frontend/thumbnail.jpg',
-    'sky-jumper-frontend/thumbnail.jpg'
+    'sky-jumper-frontend/thumbnail.jpg',
+    'neon-swing-frontend/thumbnail.jpg',
+    'neon-pipes-frontend/thumbnail.jpg',
+    'neon-helix-drop-frontend/thumbnail.jpg',
+    'cyber-survivor-frontend/thumbnail.jpg',
+    'neon-brawler-frontend/thumbnail.jpg',
+    'stick-duel-frontend/thumbnail.jpg',
+    'neon-drawbridge-frontend/thumbnail.jpg',
+    'neon-bottle-shooter-frontend/thumbnail.jpg',
+    'stick-fighter-frontend/thumbnail.jpg',
+    'neon-runner-frontend/thumbnail.jpg',
+    'tictactoe-frontend/thumbnail.jpg',
+    'retro-racer-frontend/thumbnail.jpg'
 ];
 
 const DB_NAME = 'offline-analytics';
