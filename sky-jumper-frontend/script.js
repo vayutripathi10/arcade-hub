@@ -207,6 +207,176 @@ let particles = [];
 let comboCount = 0;
 let comboTimer = 0;
 
+// Game Juice States
+let shakeTime = 0;
+let shakeIntensity = 0;
+let shakeX = 0;
+let shakeY = 0;
+let flashAlpha = 0;
+let landingRipples = [];
+let floatingTexts = [];
+
+function triggerShake(time, intensity) {
+    shakeTime = time;
+    shakeIntensity = intensity;
+}
+
+// Procedural Music Synth Object
+const MusicSynth = {
+    isPlaying: false,
+    nextNoteTime: 0,
+    stepIndex: 0,
+    bpm: 110,
+    schedulerId: null,
+    
+    start() {
+        if (this.isPlaying) return;
+        initAudio();
+        if (!audioCtx) return;
+        
+        this.isPlaying = true;
+        this.nextNoteTime = audioCtx.currentTime;
+        this.stepIndex = 0;
+        
+        this.run();
+    },
+    
+    stop() {
+        this.isPlaying = false;
+        if (this.schedulerId) {
+            clearTimeout(this.schedulerId);
+            this.schedulerId = null;
+        }
+    },
+    
+    run() {
+        if (!this.isPlaying) return;
+        
+        const ctxNode = audioCtx;
+        while (this.nextNoteTime < ctxNode.currentTime + 0.15) {
+            this.scheduleNote(this.stepIndex, this.nextNoteTime);
+            
+            const stepDuration = 60 / this.bpm / 4; // 16th note
+            this.nextNoteTime += stepDuration;
+            this.stepIndex = (this.stepIndex + 1) % 16;
+        }
+        
+        // Scale BPM dynamically with level
+        this.bpm = 110 + (level || 1) * 2;
+        this.bpm = Math.min(this.bpm, 155);
+        
+        this.schedulerId = setTimeout(() => this.run(), 50);
+    },
+    
+    scheduleNote(step, time) {
+        if (!soundEnabled || !audioCtx) return;
+        
+        // E minor progression: E (82Hz), G (98Hz), B (123Hz), D (146Hz)
+        const notes = [
+            [82.41, 41.20],  // E
+            [97.99, 48.99],  // G
+            [123.47, 61.74], // B
+            [146.83, 73.42]  // D
+        ];
+        
+        const chordIdx = Math.floor(step / 4) % 4;
+        const isOffbeat = step % 2 === 1;
+        const freq = isOffbeat ? notes[chordIdx][1] : notes[chordIdx][0];
+        
+        this.playBass(freq, time);
+        
+        if (step % 4 === 0) {
+            this.playKick(time);
+        }
+        
+        if (step % 8 === 4) {
+            this.playSnare(time);
+        }
+        
+        if (step === 2 || step === 5 || step === 10 || step === 13) {
+            const melodyNotes = [164.81, 195.99, 246.94, 293.66];
+            const melFreq = melodyNotes[chordIdx] * 2;
+            this.playMelody(melFreq, time);
+        }
+    },
+    
+    playBass(freq, time) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(200, time);
+        filter.frequency.exponentialRampToValueAtTime(80, time + 0.12);
+        
+        gainNode.gain.setValueAtTime(0.12, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.005, time + 0.15);
+        
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.start(time);
+        osc.stop(time + 0.18);
+    },
+    
+    playKick(time) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(100, time);
+        osc.frequency.exponentialRampToValueAtTime(40, time + 0.08);
+        
+        gainNode.gain.setValueAtTime(0.15, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.start(time);
+        osc.stop(time + 0.1);
+    },
+    
+    playSnare(time) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(220, time);
+        osc.frequency.exponentialRampToValueAtTime(100, time + 0.07);
+        
+        gainNode.gain.setValueAtTime(0.04, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.start(time);
+        osc.stop(time + 0.08);
+    },
+    
+    playMelody(freq, time) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        gainNode.gain.setValueAtTime(0.015, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.start(time);
+        osc.stop(time + 0.22);
+    }
+};
+
 class Player {
     constructor() {
         this.w = 30;
@@ -223,6 +393,8 @@ class Player {
         this.invincible = 0;
         this.lives = 3;
         this.color = '#00f5ff';
+        this.scaleX = 1.0;
+        this.scaleY = 1.0;
     }
 
     update(deltaTime) {
@@ -249,6 +421,10 @@ class Player {
         // Invincibility
         if (this.invincible > 0) this.invincible -= deltaTime;
 
+        // Scale decay
+        this.scaleX += (1.0 - this.scaleX) * 0.12 * deltaTime;
+        this.scaleY += (1.0 - this.scaleY) * 0.12 * deltaTime;
+
         // Death by falling below camera (Instant death at screen edge)
         if (this.y > Math.abs(camY) + ch + 10) {
             this.lives = 0;
@@ -260,9 +436,21 @@ class Player {
     jump() {
         if (this.jumpsLeft > 0) {
             this.vy = this.jumpPower;
+            
+            // Double jump stretch vs standard jump stretch
+            if (this.jumpsLeft === 1) {
+                this.scaleY = 1.45;
+                this.scaleX = 0.7;
+                triggerShake(6, 3.5);
+                spawnParticles(this.x + this.w/2, this.y + this.h, 15, '#ffe600');
+            } else {
+                this.scaleY = 1.3;
+                this.scaleX = 0.8;
+                triggerShake(3, 1.8);
+                spawnParticles(this.x + this.w/2, this.y + this.h, 8, '#fff');
+            }
             this.jumpsLeft--;
             sfx.jump();
-            spawnParticles(this.x + this.w/2, this.y + this.h, 5, '#fff');
         }
     }
 
@@ -275,6 +463,13 @@ class Player {
         sfx.hurdle();
         spawnParticles(this.x + this.w/2, this.y + this.h/2, 20, '#ff2d78');
         updateHUD();
+        
+        // Juice: hit squash, screen rumble, and impact flash
+        this.scaleY = 0.55;
+        this.scaleX = 1.45;
+        triggerShake(16, 6.0);
+        flashAlpha = 0.6;
+        
         if (this.lives <= 0) gameOver();
     }
 
@@ -293,24 +488,33 @@ class Player {
             ctx.arc(t.x + this.w / 2, t.y + this.h / 2, this.w / 2 * (i / this.trail.length), 0, Math.PI * 2);
             ctx.fill();
         }
+        ctx.restore();
 
-        // Astronaut Body
+        // Astronaut Body (applying scale at center)
+        ctx.save();
+        ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+        ctx.scale(this.scaleX, this.scaleY);
+        ctx.translate(-this.w / 2, -this.h / 2);
+
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillRect(0, 0, this.w, this.h);
         
         // Visor
         ctx.fillStyle = '#111';
-        ctx.fillRect(this.x + (this.vx > 0 ? 10 : (this.vx < 0 ? 5 : 8)), this.y + 5, 15, 10);
+        ctx.fillRect(this.vx > 0 ? 10 : (this.vx < 0 ? 5 : 8), 5, 15, 10);
 
         // Jetpack flame
         if (this.vy < 0) {
+            ctx.save();
             ctx.fillStyle = '#ff2d78';
             ctx.shadowColor = '#ff2d78';
+            ctx.shadowBlur = 10;
             ctx.beginPath();
-            ctx.moveTo(this.x + 5, this.y + this.h);
-            ctx.lineTo(this.x + 15, this.y + this.h + Math.random() * 20 + 10);
-            ctx.lineTo(this.x + 25, this.y + this.h);
+            ctx.moveTo(5, this.h);
+            ctx.lineTo(15, this.h + Math.random() * 20 + 10);
+            ctx.lineTo(25, this.h);
             ctx.fill();
+            ctx.restore();
         }
         ctx.restore();
     }
@@ -476,6 +680,8 @@ function resetGame() {
     coins = [];
     hazards = [];
     particles = [];
+    landingRipples = [];
+    floatingTexts = [];
     score = 0;
     level = 1;
     camY = 0;
@@ -562,6 +768,7 @@ function update(deltaTime) {
         comboFlash.classList.remove('active');
         void comboFlash.offsetWidth;
         comboFlash.classList.add('active');
+        flashAlpha = 0.35;
     }
 
     // Combo
@@ -570,13 +777,26 @@ function update(deltaTime) {
         if (comboTimer <= 0) comboCount = 0;
     }
 
+    // Screenshake & flash decay
+    if (shakeTime > 0) {
+        shakeX = (Math.random() - 0.5) * shakeIntensity;
+        shakeY = (Math.random() - 0.5) * shakeIntensity;
+        shakeTime -= deltaTime;
+    } else {
+        shakeX = 0;
+        shakeY = 0;
+    }
+    
+    if (flashAlpha > 0) {
+        flashAlpha -= 0.035 * deltaTime;
+    }
+
     player.update(deltaTime);
 
     // Camera follow
     let targetCamY = -player.y + ch * 0.4;
     
     // Clamp camera so we don't see below the starting ad zone
-    // Play area bottom is effectively ch - AD_HEIGHT
     const maxCamY = 0; 
     if (targetCamY < maxCamY) targetCamY = maxCamY; 
 
@@ -590,9 +810,19 @@ function update(deltaTime) {
         }
     }
 
-    // Temporary debug log as requested
-    const topPlat = platforms.length > 0 ? platforms.reduce((min, p) => Math.min(min, p.y), Infinity) : ch;
-    console.log('camY:', camY, 'topPlat:', topPlat, 'platforms:', platforms.length);
+    // Spawn space speed lines falling down
+    if (Math.random() < 0.15) {
+        particles.push({
+            type: 'speedline',
+            x: Math.random() * cw,
+            y: -camY - 20,
+            vx: 0,
+            vy: Math.random() * 5 + 6 + (level * 0.4),
+            life: 1.0,
+            length: 15 + Math.random() * 25,
+            color: 'rgba(0, 245, 255, 0.22)'
+        });
+    }
 
     generateWorld();
 
@@ -615,6 +845,20 @@ function update(deltaTime) {
             player.jumpsLeft = 2; // reset double jump
             player.vy = 0; // Stand manually
             sfx.land();
+
+            // Juice: landing squash, screenshake, and platform ripple
+            player.scaleY = 0.7;
+            player.scaleX = 1.3;
+            triggerShake(3, 1.5);
+            
+            landingRipples.push({
+                x: player.x + player.w / 2,
+                y: p.y,
+                r: 5,
+                maxR: p.w * 0.75,
+                alpha: 0.8,
+                color: p.color
+            });
             
             if (p.type === 'moving') {
                 player.x += p.vx;
@@ -626,6 +870,10 @@ function update(deltaTime) {
                 sfx.hurdle(); // crack sound
             } else if (p.type === 'spring') {
                 player.jumpPower = -20; // super jump
+                // Juice: super spring jump stretch & screenshake
+                player.scaleY = 1.6;
+                player.scaleX = 0.6;
+                triggerShake(8, 4.0);
             } else {
                 player.jumpPower = -14; // normal
             }
@@ -645,8 +893,18 @@ function update(deltaTime) {
             c.collected = true;
             comboCount++;
             comboTimer = 120;
-            score += 5 * comboCount;
+            const pointsGained = 5 * comboCount;
+            score += pointsGained;
             updateHUD();
+            
+            // Juice: floating score popup
+            floatingTexts.push({
+                x: c.x,
+                y: c.y,
+                text: `+${pointsGained}`,
+                color: comboCount >= 3 ? '#ff2d78' : '#ffe600',
+                alpha: 1.0
+            });
             
             if (comboCount >= 3) {
                 sfx.combo();
@@ -676,13 +934,37 @@ function update(deltaTime) {
         }
     }
 
-    // Particles
+    // Particles (standard + speedlines)
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx * deltaTime;
         p.y += p.vy * deltaTime;
-        p.life -= 0.05 * deltaTime;
+        if (p.type === 'speedline') {
+            p.life -= 0.03 * deltaTime;
+        } else {
+            p.life -= 0.05 * deltaTime;
+        }
         if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Update landing ripples
+    for (let i = landingRipples.length - 1; i >= 0; i--) {
+        const r = landingRipples[i];
+        r.r += 2.5 * deltaTime;
+        r.alpha -= 0.04 * deltaTime;
+        if (r.alpha <= 0 || r.r >= r.maxR) {
+            landingRipples.splice(i, 1);
+        }
+    }
+
+    // Update floating score text popups
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y -= 1.5 * deltaTime;
+        ft.alpha -= 0.02 * deltaTime;
+        if (ft.alpha <= 0) {
+            floatingTexts.splice(i, 1);
+        }
     }
 }
 
@@ -722,22 +1004,66 @@ function draw() {
     ctx.globalAlpha = 1;
 
     ctx.save();
-    ctx.translate(0, camY); // Camera logic
+    // Apply Screenshake & Camera Translation
+    ctx.translate(shakeX, shakeY);
+    ctx.translate(0, camY);
 
     platforms.forEach(p => p.draw());
     hazards.forEach(h => h.draw());
     coins.forEach(c => c.draw());
+
+    // Draw landing ripples
+    ctx.save();
+    landingRipples.forEach(r => {
+        ctx.strokeStyle = r.color;
+        ctx.globalAlpha = r.alpha;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(r.x, r.y, r.r, r.r * 0.3, 0, 0, Math.PI * 2);
+        ctx.stroke();
+    });
+    ctx.restore();
+
     player.draw();
 
-    // Particles
+    // Particles (standard + speedlines)
     particles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.life;
-        ctx.fillRect(p.x, p.y, 4, 4);
+        if (p.type === 'speedline') {
+            ctx.save();
+            ctx.strokeStyle = p.color;
+            ctx.globalAlpha = p.life;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x, p.y + p.length);
+            ctx.stroke();
+            ctx.restore();
+        } else {
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life;
+            ctx.fillRect(p.x, p.y, 4, 4);
+        }
     });
     ctx.globalAlpha = 1;
 
+    // Draw floating score text popups
+    ctx.save();
+    floatingTexts.forEach(ft => {
+        ctx.fillStyle = ft.color;
+        ctx.globalAlpha = ft.alpha;
+        ctx.font = 'bold 16px Orbitron, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+    });
     ctx.restore();
+
+    ctx.restore(); // restores shake/camera
+
+    // Full-screen red/pink flash overlay
+    if (flashAlpha > 0) {
+        ctx.fillStyle = `rgba(255, 45, 120, ${flashAlpha})`;
+        ctx.fillRect(0, 0, cw, ch);
+    }
 }
 
 function varColor(name, fallback) {
@@ -767,6 +1093,15 @@ function gameOver() {
     gameState = 'GAMEOVER';
     sfx.die();
     spawnParticles(player.x, player.y, 50, '#ff2d78');
+
+    // Stop procedural music
+    MusicSynth.stop();
+
+    // Juice: crash squash, massive screenshake, and flash
+    player.scaleY = 0.4;
+    player.scaleX = 1.6;
+    triggerShake(24, 9.0);
+    flashAlpha = 0.8;
     
     if (score > bestScore) {
         bestScore = score;
@@ -791,12 +1126,14 @@ btnStart.addEventListener('click', () => {
     screenStart.classList.add('hidden');
     resetGame();
     gameState = 'PLAYING';
+    MusicSynth.start();
 });
 
 btnRetry.addEventListener('click', () => {
     screenGameOver.classList.add('hidden');
     resetGame();
     gameState = 'PLAYING';
+    MusicSynth.start();
 });
 
 function pauseGame() {
@@ -804,6 +1141,7 @@ function pauseGame() {
         gameState = 'PAUSED';
         screenPause.classList.remove('hidden');
         btnPause.innerText = '▶️';
+        MusicSynth.stop();
     }
 }
 
@@ -813,6 +1151,7 @@ function resumeGame() {
         screenPause.classList.add('hidden');
         screenHelp.classList.add('hidden');
         btnPause.innerText = '⏸️';
+        MusicSynth.start();
     }
 }
 
@@ -822,7 +1161,6 @@ function toggleHelp(show) {
         if (gameState === 'PLAYING') pauseGame();
     } else {
         screenHelp.classList.add('hidden');
-        // Do NOT auto-resume because user might have paused manually before clicking help
     }
 }
 
@@ -832,7 +1170,6 @@ btnPause.addEventListener('click', (e) => {
     else resumeGame();
 });
 
-// Also bind touchstart to prevent issues on mobile
 btnPause.addEventListener('touchstart', (e) => {
     e.preventDefault();
     if (gameState === 'PLAYING') pauseGame();
@@ -863,6 +1200,14 @@ btnShareX.addEventListener('click', () => {
 btnHelp.addEventListener('click', () => toggleHelp(true));
 btnCloseHelp.addEventListener('click', () => toggleHelp(false));
 
+document.querySelectorAll('#btn-hub, .btn-hub-over').forEach(btn => {
+    btn.addEventListener('click', () => {
+        MusicSynth.stop();
+    });
+    btn.addEventListener('touchstart', () => {
+        MusicSynth.stop();
+    });
+});
 // Init
 resetGame();
 gameLoop();
