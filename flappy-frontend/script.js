@@ -47,6 +47,16 @@ let bird, pipes, score, highScore, frameId, lastPipeTime, lastTime, gameState;
 
 let particlePool = [];
 
+// Game Juice States
+let shakeTime = 0;
+let shakeIntensity = 0;
+let shakeX = 0;
+let shakeY = 0;
+let flashAlpha = 0;
+let gridOffset = 0;
+let ripples = [];
+let juiceParticles = [];
+
 // ─── Persistence ─────────────────────────────────────────────────────────────
 highScore = parseInt(localStorage.getItem('flappyHighScore') || '0', 10);
 highScoreEl.textContent = highScore;
@@ -67,7 +77,9 @@ function createBird() {
         r: 14,          // radius
         vy: 0,
         angle: 0,
-        trail: []
+        trail: [],
+        scaleX: 1.0,
+        scaleY: 1.0
     };
 }
 
@@ -100,13 +112,207 @@ function spawnParticles(x, y, color) {
 }
 
 // ─── Reset / Init ─────────────────────────────────────────────────────────────
+// Game Juice Helpers
+function triggerShake(time, intensity) {
+    shakeTime = time;
+    shakeIntensity = intensity;
+}
+
+function spawnRipple(x, y, maxRadius, maxStrength, speed) {
+    ripples.push({
+        x: x,
+        y: y,
+        radius: 0,
+        maxRadius: maxRadius,
+        strength: maxStrength,
+        speed: speed,
+        life: 1.0
+    });
+}
+
+function spawnJuiceParticle(p) {
+    juiceParticles.push(p);
+}
+
+// Procedural Music Synth Object
+const MusicSynth = {
+    isPlaying: false,
+    nextNoteTime: 0,
+    stepIndex: 0,
+    bpm: 110,
+    schedulerId: null,
+    
+    start() {
+        if (this.isPlaying) return;
+        if (!window.audioFX || !window.audioFX.ctx) return;
+        
+        window.audioFX.init();
+        this.isPlaying = true;
+        this.nextNoteTime = window.audioFX.ctx.currentTime;
+        this.stepIndex = 0;
+        
+        this.run();
+    },
+    
+    stop() {
+        this.isPlaying = false;
+        if (this.schedulerId) {
+            clearTimeout(this.schedulerId);
+            this.schedulerId = null;
+        }
+    },
+    
+    run() {
+        if (!this.isPlaying) return;
+        
+        const ctx = window.audioFX.ctx;
+        while (this.nextNoteTime < ctx.currentTime + 0.15) {
+            this.scheduleNote(this.stepIndex, this.nextNoteTime);
+            
+            const stepDuration = 60 / this.bpm / 4; // 16th note
+            this.nextNoteTime += stepDuration;
+            this.stepIndex = (this.stepIndex + 1) % 16;
+        }
+        
+        // Scale BPM dynamically with score
+        this.bpm = 110 + (score || 0) * 1.5;
+        this.bpm = Math.min(this.bpm, 165);
+        
+        this.schedulerId = setTimeout(() => this.run(), 50);
+    },
+    
+    scheduleNote(step, time) {
+        if (!window.audioFX || window.audioFX.isMuted) return;
+        const ctx = window.audioFX.ctx;
+        const compressor = window.audioFX.compressor;
+        if (!ctx || !compressor) return;
+        
+        // C minor progression: C (65Hz / 32Hz), Eb (77Hz / 38Hz), G (98Hz / 49Hz), Bb (116Hz / 58Hz)
+        const notes = [
+            [65.41, 32.70],  // C
+            [77.78, 38.89],  // Eb
+            [98.00, 49.00],  // G
+            [116.54, 58.27]  // Bb
+        ];
+        
+        const chordIdx = Math.floor(step / 4) % 4;
+        const isOffbeat = step % 2 === 1;
+        const freq = isOffbeat ? notes[chordIdx][1] : notes[chordIdx][0];
+        
+        this.playBass(freq, time, ctx, compressor);
+        
+        if (step % 4 === 0) {
+            this.playKick(time, ctx, compressor);
+        }
+        
+        if (step % 8 === 4) {
+            this.playSnare(time, ctx, compressor);
+        }
+        
+        if (step === 2 || step === 5 || step === 9 || step === 12) {
+            const melodyNotes = [130.81, 155.56, 196.00, 233.08];
+            const melFreq = melodyNotes[chordIdx] * 2;
+            this.playMelody(melFreq, time, ctx, compressor);
+        }
+    },
+    
+    playBass(freq, time, ctx, dest) {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(250, time);
+        filter.frequency.exponentialRampToValueAtTime(80, time + 0.15);
+        
+        gainNode.gain.setValueAtTime(0.08, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.005, time + 0.18);
+        
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(dest);
+        
+        osc.start(time);
+        osc.stop(time + 0.2);
+    },
+    
+    playKick(time, ctx, dest) {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(120, time);
+        osc.frequency.exponentialRampToValueAtTime(45, time + 0.08);
+        
+        gainNode.gain.setValueAtTime(0.18, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+        
+        osc.connect(gainNode);
+        gainNode.connect(dest);
+        
+        osc.start(time);
+        osc.stop(time + 0.12);
+    },
+    
+    playSnare(time, ctx, dest) {
+        const bufferSize = ctx.sampleRate * 0.1;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1200, time);
+        
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0.04, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+        
+        noise.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(dest);
+        
+        noise.start(time);
+        noise.stop(time + 0.1);
+    },
+    
+    playMelody(freq, time, ctx, dest) {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(freq, time);
+        
+        gainNode.gain.setValueAtTime(0.012, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+        
+        osc.connect(gainNode);
+        gainNode.connect(dest);
+        
+        osc.start(time);
+        osc.stop(time + 0.25);
+    }
+};
+
 function resetGame() {
     bird = createBird();
+    bird.scaleX = 1.0;
+    bird.scaleY = 1.0;
     pipes = [];
     score = 0;
     lastPipeTime = performance.now();
     awardedMilestones.clear();
     particlePool = [];
+    ripples = [];
+    juiceParticles = [];
     scoreEl.textContent = '0';
     gameState = 'running';
     pauseBtn?.classList.remove('hidden');
@@ -126,6 +332,12 @@ function flap() {
     bird.vy = FLAP_POWER;
     spawnParticles(bird.x - 10, bird.y + 8, '#00ffcc');
     if (window.audioFX) window.audioFX.playJump();
+    
+    // Juice: flap stretch
+    bird.scaleY = 1.3;
+    bird.scaleX = 0.75;
+    triggerShake(3, 1.8);
+    spawnRipple(bird.x, CANVAS_H - 70, 50, 3, 3.0);
 }
 
 // ─── Start / Stop ─────────────────────────────────────────────────────────────
@@ -133,6 +345,10 @@ function startGame() {
     hideOverlay();
     resetGame();
     if (frameId) cancelAnimationFrame(frameId);
+    
+    // Start procedural music
+    MusicSynth.start();
+    
     lastTime = performance.now();
     loop(lastTime);
 }
@@ -142,6 +358,16 @@ function gameOver() {
     pauseBtn?.classList.add('hidden');
     spawnParticles(bird.x, bird.y, '#ff3366');
     if (window.audioFX) window.audioFX.playGameOver();
+    
+    // Stop procedural music
+    MusicSynth.stop();
+    
+    // Juice: crash squash, heavy screenshake, orange flash, large ground ripple
+    bird.scaleY = 0.4;
+    bird.scaleX = 1.6;
+    triggerShake(20, 10.0);
+    flashAlpha = 0.8;
+    spawnRipple(bird.x, CANVAS_H - 70, 180, 12, 4.5);
 
     if (score > highScore) {
         highScore = score;
@@ -175,6 +401,28 @@ function hideOverlay() {
 function update(deltaTime) {
     if (gameState !== 'running') return;
 
+    // Bird scale decay
+    bird.scaleX += (1.0 - bird.scaleX) * 0.14 * deltaTime;
+    bird.scaleY += (1.0 - bird.scaleY) * 0.14 * deltaTime;
+    
+    // Grid scrolling offset
+    gridOffset += PIPE_SPEED * deltaTime;
+    
+    // Camera shake update
+    if (shakeTime > 0) {
+        shakeX = (Math.random() - 0.5) * shakeIntensity;
+        shakeY = (Math.random() - 0.5) * shakeIntensity;
+        shakeTime -= deltaTime;
+    } else {
+        shakeX = 0;
+        shakeY = 0;
+    }
+    
+    // Flash overlay update
+    if (flashAlpha > 0) {
+        flashAlpha -= 0.04 * deltaTime;
+    }
+
     // Bird physics
     bird.vy += GRAVITY * deltaTime;
     bird.y += bird.vy * deltaTime;
@@ -184,8 +432,8 @@ function update(deltaTime) {
     bird.trail.push({ x: bird.x, y: bird.y });
     if (bird.trail.length > 8) bird.trail.shift();
 
-    // Ground / ceil
-    if (bird.y + bird.r >= CANVAS_H - 20 || bird.y - bird.r <= 0) {
+    // Raised Ground (Y = CANVAS_H - 70) / Ceiling collision bounds
+    if (bird.y + bird.r >= CANVAS_H - 70 || bird.y - bird.r <= 0) {
         gameOver();
         return;
     }
@@ -195,6 +443,19 @@ function update(deltaTime) {
     if (now - lastPipeTime > PIPE_INTERVAL) {
         pipes.push(createPipe());
         lastPipeTime = now;
+    }
+
+    // Spawn wind lines
+    if (Math.random() < 0.1) {
+        spawnJuiceParticle({
+            type: 'wind',
+            x: CANVAS_W,
+            y: Math.random() * 400 + 40,
+            vx: -PIPE_SPEED * 1.6 - Math.random() * 2,
+            vy: 0,
+            length: 15 + Math.random() * 25,
+            alpha: 0.1 + Math.random() * 0.15
+        });
     }
 
     for (let i = pipes.length - 1; i >= 0; i--) {
@@ -207,6 +468,10 @@ function update(deltaTime) {
             score++;
             scoreEl.textContent = score;
             if (window.audioFX) window.audioFX.playEat();
+            
+            // Juice: pipe pass camera shake and ground ripple
+            triggerShake(4, 2.0);
+            spawnRipple(p.x + PIPE_WIDTH / 2, CANVAS_H - 70, 75, 4, 3.5);
 
             // Achievements
             MILESTONES.forEach(m => {
@@ -215,11 +480,6 @@ function update(deltaTime) {
                     if (window.achievements) window.achievements.unlock('flappy', m.id.replace('flappy_', ''), m.title);
                 }
             });
-
-            // Speed up slightly every 5 pipes (capped)
-            if (score % 5 === 0) {
-                pipes.forEach(pipe => { /* increase handled via PIPE_SPEED bump */ });
-            }
         }
 
         // Off screen
@@ -229,9 +489,10 @@ function update(deltaTime) {
         }
 
         // Collision
-        const bx = bird.x, by = bird.y, br = bird.r - 3; // slight forgiveness
+        const bx = bird.x, by = bird.y, br = bird.r - 3;
         const inXRange = bx + br > p.x && bx - br < p.x + PIPE_WIDTH;
         if (inXRange) {
+            // Collision with top pipe or bottom pipe (taking ground boundary at CANVAS_H - 70 into account)
             if (by - br < p.topH || by + br > p.bottomY) {
                 gameOver();
                 return;
@@ -239,7 +500,7 @@ function update(deltaTime) {
         }
     }
 
-    // Particles
+    // Update particles
     for (let i = particlePool.length - 1; i >= 0; i--) {
         const pt = particlePool[i];
         pt.x += pt.vx * deltaTime;
@@ -248,10 +509,32 @@ function update(deltaTime) {
         pt.life -= 0.05 * deltaTime;
         if (pt.life <= 0) particlePool.splice(i, 1);
     }
+    
+    // Update grid ripples
+    for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.radius += r.speed * deltaTime;
+        r.life -= 0.02 * deltaTime;
+        if (r.life <= 0 || r.radius >= r.maxRadius) {
+            ripples.splice(i, 1);
+        }
+    }
+    
+    // Update wind lines
+    for (let i = juiceParticles.length - 1; i >= 0; i--) {
+        const p = juiceParticles[i];
+        p.x += p.vx * deltaTime;
+        p.y += p.vy * deltaTime;
+        if (p.x + p.length < 0) juiceParticles.splice(i, 1);
+    }
 }
 
 // ─── Draw ─────────────────────────────────────────────────────────────────────
 function draw() {
+    ctx.save();
+    // Apply screenshake translation
+    ctx.translate(shakeX, shakeY);
+
     // Background
     ctx.fillStyle = '#080d14';
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
@@ -264,6 +547,9 @@ function draw() {
 
     // Pipes
     drawPipes();
+
+    // Wind speed lines
+    drawJuiceParticles();
 
     // Particles
     drawParticles();
@@ -282,6 +568,14 @@ function draw() {
         ctx.textAlign = 'center';
         ctx.fillText(score, CANVAS_W / 2, 80);
         ctx.restore();
+    }
+
+    ctx.restore();
+
+    // Neon orange screen flash overlay (drawn outside shake to stay static)
+    if (flashAlpha > 0) {
+        ctx.fillStyle = `rgba(255, 110, 0, ${flashAlpha})`;
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     }
 }
 
@@ -302,13 +596,106 @@ function drawStars() {
     });
 }
 
+function getRippleDeformation(x, y) {
+    let dy = 0;
+    let dx = 0;
+    ripples.forEach(r => {
+        const rx = r.x;
+        const ry = r.y;
+        const dist = Math.sqrt((x - rx) * (x - rx) + (y - ry) * (y - ry));
+        if (dist > 0) {
+            const diff = dist - r.radius;
+            const width = 40;
+            if (Math.abs(diff) < width) {
+                const factor = 1 - Math.abs(diff) / width;
+                const amp = r.strength * factor * Math.sin(diff * 0.1) * r.life;
+                dy += amp;
+                dx += (x - rx) / dist * amp * 0.5;
+            }
+        }
+    });
+    return { dx, dy };
+}
+
 function drawGround() {
-    const gH = 20;
-    const gy = CANVAS_H - gH;
-    ctx.fillStyle = '#0d2a2a';
-    ctx.fillRect(0, gy, CANVAS_W, gH);
-    ctx.fillStyle = '#00ffcc';
-    ctx.fillRect(0, gy, CANVAS_W, 2);
+    const groundY = CANVAS_H - 70;
+    
+    // Solid dark background block for the ground region
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(0, groundY, CANVAS_W, 70);
+    
+    // Horizon glowing edge
+    ctx.save();
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 8;
+    ctx.strokeStyle = '#00ffcc';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(CANVAS_W, groundY);
+    ctx.stroke();
+    ctx.restore();
+    
+    // 3D Perspective horizontal lines
+    const numHorizontalLines = 7;
+    const scroll = (gridOffset / 35) % 1;
+    
+    for (let i = 0; i <= numHorizontalLines; i++) {
+        const v = (i - scroll) / numHorizontalLines;
+        if (v < 0 || v > 1) continue;
+        
+        const progress = v * v;
+        const y_base = groundY + 70 * progress;
+        const alpha = 0.1 + 0.6 * v;
+        
+        ctx.strokeStyle = `rgba(0, 255, 204, ${alpha})`;
+        ctx.lineWidth = 1 + 1 * v;
+        
+        ctx.beginPath();
+        let first = true;
+        for (let x = -20; x <= CANVAS_W + 20; x += 15) {
+            const { dx, dy } = getRippleDeformation(x, y_base);
+            const px = x + dx;
+            const py = y_base + dy;
+            if (first) {
+                ctx.moveTo(px, py);
+                first = false;
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
+        ctx.stroke();
+    }
+    
+    // 3D Perspective vertical lines converging to vanishing point
+    const spacing = 30;
+    const vpX = CANVAS_W / 2;
+    const vpY = groundY - 30;
+    
+    for (let x_bot = -150; x_bot <= CANVAS_W + 150; x_bot += spacing) {
+        ctx.beginPath();
+        let first = true;
+        
+        for (let v = 0; v <= 1.01; v += 0.05) {
+            const progress = v * v;
+            const y_base = groundY + 70 * progress;
+            const x_base = vpX + (x_bot - vpX) * (y_base - vpY) / (CANVAS_H - vpY);
+            
+            const { dx, dy } = getRippleDeformation(x_base, y_base);
+            const px = x_base + dx;
+            const py = y_base + dy;
+            
+            if (first) {
+                ctx.moveTo(px, py);
+                first = false;
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+    }
 }
 
 function drawPipes() {
@@ -328,10 +715,10 @@ function drawPipes() {
         ctx.fillStyle = '#00ffcc';
         ctx.fillRect(p.x - 4, p.topH - 18, PIPE_WIDTH + 8, 18); // cap
 
-        // Bottom pipe
+        // Bottom pipe (ends at Y = CANVAS_H - 70)
         ctx.fillStyle = '#003d33';
-        if (ctx.roundRect) roundRect(ctx, p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 20, { tl: radius, tr: radius });
-        else ctx.fillRect(p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 20);
+        if (ctx.roundRect) roundRect(ctx, p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 70, { tl: radius, tr: radius });
+        else ctx.fillRect(p.x, p.bottomY, PIPE_WIDTH, CANVAS_H - p.bottomY - 70);
         
         ctx.fillStyle = '#00ffcc';
         ctx.fillRect(p.x - 4, p.bottomY, PIPE_WIDTH + 8, 18); // cap
@@ -343,8 +730,23 @@ function drawPipes() {
         ctx.globalAlpha = 0.15;
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(p.x + 10, 0, 6, p.topH);
-        ctx.fillRect(p.x + 10, p.bottomY, 6, CANVAS_H - p.bottomY);
+        ctx.fillRect(p.x + 10, p.bottomY, 6, CANVAS_H - p.bottomY - 70);
         ctx.restore();
+    });
+}
+
+function drawJuiceParticles() {
+    juiceParticles.forEach(p => {
+        if (p.type === 'wind') {
+            ctx.save();
+            ctx.strokeStyle = `rgba(0, 255, 204, ${p.alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + p.length, p.y);
+            ctx.stroke();
+            ctx.restore();
+        }
     });
 }
 
@@ -352,6 +754,7 @@ function drawBird() {
     ctx.save();
     ctx.translate(bird.x, bird.y);
     ctx.rotate((bird.angle * Math.PI) / 180);
+    ctx.scale(bird.scaleX, bird.scaleY); // Squash and stretch scale!
 
     // Glow
     ctx.shadowColor = '#8a2be2';
@@ -499,6 +902,7 @@ btnResume?.addEventListener('click', (e) => {
 });
 btnQuit?.addEventListener('click', (e) => {
     e.stopPropagation();
+    MusicSynth.stop();
     gameState = 'idle';
     pauseMenu.classList.add('hidden');
     overlayTitle.textContent = "Neon Flappy";
@@ -519,6 +923,14 @@ btnQuit?.addEventListener('click', (e) => {
     drawGround();
     drawBird();
 });
+
+const hubGameOverBtn = document.getElementById('hub-gameover-btn');
+hubGameOverBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    MusicSynth.stop();
+    window.location.href = '../index.html';
+});
+
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && gameState === 'running') togglePause(true);

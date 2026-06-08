@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v38';
+const CACHE_NAME = 'arcade-hub-cache-v39';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -64,7 +64,8 @@ const CORE_ASSETS = [
     'play-retro-racer.html',
     'space-shooter-frontend/thumbnail.jpg',
     'space-shooter-frontend/player_ship.png',
-    'dino-frontend/thumbnail.jpg'
+    'dino-frontend/thumbnail.jpg',
+    'flappy-frontend/thumbnail.jpg'
 ];
 
 const DB_NAME = 'offline-analytics';
