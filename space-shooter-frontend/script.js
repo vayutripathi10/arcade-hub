@@ -16,7 +16,7 @@ const hubBtn = document.getElementById('hubBtn');
 
 // --- Spaceship Sprite & Chroma Key Transparentizer ---
 const spaceshipSprite = new Image();
-spaceshipSprite.src = 'player_ship.png';
+spaceshipSprite.src = 'player_ship.png?v=space_juice_v6';
 let spaceshipCanvas = null; // Cached transparent canvas version
 
 function processSpaceshipSprite() {
@@ -384,7 +384,12 @@ class Player {
                     ctx.translate(ghostX, ghostY);
                     ctx.rotate(t.roll * 0.4);
                     ctx.scale(Math.cos(t.roll * 0.8), 1.0);
-                    ctx.drawImage(spaceshipCanvas, -this.width / 2, -this.height / 2, this.width, this.height);
+                    const imgW = spaceshipCanvas.width;
+                    const imgH = spaceshipCanvas.height;
+                    const drawScale = Math.min(this.width / imgW, this.height / imgH);
+                    const drawW = imgW * drawScale;
+                    const drawH = imgH * drawScale;
+                    ctx.drawImage(spaceshipCanvas, -drawW / 2, -drawH / 2, drawW, drawH);
                 } else {
                     ctx.strokeStyle = this.color;
                     ctx.lineWidth = 1;
@@ -416,7 +421,12 @@ class Player {
             ctx.translate(offsetX, offsetY);
             ctx.rotate(this.roll * 0.4);
             ctx.scale(Math.cos(this.roll * 0.8), 1.0);
-            ctx.drawImage(spaceshipCanvas, -this.width / 2, -this.height / 2, this.width, this.height);
+            const imgW = spaceshipCanvas.width;
+            const imgH = spaceshipCanvas.height;
+            const drawScale = Math.min(this.width / imgW, this.height / imgH);
+            const drawW = imgW * drawScale;
+            const drawH = imgH * drawScale;
+            ctx.drawImage(spaceshipCanvas, -drawW / 2, -drawH / 2, drawW, drawH);
         } else {
             ctx.shadowBlur = 20;
             ctx.shadowColor = this.color;
@@ -2494,7 +2504,7 @@ function updatePlayerPositionFromTouch(e) {
     
     // Smoothly follow but snap for instant response in a shooter
     player.x = touchX - player.width / 2;
-    player.y = touchY - player.height - 20; // Offset slightly above finger so visible
+    player.y = touchY - player.height - 35; // Offset slightly above finger so visible
     
     // Bounds check
     if (player.x < 0) player.x = 0;
