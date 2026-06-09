@@ -77,6 +77,7 @@ let player;
 let enemies = [];
 let projectiles = [];
 let gems = [];
+let powerups = [];
 let particles = [];
 let floatingTexts = [];
 
@@ -203,6 +204,7 @@ class Player {
         this.ultimateCharge = 0;
         this.ultimateTime = 0;
         this.ultimateTimer = 0;
+        this.rapidFireTimer = 0;
 
         // Weapons & Stats
         this.weapons = {
@@ -241,16 +243,37 @@ class Player {
         this.scaleX += (1.0 - this.scaleX) * 0.12 * deltaTime;
         this.scaleY += (1.0 - this.scaleY) * 0.12 * deltaTime;
 
+        // Rapid Fire countdown
+        if (this.rapidFireTimer > 0) {
+            this.rapidFireTimer -= deltaTime * 0.01667;
+            if (this.rapidFireTimer < 0) this.rapidFireTimer = 0;
+        }
+
         // Auto Shoot - Blaster (Targets nearest)
         if (this.weapons.blaster.level > 0) {
             this.weapons.blaster.timer -= deltaTime * 0.01667;
+            const currentCooldown = this.rapidFireTimer > 0 ? 0.05 : this.weapons.blaster.cooldown;
             if (this.weapons.blaster.timer <= 0) {
                 const target = getNearestEnemy(this.x, this.y);
                 if (target) {
-                    this.weapons.blaster.timer = this.weapons.blaster.cooldown;
+                    this.weapons.blaster.timer = currentCooldown;
                     const angle = Math.atan2(target.y - this.y, target.x - this.x);
-                    projectiles.push(new Projectile(this.x, this.y, angle, this.weapons.blaster));
-                    if (window.audioFX) window.audioFX.playShoot();
+                    if (this.rapidFireTimer > 0) {
+                        projectiles.push(new Projectile(this.x, this.y, angle, {
+                            speed: this.weapons.blaster.speed * 1.3,
+                            damage: this.weapons.blaster.damage,
+                            radius: 5,
+                            pierce: this.weapons.blaster.pierce
+                        }, '#ff6600'));
+                        if (window.audioFX && typeof window.audioFX.playRapidShoot === 'function') {
+                            window.audioFX.playRapidShoot();
+                        } else if (window.audioFX) {
+                            window.audioFX.playShoot();
+                        }
+                    } else {
+                        projectiles.push(new Projectile(this.x, this.y, angle, this.weapons.blaster));
+                        if (window.audioFX) window.audioFX.playShoot();
+                    }
                     spawnRipple(this.x, this.y, 60, 0.2, 5, 'rgba(0, 243, 255, 0.15)');
                 }
             }
@@ -495,6 +518,19 @@ class Player {
             ctx.lineTo(-18, 7);
             ctx.closePath();
             ctx.fill();
+        }
+
+        // Rapid Fire glowing aura
+        if (this.rapidFireTimer > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 102, 0, 0.45)';
+            ctx.lineWidth = 3.0 + Math.sin(frames * 0.35) * 1.5;
+            ctx.shadowColor = '#ff6600';
+            ctx.shadowBlur = 15 + Math.sin(frames * 0.35) * 6;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius * 1.8, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
         }
 
         // 6. Overload Shield Field
@@ -750,6 +786,11 @@ class Enemy {
             uiKills.textContent = killCount;
             gems.push(new Gem(this.x, this.y, this.xp));
 
+            // Chance to drop a Rapid Fire Power-up
+            if (Math.random() < 0.035) {
+                powerups.push(new PowerUp(this.x, this.y, 'rapid_fire'));
+            }
+
             // Add to ultimate charge!
             if (player && player.ultimateCharge < 100 && player.ultimateTime <= 0) {
                 let chargeAmt = 1.0;
@@ -900,10 +941,11 @@ class PlasmaBomb extends Projectile {
     }
     detonate() {
         this.markedForDeletion = true;
-        const baseRadius = 80 + this.stats.level * 40;
+        const baseRadius = 220 + (this.stats.level - 1) * 40;
         const damage = this.stats.damage;
-        triggerShake(10 + this.stats.level * 4, 0.4);
-        spawnRipple(this.x, this.y, baseRadius * 1.5, 1.2, 8, '#ff9900');
+        triggerShake(22 + this.stats.level * 5, 0.55);
+        spawnRipple(this.x, this.y, baseRadius * 1.6, 2.0, 10, '#ffcc00');
+        spawnRipple(this.x, this.y, baseRadius * 1.1, 1.4, 7, '#ff3300');
         enemies.forEach(enemy => {
             const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
             if (dist < baseRadius) {
@@ -986,6 +1028,71 @@ class Gem {
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
+    }
+}
+
+class PowerUp {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type; // 'rapid_fire'
+        this.radius = 8;
+        this.color = '#ff6600';
+        this.markedForDeletion = false;
+        this.pulseTime = 0;
+        this.life = 10.0;
+    }
+    update(deltaTime) {
+        this.pulseTime += deltaTime * 0.05;
+        this.life -= deltaTime * 0.01667;
+        if (this.life <= 0) this.markedForDeletion = true;
+        
+        // Attraction to player if within magnet range
+        const dist = Math.hypot(player.x - this.x, player.y - this.y);
+        if (dist < player.pickupRadius) {
+            const speed = 450;
+            if (dist < 15) {
+                this.markedForDeletion = true;
+                this.collect();
+            } else {
+                this.x += ((player.x - this.x) / dist) * (speed / 60) * deltaTime;
+                this.y += ((player.y - this.y) / dist) * (speed / 60) * deltaTime;
+            }
+        }
+    }
+    collect() {
+        if (this.type === 'rapid_fire') {
+            player.rapidFireTimer = 8.0;
+            floatingTexts.push(new FloatingText(player.x, player.y - 30, "RAPID FIRE OVERDRIVE!!!", '#ff6600'));
+            if (window.audioFX && typeof window.audioFX.playPowerUp === 'function') {
+                window.audioFX.playPowerUp();
+            } else if (window.audioFX) {
+                window.audioFX.playLevelUp();
+            }
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        
+        const scale = 1.0 + Math.sin(this.pulseTime) * 0.15;
+        ctx.scale(scale, scale);
+        
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#fff';
+        ctx.shadowBlur = 0;
+        ctx.font = 'bold 9px "Outfit", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('⚡', 0, 0);
+        
+        ctx.restore();
     }
 }
 
@@ -1095,7 +1202,10 @@ const UPGRADES = [
     },
     {
         id: 'blaster_speed', name: 'Rapid Fire', icon: '⚡', desc: 'Shoots basic attacks much faster.',
-        apply: () => { player.weapons.blaster.cooldown = Math.max(0.1, player.weapons.blaster.cooldown - 0.1); }
+        apply: () => { 
+            player.weapons.blaster.cooldown = Math.max(0.1, player.weapons.blaster.cooldown - 0.1); 
+            player.rapidFireTimer = 8.0;
+        }
     },
     {
         id: 'blaster_pierce', name: 'Piercing Rounds', icon: '🏹', desc: 'Basic attacks pierce 1 more enemy.',
@@ -1231,6 +1341,7 @@ function update(deltaTime) {
     enemies.forEach(e => e.update(deltaTime));
     projectiles.forEach(p => p.update(deltaTime));
     gems.forEach(g => g.update(deltaTime));
+    powerups.forEach(pu => pu.update(deltaTime));
     particles.forEach(p => p.update(deltaTime));
     floatingTexts.forEach(ft => ft.update(deltaTime));
 
@@ -1289,6 +1400,7 @@ function update(deltaTime) {
     enemies = enemies.filter(e => !e.markedForDeletion);
     projectiles = projectiles.filter(p => !p.markedForDeletion);
     gems = gems.filter(g => !g.markedForDeletion);
+    powerups = powerups.filter(pu => !pu.markedForDeletion);
     particles = particles.filter(p => p.life > 0);
     floatingTexts = floatingTexts.filter(ft => ft.life > 0);
 
@@ -1372,6 +1484,7 @@ function update(deltaTime) {
     }
 
     gems.forEach(g => g.draw(ctx));
+    powerups.forEach(pu => pu.draw(ctx));
     projectiles.forEach(p => p.draw(ctx));
     enemies.forEach(e => e.draw(ctx));
     particles.forEach(p => p.draw(ctx));
@@ -1391,6 +1504,26 @@ function update(deltaTime) {
     const barH = 8;
     const barX = canvas.width / 2 - barW / 2;
     const barY = canvas.height - 30;
+
+    // 1.5. Rapid Fire Countdown Bar
+    if (player.rapidFireTimer > 0) {
+        const rfBarW = 220;
+        const rfBarH = 6;
+        const rfBarX = canvas.width / 2 - rfBarW / 2;
+        const rfBarY = barY - 18;
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.fillRect(rfBarX, rfBarY, rfBarW, rfBarH);
+        ctx.fillStyle = '#ff6600';
+        ctx.shadowColor = '#ff6600';
+        ctx.shadowBlur = 8;
+        ctx.fillRect(rfBarX, rfBarY, rfBarW * (player.rapidFireTimer / 8.0), rfBarH);
+        ctx.fillStyle = '#ff6600';
+        ctx.font = 'bold 10px "Outfit", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`RAPID FIRE: ${player.rapidFireTimer.toFixed(1)}s`, canvas.width / 2, rfBarY - 6);
+        ctx.restore();
+    }
     
     ctx.save();
     // Background slot
@@ -1513,6 +1646,7 @@ function startGame() {
     enemies = [];
     projectiles = [];
     gems = [];
+    powerups = [];
     particles = [];
     floatingTexts = [];
     gridRipples = [];
