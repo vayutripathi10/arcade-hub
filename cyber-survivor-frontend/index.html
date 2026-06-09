@@ -20,7 +20,7 @@
     
 
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_CyberSurvivor_Juice_v4">
     <!-- Google AdSense -->
     
 
@@ -224,7 +224,7 @@
                 <h3>&#x26A1; Game Features</h3>
                 <ul>
                     <li>Rogue-lite progression with randomized upgrade choices</li>
-                    <li>Multiple weapon types: lasers, grenades, shields, area blasts</li>
+                    <li>Multiple weapon types: lasers, homing missiles, tactical plasma bombs, and orbital shields</li>
                     <li>Enemy variety increases every 2 minutes of survival</li>
                     <li>Boss enemies appear at survival milestones</li>
                 </ul>
@@ -606,6 +606,48 @@
             osc2.stop(now + 1.0);
         }
 
+        playMissile() {
+            if (this.isMuted) return;
+            this.init(); if (!this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1500, this.ctx.currentTime + 0.15);
+            g.gain.setValueAtTime(0.04, this.ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.005, this.ctx.currentTime + 0.15);
+            osc.connect(g); g.connect(this.masterGain);
+            osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+        }
+
+        playBombLaunch() {
+            if (this.isMuted) return;
+            this.init(); if (!this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(450, this.ctx.currentTime + 0.2);
+            g.gain.setValueAtTime(0.06, this.ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.005, this.ctx.currentTime + 0.2);
+            osc.connect(g); g.connect(this.masterGain);
+            osc.start(); osc.stop(this.ctx.currentTime + 0.2);
+        }
+
+        playBombExplode() {
+            if (this.isMuted) return;
+            this.init(); if (!this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(20, this.ctx.currentTime + 0.4);
+            g.gain.setValueAtTime(0.25, this.ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
+            osc.connect(g); g.connect(this.masterGain);
+            osc.start(); osc.stop(this.ctx.currentTime + 0.45);
+        }
+
         playGameOver() {
             if (this.isMuted) return;
             this.init(); if (!this.ctx) return;
@@ -639,7 +681,7 @@
             }
         }
     </script>
-      <script src="script.js?v=ArcadeHub_CyberSurvivor_Juice_v3"></script>
+      <script src="script.js?v=ArcadeHub_CyberSurvivor_Juice_v5"></script>
     
     <script>
     (function() {

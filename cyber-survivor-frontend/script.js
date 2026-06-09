@@ -208,7 +208,9 @@ class Player {
         this.weapons = {
             blaster: { level: 1, cooldown: 0.5, timer: 0, damage: 10, speed: 400, pierce: 1 },
             orbital: { level: 0, angle: 0, speed: 3, radius: 60, damage: 15 },
-            spread: { level: 0, cooldown: 1.0, timer: 0, damage: 8, speed: 350 }
+            spread: { level: 0, cooldown: 1.0, timer: 0, damage: 8, speed: 350 },
+            missile: { level: 0, cooldown: 1.8, timer: 0, damage: 25, speed: 300 },
+            bomb: { level: 0, cooldown: 3.0, timer: 0, damage: 45, speed: 200 }
         };
     }
 
@@ -272,6 +274,47 @@ class Player {
         // Orbital Update
         if (this.weapons.orbital.level > 0) {
             this.weapons.orbital.angle += (this.weapons.orbital.speed / 60) * deltaTime;
+        }
+
+        // Auto Shoot - Homing Missile
+        if (this.weapons.missile.level > 0) {
+            this.weapons.missile.timer -= deltaTime * 0.01667;
+            if (this.weapons.missile.timer <= 0) {
+                this.weapons.missile.timer = this.weapons.missile.cooldown;
+                const count = this.weapons.missile.level;
+                const targets = getNearestEnemies(this.x, this.y, count);
+                for (let i = 0; i < count; i++) {
+                    const target = targets[i] || getNearestEnemy(this.x, this.y);
+                    if (target) {
+                        const baseAngle = Math.atan2(target.y - this.y, target.x - this.x);
+                        const launchAngle = baseAngle + (Math.random() - 0.5) * 1.2; // Fan out
+                        projectiles.push(new HomingMissile(this.x, this.y, launchAngle, this.weapons.missile, target));
+                        if (window.audioFX && typeof window.audioFX.playMissile === 'function') {
+                            window.audioFX.playMissile();
+                        } else if (window.audioFX) {
+                            window.audioFX.playShoot();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Auto Shoot - Plasma Bomb
+        if (this.weapons.bomb.level > 0) {
+            this.weapons.bomb.timer -= deltaTime * 0.01667;
+            if (this.weapons.bomb.timer <= 0) {
+                this.weapons.bomb.timer = this.weapons.bomb.cooldown;
+                const target = getNearestEnemy(this.x, this.y);
+                if (target) {
+                    const angle = Math.atan2(target.y - this.y, target.x - this.x);
+                    projectiles.push(new PlasmaBomb(this.x, this.y, angle, this.weapons.bomb, target.x, target.y));
+                    if (window.audioFX && typeof window.audioFX.playBombLaunch === 'function') {
+                        window.audioFX.playBombLaunch();
+                    } else if (window.audioFX) {
+                        window.audioFX.playShoot();
+                    }
+                }
+            }
         }
 
         // Magnetic Gems
@@ -789,6 +832,121 @@ class Projectile {
     }
 }
 
+class HomingMissile extends Projectile {
+    constructor(x, y, angle, stats, targetEnemy) {
+        super(x, y, angle, stats, '#ff3388');
+        this.target = targetEnemy;
+        this.radius = 5;
+        this.homingStrength = 0.08;
+        this.speed = stats.speed;
+        this.angle = angle;
+    }
+    update(deltaTime) {
+        if (this.target && !this.target.markedForDeletion) {
+            const targetAngle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            let diff = targetAngle - this.angle;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            this.angle += diff * this.homingStrength * deltaTime;
+            this.vx = Math.cos(this.angle) * this.speed;
+            this.vy = Math.sin(this.angle) * this.speed;
+        } else {
+            this.target = getNearestEnemy(this.x, this.y);
+        }
+        super.update(deltaTime);
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(8, 0);
+        ctx.lineTo(-4, -4);
+        ctx.lineTo(-4, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+class PlasmaBomb extends Projectile {
+    constructor(x, y, angle, stats, tx, ty) {
+        super(x, y, angle, stats, '#ffb700');
+        this.tx = tx;
+        this.ty = ty;
+        this.radius = 7;
+        this.startX = x;
+        this.startY = y;
+        this.distToTravel = Math.hypot(tx - x, ty - y);
+        this.distTraveled = 0;
+        this.speed = stats.speed;
+        this.angle = angle;
+        this.stats = stats;
+    }
+    update(deltaTime) {
+        const step = (this.speed / 60) * deltaTime;
+        this.x += Math.cos(this.angle) * step;
+        this.y += Math.sin(this.angle) * step;
+        this.distTraveled += step;
+        if (Math.random() < 0.4) {
+            particles.push(new Particle(this.x, this.y, '#ffb700'));
+        }
+        if (this.distTraveled >= this.distToTravel || this.distTraveled >= 400) {
+            this.detonate();
+        }
+    }
+    detonate() {
+        this.markedForDeletion = true;
+        const baseRadius = 80 + this.stats.level * 40;
+        const damage = this.stats.damage;
+        triggerShake(10 + this.stats.level * 4, 0.4);
+        spawnRipple(this.x, this.y, baseRadius * 1.5, 1.2, 8, '#ff9900');
+        enemies.forEach(enemy => {
+            const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+            if (dist < baseRadius) {
+                const angle = Math.atan2(enemy.y - this.y, enemy.x - this.x);
+                enemy.takeDamage(damage, Math.cos(angle), Math.sin(angle));
+            }
+        });
+        for (let i = 0; i < 25; i++) {
+            const p = new Particle(this.x, this.y, '#ffb700');
+            const speed = Math.random() * 200 + 100;
+            p.vx = Math.cos(Math.random() * Math.PI * 2) * speed;
+            p.vy = Math.sin(Math.random() * Math.PI * 2) * speed;
+            particles.push(p);
+        }
+        if (window.audioFX && typeof window.audioFX.playBombExplode === 'function') {
+            window.audioFX.playBombExplode();
+        } else if (window.audioFX) {
+            window.audioFX.playHit();
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(frames * 0.1);
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ff0055';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < 4; i++) {
+            const a = (Math.PI / 2) * i;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a) * (this.radius + 5), Math.sin(a) * (this.radius + 5));
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+}
+
 class Gem {
     constructor(x, y, value) {
         this.x = x;
@@ -922,6 +1080,13 @@ function getNearestEnemy(x, y) {
     return nearest;
 }
 
+function getNearestEnemies(x, y, count) {
+    const sorted = [...enemies].sort((a, b) => {
+        return Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y);
+    });
+    return sorted.slice(0, count);
+}
+
 // Upgrades logic
 const UPGRADES = [
     {
@@ -955,6 +1120,20 @@ const UPGRADES = [
     {
         id: 'heal', name: 'Emergency Repair', icon: '❤️', desc: 'Restores 50% max HP.',
         apply: () => { player.hp = Math.min(player.maxHp, player.hp + player.maxHp * 0.5); }
+    },
+    {
+        id: 'missile_up', name: 'Homing Missiles', icon: '🚀', desc: 'Fires seeking missiles that lock on and destroy.',
+        apply: () => {
+            player.weapons.missile.level = Math.min(4, player.weapons.missile.level + 1);
+            player.weapons.missile.damage += 5;
+        }
+    },
+    {
+        id: 'bomb_up', name: 'Plasma Bomb', icon: '💣', desc: 'Launches a tactical bomb dealing heavy area damage.',
+        apply: () => {
+            player.weapons.bomb.level = Math.min(4, player.weapons.bomb.level + 1);
+            player.weapons.bomb.damage += 10;
+        }
     }
 ];
 
@@ -1249,7 +1428,7 @@ function update(deltaTime) {
         ctx.fillStyle = '#ff00ea';
         ctx.shadowColor = '#ff00ea';
         ctx.shadowBlur = 8;
-        ctx.font = 'bold 9px "Press Start 2P", cursive';
+        ctx.font = 'bold 12px "Outfit", sans-serif';
         ctx.textAlign = 'center';
         ctx.globalAlpha = 0.5 + Math.sin(frames * 0.2) * 0.5;
         ctx.fillText('[SPACE] REACTOR OVERLOAD', canvas.width / 2, barY - 12);
@@ -1257,7 +1436,7 @@ function update(deltaTime) {
         ctx.fillStyle = '#ff00ea';
         ctx.shadowColor = '#ff00ea';
         ctx.shadowBlur = 8;
-        ctx.font = 'bold 9px "Press Start 2P", cursive';
+        ctx.font = 'bold 12px "Outfit", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('OVERCHARGE ACTIVE', canvas.width / 2, barY - 12);
     }
