@@ -210,6 +210,95 @@ function spawnRipple(x, y, maxRadius, strength, speed, color) {
     gridRipples.push(new GridRipple(x, y, maxRadius, strength, speed, color));
 }
 
+class BombRing {
+    constructor(x, y, maxRadius, speed, damage, color = '#ffb700') {
+        this.x = x;
+        this.y = y;
+        this.currentRadius = 0;
+        this.maxRadius = maxRadius;
+        this.speed = speed;
+        this.damage = damage;
+        this.color = color;
+        this.damagedEnemies = new Set();
+        this.markedForDeletion = false;
+    }
+    update(deltaTime) {
+        this.currentRadius += (this.speed / 60) * deltaTime;
+        if (this.currentRadius >= this.maxRadius) {
+            this.markedForDeletion = true;
+            return;
+        }
+
+        // Keep centered on player's ship
+        if (player) {
+            this.x = player.x;
+            this.y = player.y;
+        }
+
+        // Shake the screen as the ring expands
+        const intensity = 28 * (1 - this.currentRadius / this.maxRadius) + 4;
+        triggerShake(intensity, 0.15);
+
+        // Check enemies hit by expanding ring
+        enemies.forEach(enemy => {
+            if (this.damagedEnemies.has(enemy)) return;
+            const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+            if (dist <= this.currentRadius) {
+                this.damagedEnemies.add(enemy);
+                const angle = Math.atan2(enemy.y - this.y, enemy.x - this.x);
+                enemy.takeDamage(this.damage, Math.cos(angle), Math.sin(angle));
+                
+                // Blast particles at enemy
+                for (let i = 0; i < 12; i++) {
+                    const colors = ['#ff3300', '#ff6600', '#ffb700', '#ffff00'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const p = new Particle(enemy.x, enemy.y, color);
+                    const speed = Math.random() * 220 + 80;
+                    const angle = Math.random() * Math.PI * 2;
+                    p.vx = Math.cos(angle) * speed;
+                    p.vy = Math.sin(angle) * speed;
+                    p.life = 0.5 + Math.random() * 0.4;
+                    p.maxLife = p.life;
+                    particles.push(p);
+                }
+            }
+        });
+    }
+    draw(ctx) {
+        ctx.save();
+        
+        // Primary shockwave ring
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 8 * (1 - this.currentRadius / this.maxRadius) + 2; 
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 25;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Trailing secondary ring
+        if (this.currentRadius > 30) {
+            ctx.strokeStyle = '#ff3300';
+            ctx.lineWidth = 3 * (1 - this.currentRadius / this.maxRadius) + 1;
+            ctx.shadowColor = '#ff3300';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.currentRadius - 25, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Fading glow fill
+        const alpha = 0.15 * (1 - this.currentRadius / this.maxRadius);
+        ctx.fillStyle = `rgba(255, 183, 0, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+}
+let bombRings = [];
+
 class Player {
     constructor() {
         this.x = canvas.width / 2;
@@ -250,26 +339,19 @@ class Player {
         if (this.bombs > 0) {
             this.bombs--;
             
-            // Tactical blast centered on player
-            const blastRadius = 300; 
-            const damage = 150; 
+            const maxBlastRadius = 380; 
+            const speed = 750; 
+            const damage = 500; // Extremely powerful to destroy nearby enemies
             
-            triggerShake(28, 0.65);
-            spawnRipple(this.x, this.y, blastRadius * 1.5, 2.5, 12, '#ffb700');
-            spawnRipple(this.x, this.y, blastRadius * 1.0, 1.8, 8, '#ff3300');
+            spawnRipple(this.x, this.y, maxBlastRadius, 3.0, 12, '#ffb700');
+            spawnRipple(this.x, this.y, maxBlastRadius * 0.7, 2.0, 8, '#ff3300');
             
-            enemies.forEach(enemy => {
-                const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-                if (dist < blastRadius) {
-                    const angle = Math.atan2(enemy.y - this.y, enemy.x - this.x);
-                    enemy.takeDamage(damage, Math.cos(angle), Math.sin(angle));
-                }
-            });
+            bombRings.push(new BombRing(this.x, this.y, maxBlastRadius, speed, damage, '#ffb700'));
             
-            // Spawn blast particles
-            for (let i = 0; i < 40; i++) {
+            // Spawn initial launch particles from the spaceship
+            for (let i = 0; i < 20; i++) {
                 const p = new Particle(this.x, this.y, '#ffb700');
-                const speed = Math.random() * 300 + 100;
+                const speed = Math.random() * 200 + 100;
                 p.vx = Math.cos(Math.random() * Math.PI * 2) * speed;
                 p.vy = Math.sin(Math.random() * Math.PI * 2) * speed;
                 particles.push(p);
@@ -865,8 +947,8 @@ class Enemy {
             uiKills.textContent = killCount;
             gems.push(new Gem(this.x, this.y, this.xp));
 
-            // Award 1 bomb after each 15 kills
-            if (killCount > 0 && killCount % 15 === 0 && player) {
+            // Award 1 bomb after each 40 kills
+            if (killCount > 0 && killCount % 40 === 0 && player) {
                 player.bombs++;
                 floatingTexts.push(new FloatingText(player.x, player.y - 45, "+1 BOMB!", '#ffcc00'));
                 if (window.audioFX && typeof window.audioFX.playPowerUp === 'function') {
@@ -1426,6 +1508,9 @@ function update(deltaTime) {
     player.update(deltaTime);
     spawnEnemies(deltaTime);
 
+    bombRings.forEach(br => br.update(deltaTime));
+    bombRings = bombRings.filter(br => !br.markedForDeletion);
+
     enemies.forEach(e => e.update(deltaTime));
     projectiles.forEach(p => p.update(deltaTime));
     gems.forEach(g => g.update(deltaTime));
@@ -1576,6 +1661,7 @@ function update(deltaTime) {
     projectiles.forEach(p => p.draw(ctx));
     enemies.forEach(e => e.draw(ctx));
     particles.forEach(p => p.draw(ctx));
+    bombRings.forEach(br => br.draw(ctx));
     player.draw(ctx);
     floatingTexts.forEach(ft => ft.draw(ctx));
 
@@ -1778,6 +1864,7 @@ function startGame() {
     particles = [];
     floatingTexts = [];
     gridRipples = [];
+    bombRings = [];
     gameTime = 0;
     killCount = 0;
     spawnTimer = 0;
