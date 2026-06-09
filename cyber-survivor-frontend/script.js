@@ -85,14 +85,49 @@ const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft
 let pointer = { active: false, x: 0, y: 0 };
 let joystick = { dx: 0, dy: 0 }; // For touch/mouse drag
 
-window.addEventListener('keydown', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = true; if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause(); });
+window.addEventListener('keydown', e => {
+    if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+    if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
+    if (e.key === ' ') {
+        e.preventDefault();
+        if (player && player.ultimateCharge >= 100 && gameState === 'PLAYING') {
+            player.activateUltimate();
+        }
+    }
+});
 window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
+function isOverUltimateButton(clientX, clientY) {
+    if (!player) return false;
+    const rect = canvas.getBoundingClientRect();
+    const touchX = clientX - rect.left;
+    const touchY = clientY - rect.top;
+    const btnX = canvas.width - 80;
+    const btnY = canvas.height - 80;
+    const dist = Math.hypot(touchX - btnX, touchY - btnY);
+    return dist <= 45;
+}
+
 // Touch / Mouse controls
-canvas.addEventListener('mousedown', e => { pointer.active = true; updateJoystick(e.clientX, e.clientY); });
+canvas.addEventListener('mousedown', e => {
+    if (gameState === 'PLAYING' && isOverUltimateButton(e.clientX, e.clientY)) {
+        player.activateUltimate();
+        return;
+    }
+    pointer.active = true;
+    updateJoystick(e.clientX, e.clientY);
+});
 canvas.addEventListener('mousemove', e => { if (pointer.active) updateJoystick(e.clientX, e.clientY); });
 canvas.addEventListener('mouseup', () => { pointer.active = false; joystick.dx = 0; joystick.dy = 0; });
-canvas.addEventListener('touchstart', e => { pointer.active = true; updateJoystick(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+canvas.addEventListener('touchstart', e => {
+    if (gameState === 'PLAYING' && isOverUltimateButton(e.touches[0].clientX, e.touches[0].clientY)) {
+        player.activateUltimate();
+        e.preventDefault();
+        return;
+    }
+    pointer.active = true;
+    updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
+}, {passive: false});
 canvas.addEventListener('touchmove', e => { if (pointer.active) updateJoystick(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive: false});
 canvas.addEventListener('touchend', () => { pointer.active = false; joystick.dx = 0; joystick.dy = 0; });
 
@@ -163,6 +198,11 @@ class Player {
         // Squash & Stretch
         this.scaleX = 1.0;
         this.scaleY = 1.0;
+
+        // Ultimate System
+        this.ultimateCharge = 0;
+        this.ultimateTime = 0;
+        this.ultimateTimer = 0;
 
         // Weapons & Stats
         this.weapons = {
@@ -242,6 +282,52 @@ class Player {
                 gem.collecting = true;
             }
         });
+
+        // Ultimate Overload Decay & Fire
+        if (this.ultimateTime > 0) {
+            this.ultimateTime -= deltaTime * 0.01667;
+            this.ultimateTimer -= deltaTime * 0.01667;
+            if (this.ultimateTimer <= 0) {
+                this.ultimateTimer = 0.12; // Fire rapid bursts
+                const count = 12; // 12-directional blast
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 / count) * i + (this.ultimateTime * 2); // spinning vortex!
+                    projectiles.push(new Projectile(this.x, this.y, angle, {
+                        damage: this.weapons.blaster.damage * 2.5,
+                        speed: 550,
+                        pierce: 3
+                    }, '#ff00ea'));
+                }
+                if (window.audioFX) window.audioFX.playShoot();
+                triggerShake(4, 0.1);
+                spawnRipple(this.x, this.y, 100, 0.4, 6, 'rgba(255, 0, 234, 0.2)');
+            }
+        }
+    }
+
+    activateUltimate() {
+        if (this.ultimateCharge >= 100 && this.ultimateTime <= 0) {
+            this.ultimateCharge = 0;
+            this.ultimateTime = 6.0; // 6 seconds duration
+            this.ultimateTimer = 0;
+
+            // Visual explosion burst
+            spawnRipple(this.x, this.y, 350, 2.5, 9, '#ff00ea');
+            triggerShake(20, 0.8);
+            flashAlpha = 0.6;
+            flashColor = 'rgba(255, 0, 234, 0.4)';
+
+            // Overload sparks
+            for (let i = 0; i < 40; i++) {
+                particles.push(new Particle(this.x, this.y, '#ff00ea'));
+            }
+
+            floatingTexts.push(new FloatingText(this.x, this.y - 40, "REACTOR OVERLOAD!!!", '#ff00ea'));
+
+            if (window.audioFX && typeof window.audioFX.playUltimate === 'function') {
+                window.audioFX.playUltimate();
+            }
+        }
     }
 
     draw(ctx) {
@@ -305,13 +391,28 @@ class Player {
         ctx.fill();
         ctx.stroke();
 
-        // 3. Central glowing green reactor core (pulses)
+        // 3. Central glowing reactor core
         let coreGlow = 6 + Math.sin(frames * 0.15) * 3;
-        ctx.shadowColor = '#39ff14';
+        let isUltReady = (this.ultimateCharge >= 100);
+        let isUltActive = (this.ultimateTime > 0);
+
+        if (isUltActive) {
+            ctx.shadowColor = '#ff00ea';
+            ctx.fillStyle = '#ff00ea';
+            coreGlow = 15 + Math.sin(frames * 0.3) * 6;
+        } else if (isUltReady) {
+            let pulseColor = Math.floor(frames * 0.2) % 2 === 0 ? '#ff00ea' : '#39ff14';
+            ctx.shadowColor = pulseColor;
+            ctx.fillStyle = pulseColor;
+            coreGlow = 10 + Math.sin(frames * 0.3) * 4;
+        } else {
+            ctx.shadowColor = '#39ff14';
+            ctx.fillStyle = '#39ff14';
+        }
+
         ctx.shadowBlur = coreGlow;
-        ctx.fillStyle = '#39ff14';
         ctx.beginPath();
-        ctx.arc(-2, 0, 4.5, 0, Math.PI * 2);
+        ctx.arc(-2, 0, isUltActive ? 6.5 : 4.5, 0, Math.PI * 2);
         ctx.fill();
 
         // 4. Cockpit windshield glass
@@ -351,6 +452,28 @@ class Player {
             ctx.lineTo(-18, 7);
             ctx.closePath();
             ctx.fill();
+        }
+
+        // 6. Overload Shield Field
+        if (this.ultimateTime > 0) {
+            ctx.strokeStyle = 'rgba(255, 0, 234, 0.45)';
+            ctx.lineWidth = 2.0;
+            ctx.shadowColor = '#ff00ea';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(0, 0, 36 + Math.sin(frames * 0.25) * 5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Orbiting shield gems
+            ctx.fillStyle = '#ff00ea';
+            for (let i = 0; i < 3; i++) {
+                let pAngle = (frames * 0.08) + (Math.PI * 2 / 3) * i;
+                let px = Math.cos(pAngle) * 36;
+                let py = Math.sin(pAngle) * 36;
+                ctx.beginPath();
+                ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
 
         ctx.restore();
@@ -402,6 +525,7 @@ class Player {
     }
 
     takeDamage(amount) {
+        if (this.ultimateTime > 0) return;
         this.hp -= amount;
         floatingTexts.push(new FloatingText(this.x, this.y - 20, Math.floor(amount), '#ff0055'));
         if (window.audioFX) window.audioFX.playHit();
@@ -582,6 +706,15 @@ class Enemy {
             killCount++;
             uiKills.textContent = killCount;
             gems.push(new Gem(this.x, this.y, this.xp));
+
+            // Add to ultimate charge!
+            if (player && player.ultimateCharge < 100 && player.ultimateTime <= 0) {
+                let chargeAmt = 1.0;
+                if (this.type === 'boss') chargeAmt = 20.0;
+                else if (this.type === 'tank') chargeAmt = 3.0;
+                else if (this.type === 'fast') chargeAmt = 1.5;
+                player.ultimateCharge = Math.min(100, player.ultimateCharge + chargeAmt);
+            }
             
             // Death particles
             for(let i=0; i<10; i++) {
@@ -1073,6 +1206,96 @@ function update(deltaTime) {
     ctx.fillRect(0, 0, canvas.width, 5);
     ctx.fillStyle = '#0ff';
     ctx.fillRect(0, 0, canvas.width * (player.xp / player.xpNeeded), 5);
+
+    // 1. Ultimate Bar at bottom-center
+    const barW = 300;
+    const barH = 8;
+    const barX = canvas.width / 2 - barW / 2;
+    const barY = canvas.height - 30;
+    
+    ctx.save();
+    // Background slot
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.fillRect(barX, barY, barW, barH);
+    
+    // Fill ratio
+    let chargeRatio = player.ultimateCharge / 100;
+    let isUltReady = player.ultimateCharge >= 100;
+    let isUltActive = player.ultimateTime > 0;
+    
+    if (isUltActive) {
+        // Active overload progress bar (decaying ultimateTime)
+        let activeRatio = player.ultimateTime / 6.0;
+        ctx.fillStyle = '#ff00ea';
+        ctx.shadowColor = '#ff00ea';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(barX, barY, barW * activeRatio, barH);
+    } else {
+        ctx.fillStyle = isUltReady ? '#ff00ea' : '#7f00aa';
+        if (isUltReady) {
+            ctx.shadowColor = '#ff00ea';
+            ctx.shadowBlur = 10;
+        }
+        ctx.fillRect(barX, barY, barW * chargeRatio, barH);
+    }
+    
+    // Draw boundary line
+    ctx.strokeStyle = isUltReady ? '#ff00ea' : 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX, barY, barW, barH);
+    
+    // Draw Pulsing Text Alert
+    if (isUltReady && !isUltActive) {
+        ctx.fillStyle = '#ff00ea';
+        ctx.shadowColor = '#ff00ea';
+        ctx.shadowBlur = 8;
+        ctx.font = 'bold 9px "Press Start 2P", cursive';
+        ctx.textAlign = 'center';
+        ctx.globalAlpha = 0.5 + Math.sin(frames * 0.2) * 0.5;
+        ctx.fillText('[SPACE] REACTOR OVERLOAD', canvas.width / 2, barY - 12);
+    } else if (isUltActive) {
+        ctx.fillStyle = '#ff00ea';
+        ctx.shadowColor = '#ff00ea';
+        ctx.shadowBlur = 8;
+        ctx.font = 'bold 9px "Press Start 2P", cursive';
+        ctx.textAlign = 'center';
+        ctx.fillText('OVERCHARGE ACTIVE', canvas.width / 2, barY - 12);
+    }
+    ctx.restore();
+
+    // 2. Circular Ultimate Button in bottom-right corner
+    const btnX = canvas.width - 80;
+    const btnY = canvas.height - 80;
+    const btnR = 30;
+    
+    ctx.save();
+    // Outer border ring
+    ctx.strokeStyle = isUltActive ? '#ff00ea' : (isUltReady ? '#ff00ea' : 'rgba(0, 243, 255, 0.25)');
+    ctx.lineWidth = 2;
+    if (isUltReady || isUltActive) {
+        ctx.shadowColor = '#ff00ea';
+        ctx.shadowBlur = 15;
+    } else {
+        ctx.shadowColor = '#00f3ff';
+        ctx.shadowBlur = 4;
+    }
+    ctx.beginPath();
+    ctx.arc(btnX, btnY, btnR + 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner filled core indicating charge
+    ctx.fillStyle = isUltActive ? '#ff00ea' : (isUltReady ? '#ff00ea' : 'rgba(0, 243, 255, 0.08)');
+    ctx.beginPath();
+    ctx.arc(btnX, btnY, btnR * (isUltActive ? 1.0 : chargeRatio), 0, Math.PI * 2);
+    ctx.fill();
+
+    // Icon (lightning bolt)
+    ctx.font = 'bold 18px "Outfit", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = isUltActive ? '#fff' : (isUltReady ? '#fff' : 'rgba(0, 243, 255, 0.4)');
+    ctx.fillText('⚡', btnX, btnY);
+    ctx.restore();
 
     // Fullscreen Impact Flash Overlay
     if (flashAlpha > 0) {

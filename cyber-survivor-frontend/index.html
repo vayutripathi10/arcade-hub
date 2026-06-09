@@ -211,11 +211,11 @@
         <p>Cyber Survivor is an intense rogue-lite arena shooter set in a neon-drenched cyberpunk wasteland. Survive endless waves of robotic enemies that swarm you from all directions. Collect experience orbs dropped by defeated foes, level up your character, and choose from powerful weapon upgrades to build a unique build each run. Every playthrough is different &mdash; pick the right upgrades and you might just survive the night.</p>
 
         <h3>&#x1F3AE; How to Play</h3>
-        <p>Your character auto-attacks nearby enemies. You control movement only. Survive waves, collect XP, and select upgrades every time you level up. Last as long as possible.</p>
+        <p>Your character auto-attacks nearby enemies. You control movement only. Survive waves, collect XP, and select upgrades every time you level up. Defeat enemies to charge your Ultimate Reactor Overload, then press SPACE or tap the screen icon to activate 6s invulnerability and a spinning 360-degree storm of lasers!</p>
         <ul>
             <li><strong>Desktop &mdash; Move:</strong> WASD or Arrow Keys</li>
-            <li><strong>Mobile:</strong> Use the on-screen virtual joystick to move</li>
-            <li><strong>Auto-attack:</strong> Your weapons fire automatically at the nearest enemy</li>
+            <li><strong>Ultimate:</strong> Press SPACEBAR when ultimate is fully charged (100%)</li>
+            <li><strong>Mobile:</strong> Drag to move, and tap the glowing Ultimate button in the bottom-right</li>
             <li><strong>Level Up:</strong> Choose one of three upgrade cards that appear on level-up</li>
         </ul>
 
@@ -322,12 +322,12 @@
                     <p><b>Move</b> to dodge enemies and collect XP!</p>
                 </div>
                 <div class="instruction-item">
-                    <span class="icon">🔫</span>
-                    <p>Your weapon fires <b>Automatically</b>!</p>
+                    <span class="icon">⚡</span>
+                    <p>Defeat enemies to charge <b>Ultimate</b>!</p>
                 </div>
                 <div class="instruction-item">
-                    <span class="icon">⬆️</span>
-                    <p><b>Level Up</b> to choose powerful upgrades!</p>
+                    <span class="icon">💥</span>
+                    <p><b>SPACE / Tap Core</b> at 100% to unleash overload!</p>
                 </div>
             </div>
             <p class="control-text"><b>PC:</b> WASD / Arrows to Move<br><b>Mobile:</b> Drag Virtual Joystick</p>
@@ -569,6 +569,43 @@
             });
         }
 
+        playUltimate() {
+            if (this.isMuted) return;
+            this.init(); if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            
+            // Rising sweep synth effect
+            const osc = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(80, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.8);
+            
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(40, now);
+            osc2.frequency.exponentialRampToValueAtTime(440, now + 0.8);
+            
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1200, now);
+            filter.Q.setValueAtTime(8, now);
+            
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+            
+            osc.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.masterGain);
+            
+            osc.start(now);
+            osc2.start(now);
+            osc.stop(now + 1.0);
+            osc2.stop(now + 1.0);
+        }
+
         playGameOver() {
             if (this.isMuted) return;
             this.init(); if (!this.ctx) return;
@@ -602,7 +639,7 @@
             }
         }
     </script>
-    <script src="script.js?v=ArcadeHub_CyberSurvivor_Juice_v1"></script>
+     <script src="script.js?v=ArcadeHub_CyberSurvivor_Juice_v2"></script>
     
     <script>
     (function() {
