@@ -80,6 +80,8 @@ let gems = [];
 let powerups = [];
 let particles = [];
 let floatingTexts = [];
+let comboCount = 0;
+let comboTimer = 0;
 
 // Input
 const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
@@ -222,6 +224,25 @@ class BombRing {
         this.damagedEnemies = new Set();
         this.markedForDeletion = false;
     }
+    getColor(ratio) {
+        // Shifting colors: Cyan -> Orange -> Dark Red
+        if (ratio < 0.3) {
+            const t = ratio / 0.3;
+            const r = Math.round(0 + t * 255);
+            const g = Math.round(243 - t * 141);
+            const b = Math.round(255 - t * 255);
+            return `rgb(${r}, ${g}, ${b})`;
+        } else if (ratio < 0.75) {
+            const t = (ratio - 0.3) / 0.45;
+            const g = Math.round(102 - t * 51);
+            return `rgb(255, ${g}, 0)`;
+        } else {
+            const t = (ratio - 0.75) / 0.25;
+            const r = Math.round(255 - t * 119);
+            const g = Math.round(51 - t * 51);
+            return `rgb(${r}, ${g}, 0)`;
+        }
+    }
     update(deltaTime) {
         this.currentRadius += (this.speed / 60) * deltaTime;
         if (this.currentRadius >= this.maxRadius) {
@@ -267,10 +288,13 @@ class BombRing {
     draw(ctx) {
         ctx.save();
         
+        const ratio = this.currentRadius / this.maxRadius;
+        const ringColor = this.getColor(ratio);
+        
         // Primary shockwave ring
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 8 * (1 - this.currentRadius / this.maxRadius) + 2; 
-        ctx.shadowColor = this.color;
+        ctx.strokeStyle = ringColor;
+        ctx.lineWidth = 8 * (1 - ratio) + 2; 
+        ctx.shadowColor = ringColor;
         ctx.shadowBlur = 25;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
@@ -278,9 +302,11 @@ class BombRing {
         
         // Trailing secondary ring
         if (this.currentRadius > 30) {
-            ctx.strokeStyle = '#ff3300';
-            ctx.lineWidth = 3 * (1 - this.currentRadius / this.maxRadius) + 1;
-            ctx.shadowColor = '#ff3300';
+            const trailingRatio = Math.max(0, (this.currentRadius - 25) / this.maxRadius);
+            const trailingColor = this.getColor(trailingRatio);
+            ctx.strokeStyle = trailingColor;
+            ctx.lineWidth = 3 * (1 - ratio) + 1;
+            ctx.shadowColor = trailingColor;
             ctx.shadowBlur = 15;
             ctx.beginPath();
             ctx.arc(this.x, this.y, this.currentRadius - 25, 0, Math.PI * 2);
@@ -288,8 +314,8 @@ class BombRing {
         }
 
         // Fading glow fill
-        const alpha = 0.15 * (1 - this.currentRadius / this.maxRadius);
-        ctx.fillStyle = `rgba(255, 183, 0, ${alpha})`;
+        const alpha = 0.15 * (1 - ratio);
+        ctx.fillStyle = ringColor.replace('rgb', 'rgba').replace(')', `, ${alpha})`);
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
         ctx.fill();
@@ -324,6 +350,7 @@ class Player {
         this.ultimateTimer = 0;
         this.rapidFireTimer = 0;
         this.bombs = 1;
+        this.bombCooldownTimer = 0;
 
         // Weapons & Stats
         this.weapons = {
@@ -335,9 +362,15 @@ class Player {
         };
     }
 
+    getPickupRadius() {
+        const pickupMultiplier = 1.0 + Math.min(1.0, Math.floor(comboCount / 5) * 0.15);
+        return this.pickupRadius * pickupMultiplier;
+    }
+
     triggerTacticalBomb() {
-        if (this.bombs > 0) {
+        if (this.bombs > 0 && this.bombCooldownTimer <= 0) {
             this.bombs--;
+            this.bombCooldownTimer = 0.6; // 0.6 seconds cooldown
             
             const maxBlastRadius = 380; 
             const speed = 750; 
@@ -383,8 +416,24 @@ class Player {
             dy = joystick.dy;
         }
 
-        this.x += dx * (this.speed / 60) * deltaTime;
-        this.y += dy * (this.speed / 60) * deltaTime;
+        const speedMultiplier = 1.0 + Math.min(0.25, Math.floor(comboCount / 5) * 0.05);
+        const actualSpeed = this.speed * speedMultiplier;
+        this.x += dx * (actualSpeed / 60) * deltaTime;
+        this.y += dy * (actualSpeed / 60) * deltaTime;
+
+        // Spawn engine trail particles when moving
+        if ((dx !== 0 || dy !== 0) && Math.random() < 0.35) {
+            const angle = Math.atan2(dy, dx);
+            const ox = this.x - Math.cos(angle) * 12;
+            const oy = this.y - Math.sin(angle) * 12;
+            const p = new Particle(ox, oy, 'rgba(0, 243, 255, 0.7)');
+            const pSpeed = Math.random() * 40 + 15;
+            p.vx = -dx * pSpeed + (Math.random() - 0.5) * 15;
+            p.vy = -dy * pSpeed + (Math.random() - 0.5) * 15;
+            p.life = 0.2 + Math.random() * 0.25;
+            p.maxLife = p.life;
+            particles.push(p);
+        }
 
         // Bounds
         this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
@@ -398,6 +447,12 @@ class Player {
         if (this.rapidFireTimer > 0) {
             this.rapidFireTimer -= deltaTime * 0.01667;
             if (this.rapidFireTimer < 0) this.rapidFireTimer = 0;
+        }
+
+        // Bomb Cooldown countdown
+        if (this.bombCooldownTimer > 0) {
+            this.bombCooldownTimer -= deltaTime * 0.01667;
+            if (this.bombCooldownTimer < 0) this.bombCooldownTimer = 0;
         }
 
         // Auto Shoot - Blaster (Targets nearest)
@@ -502,10 +557,11 @@ class Player {
         }
 
         // Magnetic Gems
+        const activePickupRadius = this.getPickupRadius();
         gems.forEach(gem => {
             if (gem.collecting) return;
             const dist = Math.hypot(gem.x - this.x, gem.y - this.y);
-            if (dist < this.pickupRadius) {
+            if (dist < activePickupRadius) {
                 gem.collecting = true;
             }
         });
@@ -944,6 +1000,8 @@ class Enemy {
         if (this.hp <= 0 && !this.markedForDeletion) {
             this.markedForDeletion = true;
             killCount++;
+            comboCount++;
+            comboTimer = 2.0;
             uiKills.textContent = killCount;
             gems.push(new Gem(this.x, this.y, this.xp));
 
@@ -1219,7 +1277,7 @@ class PowerUp {
         
         // Attraction to player if within magnet range
         const dist = Math.hypot(player.x - this.x, player.y - this.y);
-        if (dist < player.pickupRadius) {
+        if (dist < player.getPickupRadius()) {
             const speed = 450;
             if (dist < 15) {
                 this.markedForDeletion = true;
@@ -1491,6 +1549,14 @@ function update(deltaTime) {
         flashAlpha -= deltaTime * 0.04;
     }
 
+    // Combo timer decay
+    if (comboTimer > 0) {
+        comboTimer -= dtSeconds;
+        if (comboTimer <= 0) {
+            comboCount = 0;
+        }
+    }
+
     // Dynamic music tempo scaling
     if (window.audioFX) {
         window.audioFX.setTempo(120 + gameTime / 6.0);
@@ -1667,6 +1733,34 @@ function update(deltaTime) {
 
     ctx.restore();
 
+    // Combo Multiplier HUD
+    if (comboCount >= 3) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const pulse = 1.0 + Math.sin(frames * 0.15) * 0.08 + Math.min(0.3, (comboCount / 20) * 0.1);
+        ctx.translate(canvas.width / 2, 85);
+        ctx.scale(pulse, pulse);
+        
+        ctx.font = 'bold 20px "Outfit", sans-serif';
+        ctx.fillStyle = '#ff00ea'; // neon pink
+        ctx.shadowColor = '#ff00ea';
+        ctx.shadowBlur = 12;
+        ctx.fillText(`${comboCount}x COMBO!`, 0, 0);
+        
+        const barW = 80;
+        const barH = 3;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillRect(-barW / 2, 12, barW, barH);
+        
+        ctx.fillStyle = '#ff00ea';
+        ctx.shadowBlur = 6;
+        ctx.fillRect(-barW / 2, 12, barW * (comboTimer / 2.0), barH);
+        
+        ctx.restore();
+    }
+
     // XP Bar at top
     ctx.fillStyle = 'rgba(255,255,255,0.1)';
     ctx.fillRect(0, 0, canvas.width, 5);
@@ -1806,6 +1900,18 @@ function update(deltaTime) {
     ctx.arc(bombBtnX, bombBtnY, bombBtnR, 0, Math.PI * 2);
     ctx.fill();
     
+    // Cooldown visual sweep overlay
+    if (player.bombCooldownTimer > 0) {
+        ctx.save();
+        const cooldownRatio = player.bombCooldownTimer / 0.6;
+        ctx.beginPath();
+        ctx.moveTo(bombBtnX, bombBtnY);
+        ctx.arc(bombBtnX, bombBtnY, bombBtnR, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * cooldownRatio);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.fill();
+        ctx.restore();
+    }
+    
     ctx.font = 'bold 16px "Outfit", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1865,6 +1971,8 @@ function startGame() {
     floatingTexts = [];
     gridRipples = [];
     bombRings = [];
+    comboCount = 0;
+    comboTimer = 0;
     gameTime = 0;
     killCount = 0;
     spawnTimer = 0;
