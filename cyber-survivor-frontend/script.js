@@ -58,6 +58,20 @@ let lastTime = 0;
 let gameTime = 0; // In seconds
 let killCount = 0;
 
+// Juicing States
+let shakeTime = 0;
+let shakeIntensity = 0;
+let shakeX = 0;
+let shakeY = 0;
+let flashAlpha = 0;
+let flashColor = '#fff';
+let frames = 0;
+
+function triggerShake(intensity, duration) {
+    shakeIntensity = intensity;
+    shakeTime = duration;
+}
+
 // Entities
 let player;
 let enemies = [];
@@ -110,6 +124,27 @@ resize();
 
 // --- Classes ---
 
+class GridRipple {
+    constructor(x, y, maxRadius, strength, speed, color = 'rgba(0, 243, 255, 0.3)') {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.maxRadius = maxRadius;
+        this.strength = strength;
+        this.speed = speed;
+        this.color = color;
+        this.life = 1.0;
+    }
+    update(deltaTime) {
+        this.radius += this.speed * deltaTime;
+        this.life = Math.max(0, 1.0 - (this.radius / this.maxRadius));
+    }
+}
+let gridRipples = [];
+function spawnRipple(x, y, maxRadius, strength, speed, color) {
+    gridRipples.push(new GridRipple(x, y, maxRadius, strength, speed, color));
+}
+
 class Player {
     constructor() {
         this.x = canvas.width / 2;
@@ -124,6 +159,10 @@ class Player {
         this.xp = 0;
         this.xpNeeded = 10;
         this.pickupRadius = 100;
+
+        // Squash & Stretch
+        this.scaleX = 1.0;
+        this.scaleY = 1.0;
 
         // Weapons & Stats
         this.weapons = {
@@ -156,6 +195,10 @@ class Player {
         this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
         this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
 
+        // Scale decay
+        this.scaleX += (1.0 - this.scaleX) * 0.12 * deltaTime;
+        this.scaleY += (1.0 - this.scaleY) * 0.12 * deltaTime;
+
         // Auto Shoot - Blaster (Targets nearest)
         if (this.weapons.blaster.level > 0) {
             this.weapons.blaster.timer -= deltaTime * 0.01667;
@@ -166,6 +209,7 @@ class Player {
                     const angle = Math.atan2(target.y - this.y, target.x - this.x);
                     projectiles.push(new Projectile(this.x, this.y, angle, this.weapons.blaster));
                     if (window.audioFX) window.audioFX.playShoot();
+                    spawnRipple(this.x, this.y, 60, 0.2, 5, 'rgba(0, 243, 255, 0.15)');
                 }
             }
         }
@@ -181,13 +225,13 @@ class Player {
                     projectiles.push(new Projectile(this.x, this.y, angle, this.weapons.spread, '#f0f'));
                 }
                 if (window.audioFX) window.audioFX.playShoot();
+                spawnRipple(this.x, this.y, 80, 0.3, 6, 'rgba(255, 0, 255, 0.2)');
             }
         }
 
         // Orbital Update
         if (this.weapons.orbital.level > 0) {
             this.weapons.orbital.angle += (this.weapons.orbital.speed / 60) * deltaTime;
-            // Collision handled in main loop
         }
 
         // Magnetic Gems
@@ -201,16 +245,117 @@ class Player {
     }
 
     draw(ctx) {
-        // Draw Player
-        ctx.fillStyle = '#00f3ff';
-        ctx.shadowColor = '#00f3ff';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.scaleX, this.scaleY);
+        
+        // Calculate angle towards nearest enemy or towards movement direction
+        let angle = 0;
+        const target = getNearestEnemy(this.x, this.y);
+        if (target) {
+            angle = Math.atan2(target.y - this.y, target.x - this.x);
+        } else if (pointer.active && (joystick.dx !== 0 || joystick.dy !== 0)) {
+            angle = Math.atan2(joystick.dy, joystick.dx);
+        } else {
+            let dx = 0, dy = 0;
+            if (keys.w || keys.ArrowUp) dy -= 1;
+            if (keys.s || keys.ArrowDown) dy += 1;
+            if (keys.a || keys.ArrowLeft) dx -= 1;
+            if (keys.d || keys.ArrowRight) dx += 1;
+            if (dx !== 0 || dy !== 0) angle = Math.atan2(dy, dx);
+        }
+        ctx.rotate(angle);
 
-        // Draw Orbitals
+        // 1. Draw side thrusters / wings (cyber-fighter design)
+        ctx.shadowColor = '#00f3ff';
+        ctx.shadowBlur = 8;
+        
+        // Left Wing / Thruster
+        ctx.fillStyle = '#101424';
+        ctx.strokeStyle = '#00f3ff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-10, -8);
+        ctx.lineTo(-22, -18);
+        ctx.lineTo(-12, -4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Right Wing / Thruster
+        ctx.beginPath();
+        ctx.moveTo(-10, 8);
+        ctx.lineTo(-22, 18);
+        ctx.lineTo(-12, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 2. Main Mech Body (aerodynamic hexagon)
+        ctx.fillStyle = '#161b33';
+        ctx.strokeStyle = '#00f3ff';
+        ctx.beginPath();
+        ctx.moveTo(18, 0);
+        ctx.lineTo(6, -12);
+        ctx.lineTo(-12, -12);
+        ctx.lineTo(-8, 0);
+        ctx.lineTo(-12, 12);
+        ctx.lineTo(6, 12);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 3. Central glowing green reactor core (pulses)
+        let coreGlow = 6 + Math.sin(frames * 0.15) * 3;
+        ctx.shadowColor = '#39ff14';
+        ctx.shadowBlur = coreGlow;
+        ctx.fillStyle = '#39ff14';
+        ctx.beginPath();
+        ctx.arc(-2, 0, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Cockpit windshield glass
+        let visGrad = ctx.createLinearGradient(4, -5, 12, 5);
+        visGrad.addColorStop(0, '#00f3ff');
+        visGrad.addColorStop(1, '#005f73');
+        ctx.fillStyle = visGrad;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = '#00f3ff';
+        ctx.beginPath();
+        ctx.moveTo(12, 0);
+        ctx.lineTo(6, -6);
+        ctx.lineTo(2, 0);
+        ctx.lineTo(6, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // 5. Thruster exhausts (behind wings if moving)
+        let isMoving = (keys.w || keys.s || keys.a || keys.d || keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight || (pointer.active && (joystick.dx !== 0 || joystick.dy !== 0)));
+        if (isMoving) {
+            ctx.fillStyle = '#ff007f';
+            ctx.shadowColor = '#ff007f';
+            ctx.shadowBlur = 10;
+            
+            // Left exhaust flame
+            ctx.beginPath();
+            ctx.moveTo(-18, -11);
+            ctx.lineTo(-30 - Math.random() * 8, -11);
+            ctx.lineTo(-18, -7);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Right exhaust flame
+            ctx.beginPath();
+            ctx.moveTo(-18, 11);
+            ctx.lineTo(-30 - Math.random() * 8, 11);
+            ctx.lineTo(-18, 7);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        ctx.restore();
+
+        // Draw Orbitals (unaffected by local transformations)
         if (this.weapons.orbital.level > 0) {
             const numOrbits = this.weapons.orbital.level;
             ctx.fillStyle = '#ffb700';
@@ -243,6 +388,15 @@ class Player {
             this.level++;
             this.xpNeeded = Math.floor(this.xpNeeded * 1.5);
             uiLevel.textContent = this.level;
+            
+            // Level Up Juice
+            this.scaleY = 1.55;
+            this.scaleX = 0.65;
+            triggerShake(8, 0.35);
+            flashAlpha = 0.45;
+            flashColor = 'rgba(0, 255, 102, 0.3)';
+            spawnRipple(this.x, this.y, 250, 1.5, 9, '#00ff66');
+
             triggerLevelUp();
         }
     }
@@ -251,6 +405,16 @@ class Player {
         this.hp -= amount;
         floatingTexts.push(new FloatingText(this.x, this.y - 20, Math.floor(amount), '#ff0055'));
         if (window.audioFX) window.audioFX.playHit();
+        
+        // Squash on hit
+        this.scaleY = 0.6;
+        this.scaleX = 1.4;
+        
+        triggerShake(12, 0.4);
+        flashAlpha = 0.5;
+        flashColor = 'rgba(255, 0, 85, 0.35)';
+        spawnRipple(this.x, this.y, 200, 1.2, 10, '#ff0055');
+
         if (this.hp <= 0) {
             gameOver();
         }
@@ -327,13 +491,75 @@ class Enemy {
     }
 
     draw(ctx) {
-        ctx.fillStyle = this.color;
+        ctx.save();
         ctx.shadowColor = this.color;
         ctx.shadowBlur = 10;
+        ctx.fillStyle = this.color;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        if (this.type === 'basic') {
+            // Diamond cyber-drone shape
+            ctx.moveTo(this.x, this.y - this.radius);
+            ctx.lineTo(this.x + this.radius, this.y);
+            ctx.lineTo(this.x, this.y + this.radius);
+            ctx.lineTo(this.x - this.radius, this.y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else if (this.type === 'fast') {
+            // Triangle delta drone
+            ctx.moveTo(this.x + this.radius * 1.2, this.y);
+            ctx.lineTo(this.x - this.radius * 0.8, this.y - this.radius);
+            ctx.lineTo(this.x - this.radius * 0.8, this.y + this.radius);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else if (this.type === 'tank') {
+            // Shield hexagon drone
+            ctx.moveTo(this.x + this.radius, this.y);
+            ctx.lineTo(this.x + this.radius * 0.5, this.y - this.radius);
+            ctx.lineTo(this.x - this.radius * 0.5, this.y - this.radius);
+            ctx.lineTo(this.x - this.radius, this.y);
+            ctx.lineTo(this.x - this.radius * 0.5, this.y + this.radius);
+            ctx.lineTo(this.x + this.radius * 0.5, this.y + this.radius);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Draw a dark inner core
+            ctx.fillStyle = '#050510';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (this.type === 'boss') {
+            // Large spinning mecha orbital ring around a glowing core
+            const angle = frames * 0.05;
+            ctx.translate(this.x, this.y);
+            ctx.rotate(angle);
+            
+            // Outer ring
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Inner spiked core (drawn as a star)
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const a = (Math.PI * 2 / 8) * i;
+                const r1 = this.radius * 0.6;
+                const r2 = this.radius * 0.3;
+                ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
+                ctx.lineTo(Math.cos(a + Math.PI / 8) * r2, Math.sin(a + Math.PI / 8) * r2);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
     }
 
     takeDamage(amount, kx = 0, ky = 0) {
@@ -342,10 +568,14 @@ class Enemy {
         this.knockbackY = ky * 300;
         floatingTexts.push(new FloatingText(this.x, this.y - this.radius, Math.floor(amount), '#fff'));
         
-        // Spawn particles
+        // Spawn damage particles
         for(let i=0; i<3; i++) {
             particles.push(new Particle(this.x, this.y, this.color));
         }
+
+        // Tiny hit ripple & light shake
+        spawnRipple(this.x, this.y, 70, 0.3, 5, 'rgba(255, 255, 255, 0.15)');
+        triggerShake(2, 0.1);
 
         if (this.hp <= 0 && !this.markedForDeletion) {
             this.markedForDeletion = true;
@@ -356,6 +586,27 @@ class Enemy {
             // Death particles
             for(let i=0; i<10; i++) {
                 particles.push(new Particle(this.x, this.y, this.color));
+            }
+
+            // Death ripple & shake
+            if (this.type === 'boss') {
+                spawnRipple(this.x, this.y, 400, 2.0, 12, '#ffb700');
+                triggerShake(24, 0.7);
+                flashAlpha = 0.7;
+                flashColor = 'rgba(255, 255, 255, 0.6)';
+                
+                // Exploding shockwave rings
+                for (let j = 0; j < 3; j++) {
+                    setTimeout(() => {
+                        spawnRipple(this.x, this.y, 300, 1.5, 10, '#ff0055');
+                    }, j * 150);
+                }
+            } else if (this.type === 'tank') {
+                spawnRipple(this.x, this.y, 180, 0.9, 8, this.color);
+                triggerShake(6, 0.25);
+            } else {
+                spawnRipple(this.x, this.y, 120, 0.6, 7, this.color);
+                triggerShake(4, 0.18);
             }
 
             if (this.type === 'boss') {
@@ -388,6 +639,9 @@ class Projectile {
         this.x += (this.vx / 60) * deltaTime;
         this.y += (this.vy / 60) * deltaTime;
         this.life -= deltaTime * 0.01667;
+        if (Math.random() < 0.6) {
+            particles.push(new Particle(this.x, this.y, this.color));
+        }
         if (this.life <= 0) this.markedForDeletion = true;
     }
 
@@ -423,6 +677,9 @@ class Gem {
                 this.markedForDeletion = true;
                 player.gainXp(this.value);
                 if (window.audioFX) window.audioFX.playGem();
+                for (let i = 0; i < 4; i++) {
+                    particles.push(new Particle(this.x, this.y, this.color));
+                }
             } else {
                 this.x += (dx / dist) * (speed / 60) * deltaTime;
                 this.y += (dy / dist) * (speed / 60) * deltaTime;
@@ -483,7 +740,7 @@ class FloatingText {
     draw(ctx) {
         ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
         ctx.fillStyle = this.color;
-        ctx.font = '12px "Press Start 2P"';
+        ctx.font = 'bold 12px "Outfit", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(this.text, this.x, this.y);
         ctx.globalAlpha = 1.0;
@@ -623,6 +880,33 @@ function update(deltaTime) {
     const dtSeconds = deltaTime * 0.01667;
     gameTime += dtSeconds;
     uiTime.textContent = formatTime(gameTime);
+    
+    frames += deltaTime;
+
+    // Screenshake decay
+    if (shakeTime > 0) {
+        shakeTime -= dtSeconds;
+        shakeX = (Math.random() - 0.5) * shakeIntensity;
+        shakeY = (Math.random() - 0.5) * shakeIntensity;
+    } else {
+        shakeX = 0;
+        shakeY = 0;
+        shakeIntensity = 0;
+    }
+
+    // Flash decay
+    if (flashAlpha > 0) {
+        flashAlpha -= deltaTime * 0.04;
+    }
+
+    // Dynamic music tempo scaling
+    if (window.audioFX) {
+        window.audioFX.setTempo(120 + gameTime / 6.0);
+    }
+
+    // Update ripples
+    gridRipples.forEach(r => r.update(deltaTime));
+    gridRipples = gridRipples.filter(r => r.life > 0);
 
     // Achievements
     if (gameTime >= 300 && window.achievements) { // 5 minutes
@@ -671,12 +955,10 @@ function update(deltaTime) {
                 if (e.markedForDeletion) return;
                 const dist = Math.hypot(ox - e.x, oy - e.y);
                 if (dist < 8 + e.radius) {
-                    // Knockback away from player
                     const dx = e.x - player.x;
                     const dy = e.y - player.y;
                     const len = Math.hypot(dx, dy);
                     e.takeDamage(player.weapons.orbital.damage * deltaTime * 0.01667 * 5, dx/len, dy/len); 
-                    // applied rapidly due to overlap, mitigated by dt
                 }
             });
         }
@@ -687,7 +969,7 @@ function update(deltaTime) {
         if (e.markedForDeletion) return;
         const dist = Math.hypot(e.x - player.x, e.y - player.y);
         if (dist < e.radius + player.radius) {
-            player.takeDamage(e.damage * deltaTime * 0.01667); // continuous damage on touch
+            player.takeDamage(e.damage * deltaTime * 0.01667);
         }
     });
 
@@ -698,20 +980,84 @@ function update(deltaTime) {
     particles = particles.filter(p => p.life > 0);
     floatingTexts = floatingTexts.filter(ft => ft.life > 0);
 
+    // Apply screenshake translation to game world elements
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+
     // Draw background (grid)
     ctx.fillStyle = 'rgba(5, 5, 16, 1.0)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Grid Lines
-    ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+    // Grid Lines Drawing (Warped)
+    ctx.strokeStyle = 'rgba(0, 243, 255, 0.08)';
     ctx.lineWidth = 1;
-    ctx.beginPath();
     const gridSize = 100;
     const offsetX = (player.x * -0.1) % gridSize; // Parallax effect
     const offsetY = (player.y * -0.1) % gridSize;
-    for (let x = offsetX; x < canvas.width; x += gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
-    for (let y = offsetY; y < canvas.height; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
-    ctx.stroke();
+    
+    // Draw vertical lines
+    for (let gx = offsetX - gridSize; gx < canvas.width + gridSize; gx += gridSize) {
+        ctx.beginPath();
+        let first = true;
+        for (let gy = 0; gy <= canvas.height; gy += 25) {
+            let wx = gx;
+            let wy = gy;
+            
+            // Apply ripples
+            let dispX = 0, dispY = 0;
+            gridRipples.forEach(r => {
+                const dx = wx - r.x;
+                const dy = wy - r.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 0 && dist < r.radius + 80 && dist > r.radius - 80) {
+                    const distFromFront = Math.abs(dist - r.radius);
+                    const factor = (1.0 - distFromFront / 80) * r.life * r.strength;
+                    dispX += (dx / dist) * factor * 25;
+                    dispY += (dy / dist) * factor * 25;
+                }
+            });
+            
+            if (first) {
+                ctx.moveTo(wx + dispX, wy + dispY);
+                first = false;
+            } else {
+                ctx.lineTo(wx + dispX, wy + dispY);
+            }
+        }
+        ctx.stroke();
+    }
+    
+    // Draw horizontal lines
+    for (let gy = offsetY - gridSize; gy < canvas.height + gridSize; gy += gridSize) {
+        ctx.beginPath();
+        let first = true;
+        for (let gx = 0; gx <= canvas.width; gx += 25) {
+            let wx = gx;
+            let wy = gy;
+            
+            // Apply ripples
+            let dispX = 0, dispY = 0;
+            gridRipples.forEach(r => {
+                const dx = wx - r.x;
+                const dy = wy - r.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 0 && dist < r.radius + 80 && dist > r.radius - 80) {
+                    const distFromFront = Math.abs(dist - r.radius);
+                    const factor = (1.0 - distFromFront / 80) * r.life * r.strength;
+                    dispX += (dx / dist) * factor * 25;
+                    dispY += (dy / dist) * factor * 25;
+                }
+            });
+            
+            if (first) {
+                ctx.moveTo(wx + dispX, wy + dispY);
+                first = false;
+            } else {
+                ctx.lineTo(wx + dispX, wy + dispY);
+            }
+        }
+        ctx.stroke();
+    }
 
     gems.forEach(g => g.draw(ctx));
     projectiles.forEach(p => p.draw(ctx));
@@ -720,11 +1066,22 @@ function update(deltaTime) {
     player.draw(ctx);
     floatingTexts.forEach(ft => ft.draw(ctx));
 
+    ctx.restore();
+
     // XP Bar at top
     ctx.fillStyle = 'rgba(255,255,255,0.1)';
     ctx.fillRect(0, 0, canvas.width, 5);
     ctx.fillStyle = '#0ff';
     ctx.fillRect(0, 0, canvas.width * (player.xp / player.xpNeeded), 5);
+
+    // Fullscreen Impact Flash Overlay
+    if (flashAlpha > 0) {
+        ctx.save();
+        ctx.fillStyle = flashColor;
+        ctx.globalAlpha = Math.min(0.8, flashAlpha);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    }
 }
 
 function gameLoop(timestamp) {
@@ -756,16 +1113,28 @@ function startGame() {
     gems = [];
     particles = [];
     floatingTexts = [];
+    gridRipples = [];
     gameTime = 0;
     killCount = 0;
     spawnTimer = 0;
     bossSpawnedAt.clear();
     
+    // Juicing resets
+    shakeTime = 0;
+    shakeIntensity = 0;
+    shakeX = 0;
+    shakeY = 0;
+    flashAlpha = 0;
+    frames = 0;
+
     uiTime.textContent = '00:00';
     uiLevel.textContent = '1';
     uiKills.textContent = '0';
 
-    if (window.audioFX) window.audioFX.init();
+    if (window.audioFX) {
+        window.audioFX.init();
+        window.audioFX.startMusic();
+    }
 
     gameState = 'PLAYING';
     lastTime = performance.now();
@@ -776,9 +1145,11 @@ function togglePause() {
     if (gameState === 'PLAYING') {
         gameState = 'PAUSED';
         pauseMenu.classList.remove('hidden');
+        if (window.audioFX) window.audioFX.stopMusic();
     } else if (gameState === 'PAUSED') {
         gameState = 'PLAYING';
         pauseMenu.classList.add('hidden');
+        if (window.audioFX) window.audioFX.startMusic();
         lastTime = performance.now();
         requestAnimationFrame(gameLoop);
     }
@@ -788,19 +1159,35 @@ function quitGame() {
     gameState = 'MENU';
     pauseMenu.classList.add('hidden');
     mainMenu.classList.remove('hidden');
+    if (window.audioFX) window.audioFX.stopMusic();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function gameOver() {
     gameState = 'GAMEOVER';
-    if (window.audioFX) window.audioFX.playGameOver();
+    if (window.audioFX) {
+        window.audioFX.stopMusic();
+        window.audioFX.playGameOver();
+    }
     
+    // Screen rumble on death
+    triggerShake(30, 1.0);
+    flashAlpha = 0.8;
+    flashColor = 'rgba(255, 0, 85, 0.6)';
+
     document.getElementById('go-time').textContent = formatTime(gameTime);
     document.getElementById('go-kills').textContent = killCount;
     document.getElementById('go-level').textContent = player.level;
     
     gameOverMenu.classList.remove('hidden');
 }
+
+// Stop music on return to hub clicks
+document.querySelectorAll('.hub-btn, .hub-over-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (window.audioFX) window.audioFX.stopMusic();
+    });
+});
 
 // Sharing
 document.getElementById('btn-share-wa').addEventListener('click', () => {
