@@ -95,6 +95,11 @@ window.addEventListener('keydown', e => {
             player.activateUltimate();
         }
     }
+    if (e.key === 'b' || e.key === 'B') {
+        if (player && player.bombs > 0 && gameState === 'PLAYING') {
+            player.triggerTacticalBomb();
+        }
+    }
 });
 window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
 
@@ -109,11 +114,28 @@ function isOverUltimateButton(clientX, clientY) {
     return dist <= 45;
 }
 
+function isOverBombButton(clientX, clientY) {
+    if (!player) return false;
+    const rect = canvas.getBoundingClientRect();
+    const touchX = clientX - rect.left;
+    const touchY = clientY - rect.top;
+    const btnX = 80;
+    const btnY = canvas.height - 80;
+    const dist = Math.hypot(touchX - btnX, touchY - btnY);
+    return dist <= 45;
+}
+
 // Touch / Mouse controls
 canvas.addEventListener('mousedown', e => {
-    if (gameState === 'PLAYING' && isOverUltimateButton(e.clientX, e.clientY)) {
-        player.activateUltimate();
-        return;
+    if (gameState === 'PLAYING') {
+        if (isOverUltimateButton(e.clientX, e.clientY)) {
+            player.activateUltimate();
+            return;
+        }
+        if (isOverBombButton(e.clientX, e.clientY)) {
+            player.triggerTacticalBomb();
+            return;
+        }
     }
     pointer.active = true;
     updateJoystick(e.clientX, e.clientY);
@@ -121,10 +143,17 @@ canvas.addEventListener('mousedown', e => {
 canvas.addEventListener('mousemove', e => { if (pointer.active) updateJoystick(e.clientX, e.clientY); });
 canvas.addEventListener('mouseup', () => { pointer.active = false; joystick.dx = 0; joystick.dy = 0; });
 canvas.addEventListener('touchstart', e => {
-    if (gameState === 'PLAYING' && isOverUltimateButton(e.touches[0].clientX, e.touches[0].clientY)) {
-        player.activateUltimate();
-        e.preventDefault();
-        return;
+    if (gameState === 'PLAYING') {
+        if (isOverUltimateButton(e.touches[0].clientX, e.touches[0].clientY)) {
+            player.activateUltimate();
+            e.preventDefault();
+            return;
+        }
+        if (isOverBombButton(e.touches[0].clientX, e.touches[0].clientY)) {
+            player.triggerTacticalBomb();
+            e.preventDefault();
+            return;
+        }
     }
     pointer.active = true;
     updateJoystick(e.touches[0].clientX, e.touches[0].clientY);
@@ -205,6 +234,7 @@ class Player {
         this.ultimateTime = 0;
         this.ultimateTimer = 0;
         this.rapidFireTimer = 0;
+        this.bombs = 1;
 
         // Weapons & Stats
         this.weapons = {
@@ -214,6 +244,45 @@ class Player {
             missile: { level: 0, cooldown: 1.8, timer: 0, damage: 25, speed: 300 },
             bomb: { level: 0, cooldown: 3.0, timer: 0, damage: 45, speed: 200 }
         };
+    }
+
+    triggerTacticalBomb() {
+        if (this.bombs > 0) {
+            this.bombs--;
+            
+            // Tactical blast centered on player
+            const blastRadius = 300; 
+            const damage = 150; 
+            
+            triggerShake(28, 0.65);
+            spawnRipple(this.x, this.y, blastRadius * 1.5, 2.5, 12, '#ffb700');
+            spawnRipple(this.x, this.y, blastRadius * 1.0, 1.8, 8, '#ff3300');
+            
+            enemies.forEach(enemy => {
+                const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                if (dist < blastRadius) {
+                    const angle = Math.atan2(enemy.y - this.y, enemy.x - this.x);
+                    enemy.takeDamage(damage, Math.cos(angle), Math.sin(angle));
+                }
+            });
+            
+            // Spawn blast particles
+            for (let i = 0; i < 40; i++) {
+                const p = new Particle(this.x, this.y, '#ffb700');
+                const speed = Math.random() * 300 + 100;
+                p.vx = Math.cos(Math.random() * Math.PI * 2) * speed;
+                p.vy = Math.sin(Math.random() * Math.PI * 2) * speed;
+                particles.push(p);
+            }
+            
+            floatingTexts.push(new FloatingText(this.x, this.y - 45, "TACTICAL BLAST!", '#ffcc00'));
+            
+            if (window.audioFX && typeof window.audioFX.playBombExplode === 'function') {
+                window.audioFX.playBombExplode();
+            } else if (window.audioFX) {
+                window.audioFX.playHit();
+            }
+        }
     }
 
     update(deltaTime) {
@@ -258,20 +327,30 @@ class Player {
                 if (target) {
                     this.weapons.blaster.timer = currentCooldown;
                     const angle = Math.atan2(target.y - this.y, target.x - this.x);
+                    const dmgBonus = Math.floor(killCount / 10) * 10;
+                    const bulletRadius = 4 + Math.min(8, Math.floor(killCount / 10) * 0.5);
+                    
                     if (this.rapidFireTimer > 0) {
-                        projectiles.push(new Projectile(this.x, this.y, angle, {
+                        const proj = new Projectile(this.x, this.y, angle, {
                             speed: this.weapons.blaster.speed * 1.3,
-                            damage: this.weapons.blaster.damage,
-                            radius: 5,
+                            damage: this.weapons.blaster.damage + dmgBonus,
                             pierce: this.weapons.blaster.pierce
-                        }, '#ff6600'));
+                        }, '#ff6600');
+                        proj.radius = bulletRadius + 1;
+                        projectiles.push(proj);
                         if (window.audioFX && typeof window.audioFX.playRapidShoot === 'function') {
                             window.audioFX.playRapidShoot();
                         } else if (window.audioFX) {
                             window.audioFX.playShoot();
                         }
                     } else {
-                        projectiles.push(new Projectile(this.x, this.y, angle, this.weapons.blaster));
+                        const proj = new Projectile(this.x, this.y, angle, {
+                            speed: this.weapons.blaster.speed,
+                            damage: this.weapons.blaster.damage + dmgBonus,
+                            pierce: this.weapons.blaster.pierce
+                        });
+                        proj.radius = bulletRadius;
+                        projectiles.push(proj);
                         if (window.audioFX) window.audioFX.playShoot();
                     }
                     spawnRipple(this.x, this.y, 60, 0.2, 5, 'rgba(0, 243, 255, 0.15)');
@@ -785,6 +864,15 @@ class Enemy {
             killCount++;
             uiKills.textContent = killCount;
             gems.push(new Gem(this.x, this.y, this.xp));
+
+            // Award 1 bomb after each 15 kills
+            if (killCount > 0 && killCount % 15 === 0 && player) {
+                player.bombs++;
+                floatingTexts.push(new FloatingText(player.x, player.y - 45, "+1 BOMB!", '#ffcc00'));
+                if (window.audioFX && typeof window.audioFX.playPowerUp === 'function') {
+                    window.audioFX.playPowerUp();
+                }
+            }
 
             // Chance to drop a Rapid Fire Power-up
             if (Math.random() < 0.035) {
@@ -1608,7 +1696,47 @@ function update(deltaTime) {
     ctx.fillStyle = isUltActive ? '#fff' : (isUltReady ? '#fff' : 'rgba(0, 243, 255, 0.4)');
     ctx.fillText('⚡', btnX, btnY);
     ctx.restore();
-
+    // 3. Circular Bomb Button in bottom-left corner
+    const bombBtnX = 80;
+    const bombBtnY = canvas.height - 80;
+    const bombBtnR = 30;
+    
+    ctx.save();
+    ctx.strokeStyle = player.bombs > 0 ? '#ffb700' : 'rgba(255, 183, 0, 0.25)';
+    ctx.lineWidth = 2;
+    if (player.bombs > 0) {
+        ctx.shadowColor = '#ffb700';
+        ctx.shadowBlur = 15;
+    } else {
+        ctx.shadowColor = 'rgba(255, 183, 0, 0.2)';
+        ctx.shadowBlur = 4;
+    }
+    ctx.beginPath();
+    ctx.arc(bombBtnX, bombBtnY, bombBtnR + 4, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.fillStyle = player.bombs > 0 ? 'rgba(255, 183, 0, 0.2)' : 'rgba(255, 183, 0, 0.05)';
+    ctx.beginPath();
+    ctx.arc(bombBtnX, bombBtnY, bombBtnR, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.font = 'bold 16px "Outfit", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = player.bombs > 0 ? '#fff' : 'rgba(255, 183, 0, 0.4)';
+    ctx.fillText('💣', bombBtnX, bombBtnY);
+    
+    // Draw bomb count badge
+    if (player.bombs > 0) {
+        ctx.beginPath();
+        ctx.arc(bombBtnX + 18, bombBtnY - 18, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff3300';
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px "Outfit", sans-serif';
+        ctx.fillText(player.bombs, bombBtnX + 18, bombBtnY - 18);
+    }
+    ctx.restore();
     // Fullscreen Impact Flash Overlay
     if (flashAlpha > 0) {
         ctx.save();
