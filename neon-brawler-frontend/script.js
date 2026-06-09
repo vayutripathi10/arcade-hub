@@ -46,6 +46,19 @@ let spawnInterval = 100;
 let gameSpeedMultiplier = 1;
 let screenShake = 0;
 
+// Sky & Juice Entities
+let stars = [];
+let clouds = [];
+let windLines = [];
+let slashArcs = [];
+let impactRings = [];
+let exhaustSparks = [];
+let floatingTexts = [];
+let flashAlpha = 0;
+let flashColor = '#ffffff';
+let milestoneText = "";
+let milestoneTimer = 0;
+
 // Evolution State
 let currentStage = 0; // 0: Cyan, 1: Purple, 2: Red
 let comboGlow = 0;
@@ -66,6 +79,14 @@ function initGame() {
     gameSpeedMultiplier = 1;
     enemies = [];
     particles = [];
+    slashArcs = [];
+    impactRings = [];
+    exhaustSparks = [];
+    floatingTexts = [];
+    flashAlpha = 0;
+    milestoneText = "";
+    milestoneTimer = 0;
+    
     player = {
         x: CANVAS_W / 2,
         y: CANVAS_H / 2 + 50,
@@ -81,6 +102,7 @@ function initGame() {
     warningTimer = 0;
     
     updateLivesUI();
+    generateEnvironment();
 
     if (window.audioFX) {
         window.audioFX.init();
@@ -127,6 +149,11 @@ function attack(direction) {
     
     player.state = direction === 'left' ? 'attackLeft' : 'attackRight';
     player.timer = 8; 
+
+    // Spawn attack slash arc
+    const arcX = player.x + (direction === 'left' ? -25 : 25);
+    const arcY = player.y - 20;
+    slashArcs.push(new SlashArc(arcX, arcY, STAGE_COLORS[currentStage], direction));
     
     // Boss projectile reflection check
     if (bossActive && boss) {
@@ -137,6 +164,7 @@ function attack(direction) {
                     p.reflected = true;
                     p.vx = -p.vx * 1.5;
                     screenShake = 5;
+                    impactRings.push(new ImpactRing(p.x, p.y, '#00ffff'));
                     if (window.audioFX) window.audioFX.playJump();
                 }
             }
@@ -158,16 +186,69 @@ function attack(direction) {
     }
     
     if (closestEnemy && closestDist < HIT_RANGE) {
-        closestEnemy.hp--;
+        // Check for perfect strike timing!
+        const isPerfect = closestDist >= 105 && closestDist <= 140;
+        const damageDealt = isPerfect ? 2 : 1;
+        closestEnemy.hp -= damageDealt;
+        
         if (closestEnemy.hp <= 0) {
             closestEnemy.dead = true;
             closestEnemy.vx = (direction === 'left' ? -18 : 18);
             closestEnemy.vy = -12;
-            score++;
+            closestEnemy.rotation = 0;
+            closestEnemy.rotationSpeed = direction === 'left' ? -0.25 : 0.25;
+            
+            const pointsGained = isPerfect ? 2 : 1;
+            score += pointsGained;
             scoreEl.textContent = score;
+            
+            // Impact effects
             spawnParticles(closestEnemy.x, closestEnemy.y, STAGE_COLORS[currentStage]);
-            if (window.audioFX) window.audioFX.playEat(); 
-            screenShake = closestEnemy.type === 'elite' ? 8 : 3;
+            impactRings.push(new ImpactRing(closestEnemy.x, closestEnemy.y, isPerfect ? '#ffcc00' : STAGE_COLORS[currentStage]));
+            
+            if (isPerfect) {
+                // Flash screen white for perfect timing
+                flashAlpha = 0.55;
+                flashColor = '#ffffff';
+                floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "PERFECT! +2", '#ffcc00'));
+                screenShake = closestEnemy.type === 'elite' ? 16 : 10;
+                
+                // Extra blast particles
+                for (let i = 0; i < 15; i++) {
+                    particles.push({
+                        x: closestEnemy.x, y: closestEnemy.y,
+                        vx: (Math.random() - 0.5) * 18,
+                        vy: (Math.random() - 0.5) * 18,
+                        life: 1.0, color: '#ffffff'
+                    });
+                }
+                
+                if (window.audioFX) {
+                    if (typeof window.audioFX.playExplosion === 'function') {
+                        window.audioFX.playExplosion();
+                    } else {
+                        window.audioFX.playEat();
+                    }
+                }
+            } else {
+                floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "HIT", STAGE_COLORS[currentStage]));
+                screenShake = closestEnemy.type === 'elite' ? 8 : 3;
+                if (window.audioFX) window.audioFX.playEat();
+            }
+
+            // Milestone check
+            if ([10, 25, 50, 75, 100].includes(score)) {
+                if (score === 10) milestoneText = "10 STREAK: WARM UP!";
+                else if (score === 25) milestoneText = "25 STREAK: UNSTOPPABLE!";
+                else if (score === 50) milestoneText = "50 STREAK: DOMINATING!";
+                else if (score === 75) milestoneText = "75 STREAK: SKY BRAWLER!";
+                else if (score === 100) milestoneText = "100 STREAK: ASCENDED GOD!";
+                
+                milestoneTimer = 100;
+                if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+                    window.audioFX.playLevelUp();
+                }
+            }
 
             // Evolution / Stage Logic
             if (score > 0 && score % 50 === 0) {
@@ -182,6 +263,7 @@ function attack(direction) {
         } else {
             // Shield hit
             spawnParticles(closestEnemy.x, closestEnemy.y, '#ffffff');
+            floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "BLOCK", '#ffffff'));
             if (window.audioFX) window.audioFX.playJump();
             screenShake = 4;
         }
@@ -198,6 +280,9 @@ function takeDamage() {
     player.invulnerable = true;
     player.invulnTimer = 90; // 1.5s invulerability
     screenShake = 20;
+    
+    flashAlpha = 0.7;
+    flashColor = 'rgba(255, 0, 51, 0.4)';
     
     if (navigator.vibrate) navigator.vibrate(100);
     spawnParticles(player.x, player.y - 20, '#ff0000');
@@ -325,7 +410,236 @@ class Wyrm {
         ctx.fillRect(bx, 50, bw, 8);
         ctx.fillStyle = this.color;
         ctx.fillRect(bx, 50, bw * (this.health/this.maxHealth), 8);
+    }
+}
+
+class Star {
+    constructor() {
+        this.x = Math.random() * CANVAS_W;
+        this.y = Math.random() * (CANVAS_H * 0.7); // Top sky
+        this.size = Math.random() * 1.5 + 0.5;
+        this.twinkleSpeed = Math.random() * 0.03 + 0.01;
+        this.phase = Math.random() * Math.PI * 2;
+    }
+    update(deltaTime) {
+        this.phase += this.twinkleSpeed * deltaTime;
+        this.x -= 0.05 * deltaTime;
+        if (this.x < 0) this.x = CANVAS_W;
+    }
+    draw(ctx) {
+        const alpha = 0.3 + Math.abs(Math.sin(this.phase)) * 0.7;
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+    }
+}
+
+class Cloud {
+    constructor(layer) {
+        this.layer = layer; // 'bg' or 'fg'
+        this.x = Math.random() * (CANVAS_W + 300) - 150;
+        this.y = layer === 'bg' 
+            ? Math.random() * (CANVAS_H * 0.45) + 20 
+            : player.y + 35 + Math.random() * 30; // Under deck
+        this.size = layer === 'bg' 
+            ? Math.random() * 80 + 60 
+            : Math.random() * 50 + 30;
+        this.speed = layer === 'bg' 
+            ? Math.random() * 0.15 + 0.05 
+            : Math.random() * 0.4 + 0.2;
+        this.opacity = layer === 'bg' ? 0.08 : 0.15;
+        this.color = layer === 'bg' ? '#bc13fe' : '#00ffcc'; // Purple bg, Cyan fg
+    }
+    update(deltaTime) {
+        this.x -= this.speed * deltaTime;
+        if (this.x < -this.size * 2) {
+            this.x = CANVAS_W + this.size * 2;
+            this.y = this.layer === 'bg' 
+                ? Math.random() * (CANVAS_H * 0.45) + 20 
+                : player.y + 35 + Math.random() * 30;
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.opacity;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 15;
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.arc(this.x + this.size * 0.6, this.y - this.size * 0.2, this.size * 0.8, 0, Math.PI * 2);
+        ctx.arc(this.x - this.size * 0.6, this.y - this.size * 0.1, this.size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
+    }
+}
+
+class WindLine {
+    constructor() {
+        this.x = Math.random() * CANVAS_W;
+        this.y = Math.random() * CANVAS_H;
+        this.length = Math.random() * 80 + 40;
+        this.speed = Math.random() * 4 + 3;
+        this.opacity = Math.random() * 0.15 + 0.05;
+    }
+    update(deltaTime) {
+        this.x -= this.speed * deltaTime;
+        if (this.x < -this.length) {
+            this.x = CANVAS_W + this.length;
+            this.y = Math.random() * CANVAS_H;
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.strokeStyle = '#00ffcc';
+        ctx.globalAlpha = this.opacity;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x + this.length, this.y);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class SlashArc {
+    constructor(x, y, color, direction) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.direction = direction; // 'left' or 'right'
+        this.life = 1.0;
+        this.decay = 0.15;
+        this.radius = 45;
+    }
+    update(deltaTime) {
+        this.life -= this.decay * deltaTime;
+    }
+    draw(ctx) {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 6 * this.life + 1;
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = this.color;
+        
+        ctx.beginPath();
+        if (this.direction === 'left') {
+            ctx.arc(this.x, this.y, this.radius, -Math.PI * 0.6, Math.PI * 0.6, true);
+        } else {
+            ctx.arc(this.x, this.y, this.radius, -Math.PI * 0.4, Math.PI * 0.4, false);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class ImpactRing {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = 5;
+        this.maxRadius = 55;
+        this.life = 1.0;
+        this.decay = 0.12;
+    }
+    update(deltaTime) {
+        this.life -= this.decay * deltaTime;
+        this.radius += (this.maxRadius - this.radius) * 0.25 * deltaTime;
+    }
+    draw(ctx) {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3 * this.life + 0.5;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class ExhaustSpark {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = Math.random() * 4 + 2; // Spraying downward
+        this.life = 1.0;
+        this.decay = Math.random() * 0.05 + 0.03;
+        this.color = Math.random() > 0.5 ? '#ff6600' : '#ffff00'; // Fire colors
+    }
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.y += this.vy * deltaTime;
+        this.life -= this.decay * deltaTime;
+    }
+    draw(ctx) {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, 2, 2);
+        ctx.restore();
+    }
+}
+
+class FloatingText {
+    constructor(x, y, text, color = '#ffffff') {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+        this.life = 1.0;
+        this.decay = 0.03;
+        this.vy = -1.5;
+    }
+    update(deltaTime) {
+        this.y += this.vy * deltaTime;
+        this.life -= this.decay * deltaTime;
+    }
+    draw(ctx) {
+        if (this.life <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.font = 'bold 16px "Outfit", sans-serif';
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 10;
+        ctx.textAlign = 'center';
+        ctx.fillText(this.text, this.x, this.y);
+        ctx.restore();
+    }
+}
+
+function generateEnvironment() {
+    stars = [];
+    clouds = [];
+    windLines = [];
+    
+    // Generate stars
+    for (let i = 0; i < 50; i++) {
+        stars.push(new Star());
+    }
+    
+    // Generate background clouds
+    for (let i = 0; i < 5; i++) {
+        clouds.push(new Cloud('bg'));
+    }
+    
+    // Generate foreground clouds
+    for (let i = 0; i < 4; i++) {
+        clouds.push(new Cloud('fg'));
+    }
+    
+    // Generate wind lines
+    for (let i = 0; i < 6; i++) {
+        windLines.push(new WindLine());
     }
 }
 
@@ -391,6 +705,32 @@ function update(deltaTime) {
         if (player.invulnTimer <= 0) player.invulnerable = false;
     }
 
+    if (flashAlpha > 0) {
+        flashAlpha -= 0.08 * deltaTime;
+    }
+
+    if (milestoneTimer > 0) {
+        milestoneTimer -= deltaTime;
+    }
+
+    // Update sky elements
+    stars.forEach(s => s.update(deltaTime));
+    clouds.forEach(c => c.update(deltaTime));
+    windLines.forEach(wl => wl.update(deltaTime));
+
+    // Update slashes and rings
+    slashArcs.forEach(sa => sa.update(deltaTime));
+    slashArcs = slashArcs.filter(sa => sa.life > 0);
+    
+    impactRings.forEach(ir => ir.update(deltaTime));
+    impactRings = impactRings.filter(ir => ir.life > 0);
+    
+    exhaustSparks.forEach(es => es.update(deltaTime));
+    exhaustSparks = exhaustSparks.filter(es => es.life > 0);
+    
+    floatingTexts.forEach(ft => ft.update(deltaTime));
+    floatingTexts = floatingTexts.filter(ft => ft.life > 0);
+
     if (!bossActive) {
         spawnTimer += deltaTime;
         if (spawnTimer >= spawnInterval) {
@@ -409,6 +749,21 @@ function update(deltaTime) {
         
         if (e.dead) {
             e.vy += 0.8 * deltaTime; 
+            // Dead enemy dynamic rotation
+            e.rotation = (e.rotation || 0) + (e.rotationSpeed || 0.15) * deltaTime;
+            
+            // Smoke trail particles
+            if (Math.random() < 0.35) {
+                particles.push({
+                    x: e.x, y: e.y - 10,
+                    vx: -e.vx * 0.2 + (Math.random() - 0.5) * 3,
+                    vy: -e.vy * 0.2 + (Math.random() - 0.5) * 3,
+                    life: 0.4 + Math.random() * 0.3,
+                    maxLife: 0.7,
+                    color: STAGE_COLORS[currentStage]
+                });
+            }
+            
             if (e.y > CANVAS_H + 100) enemies.splice(i, 1);
         } else {
             let dist = Math.abs(e.x - player.x);
@@ -436,22 +791,100 @@ function draw() {
         ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
     }
     
-    let baseColor = STAGE_COLORS[currentStage];
-    ctx.fillStyle = '#0a0a0f';
+    // 1. Celestial Atmospheric Sky Gradient
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+    skyGrad.addColorStop(0, '#04020a');
+    skyGrad.addColorStop(0.3, '#0b061e');
+    skyGrad.addColorStop(0.65, '#3a1146'); // twilight violet
+    skyGrad.addColorStop(0.85, '#d44b68'); // sunset pink
+    skyGrad.addColorStop(1.0, '#1c1c3c'); // horizon blue
+    ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     
-    // Grid background
-    ctx.strokeStyle = comboGlow > 0 ? baseColor : '#1a1a24';
-    ctx.lineWidth = comboGlow > 0 ? 2 : 1;
-    for(let i=0; i<CANVAS_W; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, CANVAS_H); ctx.stroke(); }
+    // 2. Draw stars
+    stars.forEach(s => s.draw(ctx));
     
-    ctx.strokeStyle = '#333';
+    // 3. Draw Background Clouds (layer bg)
+    clouds.forEach(c => {
+        if (c.layer === 'bg') c.draw(ctx);
+    });
+    
+    // 4. Draw Wind Lines
+    windLines.forEach(wl => wl.draw(ctx));
+    
+    // 5. Draw Platform Deck (Suspended sky runway)
+    const deckY = player.y + 20;
+    
+    // Bottom brackets/thrusters support structure
+    ctx.save();
+    ctx.fillStyle = '#1e1a2f';
+    ctx.strokeStyle = '#392e5c';
     ctx.lineWidth = 2;
+    const nozzlesX = [CANVAS_W * 0.25, CANVAS_W * 0.5, CANVAS_W * 0.75];
+    nozzlesX.forEach(nx => {
+        ctx.beginPath();
+        ctx.moveTo(nx - 20, deckY);
+        ctx.lineTo(nx - 12, deckY + 15);
+        ctx.lineTo(nx + 12, deckY + 15);
+        ctx.lineTo(nx + 20, deckY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Fire/glow from nozzles
+        const fireHeight = 25 + Math.random() * 15;
+        const fireGrad = ctx.createLinearGradient(0, deckY + 15, 0, deckY + 15 + fireHeight);
+        fireGrad.addColorStop(0, 'rgba(0, 255, 204, 0.75)');
+        fireGrad.addColorStop(0.4, 'rgba(188, 19, 254, 0.4)');
+        fireGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+        
+        ctx.fillStyle = fireGrad;
+        ctx.beginPath();
+        ctx.moveTo(nx - 12, deckY + 15);
+        ctx.quadraticCurveTo(nx, deckY + 15 + fireHeight * 1.2, nx + 12, deckY + 15);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Spawn exhaust sparks
+        if (Math.random() < 0.25 && gameRunning && !isPaused) {
+            exhaustSparks.push(new ExhaustSpark(nx + (Math.random() - 0.5) * 20, deckY + 15));
+        }
+    });
+    ctx.restore();
+
+    // Draw platform deck beams
+    ctx.save();
+    let baseColor = STAGE_COLORS[currentStage];
+    ctx.strokeStyle = comboGlow > 0 ? '#ffffff' : baseColor;
+    ctx.lineWidth = comboGlow > 0 ? 5 : 4;
+    ctx.shadowBlur = comboGlow > 0 ? 25 : 15;
+    ctx.shadowColor = baseColor;
+    
+    // Main deck bar
     ctx.beginPath();
-    ctx.moveTo(0, player.y + 20);
-    ctx.lineTo(CANVAS_W, player.y + 20);
+    ctx.moveTo(0, deckY);
+    ctx.lineTo(CANVAS_W, deckY);
     ctx.stroke();
     
+    // Under-deck support wire
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1;
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(0, deckY + 6);
+    ctx.lineTo(CANVAS_W, deckY + 6);
+    ctx.stroke();
+    ctx.restore();
+
+    // 6. Draw Foreground Clouds
+    clouds.forEach(c => {
+        if (c.layer === 'fg') c.draw(ctx);
+    });
+
+    // Draw exhaust sparks
+    exhaustSparks.forEach(es => es.draw(ctx));
+
+    // Range Indicator (glowing floor segment under player)
     ctx.fillStyle = currentStage > 0 ? `rgba(${currentStage === 1 ? '188, 19, 254' : '255, 51, 102'}, 0.05)` : 'rgba(0, 255, 204, 0.03)';
     ctx.fillRect(player.x - HIT_RANGE, player.y - 40, HIT_RANGE*2, 60);
 
@@ -463,7 +896,11 @@ function draw() {
         ctx.fillText('WARNING: BOSS INCOMING', CANVAS_W/2, CANVAS_H/2);
     }
 
+    // Draw impact rings
+    impactRings.forEach(ir => ir.draw(ctx));
+
     const pColor = player.state === 'dead' ? '#555' : STAGE_COLORS[currentStage];
+    ctx.save();
     ctx.shadowBlur = 15;
     ctx.shadowColor = pColor;
     ctx.strokeStyle = pColor;
@@ -497,6 +934,33 @@ function draw() {
         ctx.moveTo(px, py - 20); ctx.lineTo(px + 20, py - 10); // idle arm R
     }
     ctx.stroke();
+    ctx.restore();
+
+    // Hexagonal energy shield bubble
+    if (player.invulnerable) {
+        ctx.save();
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#00ffcc';
+        ctx.shadowBlur = 15 + Math.sin(frameCount * 0.2) * 5;
+        ctx.fillStyle = 'rgba(0, 255, 204, 0.06)';
+        
+        ctx.beginPath();
+        const cx = px;
+        const cy = py - 20;
+        const r = 35;
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 3) * i + (frameCount * 0.02);
+            const x = cx + Math.cos(angle) * r;
+            const y = cy + Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    }
     
     for (let e of enemies) {
         ctx.shadowBlur = e.dead ? 0 : 15;
@@ -506,7 +970,9 @@ function draw() {
         
         ctx.save();
         ctx.translate(e.x, e.y - 10);
-        if (e.dead) ctx.rotate(e.vx * 0.1); 
+        if (e.dead) {
+            ctx.rotate(e.rotation || (e.vx * 0.1)); 
+        }
         
         let time = performance.now() / 100;
         let stride = e.dead ? 5 : Math.sin(time + e.x) * 15;
@@ -542,6 +1008,7 @@ function draw() {
 
     if (bossActive && boss) boss.draw();
     
+    // Draw particles
     ctx.shadowBlur = 10;
     for (let p of particles) {
         ctx.shadowColor = p.color;
@@ -553,6 +1020,40 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
+
+    // Draw attack slash arcs
+    slashArcs.forEach(sa => sa.draw(ctx));
+
+    // Draw floating texts
+    floatingTexts.forEach(ft => ft.draw(ctx));
+
+    // Milestone Announcements
+    if (milestoneTimer > 0) {
+        ctx.save();
+        ctx.font = 'bold 36px "Outfit", sans-serif';
+        ctx.fillStyle = '#ffcc00';
+        ctx.shadowColor = '#ffcc00';
+        ctx.shadowBlur = 20;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const scale = 1.0 + Math.abs(Math.sin(frameCount * 0.15)) * 0.1;
+        ctx.translate(CANVAS_W / 2, CANVAS_H / 2 - 60);
+        ctx.scale(scale, scale);
+        
+        ctx.fillText(milestoneText, 0, 0);
+        ctx.restore();
+    }
+
+    // Fullscreen Flash Overlay
+    if (flashAlpha > 0) {
+        ctx.save();
+        ctx.fillStyle = flashColor;
+        ctx.globalAlpha = Math.min(0.85, flashAlpha);
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.restore();
+    }
+
     ctx.restore(); 
 }
 
@@ -615,6 +1116,13 @@ btnQuit?.addEventListener('click', (e) => {
     updateLivesUI();
     enemies = [];
     particles = [];
+    slashArcs = [];
+    impactRings = [];
+    exhaustSparks = [];
+    floatingTexts = [];
+    flashAlpha = 0;
+    milestoneText = "";
+    milestoneTimer = 0;
     score = 0;
     scoreEl.textContent = '0';
     draw();
@@ -664,4 +1172,5 @@ waBtn.addEventListener('click', () => shareScore('whatsapp'));
 // Idle screen initialization
 player = { x: CANVAS_W / 2, y: CANVAS_H / 2 + 50, state: 'idle', lives: 3 };
 updateLivesUI();
+generateEnvironment();
 draw();
