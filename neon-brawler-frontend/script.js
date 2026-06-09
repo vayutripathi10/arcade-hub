@@ -65,11 +65,16 @@ let comboGlow = 0;
 let bossActive = false;
 let boss = null;
 let warningTimer = 0;
+let kills = 0;
+let warningText = 'WARNING: BOSS INCOMING';
+let sweepCooldown = 0;
+const SWEEP_MAX_COOLDOWN = 300; // 5 seconds at 60fps
 
 const STAGE_COLORS = ['#00ffcc', '#bc13fe', '#ff3366'];
 const HIT_RANGE = 140; 
 const KILL_RANGE = 35; 
 const BOSS_THRESHOLD = 100;
+const getBasePlayerY = () => CANVAS_H / 2 + 50;
 
 function initGame() {
     score = 0;
@@ -86,15 +91,20 @@ function initGame() {
     flashAlpha = 0;
     milestoneText = "";
     milestoneTimer = 0;
+    kills = 0;
+    warningText = 'WARNING: BOSS INCOMING';
+    sweepCooldown = 0;
     
     player = {
         x: CANVAS_W / 2,
-        y: CANVAS_H / 2 + 50,
+        y: getBasePlayerY(),
         state: 'idle',
         timer: 0,
         lives: 3,
         invulnerable: false,
-        invulnTimer: 0
+        invulnTimer: 0,
+        vy: 0,
+        isJumping: false
     };
     currentStage = 0;
     bossActive = false;
@@ -257,7 +267,10 @@ function attack(direction) {
                 if (navigator.vibrate) navigator.vibrate(100);
             }
 
-            if (score === BOSS_THRESHOLD && !bossActive) {
+            kills++;
+            if (kills === 50 && !bossActive) {
+                triggerDragonBoss();
+            } else if (score === BOSS_THRESHOLD && !bossActive) {
                 triggerBoss();
             }
         } else {
@@ -292,10 +305,71 @@ function takeDamage() {
     }
 }
 
+function cyberSweep() {
+    if (!gameRunning || isPaused || player.state === 'dead' || sweepCooldown > 0) return;
+    
+    sweepCooldown = SWEEP_MAX_COOLDOWN;
+    
+    // Visual and sound effects
+    flashAlpha = 0.5;
+    flashColor = '#00ffff';
+    screenShake = 15;
+    
+    if (window.audioFX) {
+        window.audioFX.playLevelUp(); // play epic sweep sound
+    }
+    
+    // Spawns a massive impact ring
+    impactRings.push(new ImpactRing(player.x, player.y, '#00ffff'));
+    impactRings.push(new ImpactRing(player.x, player.y, '#bc13fe'));
+    
+    // Spawn float text
+    floatingTexts.push(new FloatingText(player.x, player.y - 40, "CYBER SWEEP!", '#00ffff'));
+    
+    // Hit all active enemies within 200px range
+    for (let e of enemies) {
+        if (e.dead) continue;
+        let dist = Math.abs(e.x - player.x);
+        if (dist < 200) {
+            e.hp -= 3; // Massive damage!
+            if (e.hp <= 0) {
+                e.dead = true;
+                e.vx = (e.x < player.x ? -22 : 22);
+                e.vy = -15;
+                e.rotation = 0;
+                e.rotationSpeed = e.x < player.x ? -0.35 : 0.35;
+                
+                kills++;
+                if (kills === 50 && !bossActive) {
+                    triggerDragonBoss();
+                }
+                score += 2; // sweep kills reward points
+                scoreEl.textContent = score;
+                spawnParticles(e.x, e.y, STAGE_COLORS[currentStage]);
+                impactRings.push(new ImpactRing(e.x, e.y, STAGE_COLORS[currentStage]));
+            } else {
+                // Knockback without killing
+                e.vx = (e.x < player.x ? -10 : 10);
+                spawnParticles(e.x, e.y, '#ffffff');
+                floatingTexts.push(new FloatingText(e.x, e.y - 30, "KNOCKBACK", '#ffffff'));
+            }
+        }
+    }
+}
+
 function triggerBoss() {
     bossActive = true;
     warningTimer = 180; // 3 seconds
+    warningText = 'WARNING: WYRM INCOMING';
     boss = new Wyrm();
+    if (window.audioFX) window.audioFX.playGameOver(); // Reuse for alert
+}
+
+function triggerDragonBoss() {
+    bossActive = true;
+    warningTimer = 180; // 3 seconds
+    warningText = 'WARNING: DRAGON INCOMING';
+    boss = new Dragon();
     if (window.audioFX) window.audioFX.playGameOver(); // Reuse for alert
 }
 
@@ -354,8 +428,10 @@ class Wyrm {
             }
 
             // Hit player
-            if (!p.reflected && Math.abs(p.x - player.x) < 30) {
+            if (!p.reflected && Math.abs(p.x - player.x) < 30 && Math.abs(p.y - (player.y - 20)) < 30) {
                 takeDamage();
+                this.projectiles.splice(i, 1);
+                continue;
             }
 
             if (p.x < -100 || p.x > CANVAS_W + 100) this.projectiles.splice(i, 1);
@@ -366,7 +442,7 @@ class Wyrm {
         let side = this.x < player.x ? -1 : 1;
         this.projectiles.push({
             x: this.x,
-            y: player.y,
+            y: getBasePlayerY() - 20,
             vx: side === -1 ? 8 : -8,
             reflected: false,
             color: '#00ffff'
@@ -410,6 +486,246 @@ class Wyrm {
         ctx.fillRect(bx, 50, bw, 8);
         ctx.fillStyle = this.color;
         ctx.fillRect(bx, 50, bw * (this.health/this.maxHealth), 8);
+    }
+}
+
+class Dragon {
+    constructor() {
+        this.x = CANVAS_W + 200;
+        this.y = getBasePlayerY() - 150;
+        this.health = 10;
+        this.maxHealth = 10;
+        this.projectiles = [];
+        this.lastShot = 0;
+        this.sinOffset = 0;
+        this.active = false;
+        this.color = '#ff3300'; // Hot fire neon red/orange!
+        this.segments = [];
+        for (let i = 0; i < 12; i++) {
+            this.segments.push({ x: CANVAS_W + 200, y: this.y });
+        }
+        
+        // Swoop state
+        this.swoopTimer = 0;
+        this.isSwooping = false;
+    }
+
+    update(deltaTime) {
+        if (warningTimer > 0) return;
+        this.active = true;
+        this.sinOffset += 0.035 * deltaTime;
+        
+        // Base hover movement
+        let targetX = (CANVAS_W / 2) + Math.sin(this.sinOffset) * (CANVAS_W / 3);
+        let targetY = (CANVAS_H / 2 - 120) + Math.cos(this.sinOffset * 0.4) * 40;
+        
+        // Handle swooping behaviour
+        this.swoopTimer += deltaTime;
+        if (!this.isSwooping && this.swoopTimer > 400) { // Swoop every ~6.5 seconds
+            this.isSwooping = true;
+            this.swoopTimer = 0;
+        }
+        
+        if (this.isSwooping) {
+            // Swoop phase uses a sine curve to dip low
+            const swoopProgress = (this.swoopTimer / 120) * Math.PI; // 2 seconds duration
+            if (swoopProgress >= Math.PI) {
+                this.isSwooping = false;
+                this.swoopTimer = 0;
+            } else {
+                // Dip down to player Y
+                targetY = getBasePlayerY() - 100 + Math.sin(swoopProgress) * 110;
+                targetX = player.x + Math.cos(swoopProgress) * 200;
+            }
+        }
+        
+        this.x += (targetX - this.x) * 0.08 * deltaTime;
+        this.y += (targetY - this.y) * 0.08 * deltaTime;
+
+        // Follow logic for body segments
+        this.segments[0].x = this.x;
+        this.segments[0].y = this.y;
+        for (let i = this.segments.length - 1; i > 0; i--) {
+            this.segments[i].x += (this.segments[i - 1].x - this.segments[i].x) * 0.22 * deltaTime;
+            this.segments[i].y += (this.segments[i - 1].y - this.segments[i].y) * 0.22 * deltaTime;
+        }
+
+        // Swoop direct hit check on player
+        if (this.isSwooping && Math.abs(this.x - player.x) < 45 && Math.abs(this.y - (player.y - 20)) < 40) {
+            takeDamage();
+        }
+
+        // Fire breath shooting (shoots fiery red/orange fireballs)
+        if (Date.now() - this.lastShot > 1800 && !this.isSwooping) {
+            this.lastShot = Date.now();
+            this.fire();
+        }
+
+        // Update projectiles
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+            let p = this.projectiles[i];
+            p.x += p.vx * deltaTime;
+            p.y += p.vy * deltaTime;
+            
+            // Fire particles trail
+            if (Math.random() < 0.3) {
+                particles.push({
+                    x: p.x,
+                    y: p.y + (Math.random() - 0.5) * 10,
+                    vx: -p.vx * 0.1 + (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    life: 0.5,
+                    color: p.color
+                });
+            }
+
+            // Reflected hit check on Dragon
+            if (p.reflected) {
+                let dx = p.x - this.x;
+                let dy = p.y - this.y;
+                if (Math.sqrt(dx * dx + dy * dy) < 70) {
+                    this.health--;
+                    this.projectiles.splice(i, 1);
+                    screenShake = 20;
+                    flashAlpha = 0.3;
+                    flashColor = '#ff3300';
+                    if (this.health <= 0) this.die();
+                    continue;
+                }
+            }
+
+            // Hit player check
+            if (!p.reflected && Math.abs(p.x - player.x) < 30 && Math.abs(p.y - (player.y - 20)) < 30) {
+                takeDamage();
+                this.projectiles.splice(i, 1);
+                continue;
+            }
+
+            if (p.x < -100 || p.x > CANVAS_W + 100) this.projectiles.splice(i, 1);
+        }
+    }
+
+    fire() {
+        let side = this.x < player.x ? -1 : 1;
+        // Shoot fireball straight at player
+        this.projectiles.push({
+            x: this.x,
+            y: getBasePlayerY() - 20,
+            vx: side === -1 ? 9 : -9,
+            vy: 0,
+            reflected: false,
+            color: '#ff6600' // Fire orange!
+        });
+    }
+
+    die() {
+        bossActive = false;
+        score += 800;
+        scoreEl.textContent = score;
+        spawnParticles(this.x, this.y, '#ff3300');
+        // Large explosion ring
+        impactRings.push(new ImpactRing(this.x, this.y, '#ff3300'));
+        impactRings.push(new ImpactRing(this.x, this.y, '#ffcc00'));
+        
+        floatingTexts.push(new FloatingText(this.x, this.y - 40, "DRAGON DEFEATED! +800", '#ffcc00'));
+        boss = null;
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Draw wings flapping on the first segment (head)
+        const wingFlap = Math.sin(frameCount * 0.15) * 45; // flapping angle/height
+        
+        // Left Wing
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.quadraticCurveTo(this.x - 30, this.y - 60 + wingFlap, this.x - 70, this.y - 30 + wingFlap);
+        ctx.lineTo(this.x - 40, this.y + 10);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255, 51, 0, 0.2)';
+        ctx.fill();
+        ctx.stroke();
+        
+        // Right Wing
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.quadraticCurveTo(this.x + 30, this.y - 60 + wingFlap, this.x + 70, this.y - 30 + wingFlap);
+        ctx.lineTo(this.x + 40, this.y + 10);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255, 51, 0, 0.2)';
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw body segments (glowing dragon path)
+        ctx.beginPath();
+        this.segments.forEach((s, i) => {
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+        });
+        ctx.stroke();
+
+        // Draw dragon features on head
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 22, 0, Math.PI * 2);
+        ctx.fillStyle = '#110502';
+        ctx.fill();
+        ctx.stroke();
+        
+        // Horns
+        ctx.beginPath();
+        ctx.moveTo(this.x - 8, this.y - 18);
+        ctx.lineTo(this.x - 22, this.y - 42);
+        ctx.moveTo(this.x + 8, this.y - 18);
+        ctx.lineTo(this.x + 22, this.y - 42);
+        ctx.stroke();
+
+        // Spade arrow tail on last segment
+        const tailSeg = this.segments[this.segments.length - 1];
+        const prevSeg = this.segments[this.segments.length - 2];
+        const angle = Math.atan2(tailSeg.y - prevSeg.y, tailSeg.x - prevSeg.x);
+        
+        ctx.save();
+        ctx.translate(tailSeg.x, tailSeg.y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(-25, -12);
+        ctx.lineTo(-20, 0);
+        ctx.lineTo(-25, 12);
+        ctx.closePath();
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw projectiles (fireballs)
+        this.projectiles.forEach(p => {
+            ctx.save();
+            ctx.fillStyle = p.color;
+            ctx.shadowColor = p.color;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Health bar
+        const bw = 300;
+        const bx = (CANVAS_W - bw) / 2;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fillRect(bx, 50, bw, 8);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(bx, 50, bw * (this.health / this.maxHealth), 8);
+        ctx.restore();
     }
 }
 
@@ -692,6 +1008,22 @@ function gameOver() {
 }
 
 function update(deltaTime) {
+    // Jump physics update
+    const baseY = getBasePlayerY();
+    if (player.isJumping) {
+        player.vy += 0.85 * deltaTime;
+        player.y += player.vy * deltaTime;
+        if (player.y >= baseY) {
+            player.y = baseY;
+            player.vy = 0;
+            player.isJumping = false;
+        }
+    }
+
+    if (sweepCooldown > 0) {
+        sweepCooldown -= deltaTime;
+    }
+
     if (player.state === 'attackLeft' || player.state === 'attackRight') {
         player.timer -= deltaTime;
         if (player.timer <= 0) player.state = 'idle';
@@ -767,7 +1099,8 @@ function update(deltaTime) {
             if (e.y > CANVAS_H + 100) enemies.splice(i, 1);
         } else {
             let dist = Math.abs(e.x - player.x);
-            if (dist < KILL_RANGE) {
+            const playerNearGround = Math.abs(player.y - getBasePlayerY()) < 25;
+            if (dist < KILL_RANGE && playerNearGround) {
                 takeDamage();
                 if (e.hp > 0) { // Push back slightly
                     e.x += e.side === 'left' ? -50 * deltaTime : 50 * deltaTime; 
@@ -893,7 +1226,7 @@ function draw() {
         ctx.font = '700 40px Outfit, sans-serif';
         ctx.fillStyle = warningTimer % 20 < 10 ? '#ff0000' : '#fff';
         ctx.textAlign = 'center';
-        ctx.fillText('WARNING: BOSS INCOMING', CANVAS_W/2, CANVAS_H/2);
+        ctx.fillText(warningText, CANVAS_W/2, CANVAS_H/2);
     }
 
     // Draw impact rings
@@ -969,6 +1302,9 @@ function draw() {
         ctx.strokeStyle = eColor;
         
         ctx.save();
+        ctx.lineWidth = e.type === 'elite' ? 6.5 : 5.0; // Make enemies thick & bold!
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
         ctx.translate(e.x, e.y - 10);
         if (e.dead) {
             ctx.rotate(e.rotation || (e.vx * 0.1)); 
@@ -1045,6 +1381,61 @@ function draw() {
         ctx.restore();
     }
 
+    // Draw Cyber-Sweep Cooldown Indicator (top-left, next to HUD)
+    ctx.save();
+    const cx = 40;
+    const cy = 60; // Slightly lower so it doesn't overlap the HOME button
+    const r = 18;
+    
+    // Outer circle
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Cooldown sweep arc
+    if (sweepCooldown > 0) {
+        const pct = sweepCooldown / SWEEP_MAX_COOLDOWN;
+        ctx.strokeStyle = '#bc13fe';
+        ctx.shadowColor = '#bc13fe';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        // Draw clockwise counter arc
+        ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - pct));
+        ctx.stroke();
+        
+        ctx.font = 'bold 9px "Outfit", sans-serif';
+        ctx.fillStyle = '#bc13fe';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(Math.ceil(sweepCooldown / 60) + 's', cx, cy);
+    } else {
+        ctx.strokeStyle = '#00ffcc';
+        ctx.shadowColor = '#00ffcc';
+        ctx.shadowBlur = 15;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.font = 'bold 8px "Outfit", sans-serif';
+        ctx.fillStyle = '#00ffcc';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('READY', cx, cy);
+    }
+    
+    ctx.font = 'bold 9px "Outfit", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 3;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('SWEEP (S)', cx + r + 8, cy);
+    ctx.restore();
+
     // Fullscreen Flash Overlay
     if (flashAlpha > 0) {
         ctx.save();
@@ -1077,19 +1468,64 @@ function loop(timestamp = 0) {
 }
 
 startBtn.addEventListener('click', initGame);
+let touchStartY = 0;
+let touchStartX = 0;
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartY = touch.clientY;
+    touchStartX = touch.clientX;
+}
+
+function handleTouchEnd(e, zone) {
+    if (e.changedTouches.length === 0) return;
+    const touch = e.changedTouches[0];
+    const diffY = touch.clientY - touchStartY;
+    
+    // Check for swipe gestures
+    if (diffY < -40) {
+        // Swipe Up -> JUMP!
+        if (player && !player.isJumping) {
+            player.vy = -16;
+            player.isJumping = true;
+            if (window.audioFX) window.audioFX.playJump();
+        }
+    } else if (diffY > 40) {
+        // Swipe Down -> CYBER SWEEP!
+        cyberSweep();
+    } else {
+        // Tap -> Attack!
+        attack(zone);
+    }
+}
+
 window.addEventListener('keydown', (e) => {
     if (!gameRunning) {
         if(e.key === ' ' || e.key === 'Enter') initGame();
         return;
     }
     if (isPaused) return;
-    if (e.key === 'ArrowLeft') attack('left');
-    if (e.key === 'ArrowRight') attack('right');
+    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') attack('left');
+    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') attack('right');
+    if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w' || e.key === ' ') {
+        e.preventDefault();
+        if (player && !player.isJumping) {
+            player.vy = -16;
+            player.isJumping = true;
+            if (window.audioFX) window.audioFX.playJump();
+        }
+    }
+    if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        cyberSweep();
+    }
 });
 leftZone.addEventListener('mousedown', () => attack('left'));
 rightZone.addEventListener('mousedown', () => attack('right'));
-leftZone.addEventListener('touchstart', (e) => { e.preventDefault(); attack('left'); }, {passive: false});
-rightZone.addEventListener('touchstart', (e) => { e.preventDefault(); attack('right'); }, {passive: false});
+leftZone.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart(e); }, {passive: false});
+leftZone.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd(e, 'left'); }, {passive: false});
+rightZone.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart(e); }, {passive: false});
+rightZone.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd(e, 'right'); }, {passive: false});
 
 pauseBtn?.addEventListener('click', (e) => {
     e.stopPropagation();

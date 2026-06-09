@@ -78,6 +78,24 @@ def test_neon_brawler():
         assert num_clouds > 0
         assert num_wind_lines > 0
 
+        print("5b. Testing Jump mechanic...")
+        driver.execute_script("player.vy = -16; player.isJumping = true;")
+        is_jumping = driver.execute_script("return player.isJumping;")
+        assert is_jumping == True, "Expected isJumping to be True"
+
+        print("5c. Testing Cyber-Sweep action and cooldown...")
+        driver.execute_script("cyberSweep();")
+        cooldown = driver.execute_script("return sweepCooldown;")
+        assert cooldown > 0, f"Expected sweepCooldown to be active, got {cooldown}"
+
+        print("5d. Testing Dragon Boss trigger and state...")
+        driver.execute_script("kills = 50; triggerDragonBoss();")
+        boss_active = driver.execute_script("return bossActive;")
+        boss_max_health = driver.execute_script("return boss.maxHealth;")
+        print(f"Boss Active: {boss_active}, Max Health: {boss_max_health}")
+        assert boss_active == True, "Expected bossActive to be True"
+        assert boss_max_health == 10, f"Expected Dragon boss maxHealth to be 10, got {boss_max_health}"
+
         print("6. Testing Game Over mechanics...")
         # Call gameOver() directly
         driver.execute_script("gameOver();")

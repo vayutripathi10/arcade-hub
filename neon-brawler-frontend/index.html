@@ -300,13 +300,15 @@
         <h2>Neon Brawler</h2>
         <p>Neon Brawler is a cyberpunk side-scrolling beat-em-up where you fight through relentless waves of glowing robotic enemies on the streets of a neon city. Punch, kick, and unleash devastating combo attacks to clear each arena. Dodge incoming strikes, use the environment to your advantage, and defeat elite mini-bosses guarding each district. Fast, fluid, and ferociously fun.</p>
 
-        <h3>&#x1F3AE; How to Play</h3>
-        <p>Move your fighter across the arena and attack approaching enemies. Chain light attacks into heavy finishers for combo bonuses. Avoid enemy strikes or you lose health &mdash; take down all enemies to advance.</p>
+        <h3>🕹️ How to Play</h3>
+        <p>Attack incoming neon enemies approaching from left and right. Dodge their strikes by jumping, and clear crowds with your Cyber-Sweep ultimate attack. Defeat mini-bosses to advance!</p>
         <ul>
-            <li><strong>Desktop &mdash; Move:</strong> Arrow Keys or WASD</li>
-            <li><strong>Desktop &mdash; Attack:</strong> Z for light attack, X for heavy attack</li>
-            <li><strong>Mobile:</strong> Virtual D-pad to move; on-screen Attack buttons</li>
-            <li><strong>Combo:</strong> Chain 3 light attacks into 1 heavy for a power combo</li>
+            <li><strong>Desktop &mdash; Strike Left:</strong> ArrowLeft or A</li>
+            <li><strong>Desktop &mdash; Strike Right:</strong> ArrowRight or D</li>
+            <li><strong>Desktop &mdash; Jump:</strong> ArrowUp or W or Space</li>
+            <li><strong>Desktop &mdash; Cyber-Sweep:</strong> ArrowDown or S (5s Cooldown)</li>
+            <li><strong>Mobile &mdash; Attack:</strong> Tap Left/Right half of screen</li>
+            <li><strong>Mobile &mdash; Jump / Sweep:</strong> Swipe UP to Jump, Swipe DOWN to Sweep</li>
         </ul>
 
         <div class="info-grid">
@@ -420,7 +422,7 @@
 
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Brawler_Juice_v1"></script>
+    <script src="script.js?v=ArcadeHub_Brawler_Juice_v2"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {
@@ -435,11 +437,11 @@
     <div class="htp-overlay" id="htpOverlay">
         <div class="htp-card">
             <div class="htp-title">📖 How to Play</div>
-            <div class="htp-row"><span class="htp-row-icon">🕹️</span><span><b>Controls:</b> Tap the <b>Left</b> or <b>Right</b> half of the screen, or use <b>Arrow Keys</b>.</span></div>
-            <div class="htp-row"><span class="htp-row-icon">👊</span><span><b>Attack:</b> Hit enemies as they approach from both sides.</span></div>
-            <div class="htp-row"><span class="htp-row-icon">⏱️</span><span><b>Timing:</b> Strike when enemies enter your hit range for maximum combos!</span></div>
-            <div class="htp-row"><span class="htp-row-icon">💀</span><span><b>Don't:</b> Let enemies reach you — or you lose!</span></div>
-            <div class="htp-row"><span class="htp-row-icon">🏆</span><span><b>Goal:</b> Build the longest combo streak possible!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🕹️</span><span><b>Controls:</b> Arrow keys/WASD on desktop. Tap sides on mobile.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">👊</span><span><b>Attack:</b> Strike left/right to hit approaching enemies.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🦘</span><span><b>Jump:</b> ArrowUp / W / Space (Swipe UP on mobile) to dodge strikes & beams!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🧹</span><span><b>Cyber-Sweep:</b> ArrowDown / S (Swipe DOWN on mobile) for area slam (5s CD)!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🏆</span><span><b>Goal:</b> Build combo streaks and survive boss fights at 50 and 100 kills!</span></div>
             <button class="htp-back" onclick="document.getElementById('htpOverlay').classList.remove('active')">← Got it!</button>
         </div>
     </div>
