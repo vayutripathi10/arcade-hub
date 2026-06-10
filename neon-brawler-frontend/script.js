@@ -185,7 +185,15 @@ resizeCanvas();
 
 function spawnWeaponDrop() {
     weaponDropActive = true;
-    weaponDropX = 100 + Math.random() * (CANVAS_W - 200);
+    
+    // Ensure chest drops at least 150px away from the player (player.x is always at center CANVAS_W/2)
+    const side = Math.random() > 0.5 ? 'left' : 'right';
+    if (side === 'left') {
+        weaponDropX = 80 + Math.random() * (CANVAS_W / 2 - 230); // E.g. between 80 and CANVAS_W/2 - 150
+    } else {
+        weaponDropX = CANVAS_W / 2 + 150 + Math.random() * (CANVAS_W / 2 - 230); // E.g. between CANVAS_W/2 + 150 and CANVAS_W - 80
+    }
+    
     weaponDropY = 0;
     weaponDropType = weaponDropType === 'katana' ? 'laserstaff' : 'katana';
     weaponDropTimer = 0;
@@ -363,7 +371,14 @@ function attack(direction) {
                 let dist = Math.abs(p.x - player.x);
                 if (dist < currentHitRange) {
                     p.reflected = true;
-                    p.vx = -p.vx * 1.5;
+                    // Calculate vector to boss
+                    const dx = boss.x - p.x;
+                    const dy = boss.y - p.y;
+                    const len = Math.sqrt(dx * dx + dy * dy);
+                    const speed = 15; // Reflected speed
+                    p.vx = (dx / len) * speed;
+                    p.vy = (dy / len) * speed;
+                    
                     screenShake = 5;
                     impactRings.push(new ImpactRing(p.x, p.y, '#00ffff'));
                     if (window.audioFX) window.audioFX.playJump();
@@ -507,6 +522,7 @@ class Wyrm {
         for(let i=this.projectiles.length-1; i>=0; i--) {
             let p = this.projectiles[i];
             p.x += p.vx * deltaTime;
+            p.y += (p.vy || 0) * deltaTime;
             
             // Reflected hit boss
             if (p.reflected) {
@@ -538,6 +554,7 @@ class Wyrm {
             x: this.x,
             y: getBasePlayerY() - 20,
             vx: side === -1 ? 8 : -8,
+            vy: 0,
             reflected: false,
             color: '#00ffff'
         });
@@ -1572,28 +1589,28 @@ function draw() {
             if (player.state === 'attackLeft') {
                 // Katana slash left
                 ctx.beginPath();
-                ctx.moveTo(px - 30, py - 18);
-                ctx.lineTo(px - 60, py - 30);
+                ctx.moveTo(px - 38, py - 22);
+                ctx.lineTo(px - 72, py - 34);
                 ctx.stroke();
                 // Hilt
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 5;
                 ctx.beginPath();
-                ctx.moveTo(px - 30, py - 18);
-                ctx.lineTo(px - 35, py - 20);
+                ctx.moveTo(px - 28, py - 15);
+                ctx.lineTo(px - 38, py - 22);
                 ctx.stroke();
             } else if (player.state === 'attackRight') {
                 // Katana slash right
                 ctx.beginPath();
-                ctx.moveTo(px + 30, py - 18);
-                ctx.lineTo(px + 60, py - 30);
+                ctx.moveTo(px + 38, py - 22);
+                ctx.lineTo(px + 72, py - 34);
                 ctx.stroke();
                 // Hilt
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 5;
                 ctx.beginPath();
-                ctx.moveTo(px + 30, py - 18);
-                ctx.lineTo(px + 35, py - 20);
+                ctx.moveTo(px + 28, py - 15);
+                ctx.lineTo(px + 38, py - 22);
                 ctx.stroke();
             } else {
                 // Idle - Katana on back
@@ -1615,26 +1632,26 @@ function draw() {
             if (player.state === 'attackLeft') {
                 // Laser staff left
                 ctx.beginPath();
-                ctx.moveTo(px - 35, py - 38);
-                ctx.lineTo(px - 35, py - 2);
+                ctx.moveTo(px - 45, py - 35);
+                ctx.lineTo(px - 25, py - 5);
                 ctx.stroke();
                 // Glowing tips
                 ctx.strokeStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(px - 35, py - 38, 2, 0, Math.PI * 2);
-                ctx.arc(px - 35, py - 2, 2, 0, Math.PI * 2);
+                ctx.arc(px - 45, py - 35, 2, 0, Math.PI * 2);
+                ctx.arc(px - 25, py - 5, 2, 0, Math.PI * 2);
                 ctx.stroke();
             } else if (player.state === 'attackRight') {
                 // Laser staff right
                 ctx.beginPath();
-                ctx.moveTo(px + 35, py - 38);
-                ctx.lineTo(px + 35, py - 2);
+                ctx.moveTo(px + 45, py - 35);
+                ctx.lineTo(px + 25, py - 5);
                 ctx.stroke();
                 // Glowing tips
                 ctx.strokeStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(px + 35, py - 38, 2, 0, Math.PI * 2);
-                ctx.arc(px + 35, py - 2, 2, 0, Math.PI * 2);
+                ctx.arc(px + 45, py - 35, 2, 0, Math.PI * 2);
+                ctx.arc(px + 25, py - 5, 2, 0, Math.PI * 2);
                 ctx.stroke();
             } else {
                 // Idle staff on back
