@@ -294,6 +294,9 @@ const keys = { right: false, left: false, down: false };
 let attackQueued = false;
 
 window.addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Space'].includes(e.code)) {
+        e.preventDefault();
+    }
     if (e.code === 'ArrowRight') keys.right = true;
     if (e.code === 'ArrowLeft') keys.left = true;
     if (e.code === 'ArrowDown') {
@@ -580,6 +583,19 @@ function createHitSparks(x, y, color) {
     }
 }
 
+function createBloodSpray(x, y, dir) {
+    for (let i = 0; i < 20; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: dir * (Math.random() * 12 + 4) + (Math.random() - 0.5) * 3,
+            vy: -Math.random() * 6 - 2,
+            life: 0.8 + Math.random() * 0.6,
+            color: '#ff003c'
+        });
+    }
+}
+
 function executeAttack(ent) {
     if (ent.state.startsWith('attack') || ent.hitStun > 0) return;
     
@@ -659,7 +675,7 @@ function checkHitbox(attacker, defender) {
         let finalDamage = h.damage;
         let isPlayerSwordHit = (attacker === player && playerWeapon === 'sword');
         if (isPlayerSwordHit) {
-            finalDamage = h.damage * 2;
+            finalDamage = defender.isBoss ? 75 : 35;
         }
         
         if (h.type === 'attack3' && attacker === player && !defender.isBoss) {
@@ -681,6 +697,9 @@ function checkHitbox(attacker, defender) {
         
         const sparkColor = isPlayerSwordHit ? '#ff6600' : attacker.color;
         createHitSparks(defender.x, defender.y - 40, sparkColor);
+        if (isPlayerSwordHit) {
+            createBloodSpray(defender.x, defender.y - 40, attacker.dir);
+        }
         impactRings.push(new ImpactRing(defender.x, defender.y - 40, sparkColor));
         
         screenShake = Math.max(screenShake, h.knockback > 10 ? 15 : 6);
@@ -1002,31 +1021,27 @@ function draw() {
         ctx.translate((Math.random() - 0.5) * shakeAmt, (Math.random() - 0.5) * shakeAmt);
     }
     
-    // 3. Draw Perspective Synthwave Grid Ground
+    // 3. Draw Normal Grid Ground (2D scrolling grid, no 3D perspective)
     ctx.fillStyle = '#05050f';
     ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
     
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 0, 255, 0.6)';
+    ctx.strokeStyle = 'rgba(255, 0, 255, 0.25)';
     ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = '#ff00ff';
     
-    const centerX = canvas.width / 2;
-    const stepX = 80;
-    const startX = -stepX * 10 - (groundScroll % stepX);
-    for (let x = startX; x < canvas.width + stepX * 10; x += stepX) {
+    // Flat vertical lines
+    const stepX = 100;
+    const startX = -stepX - (groundScroll % stepX);
+    for (let x = startX; x < canvas.width + stepX; x += stepX) {
         ctx.beginPath();
-        ctx.moveTo(centerX, groundY);
+        ctx.moveTo(x, groundY);
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
     }
     
-    for (let i = 0; i < 9; i++) {
-        let t = (i + gridYOffset) / 9;
-        let y = groundY + Math.pow(t, 2.8) * (canvas.height - groundY);
-        ctx.strokeStyle = `rgba(255, 0, 255, ${t * 0.7})`;
-        ctx.lineWidth = 1 + t * 2;
+    // Flat horizontal lines
+    const stepY = 25;
+    for (let y = groundY + stepY; y < canvas.height; y += stepY) {
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(canvas.width, y);
@@ -1035,7 +1050,7 @@ function draw() {
     ctx.restore();
     
     ctx.strokeStyle = '#ff00ff';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
     ctx.shadowBlur = 8;
     ctx.shadowColor = '#ff00ff';
     ctx.beginPath();

@@ -348,6 +348,13 @@
                     e.preventDefault();
                 }
             }, { passive: false });
+
+            // Prevent scrolling keys when focus is on parent page
+            window.addEventListener('keydown', (e) => {
+                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         });
     </script>
     <script src="shared/pwa-setup.js"></script>
