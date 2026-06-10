@@ -158,7 +158,8 @@ function initGame() {
 function updateLivesUI() {
     if (!livesContainer) return;
     let heartsHTML = '';
-    for (let i = 0; i < 3; i++) {
+    const totalHearts = Math.max(3, player.lives);
+    for (let i = 0; i < totalHearts; i++) {
         if (i < player.lives) {
             heartsHTML += '<span class="heart">❤️</span>';
         } else {
@@ -222,6 +223,16 @@ function defeatEnemy(e, direction, isKatana = false) {
     // Check weapon drops trigger (every 20 kills)
     if (kills > 0 && kills % 20 === 0) {
         spawnWeaponDrop();
+    }
+    
+    // Check extra life trigger (every 40 kills)
+    if (kills > 0 && kills % 40 === 0) {
+        player.lives++;
+        updateLivesUI();
+        floatingTexts.push(new FloatingText(player.x, player.y - 65, "EXTRA LIFE +1", '#ff0055'));
+        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+            window.audioFX.playLevelUp();
+        }
     }
     
     const pointsGained = (berserkTimer > 0) ? 2 : 1;
