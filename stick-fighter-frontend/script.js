@@ -93,14 +93,35 @@ function playSound(type) {
 // Landscape Orientation Prompt Handler
 const dismissBtn = document.getElementById('dismissLandscapeBtn');
 const landscapePrompt = document.getElementById('landscapePrompt');
+let sessionInitiated = false;
+
+function beginGameSession() {
+    sessionInitiated = true;
+    const isPortraitActive = (window.innerWidth <= 900 && window.innerHeight > window.innerWidth) &&
+                             (landscapePrompt && !landscapePrompt.classList.contains('dismissed'));
+                             
+    if (!isPortraitActive) {
+        showStageMenu();
+    }
+}
+
 dismissBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     landscapePrompt?.classList.add('dismissed');
     window.dispatchEvent(new Event('resize'));
+    if (sessionInitiated) {
+        showStageMenu();
+    }
 });
+
 window.addEventListener('resize', () => {
     if (window.innerWidth > window.innerHeight) {
-        landscapePrompt?.classList.remove('dismissed');
+        if (landscapePrompt && !landscapePrompt.classList.contains('dismissed')) {
+            landscapePrompt.classList.add('dismissed');
+            if (sessionInitiated) {
+                showStageMenu();
+            }
+        }
     }
 });
 

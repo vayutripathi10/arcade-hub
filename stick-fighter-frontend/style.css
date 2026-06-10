@@ -392,65 +392,104 @@ body {
 .stage-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    max-width: 450px;
-    margin: 20px auto;
+    gap: 14px;
+    max-width: 520px;
+    margin: 25px auto;
+    padding: 10px;
 }
 
 .stage-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 10px;
+    background: linear-gradient(135deg, rgba(16, 20, 35, 0.7) 0%, rgba(5, 6, 12, 0.9) 100%);
+    border: 1px solid rgba(0, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 12px 6px;
     color: #fff;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    min-height: 70px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    min-height: 85px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle glossy reflective highlight effect */
+.stage-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.03), transparent);
+    transform: skewX(-25deg);
+    transition: 0.75s;
+}
+
+.stage-card.unlocked:hover::before {
+    left: 125%;
 }
 
 .stage-card.unlocked:hover {
-    background: rgba(0, 255, 255, 0.1);
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.12) 0%, rgba(255, 0, 255, 0.08) 100%);
     border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+    transform: translateY(-6px) scale(1.04);
+    box-shadow: 0 12px 24px rgba(0, 255, 255, 0.25), inset 0 1px 1px rgba(255,255,255,0.15);
 }
 
 .stage-card.locked {
-    background: rgba(255, 255, 255, 0.02);
-    border-color: rgba(255, 255, 255, 0.05);
+    background: rgba(10, 10, 15, 0.8);
+    border: 1px dashed rgba(255, 0, 102, 0.3);
     opacity: 0.5;
     cursor: not-allowed;
+    box-shadow: none;
 }
 
 .stage-num {
-    font-size: 16px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 15px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    background: linear-gradient(180deg, #ffffff 30%, #a0a0a0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.stage-card.unlocked .stage-num {
+    background: linear-gradient(180deg, #00ffff 30%, #00bcff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
 }
 
 .stage-stars {
     display: flex;
-    gap: 2px;
-    font-size: 8px;
+    gap: 3px;
+    font-size: 10px;
+    background: rgba(0, 0, 0, 0.45);
+    padding: 2px 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .star {
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.15);
 }
 
 .star.filled {
     color: #ffd700;
-    text-shadow: 0 0 4px #ffd700;
+    text-shadow: 0 0 6px #ffcc00;
 }
 
 .lock-icon {
-    font-size: 12px;
+    font-size: 15px;
+    color: #ff3366;
+    text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
+    margin-top: 4px;
 }
 
 /* Clear screen stars */
@@ -476,10 +515,47 @@ body {
     .stage-grid {
         grid-template-columns: repeat(4, 1fr);
         max-width: 320px;
-        gap: 8px;
+        gap: 10px;
+        margin: 15px auto;
+        padding: 5px;
     }
     .stage-card {
-        min-height: 55px;
-        font-size: 10px;
+        min-height: 68px;
+        padding: 8px 4px;
     }
+    .stage-num {
+        font-size: 12px;
+        margin-bottom: 3px;
+    }
+    .stage-stars {
+        font-size: 8px;
+        padding: 1px 4px;
+        gap: 2px;
+    }
+    .lock-icon {
+        font-size: 12px;
+        margin-top: 2px;
+    }
+}
+
+#stageMenu h2 {
+    color: var(--primary) !important;
+    font-family: 'Press Start 2P', cursive !important;
+    font-size: 1.4rem !important;
+    text-shadow: 0 0 15px rgba(0, 255, 255, 0.5) !important;
+    letter-spacing: 1.5px;
+    margin-bottom: 25px !important;
+    position: relative;
+    text-align: center;
+}
+
+#stageMenu h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: var(--secondary);
+    margin: 10px auto 0 auto;
+    box-shadow: 0 0 8px var(--secondary);
+    border-radius: 2px;
 }
