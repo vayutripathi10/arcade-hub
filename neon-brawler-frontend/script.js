@@ -185,15 +185,7 @@ resizeCanvas();
 
 function spawnWeaponDrop() {
     weaponDropActive = true;
-    
-    // Ensure chest drops at least 150px away from the player (player.x is always at center CANVAS_W/2)
-    const side = Math.random() > 0.5 ? 'left' : 'right';
-    if (side === 'left') {
-        weaponDropX = 80 + Math.random() * (CANVAS_W / 2 - 230); // E.g. between 80 and CANVAS_W/2 - 150
-    } else {
-        weaponDropX = CANVAS_W / 2 + 150 + Math.random() * (CANVAS_W / 2 - 230); // E.g. between CANVAS_W/2 + 150 and CANVAS_W - 80
-    }
-    
+    weaponDropX = CANVAS_W / 2; // Spawn directly above the player
     weaponDropY = 0;
     weaponDropType = weaponDropType === 'katana' ? 'laserstaff' : 'katana';
     weaponDropTimer = 0;
