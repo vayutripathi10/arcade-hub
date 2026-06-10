@@ -35,6 +35,17 @@ let score = 0;
 let kills = 0;
 let timeSinceLastInput = 0;
 
+// Stage System
+let currentStage = 1;
+const TOTAL_STAGES = 15;
+let stageTargetKills = 5;
+let stageKills = 0;
+
+const stageMenuElement = document.getElementById('stageMenu');
+const stageGridElement = document.getElementById('stage-grid');
+const btnBackStages = document.getElementById('btn-back-stages');
+const stageClearOverlayElement = document.getElementById('stageClearOverlay');
+
 // Camera / World / FX
 const groundY = 450;
 let shakeTime = 0;
@@ -157,7 +168,7 @@ class SlashArc {
         this.dir = dir;
         this.type = type;
         this.color = color;
-        this.maxLife = type === 'attack3' ? 250 : 150; // ms
+        this.maxLife = type === 'attack4' ? 250 : 150; // ms
         this.life = this.maxLife;
     }
     
@@ -205,6 +216,19 @@ class SlashArc {
             ctx.arc(10, 0, 35, -Math.PI / 3, Math.PI / 3, false);
             ctx.stroke();
         } else if (this.type === 'attack3') {
+            // Uppercut slash: upward vertical-curved arc
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(15, -15, 40, -Math.PI / 2, 0, false);
+            ctx.stroke();
+            
+            // Inner white core
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(15, -15, 40, -Math.PI / 2, 0, false);
+            ctx.stroke();
+        } else if (this.type === 'attack4') {
             ctx.lineWidth = 10;
             const radius = 20 + progress * 50;
             ctx.beginPath();
@@ -347,14 +371,131 @@ window.addEventListener('resize', resize);
 // Initial call
 setTimeout(resize, 100);
 
+// Stage Configuration
+function getStageConfig(stageNum) {
+    const targetKills = 5 + (stageNum - 1) * 3;
+    const hasBoss = (stageNum % 5 === 0);
+    return { targetKills, hasBoss };
+}
+
+// Stage Progress LocalStorage Helpers
+function loadStageProgress() {
+    const saved = localStorage.getItem('stickfighter_progress');
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch(e) {}
+    }
+    return { unlockedStage: 1, stars: {} };
+}
+
+function saveStageProgress(stage, earnedStars) {
+    const progress = loadStageProgress();
+    const currentStars = progress.stars[stage] || 0;
+    if (earnedStars > currentStars) {
+        progress.stars[stage] = earnedStars;
+    }
+    if (stage === progress.unlockedStage && stage < TOTAL_STAGES) {
+        progress.unlockedStage = stage + 1;
+    }
+    localStorage.setItem('stickfighter_progress', JSON.stringify(progress));
+}
+
+// Show Stage Selection screen
+function showStageMenu() {
+    gameState = 'menu';
+    mainMenu.classList.add('hidden');
+    gameOverMenu.classList.add('hidden');
+    pauseMenu.classList.add('hidden');
+    if (stageClearOverlayElement) stageClearOverlayElement.classList.add('hidden');
+    if (stageMenuElement) stageMenuElement.classList.remove('hidden');
+    
+    const progress = loadStageProgress();
+    if (stageGridElement) {
+        stageGridElement.innerHTML = '';
+        for (let s = 1; s <= TOTAL_STAGES; s++) {
+            const isUnlocked = s <= progress.unlockedStage;
+            const starsEarned = progress.stars[s] || 0;
+            
+            const card = document.createElement('button');
+            card.className = `stage-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+            if (!isUnlocked) card.disabled = true;
+            
+            let cardHTML = `<span class="stage-num">${s}</span>`;
+            if (isUnlocked) {
+                cardHTML += `<div class="stage-stars">`;
+                for (let star = 1; star <= 3; star++) {
+                    cardHTML += `<span class="star ${star <= starsEarned ? 'filled' : ''}">★</span>`;
+                }
+                cardHTML += `</div>`;
+            } else {
+                cardHTML += `<span class="lock-icon">🔒</span>`;
+            }
+            
+            card.innerHTML = cardHTML;
+            if (isUnlocked) {
+                card.addEventListener('click', () => {
+                    if (stageMenuElement) stageMenuElement.classList.add('hidden');
+                    startStage(s);
+                });
+            }
+            stageGridElement.appendChild(card);
+        }
+    }
+}
+
+// Start specific stage
+function startStage(stageNum) {
+    currentStage = stageNum;
+    const config = getStageConfig(stageNum);
+    stageTargetKills = config.targetKills;
+    stageKills = 0;
+    
+    initGame();
+    
+    spawnFloatingText(canvas.width / 2, 200, `STAGE ${currentStage}`, "#00ffff");
+    setTimeout(() => {
+        spawnFloatingText(canvas.width / 2, 230, `TARGET: ${stageTargetKills} KILLS`, "#ffd700");
+    }, 400);
+}
+
+// Handle stage complete
+function stageComplete() {
+    gameState = 'gameover'; // Pause updates
+    
+    const hpPercent = player.hp / player.maxHp;
+    let earnedStars = 1;
+    if (hpPercent >= 0.7) earnedStars = 3;
+    else if (hpPercent >= 0.3) earnedStars = 2;
+    
+    saveStageProgress(currentStage, earnedStars);
+    
+    const clearStageNum = document.getElementById('clear-stage-num');
+    if (clearStageNum) clearStageNum.textContent = currentStage;
+    
+    const clearStarsContainer = document.getElementById('clear-stars');
+    if (clearStarsContainer) {
+        clearStarsContainer.innerHTML = '';
+        for (let i = 1; i <= 3; i++) {
+            clearStarsContainer.innerHTML += `<span class="clear-star ${i <= earnedStars ? 'filled' : ''}">★</span>`;
+        }
+    }
+    
+    if (stageClearOverlayElement) stageClearOverlayElement.classList.remove('hidden');
+    playSound('heavy');
+}
+
 function spawnEnemy() {
-    const cap = Math.min(6, 1 + Math.floor(kills / 5));
+    const cap = Math.min(6, 1 + Math.floor(stageKills / 5));
     if (enemies.length >= cap) return;
     
     const side = Math.random() > 0.5 ? 1 : -1;
     const x = canvas.width / 2 + (side * (canvas.width/2 + 50));
     
-    if (kills > 0 && kills % 10 === 0 && !enemies.some(e => e.isBoss)) {
+    const config = getStageConfig(currentStage);
+    
+    // Spawn boss as the last enemy if this stage has one
+    if (config.hasBoss && stageKills === config.targetKills - 1 && !enemies.some(e => e.isBoss)) {
         enemies.push(new Entity(x, '#f00', true));
         spawnFloatingText(canvas.width/2, 200, "WARNING: BOSS INCOMING", "#f00");
         playSound('heavy');
@@ -366,6 +507,8 @@ function spawnEnemy() {
             resize();
         }
     } else {
+        // Prevent spawning extra normal enemies if target has been reached or is being completed by active fights
+        if (stageKills + enemies.length >= config.targetKills) return;
         enemies.push(new Entity(x, '#f0f', false));
     }
 }
@@ -444,7 +587,7 @@ function drawStickman(ctx, ent) {
     ctx.scale(dir * scale, scale); 
     
     ctx.strokeStyle = ent.hitStun > 0 ? '#fff' : ent.color;
-    ctx.lineWidth = 4;
+    ctx.lineWidth = ent.isBoss ? 10 : 7;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     
@@ -475,13 +618,19 @@ function drawStickman(ctx, ent) {
         headOffset.x = 15;
     }
     else if (ent.state === 'attack2') { 
-        r_hand = {x: 50, y: -50}; 
-        l_hand = {x: -20, y: -30};
-        headOffset.x = 20;
-        l_foot.x = 20;
-        r_foot.x = -20;
+        r_hand = {x: -10, y: -40}; 
+        l_hand = {x: 10, y: -30};
+        l_foot = {x: 45, y: -45};
+        r_foot = {x: -10, y: 0};
+        headOffset.x = -5;
     }
     else if (ent.state === 'attack3') { 
+        l_hand = {x: -10, y: -30};
+        r_hand = {x: 20, y: -90};
+        headOffset.x = 10;
+        headOffset.y = -75;
+    }
+    else if (ent.state === 'attack4') { 
         ctx.translate(0, -20); 
         ctx.rotate(-1.4); 
         l_hand = {x: 0, y: -20};
@@ -508,6 +657,8 @@ function drawStickman(ctx, ent) {
     ctx.beginPath();
     ctx.arc(headOffset.x, headOffset.y, 12, 0, Math.PI*2);
     ctx.stroke();
+    ctx.fillStyle = ent.hitStun > 0 ? '#fff' : ent.color;
+    ctx.fill();
     
     ctx.beginPath();
     ctx.moveTo(0, -50); ctx.lineTo(l_arm.x, l_arm.y); ctx.lineTo(l_hand.x, l_hand.y); 
@@ -518,6 +669,21 @@ function drawStickman(ctx, ent) {
     ctx.moveTo(0, -30); ctx.lineTo(l_leg.x, l_leg.y); ctx.lineTo(l_foot.x, l_foot.y); 
     ctx.moveTo(0, -30); ctx.lineTo(r_leg.x, r_leg.y); ctx.lineTo(r_foot.x, r_foot.y); 
     ctx.stroke();
+
+    // Draw hand nubs (boxing gloves) like reference image
+    ctx.save();
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = ent.color;
+    ctx.fillStyle = ent.hitStun > 0 ? '#fff' : ent.color;
+    
+    ctx.beginPath();
+    ctx.arc(l_hand.x, l_hand.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(r_hand.x, r_hand.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
     
     // Draw Held Weapon (Neon Sword)
     if (ent === player && playerWeapon === 'sword' && ent.hp > 0) {
@@ -526,9 +692,9 @@ function drawStickman(ctx, ent) {
         ctx.translate(hand.x, hand.y);
         
         let swordAngle = -Math.PI / 4; 
-        if (ent.state === 'attack1' || ent.state === 'attack2') {
+        if (ent.state === 'attack1' || ent.state === 'attack2' || ent.state === 'attack3') {
             swordAngle = Math.PI / 6; 
-        } else if (ent.state === 'attack3') {
+        } else if (ent.state === 'attack4') {
             swordAngle = -Math.PI / 1.5; 
         }
         ctx.rotate(swordAngle);
@@ -619,17 +785,27 @@ function executeAttack(ent) {
             }
         }
         
-        if (comboCount === 2) {
-            attackType = 'attack2'; damage = 10; knockback = 10; atkTime = 300;
-        } else if (comboCount >= 3) {
-            attackType = 'attack3'; damage = 25; knockback = 30; atkTime = 500;
+        if (comboCount === 1) {
+            attackType = 'attack1'; damage = 5; knockback = 5; atkTime = 200;
+        } else if (comboCount === 2) {
+            attackType = 'attack2'; damage = 10; knockback = 8; atkTime = 300;
+        } else if (comboCount === 3) {
+            attackType = 'attack3'; damage = 15; knockback = 12; atkTime = 350;
+        } else if (comboCount >= 4) {
+            attackType = 'attack4'; damage = 25; knockback = 30; atkTime = 500;
             comboCount = 0; 
             ent.vy = -5; 
             ent.vx = ent.dir * 18; 
         }
     } else {
-        if (ent.isBoss) { attackType = Math.random()>0.5?'attack2':'attack1'; damage = 15; knockback = 20; atkTime = 400; }
-        else { damage = 5; knockback = 5; }
+        if (ent.isBoss) { 
+            const rand = Math.random();
+            attackType = rand > 0.6 ? 'attack3' : (rand > 0.3 ? 'attack2' : 'attack1'); 
+            damage = 15; knockback = 20; atkTime = 400; 
+        } else { 
+            attackType = Math.random() > 0.5 ? 'attack2' : 'attack1';
+            damage = 5; knockback = 5; 
+        }
         playSound('swing');
     }
     
@@ -640,8 +816,8 @@ function executeAttack(ent) {
     ent.attackHitbox = {
         offsetX: isSword ? 55 : 40,
         offsetY: -45,
-        w: (attackType === 'attack3' ? 80 : 50) * (isSword ? 1.4 : 1),
-        h: (attackType === 'attack3' ? 60 : 50) * (isSword ? 1.2 : 1),
+        w: (attackType === 'attack4' ? 80 : 50) * (isSword ? 1.4 : 1),
+        h: (attackType === 'attack4' ? 60 : 50) * (isSword ? 1.2 : 1),
         type: attackType,
         damage, knockback,
         active: true
@@ -650,10 +826,10 @@ function executeAttack(ent) {
     // Spawn custom Slash Arc
     const slashColor = isSword ? '#ff6600' : ent.color;
     const slashX = ent.x + ent.dir * (ent.isBoss ? 55 : (isSword ? 50 : 35));
-    const slashY = ent.y + (attackType === 'attack3' ? -40 : -50);
+    const slashY = ent.y + (attackType === 'attack4' ? -40 : -50);
     slashArcs.push(new SlashArc(slashX, slashY, ent.dir, attackType, slashColor));
     
-    if (attackType === 'attack3' && ent === player) {
+    if (attackType === 'attack4' && ent === player) {
         screenShake = 15;
     }
 }
@@ -670,7 +846,7 @@ function checkHitbox(attacker, defender) {
     if (Math.abs(hx - defender.x) < (h.w/2 + defW) && 
         Math.abs(hy - (defender.y - 40)) < (h.h/2 + 40)) {
         
-        if (h.type !== 'attack3') attacker.attackHitbox.active = false; 
+        if (h.type !== 'attack4') attacker.attackHitbox.active = false; 
         
         let finalDamage = h.damage;
         let isPlayerSwordHit = (attacker === player && playerWeapon === 'sword');
@@ -678,21 +854,27 @@ function checkHitbox(attacker, defender) {
             finalDamage = defender.isBoss ? 75 : 35;
         }
         
-        if (h.type === 'attack3' && attacker === player && !defender.isBoss) {
+        if (h.type === 'attack4' && attacker === player && !defender.isBoss) {
             defender.hp = 0; 
             flashAlpha = 0.35;
             flashColor = '#ffffff';
             screenShake = 20;
         } else {
             defender.hp -= finalDamage;
-            if (attacker === player && h.type === 'attack3') {
+            if (attacker === player && h.type === 'attack4') {
                 flashAlpha = 0.25;
                 flashColor = '#ffffff';
                 screenShake = 18;
             }
         }
         defender.hitStun = 300; 
-        defender.vx = attacker.dir * h.knockback; 
+        
+        if (h.type === 'attack3') {
+            defender.vy = -12; 
+            defender.vx = attacker.dir * 4;
+        } else {
+            defender.vx = attacker.dir * h.knockback; 
+        }
         defender.state = 'hit';
         
         const sparkColor = isPlayerSwordHit ? '#ff6600' : attacker.color;
@@ -884,6 +1066,7 @@ function update(deltaTime) {
         
         if (e.hp <= 0) {
             kills++;
+            stageKills++;
             if (kills % 40 === 0) {
                 player.hp = Math.min(player.maxHp, player.hp + 40);
                 spawnFloatingText(player.x, player.y - 100, "+40 HP!", "#00ff66");
@@ -892,6 +1075,10 @@ function update(deltaTime) {
             score += e.isBoss ? 5000 : 500;
             if (e.isBoss && window.achievements) window.achievements.unlock('stickfighter', 'boss_kill', 'Giant Slayer');
             createHitSparks(e.x, e.y-40, e.color);
+            
+            if (stageKills >= stageTargetKills) {
+                setTimeout(stageComplete, 800);
+            }
             
             if (e.isBoss && bossHealthStrip) {
                 if (bossHealthBar) bossHealthBar.style.width = '0%';
@@ -956,7 +1143,16 @@ function update(deltaTime) {
 
 function updateHUD() {
     if (uiScore) uiScore.textContent = Math.floor(score);
-    if (uiKills) uiKills.textContent = kills;
+    if (uiKills) {
+        if (gameState === 'playing' || gameState === 'paused') {
+            uiKills.textContent = `${stageKills}/${stageTargetKills}`;
+        } else {
+            uiKills.textContent = kills;
+        }
+    }
+    const uiStage = document.getElementById('ui-stage');
+    if (uiStage) uiStage.textContent = currentStage;
+    
     if (playerHealthBar && player) {
         const playerPercent = Math.max(0, (player.hp / player.maxHp) * 100);
         playerHealthBar.style.width = playerPercent + "%";
@@ -1168,14 +1364,48 @@ function loop(timestamp) {
     requestAnimationFrame(loop);
 }
 
-document.getElementById('btn-start').addEventListener('click', initGame);
-document.getElementById('btn-restart').addEventListener('click', initGame);
+document.getElementById('btn-start').addEventListener('click', showStageMenu);
+document.getElementById('btn-restart').addEventListener('click', () => {
+    gameOverMenu.classList.add('hidden');
+    startStage(currentStage);
+});
 
 document.getElementById('btn-howtoplay').addEventListener('click', () => { howToPlayModal.classList.remove('hidden'); });
 document.querySelector('.close-btn').addEventListener('click', () => { howToPlayModal.classList.add('hidden'); });
 
-document.getElementById('btn-quit').addEventListener('click', () => { window.top.location.href = '../index.html'; });
-document.getElementById('btn-quit-end').addEventListener('click', () => { window.top.location.href = '../index.html'; });
+btnBackStages?.addEventListener('click', () => {
+    stageMenuElement.classList.add('hidden');
+    mainMenu.classList.remove('hidden');
+});
+
+document.getElementById('btn-next-stage')?.addEventListener('click', () => {
+    if (stageClearOverlayElement) stageClearOverlayElement.classList.add('hidden');
+    if (currentStage < TOTAL_STAGES) {
+        startStage(currentStage + 1);
+    } else {
+        showStageMenu();
+    }
+});
+
+document.getElementById('btn-replay-stage')?.addEventListener('click', () => {
+    if (stageClearOverlayElement) stageClearOverlayElement.classList.add('hidden');
+    startStage(currentStage);
+});
+
+document.getElementById('btn-menu-stages')?.addEventListener('click', () => {
+    if (stageClearOverlayElement) stageClearOverlayElement.classList.add('hidden');
+    showStageMenu();
+});
+
+document.getElementById('btn-quit').addEventListener('click', () => {
+    pauseMenu.classList.add('hidden');
+    showStageMenu();
+});
+document.getElementById('btn-quit-end').addEventListener('click', () => {
+    gameOverMenu.classList.add('hidden');
+    showStageMenu();
+});
+
 document.getElementById('btn-resume').addEventListener('click', togglePause);
 btnPauseHUD?.addEventListener('click', togglePause);
 

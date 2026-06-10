@@ -387,3 +387,99 @@ body {
 @media (max-width: 900px) and (orientation: portrait) {
     .landscape-prompt { display: flex; }
 }
+
+/* Stage Select Grid styling */
+.stage-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    max-width: 450px;
+    margin: 20px auto;
+}
+
+.stage-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    min-height: 70px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+}
+
+.stage-card.unlocked:hover {
+    background: rgba(0, 255, 255, 0.1);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+}
+
+.stage-card.locked {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.stage-num {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stage-stars {
+    display: flex;
+    gap: 2px;
+    font-size: 8px;
+}
+
+.star {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.star.filled {
+    color: #ffd700;
+    text-shadow: 0 0 4px #ffd700;
+}
+
+.lock-icon {
+    font-size: 12px;
+}
+
+/* Clear screen stars */
+.clear-stars {
+    display: flex;
+    gap: 8px;
+    font-size: 36px;
+    justify-content: center;
+}
+
+.clear-star {
+    color: rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.clear-star.filled {
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700;
+    transform: scale(1.1);
+}
+
+@media (max-width: 600px) {
+    .stage-grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 320px;
+        gap: 8px;
+    }
+    .stage-card {
+        min-height: 55px;
+        font-size: 10px;
+    }
+}

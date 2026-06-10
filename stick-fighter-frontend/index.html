@@ -272,9 +272,13 @@
                         <span class="pill-label">Score</span>
                         <span id="ui-score" class="pill-value">0</span>
                     </div>
+                    <div class="score-pill" style="border-color: #ffd700; background: rgba(255, 215, 0, 0.08);">
+                        <span class="pill-label" style="color: #ffd700;">Stage</span>
+                        <span id="ui-stage" class="pill-value" style="color: #ffd700;">1</span>
+                    </div>
                     <div class="score-pill">
-                        <span class="pill-label">Defeated</span>
-                        <span id="ui-kills" class="pill-value">0</span>
+                        <span class="pill-label">Kills</span>
+                        <span id="ui-kills" class="pill-value">0/5</span>
                     </div>
                 </div>
             </div>
@@ -310,7 +314,7 @@
             <!-- Main Menu -->
             <div id="mainMenu" class="menu-overlay">
                 <h1 class="logo-title" style="transform: skew(-10deg);">NEON<br><span style="color:#f0f;">FIGHTER</span></h1>
-                <p>Master the combo to survive the endless horde!</p>
+                <p>Master the combos to clear all 15 stages!</p>
                 <div class="controls-hint">
                     Desktop: &larr;/&rarr; Move | &darr; Attack<br>
                     Mobile: DPAD Move | Tap Right to Strike
@@ -330,7 +334,6 @@
             <div id="gameOverMenu" class="menu-overlay hidden">
                 <h2 style="color: #ff0055; font-family: 'Press Start 2P', Courier;">KNOCKED OUT</h2>
                 <p>Score: <span id="final-score">0</span></p>
-                <p>Enemies Defeated: <span id="final-kills">0</span></p>
                 <button id="btn-restart" class="btn primary-btn">Try Again</button>
                 <button id="btn-quit-end" class="btn secondary-btn">Menu</button>
             </div>
@@ -347,13 +350,34 @@
                     <p><b>Combat System:</b></p>
                     <ul>
                         <li>Press <b>Down Arrow</b> (or STRIKE) to attack!</li>
-                        <li>Single press: Basic Kick.</li>
-                        <li>Rapid Presses: Chain Jab, Punch, and Roundhouse combos!</li>
+                        <li>Combo: Jab &rarr; Kick &rarr; Uppercut &rarr; Slam!</li>
+                        <li>Uppercut launches enemies into the air!</li>
                     </ul>
                     <p><b>Bosses:</b></p>
-                    <p>Every 10 enemies defeated summons a massive Boss!</p>
+                    <p>Unlock new stages by completing targets. Bosses await on milestones!</p>
                 </div>
                 <button class="btn primary-btn close-btn" style="margin-top:20px;">Close</button>
+            </div>
+
+            <!-- Stage Select Menu -->
+            <div id="stageMenu" class="menu-overlay hidden">
+                <h2 style="color: #0df; font-family: 'Press Start 2P', Courier; margin-bottom: 20px; font-size: 1.5rem; text-shadow: 0 0 10px rgba(0, 221, 255, 0.4);">SELECT STAGE</h2>
+                <div id="stage-grid" class="stage-grid">
+                    <!-- Populated dynamically -->
+                </div>
+                <button id="btn-back-stages" class="btn secondary-btn" style="margin-top: 20px;">Back</button>
+            </div>
+
+            <!-- Stage Clear Overlay -->
+            <div id="stageClearOverlay" class="menu-overlay hidden">
+                <h2 style="color: #00ffcc; font-family: 'Press Start 2P', Courier; font-size: 1.8rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); margin-bottom: 15px;">STAGE CLEAR!</h2>
+                <p style="font-size: 1.1rem; color: #fff; margin-bottom: 10px;">Stage <span id="clear-stage-num">1</span> Complete</p>
+                <div id="clear-stars" class="clear-stars" style="margin-bottom: 25px;">
+                    <!-- Stars populated by JS -->
+                </div>
+                <button id="btn-next-stage" class="btn primary-btn">Next Stage</button>
+                <button id="btn-replay-stage" class="btn secondary-btn">Replay</button>
+                <button id="btn-menu-stages" class="btn secondary-btn">Select Stage</button>
             </div>
         </div>
 
@@ -381,7 +405,7 @@
     
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Juice_v2"></script>
+    <script src="script.js?v=ArcadeHub_Stages_v1"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {
