@@ -32,6 +32,7 @@ document.querySelectorAll('.btn-hub').forEach(btn => {
 let gameState = 'menu'; // menu, playing, paused, gameover
 let lastTime = 0;
 let score = 0;
+let stageStartScore = 0;
 let kills = 0;
 let timeSinceLastInput = 0;
 
@@ -128,13 +129,35 @@ function generateEnvironment() {
 }
 
 function updateEnvironment(deltaTime) {
-    // Twinkle stars
-    stars.forEach(s => {
-        s.alpha += s.speed * deltaTime;
-        if (s.alpha > 1 || s.alpha < 0) {
-            s.speed = -s.speed;
-        }
-    });
+    const theme = getStageTheme(currentStage);
+    if (theme.bgStyle === 'stars') {
+        // Twinkle stars
+        stars.forEach(s => {
+            s.alpha += s.speed * deltaTime;
+            if (s.alpha > 1 || s.alpha < 0) {
+                s.speed = -s.speed;
+            }
+        });
+    } else if (theme.bgStyle === 'matrix') {
+        // Fall down like code rain
+        stars.forEach(s => {
+            s.y += (1.5 + s.size * 2) * deltaTime;
+            if (s.y > groundY - 20) {
+                s.y = Math.random() * -100;
+                s.x = Math.random() * canvas.width;
+            }
+        });
+    } else if (theme.bgStyle === 'meteor') {
+        // Move diagonally down-left
+        stars.forEach(s => {
+            s.x -= (2 + s.size * 3) * deltaTime;
+            s.y += (1 + s.size * 1.5) * deltaTime;
+            if (s.y > groundY - 20 || s.x < 0) {
+                s.y = Math.random() * -100;
+                s.x = Math.random() * canvas.width + 100;
+            }
+        });
+    }
     // Move clouds
     clouds.forEach(c => {
         c.x -= c.speed * deltaTime;
@@ -299,7 +322,13 @@ class Entity {
         this.state = 'idle'; // idle, run, attack1, attack2, attack3, hit, dead
         this.stateFrame = 0;
         
-        this.maxHp = isBoss ? 600 : (color === '#0ff' ? 100 : 30); 
+        if (color === '#0ff') {
+            this.maxHp = 100;
+        } else if (isBoss) {
+            this.maxHp = 600 + (currentStage - 1) * 50;
+        } else {
+            this.maxHp = 30 + (currentStage - 1) * 5;
+        }
         this.hp = this.maxHp;
         this.isBoss = isBoss;
         
@@ -378,6 +407,40 @@ function getStageConfig(stageNum) {
     return { targetKills, hasBoss };
 }
 
+function getStageTheme(stageNum) {
+    if (stageNum <= 5) {
+        return {
+            skyGradient: ['#0a0518', '#1b0e35', '#3d163d', '#65113d'],
+            sunColor: ['#ffe600', '#ff5a00', '#ff0077'],
+            sunGlow: '#ff0077',
+            gridColor: 'rgba(255, 0, 255, 0.25)',
+            gridHorizon: '#ff00ff',
+            enemyColor: '#f0f',
+            bgStyle: 'stars'
+        };
+    } else if (stageNum <= 10) {
+        return {
+            skyGradient: ['#050d05', '#0c1a0e', '#132c18', '#1c4524'],
+            sunColor: ['#a3ff00', '#41ff00', '#00ff3c'],
+            sunGlow: '#00ff3c',
+            gridColor: 'rgba(0, 255, 60, 0.25)',
+            gridHorizon: '#00ff3c',
+            enemyColor: '#ffd700',
+            bgStyle: 'matrix'
+        };
+    } else {
+        return {
+            skyGradient: ['#05051a', '#0d0c35', '#161355', '#241a7c'],
+            sunColor: ['#00ffff', '#3d00ff', '#8f00ff'],
+            sunGlow: '#8f00ff',
+            gridColor: 'rgba(0, 150, 255, 0.25)',
+            gridHorizon: '#0099ff',
+            enemyColor: '#ff3c00',
+            bgStyle: 'meteor'
+        };
+    }
+}
+
 // Stage Progress LocalStorage Helpers
 function loadStageProgress() {
     const saved = localStorage.getItem('stickfighter_progress');
@@ -451,6 +514,13 @@ function startStage(stageNum) {
     stageTargetKills = config.targetKills;
     stageKills = 0;
     
+    if (stageNum === 1) {
+        score = 0;
+        stageStartScore = 0;
+    } else {
+        score = stageStartScore;
+    }
+    
     initGame();
     
     spawnFloatingText(canvas.width / 2, 200, `STAGE ${currentStage}`, "#00ffff");
@@ -469,6 +539,9 @@ function stageComplete() {
     else if (hpPercent >= 0.3) earnedStars = 2;
     
     saveStageProgress(currentStage, earnedStars);
+    
+    // Save current score as the starting score for the next stage
+    stageStartScore = score;
     
     const clearStageNum = document.getElementById('clear-stage-num');
     if (clearStageNum) clearStageNum.textContent = currentStage;
@@ -493,6 +566,7 @@ function spawnEnemy() {
     const x = canvas.width / 2 + (side * (canvas.width/2 + 50));
     
     const config = getStageConfig(currentStage);
+    const theme = getStageTheme(currentStage);
     
     // Spawn boss as the last enemy if this stage has one
     if (config.hasBoss && stageKills === config.targetKills - 1 && !enemies.some(e => e.isBoss)) {
@@ -509,7 +583,7 @@ function spawnEnemy() {
     } else {
         // Prevent spawning extra normal enemies if target has been reached or is being completed by active fights
         if (stageKills + enemies.length >= config.targetKills) return;
-        enemies.push(new Entity(x, '#f0f', false));
+        enemies.push(new Entity(x, theme.enemyColor, false));
     }
 }
 
@@ -519,7 +593,7 @@ function initGame() {
     enemies = [];
     particles = [];
     floatingTexts = [];
-    score = 0;
+    score = stageStartScore;
     kills = 0;
     comboCount = 0;
     comboTimer = 0;
@@ -851,7 +925,7 @@ function checkHitbox(attacker, defender) {
         let finalDamage = h.damage;
         let isPlayerSwordHit = (attacker === player && playerWeapon === 'sword');
         if (isPlayerSwordHit) {
-            finalDamage = defender.isBoss ? 75 : 35;
+            finalDamage = defender.isBoss ? 75 : defender.hp;
         }
         
         if (h.type === 'attack4' && attacker === player && !defender.isBoss) {
@@ -893,7 +967,6 @@ function checkHitbox(attacker, defender) {
             flashColor = '#ff003c';
             screenShake = 12;
         } else {
-            score += finalDamage * 10;
             spawnFloatingText(defender.x, defender.y - 80, finalDamage, "#ff0");
             
             if (comboCount > 1 && uiCombo) {
@@ -1072,7 +1145,7 @@ function update(deltaTime) {
                 spawnFloatingText(player.x, player.y - 100, "+40 HP!", "#00ff66");
                 playSound('heavy');
             }
-            score += e.isBoss ? 5000 : 500;
+            score += e.isBoss ? 50 : 10;
             if (e.isBoss && window.achievements) window.achievements.unlock('stickfighter', 'boss_kill', 'Giant Slayer');
             createHitSparks(e.x, e.y-40, e.color);
             
@@ -1107,15 +1180,19 @@ function update(deltaTime) {
         else {
             const dist = player.x - e.x;
             const reach = e.isBoss ? 70 : 50;
+            const speedFactor = 1 + (currentStage - 1) * 0.05;
+            const attackFactor = 1 + (currentStage - 1) * 0.04;
             if (Math.abs(dist) > reach) {
-                const speed = e.isBoss ? 1.67 : 1.33; // 100/60, 80/60
+                const baseSpeed = e.isBoss ? 1.67 : 1.33;
+                const speed = baseSpeed * speedFactor;
                 e.dir = dist > 0 ? 1 : -1;
                 e.x += e.dir * speed * deltaTime;
                 e.state = 'run';
             } else {
                 e.state = 'idle';
                 e.dir = dist > 0 ? 1 : -1;
-                if (Math.random() < (e.isBoss ? 0.18 : 0.12)) {
+                const baseAttackProb = e.isBoss ? 0.18 : 0.12;
+                if (Math.random() < (baseAttackProb * attackFactor * deltaTime)) {
                     executeAttack(e);
                 }
             }
@@ -1163,18 +1240,36 @@ function updateHUD() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    const theme = getStageTheme(currentStage);
+    
     // 1. Draw static sky elements (Sky Gradient, Stars, Sunset Sun, Clouds)
     const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
-    skyGrad.addColorStop(0, '#0a0518');
-    skyGrad.addColorStop(0.4, '#1b0e35');
-    skyGrad.addColorStop(0.7, '#3d163d');
-    skyGrad.addColorStop(1, '#65113d');
+    skyGrad.addColorStop(0, theme.skyGradient[0]);
+    skyGrad.addColorStop(0.4, theme.skyGradient[1]);
+    skyGrad.addColorStop(0.7, theme.skyGradient[2]);
+    skyGrad.addColorStop(1, theme.skyGradient[3]);
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, canvas.width, groundY);
     
     stars.forEach(s => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, s.alpha))})`;
-        ctx.fillRect(s.x, s.y, s.size, s.size);
+        ctx.save();
+        if (theme.bgStyle === 'stars') {
+            ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, s.alpha))})`;
+            ctx.fillRect(s.x, s.y, s.size, s.size);
+        } else if (theme.bgStyle === 'matrix') {
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = '#00ff3c';
+            ctx.fillStyle = `rgba(0, 255, 60, ${0.3 + s.alpha * 0.7})`;
+            ctx.fillRect(s.x, s.y, s.size * 1.5, s.size * 8);
+        } else if (theme.bgStyle === 'meteor') {
+            ctx.strokeStyle = `rgba(143, 0, 255, ${0.4 + s.alpha * 0.6})`;
+            ctx.lineWidth = s.size;
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(s.x + s.size * 6, s.y - s.size * 3);
+            ctx.stroke();
+        }
+        ctx.restore();
     });
     
     const sunR = 80;
@@ -1183,12 +1278,12 @@ function draw() {
     
     ctx.save();
     const sunGrad = ctx.createLinearGradient(sunX, sunY - sunR, sunX, sunY);
-    sunGrad.addColorStop(0, '#ffe600');
-    sunGrad.addColorStop(0.5, '#ff5a00');
-    sunGrad.addColorStop(1, '#ff0077');
+    sunGrad.addColorStop(0, theme.sunColor[0]);
+    sunGrad.addColorStop(0.5, theme.sunColor[1]);
+    sunGrad.addColorStop(1, theme.sunColor[2]);
     ctx.fillStyle = sunGrad;
     ctx.shadowBlur = 35;
-    ctx.shadowColor = '#ff0077';
+    ctx.shadowColor = theme.sunGlow;
     ctx.beginPath();
     ctx.arc(sunX, sunY, sunR, Math.PI, 0, false);
     ctx.fill();
@@ -1197,15 +1292,15 @@ function draw() {
     for (let i = 1; i <= 6; i++) {
         const thickness = 2 + i * 0.8;
         const ly = sunY - i * 11;
-        ctx.fillStyle = '#2f1233';
+        ctx.fillStyle = theme.skyGradient[0];
         ctx.fillRect(sunX - sunR - 10, ly, (sunR + 10) * 2, thickness);
     }
     
     clouds.forEach(c => {
         ctx.save();
-        ctx.fillStyle = 'rgba(255, 0, 128, 0.08)';
+        ctx.fillStyle = theme.gridHorizon + '14';
         ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(255, 0, 128, 0.2)';
+        ctx.shadowColor = theme.gridHorizon + '33';
         drawRoundedRect(c.x, c.y, c.width, c.height, c.height / 2);
         ctx.restore();
     });
@@ -1222,7 +1317,7 @@ function draw() {
     ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
     
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 0, 255, 0.25)';
+    ctx.strokeStyle = theme.gridColor;
     ctx.lineWidth = 1.5;
     
     // Flat vertical lines
@@ -1245,10 +1340,10 @@ function draw() {
     }
     ctx.restore();
     
-    ctx.strokeStyle = '#ff00ff';
+    ctx.strokeStyle = theme.gridHorizon;
     ctx.lineWidth = 3;
     ctx.shadowBlur = 8;
-    ctx.shadowColor = '#ff00ff';
+    ctx.shadowColor = theme.gridHorizon;
     ctx.beginPath();
     ctx.moveTo(0, groundY);
     ctx.lineTo(canvas.width, groundY);
