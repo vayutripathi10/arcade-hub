@@ -151,7 +151,7 @@
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
                     <div class="play-console" id="playConsoleContainer">
-                        <iframe class="play-iframe" id="gameIframe" src="cyber-survivor-frontend/index.html?v=ArcadeHub_CyberSurvivor_Juice_v9" title="Cyber Survivor"></iframe>
+                        <iframe class="play-iframe" id="gameIframe" src="cyber-survivor-frontend/index.html?v=ArcadeHub_CyberSurvivor_Juice_v10" title="Cyber Survivor"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
@@ -337,6 +337,14 @@
                                 e.preventDefault();
                             }, { passive: false });
                             
+                            // Prevent scrolling keys from bubbling up to parent window
+                            iframeDoc.addEventListener('keydown', (e) => {
+                                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) || 
+                                    [' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }, { passive: false });
+                            
                             locksBound = true;
                             console.log("Iframe touch/wheel locks bound successfully.");
                         }
@@ -363,6 +371,14 @@
             // Bulletproof scroll-locking listener for iOS viewport bounces
             document.body.addEventListener('touchmove', (e) => {
                 if (document.body.style.overflow === 'hidden') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Prevent scrolling keys when focus is on parent page
+            window.addEventListener('keydown', (e) => {
+                if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) || 
+                    [' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                     e.preventDefault();
                 }
             }, { passive: false });
