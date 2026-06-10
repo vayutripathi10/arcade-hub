@@ -856,7 +856,7 @@ const hubGameOverBtn = document.getElementById('hub-gameover-btn');
 hubGameOverBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     MusicSynth.stop();
-    window.location.href = '../index.html';
+    window.top.location.href = '../index.html';
 });
 
 
