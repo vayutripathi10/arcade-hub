@@ -35,9 +35,32 @@ let score = 0;
 let kills = 0;
 let timeSinceLastInput = 0;
 
-// Camera / World
+// Camera / World / FX
 const groundY = 450;
 let shakeTime = 0;
+let screenShake = 0;
+let flashAlpha = 0;
+let flashColor = '#ffffff';
+
+// Environment
+let stars = [];
+let clouds = [];
+let groundScroll = 0;
+let gridYOffset = 0;
+const STAR_COUNT = 60;
+const CLOUD_COUNT = 4;
+
+// Custom Visual FX
+let slashArcs = [];
+let impactRings = [];
+let playerGhosts = [];
+let ghostSpawnTimer = 0;
+
+// Weapon Drops
+let weaponDrop = null;
+let playerWeapon = null; // 'sword' or null
+let weaponCharges = 0;
+let lastWeaponSpawnKills = -1;
 
 // Combo System
 let comboCount = 0;
@@ -53,6 +76,191 @@ function playSound(type) {
         if (type === 'swing' && window.audioFX.playJump) window.audioFX.playJump();
         if (type === 'gameover' && window.audioFX.playGameOver) window.audioFX.playGameOver();
     } catch(e) {}
+}
+
+// Landscape Orientation Prompt Handler
+const dismissBtn = document.getElementById('dismissLandscapeBtn');
+const landscapePrompt = document.getElementById('landscapePrompt');
+dismissBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    landscapePrompt?.classList.add('dismissed');
+    window.dispatchEvent(new Event('resize'));
+});
+window.addEventListener('resize', () => {
+    if (window.innerWidth > window.innerHeight) {
+        landscapePrompt?.classList.remove('dismissed');
+    }
+});
+
+// Environment Helpers
+function generateEnvironment() {
+    stars = [];
+    for (let i = 0; i < STAR_COUNT; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * (groundY - 120),
+            size: Math.random() * 2 + 0.5,
+            alpha: Math.random(),
+            speed: 0.01 + Math.random() * 0.02
+        });
+    }
+    clouds = [];
+    for (let i = 0; i < CLOUD_COUNT; i++) {
+        clouds.push({
+            x: Math.random() * canvas.width,
+            y: 40 + Math.random() * 120,
+            width: 80 + Math.random() * 100,
+            height: 20 + Math.random() * 15,
+            speed: 0.05 + Math.random() * 0.1
+        });
+    }
+}
+
+function updateEnvironment(deltaTime) {
+    // Twinkle stars
+    stars.forEach(s => {
+        s.alpha += s.speed * deltaTime;
+        if (s.alpha > 1 || s.alpha < 0) {
+            s.speed = -s.speed;
+        }
+    });
+    // Move clouds
+    clouds.forEach(c => {
+        c.x -= c.speed * deltaTime;
+        if (c.x + c.width < 0) {
+            c.x = canvas.width;
+            c.y = 40 + Math.random() * 120;
+        }
+    });
+}
+
+function drawRoundedRect(x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+// Visual FX Classes
+class SlashArc {
+    constructor(x, y, dir, type, color) {
+        this.x = x;
+        this.y = y;
+        this.dir = dir;
+        this.type = type;
+        this.color = color;
+        this.maxLife = type === 'attack3' ? 250 : 150; // ms
+        this.life = this.maxLife;
+    }
+    
+    update(deltaTime) {
+        this.life -= deltaTime * 16.67;
+    }
+    
+    draw(ctx) {
+        const progress = 1 - (this.life / this.maxLife);
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(this.dir, 1);
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineCap = 'round';
+        
+        ctx.globalAlpha = Math.max(0, 1 - progress);
+        
+        if (this.type === 'attack1') {
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(-10, -5);
+            ctx.lineTo(40 * progress, 0);
+            ctx.stroke();
+            
+            // Inner white core
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-10, -5);
+            ctx.lineTo(40 * progress, 0);
+            ctx.stroke();
+        } else if (this.type === 'attack2') {
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(10, 0, 35, -Math.PI / 3, Math.PI / 3, false);
+            ctx.stroke();
+            
+            // Inner white core
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(10, 0, 35, -Math.PI / 3, Math.PI / 3, false);
+            ctx.stroke();
+        } else if (this.type === 'attack3') {
+            ctx.lineWidth = 10;
+            const radius = 20 + progress * 50;
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, -Math.PI * 0.8, Math.PI * 0.8, false);
+            ctx.stroke();
+            
+            // Inner white core
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, -Math.PI * 0.8, Math.PI * 0.8, false);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+}
+
+class ImpactRing {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = 5;
+        this.maxRadius = 40 + Math.random() * 20;
+        this.life = 200; // ms
+        this.maxLife = 200;
+    }
+    
+    update(deltaTime) {
+        this.life -= deltaTime * 16.67;
+        const progress = 1 - (this.life / this.maxLife);
+        this.radius = progress * this.maxRadius;
+    }
+    
+    draw(ctx) {
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3 * (this.life / this.maxLife);
+        ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Inner white core
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1 * (this.life / this.maxLife);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
 }
 
 // Entities
@@ -124,6 +332,8 @@ function resize() {
     canvas.width = root.clientWidth;
     canvas.height = totalH - headerH - pStripH - bStripH;
     
+    generateEnvironment();
+    
     if (window.innerWidth <= 800) {
         document.getElementById('mobile-controls').classList.remove('hidden');
     } else {
@@ -168,6 +378,20 @@ function initGame() {
     comboCount = 0;
     comboTimer = 0;
     shakeTime = 0;
+    screenShake = 0;
+    flashAlpha = 0;
+    
+    slashArcs = [];
+    impactRings = [];
+    playerGhosts = [];
+    ghostSpawnTimer = 0;
+    
+    weaponDrop = null;
+    playerWeapon = null;
+    weaponCharges = 0;
+    lastWeaponSpawnKills = -1;
+    
+    generateEnvironment();
     
     updateHUD();
     if (bossHealthStrip) bossHealthStrip.classList.add('hidden');
@@ -292,6 +516,46 @@ function drawStickman(ctx, ent) {
     ctx.moveTo(0, -30); ctx.lineTo(r_leg.x, r_leg.y); ctx.lineTo(r_foot.x, r_foot.y); 
     ctx.stroke();
     
+    // Draw Held Weapon (Neon Sword)
+    if (ent === player && playerWeapon === 'sword' && ent.hp > 0) {
+        ctx.save();
+        let hand = (ent.state === 'attack1') ? l_hand : r_hand;
+        ctx.translate(hand.x, hand.y);
+        
+        let swordAngle = -Math.PI / 4; 
+        if (ent.state === 'attack1' || ent.state === 'attack2') {
+            swordAngle = Math.PI / 6; 
+        } else if (ent.state === 'attack3') {
+            swordAngle = -Math.PI / 1.5; 
+        }
+        ctx.rotate(swordAngle);
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff3300';
+        ctx.strokeStyle = '#ff3300';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -35);
+        ctx.stroke();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -32);
+        ctx.stroke();
+        
+        ctx.strokeStyle = '#ffcc00';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-5, -5);
+        ctx.lineTo(5, -5);
+        ctx.stroke();
+        
+        ctx.restore();
+    }
+    
     ctx.restore();
     
     if (ent !== player && ent.hp > 0 && !ent.isBoss) {
@@ -329,6 +593,16 @@ function executeAttack(ent) {
         comboCount++;
         playSound('swing');
         
+        if (playerWeapon === 'sword') {
+            weaponCharges--;
+            if (weaponCharges <= 0) {
+                playerWeapon = null;
+                playSound('heavy');
+                spawnFloatingText(player.x, player.y - 100, "SWORD BROKE!", "#ff003c");
+                createHitSparks(player.x, player.y - 40, '#ff003c');
+            }
+        }
+        
         if (comboCount === 2) {
             attackType = 'attack2'; damage = 10; knockback = 10; atkTime = 300;
         } else if (comboCount >= 3) {
@@ -346,17 +620,26 @@ function executeAttack(ent) {
     ent.state = attackType;
     ent.stateFrame = atkTime;
     
+    const isSword = (ent === player && playerWeapon === 'sword');
     ent.attackHitbox = {
-        offsetX: 40,
+        offsetX: isSword ? 55 : 40,
         offsetY: -45,
-        w: attackType === 'attack3' ? 80 : 50,
-        h: attackType === 'attack3' ? 60 : 50,
+        w: (attackType === 'attack3' ? 80 : 50) * (isSword ? 1.4 : 1),
+        h: (attackType === 'attack3' ? 60 : 50) * (isSword ? 1.2 : 1),
         type: attackType,
         damage, knockback,
         active: true
     };
     
-    if (attackType === 'attack3' && ent === player) shakeTime = 150;
+    // Spawn custom Slash Arc
+    const slashColor = isSword ? '#ff6600' : ent.color;
+    const slashX = ent.x + ent.dir * (ent.isBoss ? 55 : (isSword ? 50 : 35));
+    const slashY = ent.y + (attackType === 'attack3' ? -40 : -50);
+    slashArcs.push(new SlashArc(slashX, slashY, ent.dir, attackType, slashColor));
+    
+    if (attackType === 'attack3' && ent === player) {
+        screenShake = 15;
+    }
 }
 
 function checkHitbox(attacker, defender) {
@@ -373,24 +656,44 @@ function checkHitbox(attacker, defender) {
         
         if (h.type !== 'attack3') attacker.attackHitbox.active = false; 
         
+        let finalDamage = h.damage;
+        let isPlayerSwordHit = (attacker === player && playerWeapon === 'sword');
+        if (isPlayerSwordHit) {
+            finalDamage = h.damage * 2;
+        }
+        
         if (h.type === 'attack3' && attacker === player && !defender.isBoss) {
             defender.hp = 0; 
+            flashAlpha = 0.35;
+            flashColor = '#ffffff';
+            screenShake = 20;
         } else {
-            defender.hp -= h.damage;
+            defender.hp -= finalDamage;
+            if (attacker === player && h.type === 'attack3') {
+                flashAlpha = 0.25;
+                flashColor = '#ffffff';
+                screenShake = 18;
+            }
         }
         defender.hitStun = 300; 
         defender.vx = attacker.dir * h.knockback; 
         defender.state = 'hit';
         
-        createHitSparks(defender.x, defender.y - 40, attacker.color);
+        const sparkColor = isPlayerSwordHit ? '#ff6600' : attacker.color;
+        createHitSparks(defender.x, defender.y - 40, sparkColor);
+        impactRings.push(new ImpactRing(defender.x, defender.y - 40, sparkColor));
+        
+        screenShake = Math.max(screenShake, h.knockback > 10 ? 15 : 6);
         playSound(h.knockback > 10 ? 'heavy' : 'hit');
         
         if (defender === player) {
-            shakeTime = 200;
             comboCount = 0; 
+            flashAlpha = 0.25;
+            flashColor = '#ff003c';
+            screenShake = 12;
         } else {
-            score += h.damage * 10;
-            spawnFloatingText(defender.x, defender.y - 80, h.damage, "#ff0");
+            score += finalDamage * 10;
+            spawnFloatingText(defender.x, defender.y - 80, finalDamage, "#ff0");
             
             if (comboCount > 1 && uiCombo) {
                 uiCombo.classList.remove('hidden');
@@ -405,6 +708,102 @@ function checkHitbox(attacker, defender) {
 
 function update(deltaTime) {
     if (shakeTime > 0) shakeTime -= deltaTime * 16.67;
+    if (screenShake > 0.1) screenShake *= Math.pow(0.85, deltaTime);
+    else screenShake = 0;
+    
+    if (flashAlpha > 0) {
+        flashAlpha -= 0.05 * deltaTime;
+        if (flashAlpha < 0) flashAlpha = 0;
+    }
+    
+    updateEnvironment(deltaTime);
+    gridYOffset = (gridYOffset + 0.005 * deltaTime) % 1;
+    
+    let playerSpeedX = 0;
+    if (player.hitStun <= 0 && !player.state.startsWith('attack')) {
+        const speed = 4.16;
+        if (keys.left) playerSpeedX = -speed;
+        else if (keys.right) playerSpeedX = speed;
+    }
+    const totalMovement = playerSpeedX + player.vx;
+    groundScroll += totalMovement * 0.8 * deltaTime;
+    
+    // Weapon Drop Logic
+    if (kills > 0 && kills % 10 === 0 && lastWeaponSpawnKills !== kills) {
+        lastWeaponSpawnKills = kills;
+        weaponDrop = {
+            x: player.x,
+            y: -50,
+            vy: 5,
+            active: true,
+            color: '#ff3300',
+            glowColor: '#ff6600',
+            onGround: false
+        };
+        spawnFloatingText(player.x, 100, "WEAPON INCOMING!", "#ff6600");
+    }
+    
+    if (weaponDrop && weaponDrop.active) {
+        if (!weaponDrop.onGround) {
+            weaponDrop.y += weaponDrop.vy * deltaTime;
+            if (weaponDrop.y >= groundY) {
+                weaponDrop.y = groundY;
+                weaponDrop.onGround = true;
+                weaponDrop.vy = 0;
+            }
+        } else {
+            // Slide towards player
+            const dx = player.x - weaponDrop.x;
+            if (Math.abs(dx) > 5) {
+                weaponDrop.x += Math.sign(dx) * 2 * deltaTime;
+            }
+        }
+        
+        // Collision detection
+        const distToPlayer = Math.abs(weaponDrop.x - player.x);
+        if (distToPlayer < 50 && Math.abs(weaponDrop.y - player.y) < 50) {
+            playerWeapon = 'sword';
+            weaponCharges = 15;
+            weaponDrop = null;
+            playSound('heavy');
+            spawnFloatingText(player.x, player.y - 100, "NEON SWORD!", "#ff6600");
+            createHitSparks(player.x, player.y - 40, '#ff6600');
+            flashAlpha = 0.25;
+            flashColor = '#ff6600';
+            screenShake = 10;
+        }
+    }
+    
+    // Update visual FX lists
+    slashArcs.forEach(sa => sa.update(deltaTime));
+    slashArcs = slashArcs.filter(sa => sa.life > 0);
+    
+    impactRings.forEach(ir => ir.update(deltaTime));
+    impactRings = impactRings.filter(ir => ir.life > 0);
+    
+    playerGhosts.forEach(g => {
+        g.life -= 0.04 * deltaTime;
+    });
+    playerGhosts = playerGhosts.filter(g => g.life > 0);
+    
+    ghostSpawnTimer -= deltaTime * 16.67;
+    if (ghostSpawnTimer <= 0) {
+        const isHighSpeed = Math.abs(player.vx) > 3 || player.state === 'run' || player.state === 'attack3';
+        if (isHighSpeed && player.hp > 0) {
+            playerGhosts.push({
+                x: player.x,
+                y: player.y,
+                dir: player.dir,
+                state: player.state,
+                stateFrame: player.stateFrame,
+                color: player.color,
+                life: 1.0,
+                isBoss: player.isBoss
+            });
+            ghostSpawnTimer = 60; // spawn every 60ms
+        }
+    }
+    
     if (comboTimer > 0) {
         comboTimer -= deltaTime * 16.67;
         if (comboTimer <= 0) {
@@ -466,6 +865,11 @@ function update(deltaTime) {
         
         if (e.hp <= 0) {
             kills++;
+            if (kills % 40 === 0) {
+                player.hp = Math.min(player.maxHp, player.hp + 40);
+                spawnFloatingText(player.x, player.y - 100, "+40 HP!", "#00ff66");
+                playSound('heavy');
+            }
             score += e.isBoss ? 5000 : 500;
             if (e.isBoss && window.achievements) window.achievements.unlock('stickfighter', 'boss_kill', 'Giant Slayer');
             createHitSparks(e.x, e.y-40, e.color);
@@ -544,17 +948,164 @@ function updateHUD() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // 1. Draw static sky elements (Sky Gradient, Stars, Sunset Sun, Clouds)
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+    skyGrad.addColorStop(0, '#0a0518');
+    skyGrad.addColorStop(0.4, '#1b0e35');
+    skyGrad.addColorStop(0.7, '#3d163d');
+    skyGrad.addColorStop(1, '#65113d');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, canvas.width, groundY);
+    
+    stars.forEach(s => {
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0, Math.min(1, s.alpha))})`;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+    });
+    
+    const sunR = 80;
+    const sunX = canvas.width / 2;
+    const sunY = groundY;
+    
     ctx.save();
-    if (shakeTime > 0) {
-        ctx.translate((Math.random()-0.5)*10, (Math.random()-0.5)*10);
+    const sunGrad = ctx.createLinearGradient(sunX, sunY - sunR, sunX, sunY);
+    sunGrad.addColorStop(0, '#ffe600');
+    sunGrad.addColorStop(0.5, '#ff5a00');
+    sunGrad.addColorStop(1, '#ff0077');
+    ctx.fillStyle = sunGrad;
+    ctx.shadowBlur = 35;
+    ctx.shadowColor = '#ff0077';
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunR, Math.PI, 0, false);
+    ctx.fill();
+    ctx.restore();
+    
+    for (let i = 1; i <= 6; i++) {
+        const thickness = 2 + i * 0.8;
+        const ly = sunY - i * 11;
+        ctx.fillStyle = '#2f1233';
+        ctx.fillRect(sunX - sunR - 10, ly, (sunR + 10) * 2, thickness);
     }
     
-    ctx.strokeStyle = '#222';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(canvas.width, groundY); ctx.stroke();
+    clouds.forEach(c => {
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 0, 128, 0.08)';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(255, 0, 128, 0.2)';
+        drawRoundedRect(c.x, c.y, c.width, c.height, c.height / 2);
+        ctx.restore();
+    });
     
+    // 2. Shake camera for entities & ground
+    ctx.save();
+    let shakeAmt = Math.max(screenShake, (shakeTime > 0 ? 10 : 0));
+    if (shakeAmt > 0) {
+        ctx.translate((Math.random() - 0.5) * shakeAmt, (Math.random() - 0.5) * shakeAmt);
+    }
+    
+    // 3. Draw Perspective Synthwave Grid Ground
+    ctx.fillStyle = '#05050f';
+    ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+    
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 0, 255, 0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = '#ff00ff';
+    
+    const centerX = canvas.width / 2;
+    const stepX = 80;
+    const startX = -stepX * 10 - (groundScroll % stepX);
+    for (let x = startX; x < canvas.width + stepX * 10; x += stepX) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, groundY);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    
+    for (let i = 0; i < 9; i++) {
+        let t = (i + gridYOffset) / 9;
+        let y = groundY + Math.pow(t, 2.8) * (canvas.height - groundY);
+        ctx.strokeStyle = `rgba(255, 0, 255, ${t * 0.7})`;
+        ctx.lineWidth = 1 + t * 2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+    ctx.restore();
+    
+    ctx.strokeStyle = '#ff00ff';
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#ff00ff';
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(canvas.width, groundY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    // Draw Weapon Drop
+    if (weaponDrop && weaponDrop.active) {
+        ctx.save();
+        ctx.translate(weaponDrop.x, weaponDrop.y - 15);
+        const spinAngle = (performance.now() / 250);
+        ctx.rotate(spinAngle);
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = weaponDrop.glowColor;
+        ctx.strokeStyle = weaponDrop.color;
+        ctx.lineWidth = 3;
+        
+        ctx.beginPath();
+        ctx.moveTo(0, -15);
+        ctx.lineTo(0, 10);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(-5, 5);
+        ctx.lineTo(5, 5);
+        ctx.stroke();
+        
+        ctx.restore();
+        
+        ctx.save();
+        ctx.font = 'bold 8px "Press Start 2P"';
+        ctx.fillStyle = '#ff6600';
+        ctx.textAlign = 'center';
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#ff3300';
+        ctx.fillText("SWORD", weaponDrop.x, weaponDrop.y - 30);
+        ctx.restore();
+    }
+    
+    // Draw Player Ghost Trails
+    playerGhosts.forEach(g => {
+        ctx.save();
+        ctx.globalAlpha = g.life * 0.3;
+        
+        const tempEnt = {
+            x: g.x,
+            y: g.y,
+            dir: g.dir,
+            state: g.state,
+            stateFrame: g.stateFrame,
+            color: '#00ffff',
+            isBoss: g.isBoss,
+            hitStun: 0,
+            hp: 0,
+            maxHp: 1
+        };
+        drawStickman(ctx, tempEnt);
+        ctx.restore();
+    });
+    
+    // Draw Entities
     enemies.forEach(e => drawStickman(ctx, e));
     if (player) drawStickman(ctx, player);
+    
+    // Draw combat visual effects
+    slashArcs.forEach(sa => sa.draw(ctx));
+    impactRings.forEach(ir => ir.draw(ctx));
     
     particles.forEach(p => {
         ctx.fillStyle = p.color;
@@ -574,7 +1125,14 @@ function draw() {
     });
     ctx.globalAlpha = 1.0;
     
-    ctx.restore();
+    ctx.restore(); // Restore shake camera translate
+    
+    if (flashAlpha > 0) {
+        ctx.fillStyle = flashColor;
+        ctx.globalAlpha = flashAlpha;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1.0;
+    }
 }
 
 function loop(timestamp) {

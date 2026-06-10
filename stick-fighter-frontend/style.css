@@ -339,3 +339,51 @@ body {
     25% { transform: translate(-4px, 4px); }
     75% { transform: translate(4px, -4px); }
 }
+
+/* Landscape Prompt */
+.landscape-prompt {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 14, 20, 0.98);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    text-align: center;
+    padding: 20px;
+    font-family: 'Outfit', sans-serif;
+}
+
+.landscape-prompt h2 {
+    font-size: 1.8rem;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.landscape-prompt p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.landscape-prompt.dismissed {
+    display: none !important;
+}
+
+.rotate-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    animation: rotatePhone 2s infinite ease-in-out;
+    display: inline-block;
+}
+
+@keyframes rotatePhone {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+    .landscape-prompt { display: flex; }
+}
