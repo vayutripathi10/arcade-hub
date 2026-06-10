@@ -270,3 +270,37 @@ body {
     .pill-label { font-size: 7px; }
     .pill-value { font-size: 1rem; }
 }
+
+/* Landscape Prompt */
+.landscape-prompt {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 15, 0.98);
+    z-index: 99999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    text-align: center;
+    padding: 20px;
+}
+
+.landscape-prompt.dismissed {
+    display: none !important;
+}
+
+.rotate-icon {
+    font-size: 4rem;
+    color: var(--primary);
+    animation: rotatePhone 2s infinite ease-in-out;
+}
+
+@keyframes rotatePhone {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-90deg); }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+    .landscape-prompt { display: flex; }
+}
