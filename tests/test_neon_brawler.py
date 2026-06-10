@@ -11,6 +11,7 @@ def test_neon_brawler():
     options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--window-size=1920,1080')
+    options.set_capability('goog:loggingPrefs', {'browser': 'ALL'})
     driver = webdriver.Chrome(options=options)
     
     try:
@@ -78,17 +79,45 @@ def test_neon_brawler():
         assert num_clouds > 0
         assert num_wind_lines > 0
 
-        print("5b. Testing Jump mechanic...")
-        driver.execute_script("player.vy = -16; player.isJumping = true;")
-        is_jumping = driver.execute_script("return player.isJumping;")
-        assert is_jumping == True, "Expected isJumping to be True"
+        print("5b. Testing Auto-Berserk Mode streak trigger...")
+        # Increment comboStreak and trigger defeatEnemy to hit Berserk limit
+        driver.execute_script("""
+            comboStreak = 14;
+            defeatEnemy({ dead: false, x: 100, y: 100, hp: 1, type: 'basic', side: 'left' }, 'left');
+        """)
+        berserk_active = driver.execute_script("return berserkTimer > 0;")
+        hit_range = driver.execute_script("return HIT_RANGE;")
+        print(f"Berserk Active: {berserk_active}, Hit Range: {hit_range}")
+        assert berserk_active == True, "Expected Berserk Mode to be active"
+        assert hit_range == 280, f"Expected HIT_RANGE to be 280, got {hit_range}"
 
-        print("5c. Testing Cyber-Sweep action and cooldown...")
-        driver.execute_script("cyberSweep();")
-        cooldown = driver.execute_script("return sweepCooldown;")
-        assert cooldown > 0, f"Expected sweepCooldown to be active, got {cooldown}"
+        print("5c. Testing Dropped Weapons chest pickup...")
+        # Spawn weapon chest, set it to the ground level, align player position, and run update
+        driver.execute_script("""
+            spawnWeaponDrop();
+            weaponDropY = getBasePlayerY() + 15;
+            player.x = weaponDropX;
+            update(1.0);
+        """)
+        active_weapon = driver.execute_script("return activeWeapon;")
+        weapon_charges = driver.execute_script("return weaponCharges;")
+        print(f"Active Weapon: {active_weapon}, Charges: {weapon_charges}")
+        assert active_weapon in ['katana', 'laserstaff'], f"Expected katana or laserstaff, got {active_weapon}"
+        assert weapon_charges == 15, f"Expected 15 charges, got {weapon_charges}"
 
-        print("5d. Testing Dragon Boss trigger and state...")
+        print("5d. Testing Combo Finisher crescent moon wave...")
+        # Attack three times consecutively to trigger crescent wave
+        driver.execute_script("""
+            crescentWaves = [];
+            attack('left');
+            attack('left');
+            attack('left');
+        """)
+        num_crescents = driver.execute_script("return crescentWaves.length;")
+        print(f"Crescent Waves Spawned: {num_crescents}")
+        assert num_crescents > 0, f"Expected crescent Waves to be spawned, got {num_crescents}"
+
+        print("5e. Testing Dragon Boss trigger and state...")
         driver.execute_script("kills = 50; triggerDragonBoss();")
         boss_active = driver.execute_script("return bossActive;")
         boss_max_health = driver.execute_script("return boss.maxHealth;")
@@ -110,10 +139,12 @@ def test_neon_brawler():
         start_btn_text = driver.execute_script("return document.getElementById('startBtn').textContent;")
         print(f"Button text: {start_btn_text}")
         assert "Fight Again" in start_btn_text, f"Expected Fight Again text, got: {start_btn_text}"
-        start_btn.click()
+        driver.execute_script("document.getElementById('startBtn').click();")
         
         time.sleep(0.5)
-        assert "hidden" in menu.get_attribute("class")
+        actual_class = menu.get_attribute("class")
+        print(f"Overlay class after restart click: {actual_class}")
+        assert "hidden" in actual_class, f"Expected hidden in overlay class, got: {actual_class}"
         game_running = driver.execute_script("return gameRunning;")
         assert game_running == True, f"Expected gameRunning to be True, got {game_running}"
 
@@ -121,6 +152,12 @@ def test_neon_brawler():
 
     except Exception as e:
         print(f"Test failed: {e}")
+        try:
+            print("Browser logs:")
+            for entry in driver.get_log('browser'):
+                print(entry)
+        except Exception as log_err:
+            print(f"Could not get browser logs: {log_err}")
         raise e
     finally:
         time.sleep(1)

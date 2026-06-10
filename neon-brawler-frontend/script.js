@@ -54,6 +54,9 @@ let slashArcs = [];
 let impactRings = [];
 let exhaustSparks = [];
 let floatingTexts = [];
+let crescentWaves = [];
+let laserBeams = [];
+let berserkRings = [];
 let flashAlpha = 0;
 let flashColor = '#ffffff';
 let milestoneText = "";
@@ -67,11 +70,28 @@ let boss = null;
 let warningTimer = 0;
 let kills = 0;
 let warningText = 'WARNING: BOSS INCOMING';
-let sweepCooldown = 0;
-const SWEEP_MAX_COOLDOWN = 300; // 5 seconds at 60fps
+
+// Berserk Mode State
+let comboStreak = 0;
+let berserkTimer = 0;
+const BERSERK_DURATION = 300; // 5 seconds
+
+// Dropped Weapons State
+let activeWeapon = null; // null, 'katana', 'laserstaff'
+let weaponCharges = 0;
+let weaponDropActive = false;
+let weaponDropX = 0;
+let weaponDropY = 0;
+let weaponDropType = 'katana';
+let weaponDropTimer = 0;
+
+// Combo Finisher State
+let consecutiveAttacks = 0;
+let lastAttackDirection = null;
+let lastAttackTime = 0;
 
 const STAGE_COLORS = ['#00ffcc', '#bc13fe', '#ff3366'];
-const HIT_RANGE = 140; 
+let HIT_RANGE = 140; 
 const KILL_RANGE = 35; 
 const BOSS_THRESHOLD = 100;
 const getBasePlayerY = () => CANVAS_H / 2 + 50;
@@ -88,12 +108,23 @@ function initGame() {
     impactRings = [];
     exhaustSparks = [];
     floatingTexts = [];
+    crescentWaves = [];
+    laserBeams = [];
+    berserkRings = [];
     flashAlpha = 0;
     milestoneText = "";
     milestoneTimer = 0;
     kills = 0;
     warningText = 'WARNING: BOSS INCOMING';
-    sweepCooldown = 0;
+    comboStreak = 0;
+    berserkTimer = 0;
+    HIT_RANGE = 140;
+    activeWeapon = null;
+    weaponCharges = 0;
+    weaponDropActive = false;
+    consecutiveAttacks = 0;
+    lastAttackDirection = null;
+    lastAttackTime = 0;
     
     player = {
         x: CANVAS_W / 2,
@@ -102,9 +133,7 @@ function initGame() {
         timer: 0,
         lives: 3,
         invulnerable: false,
-        invulnTimer: 0,
-        vy: 0,
-        isJumping: false
+        invulnTimer: 0
     };
     currentStage = 0;
     bossActive = false;
@@ -154,23 +183,185 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
+function spawnWeaponDrop() {
+    weaponDropActive = true;
+    weaponDropX = 100 + Math.random() * (CANVAS_W - 200);
+    weaponDropY = 0;
+    weaponDropType = weaponDropType === 'katana' ? 'laserstaff' : 'katana';
+    weaponDropTimer = 0;
+}
+
+function defeatEnemy(e, direction, isKatana = false) {
+    if (e.dead) return;
+    
+    e.dead = true;
+    e.vx = direction === 'left' ? -18 : 18;
+    e.vy = -12;
+    e.rotation = 0;
+    e.rotationSpeed = direction === 'left' ? -0.25 : 0.25;
+    
+    comboStreak++;
+    if (comboStreak === 15 && berserkTimer <= 0) {
+        berserkTimer = BERSERK_DURATION;
+        HIT_RANGE = 280; // Double range
+        flashAlpha = 0.6;
+        flashColor = '#ff00ea'; // Fuchsia
+        floatingTexts.push(new FloatingText(player.x, player.y - 50, "BERSERK ACTIVE!", '#ff00ea'));
+        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+            window.audioFX.playLevelUp();
+        }
+    }
+    
+    kills++;
+    if (kills === 50 && !bossActive) {
+        triggerDragonBoss();
+    } else if (score === BOSS_THRESHOLD && !bossActive) {
+        triggerBoss();
+    }
+    
+    // Check weapon drops trigger (every 20 kills)
+    if (kills > 0 && kills % 20 === 0) {
+        spawnWeaponDrop();
+    }
+    
+    const pointsGained = (berserkTimer > 0) ? 2 : 1;
+    score += pointsGained;
+    scoreEl.textContent = score;
+
+    // Handle Katana Cut Splitting
+    if (isKatana) {
+        // Splitting stickman in half
+        enemies.splice(enemies.indexOf(e), 1); // remove from active
+        
+        // Spawn dead upper half
+        enemies.push({
+            x: e.x,
+            y: e.y,
+            vx: direction === 'left' ? -20 : 20,
+            vy: -15,
+            rotation: 0,
+            rotationSpeed: direction === 'left' ? -0.35 : 0.35,
+            dead: true,
+            type: 'deadUpper',
+            side: e.side,
+            color: e.color || STAGE_COLORS[currentStage]
+        });
+        
+        // Spawn dead lower half
+        enemies.push({
+            x: e.x,
+            y: e.y,
+            vx: direction === 'left' ? -14 : 14,
+            vy: -8,
+            rotation: 0,
+            rotationSpeed: direction === 'left' ? -0.15 : 0.15,
+            dead: true,
+            type: 'deadLower',
+            side: e.side,
+            color: e.color || STAGE_COLORS[currentStage]
+        });
+        
+        // Neon Red Blood Spray
+        for (let i = 0; i < 20; i++) {
+            particles.push({
+                x: e.x,
+                y: e.y - 15,
+                vx: (direction === 'left' ? -1 : 1) * (6 + Math.random() * 12) + (Math.random() - 0.5) * 5,
+                vy: -4 - Math.random() * 10,
+                life: 0.8 + Math.random() * 0.4,
+                color: '#ff003c', // glowing neon blood red!
+                isBlood: true
+            });
+        }
+        
+        impactRings.push(new ImpactRing(e.x, e.y, '#ff003c'));
+        if (window.audioFX) window.audioFX.playEat();
+    } else {
+        // Standard death particles and impact rings
+        spawnParticles(e.x, e.y, STAGE_COLORS[currentStage]);
+        impactRings.push(new ImpactRing(e.x, e.y, STAGE_COLORS[currentStage]));
+        if (window.audioFX) window.audioFX.playEat();
+    }
+
+    // Milestone check
+    if ([10, 25, 50, 75, 100].includes(score)) {
+        if (score === 10) milestoneText = "10 STREAK: WARM UP!";
+        else if (score === 25) milestoneText = "25 STREAK: UNSTOPPABLE!";
+        else if (score === 50) milestoneText = "50 STREAK: DOMINATING!";
+        else if (score === 75) milestoneText = "75 STREAK: SKY BRAWLER!";
+        else if (score === 100) milestoneText = "100 STREAK: ASCENDED GOD!";
+        
+        milestoneTimer = 100;
+        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+            window.audioFX.playLevelUp();
+        }
+    }
+
+    // Evolution / Stage Logic
+    if (score > 0 && score % 50 === 0) {
+        currentStage = Math.min(2, Math.floor(score / 50));
+        comboGlow = 30;
+        if (navigator.vibrate) navigator.vibrate(100);
+    }
+}
+
 function attack(direction) {
     if (!gameRunning || isPaused || player.state === 'dead') return;
     
     player.state = direction === 'left' ? 'attackLeft' : 'attackRight';
     player.timer = 8; 
 
+    // Adjust attack range depending on weapon & Berserk
+    let currentHitRange = HIT_RANGE;
+    if (berserkTimer > 0) {
+        currentHitRange = 280;
+    } else if (activeWeapon === 'katana') {
+        currentHitRange = 210; // +50% range
+    }
+
     // Spawn attack slash arc
     const arcX = player.x + (direction === 'left' ? -25 : 25);
     const arcY = player.y - 20;
-    slashArcs.push(new SlashArc(arcX, arcY, STAGE_COLORS[currentStage], direction));
+    slashArcs.push(new SlashArc(arcX, arcY, activeWeapon === 'katana' ? '#ff3300' : (activeWeapon === 'laserstaff' ? '#bc13fe' : STAGE_COLORS[currentStage]), direction));
     
+    // Check for Combo Finisher Wave trigger (Idea 3)
+    let isFinisher = false;
+    if (direction === lastAttackDirection && Date.now() - lastAttackTime < 450) {
+        consecutiveAttacks++;
+        if (consecutiveAttacks === 3) {
+            isFinisher = true;
+            consecutiveAttacks = 0;
+        }
+    } else {
+        consecutiveAttacks = 1;
+        lastAttackDirection = direction;
+    }
+    lastAttackTime = Date.now();
+
+    if (isFinisher) {
+        crescentWaves.push(new CrescentWave(player.x, player.y - 20, '#ffffff', direction));
+        floatingTexts.push(new FloatingText(player.x, player.y - 40, "FINISHER!", '#ffffff'));
+        screenShake = 12;
+    }
+
+    // If Laser Staff is active, shoot staff wave (Idea 2)
+    if (activeWeapon === 'laserstaff') {
+        laserBeams.push(new LaserBeam(player.x, player.y - 20, '#bc13fe', direction));
+        weaponCharges--;
+        if (weaponCharges <= 0) activeWeapon = null;
+    }
+
+    // If Berserk is active, release expanding shockwave ring (Idea 1)
+    if (berserkTimer > 0) {
+        berserkRings.push(new BerserkRing(player.x, player.y));
+    }
+
     // Boss projectile reflection check
     if (bossActive && boss) {
         boss.projectiles.forEach(p => {
             if (!p.reflected && ((direction === 'left' && p.x < player.x) || (direction === 'right' && p.x > player.x))) {
                 let dist = Math.abs(p.x - player.x);
-                if (dist < HIT_RANGE) {
+                if (dist < currentHitRange) {
                     p.reflected = true;
                     p.vx = -p.vx * 1.5;
                     screenShake = 5;
@@ -195,93 +386,45 @@ function attack(direction) {
         }
     }
     
-    if (closestEnemy && closestDist < HIT_RANGE) {
-        // Check for perfect strike timing!
-        const isPerfect = closestDist >= 105 && closestDist <= 140;
-        const damageDealt = isPerfect ? 2 : 1;
-        closestEnemy.hp -= damageDealt;
-        
-        if (closestEnemy.hp <= 0) {
-            closestEnemy.dead = true;
-            closestEnemy.vx = (direction === 'left' ? -18 : 18);
-            closestEnemy.vy = -12;
-            closestEnemy.rotation = 0;
-            closestEnemy.rotationSpeed = direction === 'left' ? -0.25 : 0.25;
-            
-            const pointsGained = isPerfect ? 2 : 1;
-            score += pointsGained;
-            scoreEl.textContent = score;
-            
-            // Impact effects
-            spawnParticles(closestEnemy.x, closestEnemy.y, STAGE_COLORS[currentStage]);
-            impactRings.push(new ImpactRing(closestEnemy.x, closestEnemy.y, isPerfect ? '#ffcc00' : STAGE_COLORS[currentStage]));
-            
-            if (isPerfect) {
-                // Flash screen white for perfect timing
-                flashAlpha = 0.55;
-                flashColor = '#ffffff';
-                floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "PERFECT! +2", '#ffcc00'));
-                screenShake = closestEnemy.type === 'elite' ? 16 : 10;
-                
-                // Extra blast particles
-                for (let i = 0; i < 15; i++) {
-                    particles.push({
-                        x: closestEnemy.x, y: closestEnemy.y,
-                        vx: (Math.random() - 0.5) * 18,
-                        vy: (Math.random() - 0.5) * 18,
-                        life: 1.0, color: '#ffffff'
-                    });
-                }
-                
-                if (window.audioFX) {
-                    if (typeof window.audioFX.playExplosion === 'function') {
-                        window.audioFX.playExplosion();
-                    } else {
-                        window.audioFX.playEat();
-                    }
-                }
-            } else {
-                floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "HIT", STAGE_COLORS[currentStage]));
-                screenShake = closestEnemy.type === 'elite' ? 8 : 3;
-                if (window.audioFX) window.audioFX.playEat();
-            }
-
-            // Milestone check
-            if ([10, 25, 50, 75, 100].includes(score)) {
-                if (score === 10) milestoneText = "10 STREAK: WARM UP!";
-                else if (score === 25) milestoneText = "25 STREAK: UNSTOPPABLE!";
-                else if (score === 50) milestoneText = "50 STREAK: DOMINATING!";
-                else if (score === 75) milestoneText = "75 STREAK: SKY BRAWLER!";
-                else if (score === 100) milestoneText = "100 STREAK: ASCENDED GOD!";
-                
-                milestoneTimer = 100;
-                if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
-                    window.audioFX.playLevelUp();
-                }
-            }
-
-            // Evolution / Stage Logic
-            if (score > 0 && score % 50 === 0) {
-                currentStage = Math.min(2, Math.floor(score / 50));
-                comboGlow = 30;
-                if (navigator.vibrate) navigator.vibrate(100);
-            }
-
-            kills++;
-            if (kills === 50 && !bossActive) {
-                triggerDragonBoss();
-            } else if (score === BOSS_THRESHOLD && !bossActive) {
-                triggerBoss();
-            }
-        } else {
-            // Shield hit
+    if (closestEnemy && closestDist < currentHitRange) {
+        // Block check: Katana ignores block/shield
+        if (closestEnemy.type === 'elite' && closestEnemy.hp > 1 && activeWeapon !== 'katana') {
+            // Shield blocks normal attacks
             spawnParticles(closestEnemy.x, closestEnemy.y, '#ffffff');
             floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "BLOCK", '#ffffff'));
             if (window.audioFX) window.audioFX.playJump();
             screenShake = 4;
+            return;
+        }
+
+        // Check for perfect strike timing!
+        const isPerfect = closestDist >= 105 && closestDist <= 140;
+        let damageDealt = isPerfect ? 2 : 1;
+        
+        if (activeWeapon === 'katana') {
+            damageDealt = isPerfect ? 4 : 2; // Katana deals double damage
+        }
+        
+        closestEnemy.hp -= damageDealt;
+        
+        if (closestEnemy.hp <= 0) {
+            defeatEnemy(closestEnemy, direction, activeWeapon === 'katana');
+            
+            if (activeWeapon === 'katana') {
+                weaponCharges--;
+                if (weaponCharges <= 0) activeWeapon = null;
+            }
+        } else {
+            // Hit feedback
+            floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, activeWeapon === 'katana' ? "SLASH!" : "HIT", STAGE_COLORS[currentStage]));
+            screenShake = closestEnemy.type === 'elite' ? 8 : 3;
+            if (window.audioFX) window.audioFX.playEat();
+            
+            // Push back slightly
+            closestEnemy.x += direction === 'left' ? -20 : 20;
         }
     } else {
-        if (window.audioFX) window.audioFX.playJump(); 
+        if (window.audioFX) window.audioFX.playJump();
     }
 }
 
@@ -305,57 +448,8 @@ function takeDamage() {
     }
 }
 
-function cyberSweep() {
-    if (!gameRunning || isPaused || player.state === 'dead' || sweepCooldown > 0) return;
-    
-    sweepCooldown = SWEEP_MAX_COOLDOWN;
-    
-    // Visual and sound effects
-    flashAlpha = 0.5;
-    flashColor = '#00ffff';
-    screenShake = 15;
-    
-    if (window.audioFX) {
-        window.audioFX.playLevelUp(); // play epic sweep sound
-    }
-    
-    // Spawns a massive impact ring
-    impactRings.push(new ImpactRing(player.x, player.y, '#00ffff'));
-    impactRings.push(new ImpactRing(player.x, player.y, '#bc13fe'));
-    
-    // Spawn float text
-    floatingTexts.push(new FloatingText(player.x, player.y - 40, "CYBER SWEEP!", '#00ffff'));
-    
-    // Hit all active enemies within 200px range
-    for (let e of enemies) {
-        if (e.dead) continue;
-        let dist = Math.abs(e.x - player.x);
-        if (dist < 200) {
-            e.hp -= 3; // Massive damage!
-            if (e.hp <= 0) {
-                e.dead = true;
-                e.vx = (e.x < player.x ? -22 : 22);
-                e.vy = -15;
-                e.rotation = 0;
-                e.rotationSpeed = e.x < player.x ? -0.35 : 0.35;
-                
-                kills++;
-                if (kills === 50 && !bossActive) {
-                    triggerDragonBoss();
-                }
-                score += 2; // sweep kills reward points
-                scoreEl.textContent = score;
-                spawnParticles(e.x, e.y, STAGE_COLORS[currentStage]);
-                impactRings.push(new ImpactRing(e.x, e.y, STAGE_COLORS[currentStage]));
-            } else {
-                // Knockback without killing
-                e.vx = (e.x < player.x ? -10 : 10);
-                spawnParticles(e.x, e.y, '#ffffff');
-                floatingTexts.push(new FloatingText(e.x, e.y - 30, "KNOCKBACK", '#ffffff'));
-            }
-        }
-    }
-}
+// cyberSweep removed
+
 
 function triggerBoss() {
     bossActive = true;
@@ -729,6 +823,141 @@ class Dragon {
     }
 }
 
+class CrescentWave {
+    constructor(x, y, color, direction) {
+        this.x = x;
+        this.y = y;
+        this.vx = direction === 'left' ? -12 : 12;
+        this.color = color;
+        this.direction = direction;
+        this.life = 1.0;
+        this.width = 15;
+        this.height = 70;
+    }
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.life -= 0.03 * deltaTime;
+        
+        // Collision check with enemies
+        for (let e of enemies) {
+            if (e.dead) continue;
+            if (Math.abs(e.x - this.x) < 40) {
+                e.hp -= 2;
+                e.vx = this.vx * 1.5; // High knockback
+                if (e.hp <= 0) {
+                    defeatEnemy(e, this.direction);
+                } else {
+                    spawnParticles(e.x, e.y, this.color);
+                }
+            }
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        // Draw crescent moon arc
+        const startY = this.y - this.height/2;
+        const endY = this.y + this.height/2;
+        if (this.direction === 'left') {
+            ctx.moveTo(this.x + this.width, startY);
+            ctx.quadraticCurveTo(this.x - this.width, this.y, this.x + this.width, endY);
+        } else {
+            ctx.moveTo(this.x - this.width, startY);
+            ctx.quadraticCurveTo(this.x + this.width, this.y, this.x - this.width, endY);
+        }
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class LaserBeam {
+    constructor(x, y, color, direction) {
+        this.x = x;
+        this.y = y;
+        this.vx = direction === 'left' ? -15 : 15;
+        this.color = color;
+        this.direction = direction;
+        this.life = 1.0;
+    }
+    update(deltaTime) {
+        this.x += this.vx * deltaTime;
+        this.life -= 0.04 * deltaTime;
+        
+        // Collision check with enemies
+        for (let e of enemies) {
+            if (e.dead) continue;
+            if (Math.abs(e.x - this.x) < 50) {
+                e.hp -= 2;
+                e.vx = this.vx * 1.2;
+                if (e.hp <= 0) {
+                    defeatEnemy(e, this.direction);
+                } else {
+                    spawnParticles(e.x, e.y, this.color);
+                }
+            }
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 8;
+        ctx.globalAlpha = this.life;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y - 40);
+        ctx.lineTo(this.x, this.y + 20);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class BerserkRing {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.r = 10;
+        this.maxR = 300;
+        this.color = '#ff00ea'; // Hot pink berserk color
+        this.life = 1.0;
+    }
+    update(deltaTime) {
+        this.r += 12 * deltaTime;
+        this.life = 1.0 - (this.r / this.maxR);
+        
+        // Damage check
+        for (let e of enemies) {
+            if (e.dead) continue;
+            let dist = Math.abs(e.x - this.x);
+            if (dist < this.r && dist > this.r - 30) {
+                e.hp -= 1;
+                e.vx = (e.x < this.x ? -15 : 15);
+                if (e.hp <= 0) {
+                    defeatEnemy(e, e.x < this.x ? 'left' : 'right');
+                } else {
+                    spawnParticles(e.x, e.y, this.color);
+                }
+            }
+        }
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = this.color;
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = this.life;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y - 10, this.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
 class Star {
     constructor() {
         this.x = Math.random() * CANVAS_W;
@@ -1008,20 +1237,38 @@ function gameOver() {
 }
 
 function update(deltaTime) {
-    // Jump physics update
-    const baseY = getBasePlayerY();
-    if (player.isJumping) {
-        player.vy += 0.85 * deltaTime;
-        player.y += player.vy * deltaTime;
-        if (player.y >= baseY) {
-            player.y = baseY;
-            player.vy = 0;
-            player.isJumping = false;
+    // Berserk timer update
+    if (berserkTimer > 0) {
+        berserkTimer -= deltaTime;
+        if (berserkTimer <= 0) {
+            HIT_RANGE = 140; // Revert attack range
         }
     }
 
-    if (sweepCooldown > 0) {
-        sweepCooldown -= deltaTime;
+    // Update weapon drop physics (float down to deck Y)
+    if (weaponDropActive) {
+        const deckY = getBasePlayerY() + 15;
+        if (weaponDropY < deckY) {
+            weaponDropY += 3.0 * deltaTime;
+        } else {
+            weaponDropY = deckY;
+        }
+        
+        // Check pickup distance
+        if (Math.abs(player.x - weaponDropX) < 45 && Math.abs(player.y - weaponDropY) < 50) {
+            activeWeapon = weaponDropType;
+            weaponCharges = 15;
+            weaponDropActive = false;
+            
+            // Pickup feedback
+            flashAlpha = 0.4;
+            flashColor = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
+            floatingTexts.push(new FloatingText(player.x, player.y - 45, weaponDropType === 'katana' ? "NEON KATANA ACQUIRED!" : "LASER STAFF ACQUIRED!", flashColor));
+            
+            if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+                window.audioFX.playLevelUp();
+            }
+        }
     }
 
     if (player.state === 'attackLeft' || player.state === 'attackRight') {
@@ -1063,6 +1310,16 @@ function update(deltaTime) {
     floatingTexts.forEach(ft => ft.update(deltaTime));
     floatingTexts = floatingTexts.filter(ft => ft.life > 0);
 
+    // Update custom weapon waves
+    crescentWaves.forEach(w => w.update(deltaTime));
+    crescentWaves = crescentWaves.filter(w => w.life > 0);
+    
+    laserBeams.forEach(w => w.update(deltaTime));
+    laserBeams = laserBeams.filter(w => w.life > 0);
+    
+    berserkRings.forEach(r => r.update(deltaTime));
+    berserkRings = berserkRings.filter(r => r.life > 0);
+
     if (!bossActive) {
         spawnTimer += deltaTime;
         if (spawnTimer >= spawnInterval) {
@@ -1099,8 +1356,7 @@ function update(deltaTime) {
             if (e.y > CANVAS_H + 100) enemies.splice(i, 1);
         } else {
             let dist = Math.abs(e.x - player.x);
-            const playerNearGround = Math.abs(player.y - getBasePlayerY()) < 25;
-            if (dist < KILL_RANGE && playerNearGround) {
+            if (dist < KILL_RANGE) {
                 takeDamage();
                 if (e.hp > 0) { // Push back slightly
                     e.x += e.side === 'left' ? -50 * deltaTime : 50 * deltaTime; 
@@ -1112,6 +1368,9 @@ function update(deltaTime) {
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         p.x += p.vx * deltaTime;
+        if (p.isBlood) {
+            p.vy += 0.4 * deltaTime; // blood falling gravity!
+        }
         p.y += p.vy * deltaTime;
         p.life -= 0.04 * deltaTime;
         if (p.life <= 0) particles.splice(i, 1);
@@ -1217,6 +1476,39 @@ function draw() {
     // Draw exhaust sparks
     exhaustSparks.forEach(es => es.draw(ctx));
 
+    // Draw custom weapon waves/rings
+    crescentWaves.forEach(w => w.draw(ctx));
+    laserBeams.forEach(w => w.draw(ctx));
+    berserkRings.forEach(r => r.draw(ctx));
+
+    // Draw falling/resting weapon drop chests
+    if (weaponDropActive) {
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
+        ctx.fillStyle = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        
+        // Draw a diamond shape at weaponDropX, weaponDropY
+        ctx.beginPath();
+        ctx.moveTo(weaponDropX, weaponDropY - 12);
+        ctx.lineTo(weaponDropX + 10, weaponDropY);
+        ctx.lineTo(weaponDropX, weaponDropY + 12);
+        ctx.lineTo(weaponDropX - 10, weaponDropY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Draw float text/glow label above
+        ctx.font = 'bold 9px "Outfit", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.shadowBlur = 5;
+        ctx.fillText(weaponDropType === 'katana' ? 'KATANA' : 'STAFF', weaponDropX, weaponDropY - 20);
+        ctx.restore();
+    }
+
     // Range Indicator (glowing floor segment under player)
     ctx.fillStyle = currentStage > 0 ? `rgba(${currentStage === 1 ? '188, 19, 254' : '255, 51, 102'}, 0.05)` : 'rgba(0, 255, 204, 0.03)';
     ctx.fillRect(player.x - HIT_RANGE, player.y - 40, HIT_RANGE*2, 60);
@@ -1269,6 +1561,92 @@ function draw() {
     ctx.stroke();
     ctx.restore();
 
+    // Draw held weapon
+    if (activeWeapon && player.state !== 'dead') {
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.lineWidth = 4;
+        if (activeWeapon === 'katana') {
+            ctx.strokeStyle = '#ff3300';
+            ctx.shadowColor = '#ff3300';
+            if (player.state === 'attackLeft') {
+                // Katana slash left
+                ctx.beginPath();
+                ctx.moveTo(px - 30, py - 18);
+                ctx.lineTo(px - 60, py - 30);
+                ctx.stroke();
+                // Hilt
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(px - 30, py - 18);
+                ctx.lineTo(px - 35, py - 20);
+                ctx.stroke();
+            } else if (player.state === 'attackRight') {
+                // Katana slash right
+                ctx.beginPath();
+                ctx.moveTo(px + 30, py - 18);
+                ctx.lineTo(px + 60, py - 30);
+                ctx.stroke();
+                // Hilt
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(px + 30, py - 18);
+                ctx.lineTo(px + 35, py - 20);
+                ctx.stroke();
+            } else {
+                // Idle - Katana on back
+                ctx.beginPath();
+                ctx.moveTo(px - 8, py - 32);
+                ctx.lineTo(px + 12, py - 12);
+                ctx.stroke();
+                // Hilt
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(px + 8, py - 16);
+                ctx.lineTo(px + 12, py - 12);
+                ctx.stroke();
+            }
+        } else if (activeWeapon === 'laserstaff') {
+            ctx.strokeStyle = '#bc13fe';
+            ctx.shadowColor = '#bc13fe';
+            if (player.state === 'attackLeft') {
+                // Laser staff left
+                ctx.beginPath();
+                ctx.moveTo(px - 35, py - 38);
+                ctx.lineTo(px - 35, py - 2);
+                ctx.stroke();
+                // Glowing tips
+                ctx.strokeStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(px - 35, py - 38, 2, 0, Math.PI * 2);
+                ctx.arc(px - 35, py - 2, 2, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (player.state === 'attackRight') {
+                // Laser staff right
+                ctx.beginPath();
+                ctx.moveTo(px + 35, py - 38);
+                ctx.lineTo(px + 35, py - 2);
+                ctx.stroke();
+                // Glowing tips
+                ctx.strokeStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(px + 35, py - 38, 2, 0, Math.PI * 2);
+                ctx.arc(px + 35, py - 2, 2, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                // Idle staff on back
+                ctx.beginPath();
+                ctx.moveTo(px - 10, py - 35);
+                ctx.lineTo(px + 10, py - 5);
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+    }
+
     // Hexagonal energy shield bubble
     if (player.invulnerable) {
         ctx.save();
@@ -1296,12 +1674,17 @@ function draw() {
     }
     
     for (let e of enemies) {
-        ctx.shadowBlur = e.dead ? 0 : 15;
-        let eColor = e.dead ? '#333' : (e.type === 'elite' ? '#ffcc00' : '#ff3366');
-        ctx.shadowColor = eColor;
-        ctx.strokeStyle = eColor;
+        let eColor;
+        if (e.type === 'deadUpper' || e.type === 'deadLower') {
+            eColor = e.color || '#ff3366';
+        } else {
+            eColor = e.dead ? '#333' : (e.type === 'elite' ? '#ffcc00' : '#ff3366');
+        }
         
         ctx.save();
+        ctx.shadowBlur = e.dead ? 10 : 15;
+        ctx.shadowColor = eColor;
+        ctx.strokeStyle = eColor;
         ctx.lineWidth = e.type === 'elite' ? 6.5 : 5.0; // Make enemies thick & bold!
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -1326,17 +1709,31 @@ function draw() {
             ctx.restore();
         }
 
-        ctx.arc(0, -30, 9, 0, Math.PI * 2); // Head
-        ctx.moveTo(0, -21); ctx.lineTo(0, 0); // Spine
-        ctx.moveTo(0, 0); ctx.lineTo(-stride, 25); // Leg 1
-        ctx.moveTo(0, 0); ctx.lineTo(stride, 25); // Leg 2
-        
-        if (e.dead) {
-            ctx.moveTo(0, -10); ctx.lineTo(-20, -20);
-            ctx.moveTo(0, -10); ctx.lineTo(20, -20);
+        if (e.type === 'deadUpper') {
+            // Render only head, upper spine, arms
+            ctx.arc(0, -30, 9, 0, Math.PI * 2); // Head
+            ctx.moveTo(0, -21); ctx.lineTo(0, -10); // Upper Spine
+            ctx.moveTo(0, -10); ctx.lineTo(-20, -20); // Dead arm L
+            ctx.moveTo(0, -10); ctx.lineTo(20, -20); // Dead arm R
+        } else if (e.type === 'deadLower') {
+            // Render only legs, lower spine
+            ctx.moveTo(0, -10); ctx.lineTo(0, 0); // Lower Spine
+            ctx.moveTo(0, 0); ctx.lineTo(-stride, 25); // Leg 1
+            ctx.moveTo(0, 0); ctx.lineTo(stride, 25); // Leg 2
         } else {
-            ctx.moveTo(0, -10); ctx.lineTo(-armSwing - 10, 0); // Arm L
-            ctx.moveTo(0, -10); ctx.lineTo(armSwing + 10, 0); // Arm R
+            // Standard full stickman
+            ctx.arc(0, -30, 9, 0, Math.PI * 2); // Head
+            ctx.moveTo(0, -21); ctx.lineTo(0, 0); // Spine
+            ctx.moveTo(0, 0); ctx.lineTo(-stride, 25); // Leg 1
+            ctx.moveTo(0, 0); ctx.lineTo(stride, 25); // Leg 2
+            
+            if (e.dead) {
+                ctx.moveTo(0, -10); ctx.lineTo(-20, -20);
+                ctx.moveTo(0, -10); ctx.lineTo(20, -20);
+            } else {
+                ctx.moveTo(0, -10); ctx.lineTo(-armSwing - 10, 0); // Arm L
+                ctx.moveTo(0, -10); ctx.lineTo(armSwing + 10, 0); // Arm R
+            }
         }
         ctx.stroke();
         ctx.restore();
@@ -1381,59 +1778,50 @@ function draw() {
         ctx.restore();
     }
 
-    // Draw Cyber-Sweep Cooldown Indicator (top-left, next to HUD)
+    // Draw active weapon and Berserk HUD indicators
     ctx.save();
-    const cx = 40;
-    const cy = 60; // Slightly lower so it doesn't overlap the HOME button
-    const r = 18;
+    let hudY = 70; // Position below HTML header
     
-    // Outer circle
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-    
-    // Cooldown sweep arc
-    if (sweepCooldown > 0) {
-        const pct = sweepCooldown / SWEEP_MAX_COOLDOWN;
-        ctx.strokeStyle = '#bc13fe';
-        ctx.shadowColor = '#bc13fe';
-        ctx.shadowBlur = 10;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        // Draw clockwise counter arc
-        ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - pct));
-        ctx.stroke();
-        
-        ctx.font = 'bold 9px "Outfit", sans-serif';
-        ctx.fillStyle = '#bc13fe';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(Math.ceil(sweepCooldown / 60) + 's', cx, cy);
-    } else {
-        ctx.strokeStyle = '#00ffcc';
-        ctx.shadowColor = '#00ffcc';
+    // 1. Berserk Indicator
+    if (berserkTimer > 0) {
+        const secondsLeft = (berserkTimer / 60).toFixed(1);
         ctx.shadowBlur = 15;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.shadowColor = '#ff00ea';
+        ctx.fillStyle = '#ff00ea';
         
-        ctx.font = 'bold 8px "Outfit", sans-serif';
-        ctx.fillStyle = '#00ffcc';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('READY', cx, cy);
+        ctx.font = 'bold 12px "Outfit", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`🔥 BERSERK: ${secondsLeft}s`, 25, hudY);
+        
+        // Progress bar
+        ctx.fillStyle = 'rgba(255, 0, 234, 0.2)';
+        ctx.fillRect(25, hudY + 8, 120, 6);
+        ctx.fillStyle = '#ff00ea';
+        ctx.fillRect(25, hudY + 8, 120 * (berserkTimer / BERSERK_DURATION), 6);
+        
+        hudY += 30;
     }
     
-    ctx.font = 'bold 9px "Outfit", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 3;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('SWEEP (S)', cx + r + 8, cy);
+    // 2. Weapon Charges Indicator
+    if (activeWeapon) {
+        const isKatana = activeWeapon === 'katana';
+        const weaponColor = isKatana ? '#ff3300' : '#bc13fe';
+        const weaponName = isKatana ? 'NEON KATANA' : 'LASER STAFF';
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = weaponColor;
+        ctx.fillStyle = weaponColor;
+        
+        ctx.font = 'bold 12px "Outfit", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`⚔️ ${weaponName}: ${weaponCharges} hits`, 25, hudY);
+        
+        // Progress bar for weapon charges (max 15 charges)
+        ctx.fillStyle = isKatana ? 'rgba(255, 51, 0, 0.2)' : 'rgba(188, 19, 254, 0.2)';
+        ctx.fillRect(25, hudY + 8, 120, 6);
+        ctx.fillStyle = weaponColor;
+        ctx.fillRect(25, hudY + 8, 120 * (weaponCharges / 15), 6);
+    }
     ctx.restore();
 
     // Fullscreen Flash Overlay
@@ -1468,36 +1856,6 @@ function loop(timestamp = 0) {
 }
 
 startBtn.addEventListener('click', initGame);
-let touchStartY = 0;
-let touchStartX = 0;
-
-function handleTouchStart(e) {
-    const touch = e.touches[0];
-    touchStartY = touch.clientY;
-    touchStartX = touch.clientX;
-}
-
-function handleTouchEnd(e, zone) {
-    if (e.changedTouches.length === 0) return;
-    const touch = e.changedTouches[0];
-    const diffY = touch.clientY - touchStartY;
-    
-    // Check for swipe gestures
-    if (diffY < -40) {
-        // Swipe Up -> JUMP!
-        if (player && !player.isJumping) {
-            player.vy = -16;
-            player.isJumping = true;
-            if (window.audioFX) window.audioFX.playJump();
-        }
-    } else if (diffY > 40) {
-        // Swipe Down -> CYBER SWEEP!
-        cyberSweep();
-    } else {
-        // Tap -> Attack!
-        attack(zone);
-    }
-}
 
 window.addEventListener('keydown', (e) => {
     if (!gameRunning) {
@@ -1507,25 +1865,13 @@ window.addEventListener('keydown', (e) => {
     if (isPaused) return;
     if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') attack('left');
     if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') attack('right');
-    if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w' || e.key === ' ') {
-        e.preventDefault();
-        if (player && !player.isJumping) {
-            player.vy = -16;
-            player.isJumping = true;
-            if (window.audioFX) window.audioFX.playJump();
-        }
-    }
-    if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        cyberSweep();
-    }
 });
 leftZone.addEventListener('mousedown', () => attack('left'));
 rightZone.addEventListener('mousedown', () => attack('right'));
-leftZone.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart(e); }, {passive: false});
-leftZone.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd(e, 'left'); }, {passive: false});
-rightZone.addEventListener('touchstart', (e) => { e.preventDefault(); handleTouchStart(e); }, {passive: false});
-rightZone.addEventListener('touchend', (e) => { e.preventDefault(); handleTouchEnd(e, 'right'); }, {passive: false});
+leftZone.addEventListener('touchstart', (e) => { e.preventDefault(); attack('left'); }, {passive: false});
+leftZone.addEventListener('touchend', (e) => { e.preventDefault(); }, {passive: false});
+rightZone.addEventListener('touchstart', (e) => { e.preventDefault(); attack('right'); }, {passive: false});
+rightZone.addEventListener('touchend', (e) => { e.preventDefault(); }, {passive: false});
 
 pauseBtn?.addEventListener('click', (e) => {
     e.stopPropagation();

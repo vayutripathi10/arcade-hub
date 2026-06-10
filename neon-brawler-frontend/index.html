@@ -301,24 +301,23 @@
         <p>Neon Brawler is a cyberpunk side-scrolling beat-em-up where you fight through relentless waves of glowing robotic enemies on the streets of a neon city. Punch, kick, and unleash devastating combo attacks to clear each arena. Dodge incoming strikes, use the environment to your advantage, and defeat elite mini-bosses guarding each district. Fast, fluid, and ferociously fun.</p>
 
         <h3>🕹️ How to Play</h3>
-        <p>Attack incoming neon enemies approaching from left and right. Dodge their strikes by jumping, and clear crowds with your Cyber-Sweep ultimate attack. Defeat mini-bosses to advance!</p>
+        <p>Attack incoming neon enemies approaching from left and right. Build combo streaks to trigger Auto-Berserk mode, pick up dropped neon weapons, and execute Combo Finishers. Defeat the Dragon Boss at 50 kills!</p>
         <ul>
-            <li><strong>Desktop &mdash; Strike Left:</strong> ArrowLeft or A</li>
-            <li><strong>Desktop &mdash; Strike Right:</strong> ArrowRight or D</li>
-            <li><strong>Desktop &mdash; Jump:</strong> ArrowUp or W or Space</li>
-            <li><strong>Desktop &mdash; Cyber-Sweep:</strong> ArrowDown or S (5s Cooldown)</li>
-            <li><strong>Mobile &mdash; Attack:</strong> Tap Left/Right half of screen</li>
-            <li><strong>Mobile &mdash; Jump / Sweep:</strong> Swipe UP to Jump, Swipe DOWN to Sweep</li>
+            <li><strong>Strike Left:</strong> ArrowLeft or A (Tap Left half of screen on Mobile)</li>
+            <li><strong>Strike Right:</strong> ArrowRight or D (Tap Right half of screen on Mobile)</li>
+            <li><strong>Auto-Berserk:</strong> Reach a 15-combo streak for double range and shockwaves!</li>
+            <li><strong>Weapon Drops:</strong> Grab Neon Katana (slice enemies/ignore block) or Laser Staff (horizontal piercing beam) chests dropping every 20 kills!</li>
+            <li><strong>Combo Finisher:</strong> Attack 3 times in the same direction within 0.45s to release a crescent shockwave!</li>
         </ul>
 
         <div class="info-grid">
             <div class="info-card">
-                <h3>&#x26A1; Game Features</h3>
+                <h3>⚡ Game Features</h3>
                 <ul>
-                    <li>Fluid combo attack system with light and heavy strikes</li>
-                    <li>Multiple enemy archetypes with different attack patterns</li>
-                    <li>District boss fights with unique mechanics every 5 waves</li>
-                    <li>Neon particle impacts and screen-shake feedback</li>
+                    <li>Auto-Berserk mode with shockwaves and range boosts</li>
+                    <li>Glowing Neon weapons (Katana with body slice physics, Laser Staff)</li>
+                    <li>Fast-paced left/right mechanics with 3-hit combo finishers</li>
+                    <li>Relentless Dragon boss fight at 50 kills</li>
                 </ul>
             </div>
             <div class="info-card">
@@ -422,7 +421,7 @@
 
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Brawler_Juice_v2"></script>
+    <script src="script.js?v=ArcadeHub_Brawler_Juice_v3"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {
@@ -437,11 +436,11 @@
     <div class="htp-overlay" id="htpOverlay">
         <div class="htp-card">
             <div class="htp-title">📖 How to Play</div>
-            <div class="htp-row"><span class="htp-row-icon">🕹️</span><span><b>Controls:</b> Arrow keys/WASD on desktop. Tap sides on mobile.</span></div>
-            <div class="htp-row"><span class="htp-row-icon">👊</span><span><b>Attack:</b> Strike left/right to hit approaching enemies.</span></div>
-            <div class="htp-row"><span class="htp-row-icon">🦘</span><span><b>Jump:</b> ArrowUp / W / Space (Swipe UP on mobile) to dodge strikes & beams!</span></div>
-            <div class="htp-row"><span class="htp-row-icon">🧹</span><span><b>Cyber-Sweep:</b> ArrowDown / S (Swipe DOWN on mobile) for area slam (5s CD)!</span></div>
-            <div class="htp-row"><span class="htp-row-icon">🏆</span><span><b>Goal:</b> Build combo streaks and survive boss fights at 50 and 100 kills!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🕹️</span><span><b>Controls:</b> ArrowLeft/A to attack left, ArrowRight/D to attack right. Tap left/right screen sides on mobile.</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🔥</span><span><b>Auto-Berserk:</b> Reach a 15 combo streak to trigger double attack range and shockwaves!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">⚔️</span><span><b>Weapons:</b> Grab falling Katana (ignores shield blocks, slices enemies) or Laser Staff (shoots horizontal beams) dropping every 20 kills!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🌙</span><span><b>Combo Finisher:</b> Strike 3 times consecutively in one direction within 0.45s to unleash a crescent shockwave!</span></div>
+            <div class="htp-row"><span class="htp-row-icon">🐉</span><span><b>Dragon Boss:</b> Defeat the massive Dragon at 50 kills to dominate the leaderboard!</span></div>
             <button class="htp-back" onclick="document.getElementById('htpOverlay').classList.remove('active')">← Got it!</button>
         </div>
     </div>
