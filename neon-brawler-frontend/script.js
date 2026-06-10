@@ -384,9 +384,9 @@ function attack(direction) {
         let dist = Math.abs(boss.x - player.x);
         let side = boss.x < player.x ? 'left' : 'right';
         if (side === direction && dist < currentHitRange) {
-            let damageDealt = 1;
+            let damageDealt = 0.2;
             if (activeWeapon === 'katana') {
-                damageDealt = 2; // Katana deals double damage
+                damageDealt = 1.5; // Katana deals more damage
             }
             boss.health -= damageDealt;
             screenShake = 10;
@@ -801,13 +801,34 @@ class Dragon {
             ctx.restore();
         });
 
-        // Health bar
-        const bw = 300;
+        // Premium Boss Health Bar
+        const bw = 360;
+        const bh = 14;
         const bxBar = (CANVAS_W - bw) / 2;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillRect(bxBar, 50, bw, 8);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(bxBar, 50, bw * (this.health / this.maxHealth), 8);
+        const byBar = 55;
+
+        // Draw boss name label
+        ctx.font = "bold 13px 'Outfit', sans-serif";
+        ctx.fillStyle = '#ff3300';
+        ctx.shadowColor = '#ff3300';
+        ctx.shadowBlur = 10;
+        ctx.textAlign = 'center';
+        ctx.fillText("GIANT BRAWLER", CANVAS_W / 2, byBar - 10);
+
+        // Draw background
+        ctx.fillStyle = 'rgba(255, 51, 0, 0.1)';
+        ctx.fillRect(bxBar, byBar, bw, bh);
+
+        // Draw neon border
+        ctx.strokeStyle = '#ff3300';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bxBar, byBar, bw, bh);
+
+        // Draw active health fill
+        if (this.health > 0) {
+            ctx.fillStyle = '#ff3300';
+            ctx.fillRect(bxBar, byBar, bw * (this.health / this.maxHealth), bh);
+        }
 
         ctx.restore();
     }
@@ -839,6 +860,20 @@ class CrescentWave {
                 } else {
                     spawnParticles(e.x, e.y, this.color);
                 }
+            }
+        }
+
+        // Collision check with boss
+        if (bossActive && boss) {
+            let dx = this.x - boss.x;
+            let dy = this.y - (boss.y - 45);
+            if (Math.sqrt(dx * dx + dy * dy) < 65) {
+                boss.health -= 1.5; // Deals 1.5 damage
+                screenShake = 10;
+                spawnParticles(boss.x, boss.y - 45, this.color);
+                impactRings.push(new ImpactRing(boss.x, boss.y - 45, this.color));
+                this.life = 0; // dissipate
+                if (boss.health <= 0) boss.die();
             }
         }
     }
@@ -890,6 +925,20 @@ class LaserBeam {
                 }
             }
         }
+
+        // Collision check with boss
+        if (bossActive && boss) {
+            let dx = this.x - boss.x;
+            let dy = this.y - (boss.y - 45);
+            if (Math.sqrt(dx * dx + dy * dy) < 65) {
+                boss.health -= 1.5; // Deals 1.5 damage
+                screenShake = 8;
+                spawnParticles(boss.x, boss.y - 45, this.color);
+                impactRings.push(new ImpactRing(boss.x, boss.y - 45, this.color));
+                this.life = 0; // dissipate
+                if (boss.health <= 0) boss.die();
+            }
+        }
     }
     draw(ctx) {
         ctx.save();
@@ -914,6 +963,7 @@ class BerserkRing {
         this.maxR = 300;
         this.color = '#ff00ea'; // Hot pink berserk color
         this.life = 1.0;
+        this.hitBoss = false;
     }
     update(deltaTime) {
         this.r += 12 * deltaTime;
@@ -931,6 +981,18 @@ class BerserkRing {
                 } else {
                     spawnParticles(e.x, e.y, this.color);
                 }
+            }
+        }
+
+        // Damage check on boss
+        if (bossActive && boss && !this.hitBoss) {
+            let dist = Math.abs(boss.x - this.x);
+            if (dist < this.r && dist > this.r - 40) {
+                this.hitBoss = true;
+                boss.health -= 1.0; // Deals 1.0 damage
+                screenShake = 8;
+                spawnParticles(boss.x, boss.y - 45, this.color);
+                if (boss.health <= 0) boss.die();
             }
         }
     }

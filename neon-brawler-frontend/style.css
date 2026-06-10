@@ -301,6 +301,6 @@ body {
     50% { transform: rotate(-90deg); }
 }
 
-@media (max-width: 900px) and (orientation: portrait) {
+@media (max-width: 900px) and (orientation: portrait) and (pointer: coarse) {
     .landscape-prompt { display: flex; }
 }
