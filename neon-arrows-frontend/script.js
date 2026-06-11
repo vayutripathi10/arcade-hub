@@ -1,7 +1,7 @@
 // Neon Arrows Game Logic
-// Handles levels, collision checking, rendering, sliding logic, achievements, and audio.
+// Rebuilt for block-sliding Tap Away mechanics with high-fidelity visual and auditory juice.
 
-// Define Colors
+// Define Neon Colors
 const NEON_COLORS = {
     cyan: '#00ffcc',
     magenta: '#ff00ea',
@@ -12,284 +12,150 @@ const NEON_COLORS = {
     red: '#ff2d78'
 };
 
-const DOT_COLOR = '#1f2833';
-const BG_INNER = '#0d0e12';
+const BG_INNER = '#06070a';
 
-// Levels Definition
-const LEVELS = [
-    {
-        // Level 1: Intro to sliding (5x5)
-        gridWidth: 5,
-        gridHeight: 5,
-        perfectMoves: 3,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 3}, {x: 1, y: 2}, {x: 1, y: 1}] }, // Head (1,1) -> Up
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 3, y: 1}, {x: 3, y: 2}, {x: 3, y: 3}] }, // Head (3,3) -> Down
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 0}, {x: 3, y: 0}, {x: 4, y: 0}] }  // Head (4,0) -> Right
-        ]
-    },
-    {
-        // Level 2: Simple Blocking (5x5)
-        gridWidth: 5,
-        gridHeight: 5,
-        perfectMoves: 3,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 2}, {x: 2, y: 2}] }, // Head (2,2) -> Right
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 3, y: 1}, {x: 3, y: 2}, {x: 3, y: 3}] }, // Head (3,3) -> Down
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 4}, {x: 3, y: 4}, {x: 4, y: 4}] } // Head (4,4) -> Right
-        ]
-    },
-    {
-        // Level 3: Crossroad Blocks (6x6)
-        gridWidth: 6,
-        gridHeight: 6,
-        perfectMoves: 4,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 0}, {x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L3, L4)
-            { id: 'L3', color: 'yellow', exitDir: {x: -1, y: 0}, path: [{x: 4, y: 4}, {x: 3, y: 4}, {x: 2, y: 4}] }, // Head (2,4) -> Left (Clear!)
-            { id: 'L4', color: 'purple', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}] } // Head (4,3) -> Right (Clear!)
-        ]
-    },
-    {
-        // Level 4: Corner Traps (6x6)
-        gridWidth: 6,
-        gridHeight: 6,
-        perfectMoves: 4,
-        lines: [
-            { id: 'L1', color: 'green', exitDir: {x: 0, y: 1}, path: [{x: 2, y: 1}, {x: 2, y: 2}, {x: 2, y: 3}] }, // Head (2,3) -> Down (Blocked by L2)
-            { id: 'L2', color: 'purple', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 4}, {x: 2, y: 4}, {x: 3, y: 4}] }, // Head (3,4) -> Right (Blocked by L3)
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 2}, {x: 4, y: 3}, {x: 4, y: 4}] }, // Head (4,4) -> Right (Clear!)
-            { id: 'L4', color: 'orange', exitDir: {x: 0, y: 1}, path: [{x: 0, y: 2}, {x: 1, y: 2}, {x: 1, y: 3}] }  // Head (1,3) -> Down (Blocked by L2)
-        ]
-    },
-    {
-        // Level 5: Snake Pit (7x7)
-        gridWidth: 7,
-        gridHeight: 7,
-        perfectMoves: 5,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: -1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 2, y: 2}, {x: 1, y: 2}] }, // Head (1,2) -> Left (Clear)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: -1}, path: [{x: 3, y: 1}, {x: 3, y: 2}, {x: 4, y: 2}, {x: 4, y: 1}] }, // Head (4,1) -> Up (Clear)
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 3}, {x: 2, y: 4}, {x: 3, y: 4}, {x: 3, y: 3}] }, // Head (3,3) -> Right (Blocked by L4)
-            { id: 'L4', color: 'orange', exitDir: {x: 0, y: 1}, path: [{x: 5, y: 1}, {x: 5, y: 2}, {x: 5, y: 3}, {x: 5, y: 4}] }, // Head (5,4) -> Down (Clear)
-            { id: 'L5', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 2, y: 5}, {x: 3, y: 5}, {x: 4, y: 5}, {x: 4, y: 4}] } // Head (4,4) -> Up (Blocked by L2, L3)
-        ]
-    },
-    {
-        // Level 6: The Cage (7x7)
-        gridWidth: 7,
-        gridHeight: 7,
-        perfectMoves: 6,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 0, y: 3}, {x: 1, y: 3}, {x: 2, y: 3}] }, // Head (2,3) -> Down (Blocked by L2)
-            { id: 'L2', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 4}, {x: 3, y: 4}, {x: 4, y: 4}] }, // Head (4,4) -> Right (Blocked by L3)
-            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 5, y: 2}, {x: 5, y: 3}, {x: 5, y: 4}] }, // Head (5,4) -> Down (Clear!)
-            { id: 'L4', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 5}, {x: 2, y: 5}, {x: 3, y: 5}, {x: 4, y: 5}] }, // Head (4,5) -> Right (Clear!)
-            { id: 'L5', color: 'green', exitDir: {x: 1, y: 0}, path: [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Clear!)
-            { id: 'L6', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 2, y: 2}, {x: 3, y: 2}] } // Head (3,2) -> Down (Clear!)
-        ]
-    },
-    {
-        // Level 7: The Double Helix (8x8)
-        gridWidth: 8,
-        gridHeight: 8,
-        perfectMoves: 7,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 0}, {x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L3)
-            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L4)
-            { id: 'L4', color: 'purple', exitDir: {x: -1, y: 0}, path: [{x: 4, y: 6}, {x: 3, y: 6}, {x: 2, y: 6}] }, // Head (2,6) -> Left (Blocked by L5)
-            { id: 'L5', color: 'orange', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 6}, {x: 1, y: 5}, {x: 1, y: 4}] }, // Head (1,4) -> Up (Blocked by L6)
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 3}, {x: 1, y: 2}] }, // Head (1,2) -> Up (Clear!)
-            { id: 'L7', color: 'red', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 3}, {x: 3, y: 4}] } // Head (3,4) -> Right (Blocked by L3)
-        ]
-    },
-    {
-        // Level 8: Gridlock (8x8)
-        gridWidth: 8,
-        gridHeight: 8,
-        perfectMoves: 8,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: -1, y: 0}, path: [{x: 3, y: 1}, {x: 2, y: 1}, {x: 1, y: 1}] }, // Head (1,1) -> Left (Clear!)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: -1}, path: [{x: 2, y: 3}, {x: 2, y: 2}] }, // Head (2,2) -> Up (Blocked by L1)
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 3}, {x: 1, y: 4}, {x: 2, y: 4}] }, // Head (2,4) -> Right (Blocked by L4)
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 3, y: 4}, {x: 3, y: 3}] }, // Head (3,3) -> Up (Blocked by L8)
-            { id: 'L5', color: 'orange', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L4)
-            { id: 'L6', color: 'green', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 3}, {x: 5, y: 3}] }, // Head (5,3) -> Right (Clear!)
-            { id: 'L7', color: 'red', exitDir: {x: 0, y: 1}, path: [{x: 5, y: 1}, {x: 5, y: 2}] }, // Head (5,2) -> Down (Blocked by L6)
-            { id: 'L8', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 0}, {x: 4, y: 0}] } // Head (4,0) -> Right (Clear!)
-        ]
-    },
-    {
-        // Level 9: Spiral Loop (9x9)
-        gridWidth: 9,
-        gridHeight: 9,
-        perfectMoves: 9,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 0}, {x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L3)
-            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 3}, {x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L4)
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 6}, {x: 4, y: 7}, {x: 4, y: 8}] }, // Head (4,8) -> Down (Clear!)
-            { id: 'L5', color: 'orange', exitDir: {x: -1, y: 0}, path: [{x: 3, y: 8}, {x: 2, y: 8}, {x: 1, y: 8}] }, // Head (1,8) -> Left (Clear!)
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 7}, {x: 1, y: 6}, {x: 1, y: 5}] }, // Head (1,5) -> Up (Blocked by L7, L1)
-            { id: 'L7', color: 'red', exitDir: {x: 0, y: -1}, path: [{x: 1, y: 4}, {x: 1, y: 3}, {x: 1, y: 2}] }, // Head (1,2) -> Up (Blocked by L1)
-            { id: 'L8', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 2, y: 3}, {x: 2, y: 4}, {x: 2, y: 5}] }, // Head (2,5) -> Down (Blocked by L5)
-            { id: 'L9', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 3, y: 3}, {x: 3, y: 4}, {x: 3, y: 5}] } // Head (3,5) -> Down (Blocked by L5)
-        ]
-    },
-    {
-        // Level 10: Master Control Program (10x10)
-        gridWidth: 10,
-        gridHeight: 10,
-        perfectMoves: 11,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}] }, // Head (3,1) -> Right (Blocked by L2)
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 1}, {x: 4, y: 2}] }, // Head (4,2) -> Down (Blocked by L3)
-            { id: 'L3', color: 'green', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 3}, {x: 5, y: 3}] }, // Head (5,3) -> Right (Blocked by L4)
-            { id: 'L4', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 6, y: 3}, {x: 6, y: 4}] }, // Head (6,4) -> Down (Blocked by L5)
-            { id: 'L5', color: 'orange', exitDir: {x: -1, y: 0}, path: [{x: 6, y: 5}, {x: 5, y: 5}] }, // Head (5,5) -> Left (Blocked by L6)
-            { id: 'L6', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 4}, {x: 4, y: 5}] }, // Head (4,5) -> Down (Blocked by L11)
-            { id: 'L7', color: 'red', exitDir: {x: -1, y: 0}, path: [{x: 3, y: 4}, {x: 2, y: 4}] }, // Head (2,4) -> Left (Blocked by L8)
-            { id: 'L8', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 1, y: 4}, {x: 1, y: 5}] }, // Head (1,5) -> Down (Blocked by L9)
-            { id: 'L9', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 6}, {x: 2, y: 6}] }, // Head (2,6) -> Right (Blocked by L10)
-            { id: 'L10', color: 'yellow', exitDir: {x: 0, y: 1}, path: [{x: 3, y: 6}, {x: 3, y: 7}] }, // Head (3,7) -> Down (Clear!)
-            { id: 'L11', color: 'green', exitDir: {x: -1, y: 0}, path: [{x: 5, y: 7}, {x: 4, y: 7}] } // Head (4,7) -> Left (Blocked by L10)
-        ]
-    },
-    {
-        // Level 11: The Serpent Grid (10x10)
-        gridWidth: 10,
-        gridHeight: 10,
-        perfectMoves: 5,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 0, y: 1}, path: [{x: 1, y: 1}, {x: 1, y: 2}, {x: 1, y: 3}, {x: 1, y: 4}, {x: 2, y: 4}, {x: 3, y: 4}, {x: 3, y: 5}, {x: 3, y: 6}, {x: 3, y: 7}, {x: 3, y: 8}] }, // Exits DOWN
-            { id: 'L2', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 2, y: 9}, {x: 3, y: 9}, {x: 4, y: 9}, {x: 5, y: 9}] }, // Exits RIGHT
-            { id: 'L3', color: 'yellow', exitDir: {x: 0, y: -1}, path: [{x: 8, y: 9}, {x: 8, y: 8}, {x: 8, y: 7}, {x: 8, y: 6}] }, // Exits UP
-            { id: 'L4', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 5, y: 3}, {x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}] }, // Exits RIGHT
-            { id: 'L5', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 9, y: 4}, {x: 9, y: 3}, {x: 9, y: 2}, {x: 9, y: 1}] } // Exits UP
-        ]
-    },
-    {
-        // Level 12: The Spiral Maze (11x11)
-        gridWidth: 11,
-        gridHeight: 11,
-        perfectMoves: 6,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}, {x: 4, y: 1}, {x: 5, y: 1}, {x: 5, y: 2}, {x: 5, y: 3}, {x: 5, y: 4}, {x: 4, y: 4}, {x: 3, y: 4}, {x: 2, y: 4}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}] }, // Spiral, exits RIGHT
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 7, y: 2}, {x: 7, y: 3}, {x: 7, y: 4}, {x: 7, y: 5}] }, // Exits DOWN
-            { id: 'L3', color: 'yellow', exitDir: {x: 1, y: 0}, path: [{x: 4, y: 8}, {x: 5, y: 8}, {x: 6, y: 8}, {x: 7, y: 8}] }, // Exits RIGHT
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 9, y: 9}, {x: 9, y: 8}, {x: 9, y: 7}, {x: 9, y: 6}] }, // Exits UP
-            { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 0}, {x: 7, y: 0}, {x: 8, y: 0}] }, // Exits RIGHT
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: 1}, path: [{x: 10, y: 0}, {x: 10, y: 1}] } // Exits DOWN
-        ]
-    },
-    {
-        // Level 13: Grand Labyrinth Mainframe (12x12)
-        gridWidth: 12,
-        gridHeight: 12,
-        perfectMoves: 7,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 1, y: 2}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 2, y: 4}, {x: 2, y: 5}, {x: 3, y: 5}, {x: 4, y: 5}, {x: 4, y: 6}, {x: 4, y: 7}, {x: 5, y: 7}] }, // Zig-zag, exits RIGHT
-            { id: 'L2', color: 'magenta', exitDir: {x: 0, y: 1}, path: [{x: 6, y: 7}, {x: 6, y: 8}, {x: 6, y: 9}] }, // Exits DOWN
-            { id: 'L3', color: 'yellow', exitDir: {x: -1, y: 0}, path: [{x: 6, y: 10}, {x: 5, y: 10}] }, // Exits LEFT
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 4, y: 8}, {x: 4, y: 9}, {x: 4, y: 10}] }, // Exits DOWN
-            { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 11}, {x: 4, y: 11}, {x: 5, y: 11}] }, // Exits RIGHT
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 7, y: 11}, {x: 7, y: 10}, {x: 7, y: 9}] }, // Exits UP
-            { id: 'L7', color: 'red', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 3}, {x: 7, y: 3}, {x: 8, y: 3}] } // Exits RIGHT
-        ]
-    },
-    {
-        // Level 14: Master Stage (14x14)
-        gridWidth: 13,
-        gridHeight: 11,
-        perfectMoves: 9,
-        lines: [
-            { id: 'L1', color: 'cyan', exitDir: {x: 1, y: 0}, path: [{x: 1, y: 1}, {x: 2, y: 1}, {x: 3, y: 1}, {x: 3, y: 2}, {x: 2, y: 2}, {x: 1, y: 2}, {x: 1, y: 3}, {x: 2, y: 3}, {x: 3, y: 3}, {x: 4, y: 3}, {x: 5, y: 3}, {x: 5, y: 2}, {x: 4, y: 2}, {x: 4, y: 1}, {x: 5, y: 1}] },
-            { id: 'L2', color: 'magenta', exitDir: {x: 1, y: 0}, path: [{x: 6, y: 1}, {x: 6, y: 2}, {x: 6, y: 3}, {x: 6, y: 4}, {x: 7, y: 4}] },
-            { id: 'L3', color: 'yellow', exitDir: {x: -1, y: 0}, path: [{x: 9, y: 5}, {x: 8, y: 5}, {x: 7, y: 5}, {x: 6, y: 5}] },
-            { id: 'L4', color: 'purple', exitDir: {x: 0, y: -1}, path: [{x: 5, y: 8}, {x: 5, y: 7}, {x: 5, y: 6}, {x: 5, y: 5}] },
-            { id: 'L5', color: 'orange', exitDir: {x: 1, y: 0}, path: [{x: 3, y: 4}, {x: 4, y: 4}, {x: 5, y: 4}] },
-            { id: 'L6', color: 'green', exitDir: {x: 0, y: -1}, path: [{x: 11, y: 10}, {x: 11, y: 9}] },
-            { id: 'L7', color: 'red', exitDir: {x: 1, y: 0}, path: [{x: 8, y: 7}, {x: 9, y: 7}, {x: 10, y: 7}, {x: 11, y: 7}] },
-            { id: 'L8', color: 'purple', exitDir: {x: 0, y: 1}, path: [{x: 12, y: 5}, {x: 12, y: 6}, {x: 12, y: 7}] },
-            { id: 'L9', color: 'orange', exitDir: {x: -1, y: 0}, path: [{x: 12, y: 8}, {x: 11, y: 8}, {x: 10, y: 8}, {x: 9, y: 8}, {x: 8, y: 8}, {x: 7, y: 8}, {x: 6, y: 8}] }
-        ]
+// LCG Seeded Random Generator for deterministic, solvable stage layouts
+class SeededRandom {
+    constructor(seed) {
+        this.seed = seed;
     }
+    next() {
+        this.seed = (this.seed * 1664525 + 1013904223) % 4294967296;
+        return this.seed / 4294967296;
+    }
+    nextInt(min, max) {
+        return Math.floor(this.next() * (max - min)) + min;
+    }
+    choose(arr) {
+        return arr[this.nextInt(0, arr.length)];
+    }
+}
+
+// 20 progressive level configurations
+const LEVEL_CONFIGS = [
+    { gridWidth: 3, gridHeight: 3, numBlocks: 5, seed: 2001, time3: 8, time2: 15 },
+    { gridWidth: 3, gridHeight: 3, numBlocks: 7, seed: 2002, time3: 10, time2: 18 },
+    { gridWidth: 3, gridHeight: 3, numBlocks: 9, seed: 2003, time3: 12, time2: 22 },
+    { gridWidth: 4, gridHeight: 4, numBlocks: 8, seed: 2004, time3: 15, time2: 28 },
+    { gridWidth: 4, gridHeight: 4, numBlocks: 11, seed: 2005, time3: 18, time2: 32 },
+    { gridWidth: 4, gridHeight: 4, numBlocks: 14, seed: 2006, time3: 20, time2: 36 },
+    { gridWidth: 5, gridHeight: 5, numBlocks: 15, seed: 2007, time3: 22, time2: 40 },
+    { gridWidth: 5, gridHeight: 5, numBlocks: 18, seed: 2008, time3: 25, time2: 45 },
+    { gridWidth: 5, gridHeight: 5, numBlocks: 21, seed: 2009, time3: 28, time2: 50 },
+    { gridWidth: 6, gridHeight: 6, numBlocks: 24, seed: 2010, time3: 32, time2: 58 },
+    { gridWidth: 6, gridHeight: 6, numBlocks: 28, seed: 2011, time3: 35, time2: 65 },
+    { gridWidth: 6, gridHeight: 6, numBlocks: 32, seed: 2012, time3: 38, time2: 70 },
+    { gridWidth: 7, gridHeight: 7, numBlocks: 32, seed: 2013, time3: 42, time2: 78 },
+    { gridWidth: 7, gridHeight: 7, numBlocks: 38, seed: 2014, time3: 45, time2: 85 },
+    { gridWidth: 7, gridHeight: 7, numBlocks: 42, seed: 2015, time3: 50, time2: 92 },
+    { gridWidth: 8, gridHeight: 8, numBlocks: 44, seed: 2016, time3: 55, time2: 105 },
+    { gridWidth: 8, gridHeight: 8, numBlocks: 50, seed: 2017, time3: 60, time2: 115 },
+    { gridWidth: 9, gridHeight: 9, numBlocks: 54, seed: 2018, time3: 68, time2: 130 },
+    { gridWidth: 9, gridHeight: 9, numBlocks: 62, seed: 2019, time3: 75, time2: 145 },
+    { gridWidth: 10, gridHeight: 10, numBlocks: 70, seed: 2020, time3: 90, time2: 170 }
 ];
 
-// Local SFX backup synthesizer
-const sound = {
-    playClick: () => {
+// Centralized High-Fidelity Synthesizer
+const neonArrowAudio = {
+    ctx: null,
+    init() {
+        if (this.ctx) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+    },
+    playClick() {
+        this.init();
+        if (isMuted || !this.ctx) return;
         try {
-            const fx = window.audioFX || (window.parent && window.parent.audioFX);
-            if (fx) fx.playEat();
-            else playLocalOscillator(400, 'sine', 0.05);
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.05);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.05);
         } catch (e) {}
     },
-    playSlide: () => {
+    playSlide() {
+        this.init();
+        if (isMuted || !this.ctx) return;
         try {
-            const fx = window.audioFX || (window.parent && window.parent.audioFX);
-            if (fx) fx.playJump();
-            else playLocalOscillator(150, 'triangle', 0.25, 600);
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(800, now + 0.25);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
         } catch (e) {}
     },
-    playBump: () => {
+    playBump() {
+        this.init();
+        if (isMuted || !this.ctx) return;
         try {
-            const fx = window.audioFX || (window.parent && window.parent.audioFX);
-            if (fx) fx.playGameOver(); // low rumble
-            else playLocalOscillator(90, 'sawtooth', 0.15);
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, now);
+            osc.frequency.setValueAtTime(80, now + 0.08);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.2);
         } catch (e) {}
     },
-    playVictory: () => {
+    playVictory() {
+        this.init();
+        if (isMuted || !this.ctx) return;
         try {
-            const fx = window.audioFX || (window.parent && window.parent.audioFX);
-            if (fx) fx.playVictory();
-            else {
-                playLocalOscillator(261.63, 'square', 0.1);
-                setTimeout(() => playLocalOscillator(329.63, 'square', 0.1), 100);
-                setTimeout(() => playLocalOscillator(392.00, 'square', 0.1), 200);
-                setTimeout(() => playLocalOscillator(523.25, 'square', 0.2), 300);
-            }
+            const now = this.ctx.currentTime;
+            const notes = [261.63, 329.63, 392.00, 523.25, 659.25]; // C5, E5, G5, C6, E6
+            notes.forEach((freq, idx) => {
+                const noteTime = now + idx * 0.1;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, noteTime);
+                gain.gain.setValueAtTime(0.1, noteTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(noteTime);
+                osc.stop(noteTime + 0.3);
+            });
         } catch (e) {}
     }
 };
 
-function playLocalOscillator(startFreq, type, duration, endFreq = null) {
-    try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.type = type;
-        osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
-        if (endFreq) {
-            osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + duration);
-        }
-        
-        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
-    } catch (e) {}
-}
-
 // Global Game Variables
 let currentLevelIndex = 0;
-let currentGridWidth = 5;
-let currentGridHeight = 5;
-let movesCount = 0;
+let currentGridWidth = 3;
+let currentGridHeight = 3;
 let isMuted = false;
-let activeLines = [];
-let originalLines = [];
+let activeBlocks = [];
+let originalBlocks = [];
 let particles = [];
-let movesHistory = [];
+let ripples = [];
+let undoHistory = [];
+let elapsedTime = 0;
+let gameRunning = false;
+
+// Camera shake variables
+let shakeIntensity = 0;
+let shakeTimeRemaining = 0;
 
 // Canvas Variables
 let canvas, ctx;
@@ -297,23 +163,21 @@ let cellSize = 60;
 let offsetLeft = 0;
 let offsetTop = 0;
 
-// Game State Loops
+// Game Loop Flags
 let isAnimating = false;
 let animationFrameId = null;
+let lastTime = 0;
 
-// Shaking state for lines
-const shakeStates = {}; // lineId -> { timeStart, duration, intensity }
-
-// Level Selection Screen Curation
+// Dynamic Level Selection Modal Setup
 function showLevelSelect() {
-    isAnimating = false; // Pause background game loop while selecting stage
+    gameRunning = false;
     const grid = document.getElementById('level-select-grid');
     grid.innerHTML = '';
     
-    // Fetch level index from localStorage (default to 0 if not set)
     const maxUnlocked = parseInt(localStorage.getItem('neon_arrows_level') || '0', 10);
     
-    LEVELS.forEach((level, idx) => {
+    LEVELS_TOTAL = LEVEL_CONFIGS.length;
+    for (let idx = 0; idx < LEVELS_TOTAL; idx++) {
         const btn = document.createElement('button');
         btn.className = 'level-btn';
         
@@ -329,21 +193,23 @@ function showLevelSelect() {
         
         btn.addEventListener('click', () => {
             if (idx > maxUnlocked) {
-                sound.playBump();
+                neonArrowAudio.playBump();
                 return;
             }
-            sound.playClick();
+            neonArrowAudio.playClick();
             document.getElementById('level-select-screen').classList.remove('active');
             loadLevel(idx);
             
-            // Resume loop
-            isAnimating = true;
-            lastTime = performance.now();
-            requestAnimationFrame(animate);
+            // Resume main game animation loop
+            if (!isAnimating) {
+                isAnimating = true;
+                lastTime = performance.now();
+                requestAnimationFrame(animate);
+            }
         });
         
         grid.appendChild(btn);
-    });
+    }
     
     document.getElementById('level-select-screen').classList.add('active');
 }
@@ -354,46 +220,49 @@ function initGame() {
     if (!canvas) return;
     ctx = canvas.getContext('2d');
     
-    // Set Canvas DPI
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
     
-    // Bind UI Buttons
+    // Bind Interface Overlays
     document.getElementById('start-btn').addEventListener('click', () => {
+        neonArrowAudio.init();
         document.getElementById('start-screen').classList.remove('active');
         showLevelSelect();
-        sound.playClick();
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('abort-to-hub-btn').addEventListener('click', () => {
-        sound.playClick();
+        neonArrowAudio.playClick();
         window.top.location.href = '../index.html';
     });
     
     document.getElementById('htp-btn').addEventListener('click', () => {
         document.getElementById('htp-overlay').classList.add('active');
-        sound.playClick();
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('htp-close').addEventListener('click', () => {
         document.getElementById('htp-overlay').classList.remove('active');
-        sound.playClick();
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('pause-btn').addEventListener('click', () => {
         document.getElementById('pause-screen').classList.add('active');
-        sound.playClick();
+        gameRunning = false;
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('resume-btn').addEventListener('click', () => {
         document.getElementById('pause-screen').classList.remove('active');
-        sound.playClick();
+        gameRunning = true;
+        lastTime = performance.now();
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('pause-restart-btn').addEventListener('click', () => {
         document.getElementById('pause-screen').classList.remove('active');
         resetLevel();
-        sound.playClick();
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('undo-btn').addEventListener('click', () => {
@@ -407,21 +276,21 @@ function initGame() {
     document.getElementById('next-btn').addEventListener('click', () => {
         document.getElementById('complete-screen').classList.remove('active');
         loadNextLevel();
-        sound.playClick();
+        neonArrowAudio.playClick();
     });
     
     document.getElementById('victory-home-btn').addEventListener('click', () => {
         document.getElementById('victory-screen').classList.remove('active');
-        sound.playClick();
+        neonArrowAudio.playClick();
         window.top.location.href = '../index.html';
     });
     
     document.getElementById('home-btn').addEventListener('click', () => {
-        sound.playClick();
+        neonArrowAudio.playClick();
         showLevelSelect();
     });
     
-    // Mute Logic
+    // Mute Switch logic
     const savedMute = localStorage.getItem('arcadeHubMuted') === 'true';
     isMuted = savedMute;
     updateMuteUI();
@@ -435,27 +304,27 @@ function initGame() {
             localStorage.setItem('arcadeHubMuted', isMuted);
         }
         updateMuteUI();
-        sound.playClick();
+        neonArrowAudio.playClick();
     });
     
-    // Canvas Mouse/Touch Bindings
+    // Canvas Input Bindings
     canvas.addEventListener('mousedown', handleCanvasClick);
     canvas.addEventListener('touchstart', handleCanvasTouch, { passive: false });
     
-    // Load Saved Progress or Level 1
+    // Load level based on save progress
     const savedLvl = localStorage.getItem('neon_arrows_level');
     if (savedLvl !== null) {
         currentLevelIndex = parseInt(savedLvl, 10);
-        if (isNaN(currentLevelIndex) || currentLevelIndex >= LEVELS.length) {
+        if (isNaN(currentLevelIndex) || currentLevelIndex >= LEVEL_CONFIGS.length) {
             currentLevelIndex = 0;
         }
     }
     
     loadLevel(currentLevelIndex);
     
-    // Start Game Loops
     isAnimating = true;
-    animate();
+    lastTime = performance.now();
+    requestAnimationFrame(animate);
 }
 
 function updateMuteUI() {
@@ -471,18 +340,15 @@ function resizeCanvas() {
     const w = container.clientWidth;
     const h = container.clientHeight;
     
-    // Maintain square layout for the grid console
     const size = Math.min(w, h, 650);
-    
     const dpr = window.devicePixelRatio || 1;
+    
     canvas.width = size * dpr;
     canvas.height = size * dpr;
     canvas.style.width = size + 'px';
     canvas.style.height = size + 'px';
     
     ctx.scale(dpr, dpr);
-    
-    // Recalculate cell sizes
     calculateGridMetrics(size);
 }
 
@@ -496,263 +362,362 @@ function calculateGridMetrics(canvasSize) {
     offsetTop = margin + (available - currentGridHeight * cellSize) / 2;
 }
 
-// Load Level
+// Check Solvability helper
+function isBlocked(block, blocksList, gridWidth, gridHeight) {
+    let cx = block.x + block.exitDir.x;
+    let cy = block.y + block.exitDir.y;
+    while (cx >= 0 && cx < gridWidth && cy >= 0 && cy < gridHeight) {
+        for (const other of blocksList) {
+            if (other.id === block.id) continue;
+            if (other.x === cx && other.y === cy) {
+                return true;
+            }
+        }
+        cx += block.exitDir.x;
+        cy += block.exitDir.y;
+    }
+    return false;
+}
+
+function isSolvable(gridWidth, gridHeight, blocks) {
+    let tempBlocks = blocks.map(b => ({ ...b }));
+    let progress = true;
+    while (progress && tempBlocks.length > 0) {
+        progress = false;
+        for (let i = 0; i < tempBlocks.length; i++) {
+            let b = tempBlocks[i];
+            if (!isBlocked(b, tempBlocks, gridWidth, gridHeight)) {
+                tempBlocks.splice(i, 1);
+                progress = true;
+                break;
+            }
+        }
+    }
+    return tempBlocks.length === 0;
+}
+
+// Deterministic Procedural Layout Generator
+function generateLevel(gridWidth, gridHeight, numBlocks, initialSeed, time3, time2) {
+    let seed = initialSeed;
+    let attempts = 0;
+    while (attempts < 500) {
+        attempts++;
+        const rng = new SeededRandom(seed);
+        const colors = ['cyan', 'magenta', 'green', 'yellow', 'orange', 'purple', 'red'];
+        const dirs = [
+            { x: 0, y: -1 }, // UP
+            { x: 0, y: 1 },  // DOWN
+            { x: -1, y: 0 }, // LEFT
+            { x: 1, y: 0 }   // RIGHT
+        ];
+        
+        let blocks = [];
+        let occupied = new Set();
+        let placed = 0;
+        let cellAttempts = 0;
+        
+        while (placed < numBlocks && cellAttempts < 1000) {
+            cellAttempts++;
+            let x = rng.nextInt(0, gridWidth);
+            let y = rng.nextInt(0, gridHeight);
+            let key = `${x},${y}`;
+            if (!occupied.has(key)) {
+                let dir = rng.choose(dirs);
+                let color = rng.choose(colors);
+                blocks.push({
+                    id: 'B' + placed,
+                    x: x,
+                    y: y,
+                    color: color,
+                    exitDir: { x: dir.x, y: dir.y }
+                });
+                occupied.add(key);
+                placed++;
+            }
+        }
+        
+        if (blocks.length === numBlocks && isSolvable(gridWidth, gridHeight, blocks)) {
+            return {
+                gridWidth: gridWidth,
+                gridHeight: gridHeight,
+                time3Stars: time3,
+                time2Stars: time2,
+                blocks: blocks
+            };
+        }
+        seed = (seed + 1) % 1000000;
+    }
+    
+    // Safety Fallback (Always solvable layout, blocks point outward)
+    let blocks = [];
+    let placed = 0;
+    for (let x = 0; x < gridWidth; x++) {
+        for (let y = 0; y < gridHeight; y++) {
+            if (placed >= numBlocks) break;
+            let dx = x < gridWidth / 2 ? -1 : 1;
+            blocks.push({
+                id: 'B' + placed,
+                x: x,
+                y: y,
+                color: 'cyan',
+                exitDir: { x: dx, y: 0 }
+            });
+            placed++;
+        }
+    }
+    return {
+        gridWidth: gridWidth,
+        gridHeight: gridHeight,
+        time3Stars: time3,
+        time2Stars: time2,
+        blocks: blocks
+    };
+}
+
+// Load Level Data
 function loadLevel(index) {
-    if (index < 0 || index >= LEVELS.length) return;
+    if (index < 0 || index >= LEVEL_CONFIGS.length) return;
     currentLevelIndex = index;
     localStorage.setItem('neon_arrows_level', currentLevelIndex);
     
-    const levelData = LEVELS[index];
-    currentGridWidth = levelData.gridWidth;
-    currentGridHeight = levelData.gridHeight;
-    movesCount = 0;
-    movesHistory = [];
-    particles = [];
+    const config = LEVEL_CONFIGS[index];
+    currentGridWidth = config.gridWidth;
+    currentGridHeight = config.gridHeight;
     
-    // Deep copy level lines
-    activeLines = levelData.lines.map(line => ({
-        id: line.id,
-        color: line.color,
-        exitDir: { x: line.exitDir.x, y: line.exitDir.y },
-        path: line.path.map(pt => ({ x: pt.x, y: pt.y })),
+    const generated = generateLevel(config.gridWidth, config.gridHeight, config.numBlocks, config.seed, config.time3, config.time2);
+    
+    activeBlocks = generated.blocks.map(b => ({
+        id: b.id,
+        gridX: b.x,
+        gridY: b.y,
+        color: b.color,
+        exitDir: { x: b.exitDir.x, y: b.exitDir.y },
         slideOffset: 0,
-        state: 'idle' // idle, sliding, completed
+        state: 'idle',
+        shakeTime: 0,
+        shakeIntensity: 0
     }));
     
-    originalLines = JSON.parse(JSON.stringify(activeLines));
+    originalBlocks = JSON.parse(JSON.stringify(activeBlocks));
+    undoHistory = [];
+    particles = [];
+    ripples = [];
+    elapsedTime = 0;
+    gameRunning = true;
     
-    // Update HTML HUD stats
     document.getElementById('level-value').textContent = currentLevelIndex + 1;
-    document.getElementById('moves-value').textContent = movesCount;
-    document.getElementById('perfect-value').textContent = levelData.perfectMoves;
+    document.getElementById('timer-value').textContent = '0.0s';
+    document.getElementById('target-value').textContent = '< ' + config.time3 + 's';
     
-    // Recalculate dimensions
-    const size = parseFloat(canvas.style.width);
-    calculateGridMetrics(size);
+    resizeCanvas();
 }
 
 function resetLevel() {
     loadLevel(currentLevelIndex);
-    sound.playClick();
+    neonArrowAudio.playClick();
 }
 
 function loadNextLevel() {
-    if (currentLevelIndex + 1 < LEVELS.length) {
+    if (currentLevelIndex + 1 < LEVEL_CONFIGS.length) {
         loadLevel(currentLevelIndex + 1);
     } else {
-        // Complete game, show final screen
         document.getElementById('victory-screen').classList.add('active');
-        sound.playVictory();
+        neonArrowAudio.playVictory();
     }
 }
 
-// Math logic to fetch E(t) - Point along the extended path
-function getPointOnPath(t, path, exitDir) {
-    const N = path.length - 1;
-    if (t <= N) {
-        const i = Math.floor(t);
-        const frac = t - i;
-        if (i >= N) return { x: path[N].x, y: path[N].y };
-        const p1 = path[i];
-        const p2 = path[i + 1];
-        return {
-            x: p1.x + frac * (p2.x - p1.x),
-            y: p1.y + frac * (p2.y - p1.y)
-        };
-    } else {
-        const extra = t - N;
-        const head = path[N];
-        return {
-            x: head.x + extra * exitDir.x,
-            y: head.y + extra * exitDir.y
-        };
-    }
+// Trigger Camera Shake
+function triggerCameraShake(intensity, duration) {
+    shakeIntensity = intensity;
+    shakeTimeRemaining = duration;
 }
 
-// Draw Loop
-function animate() {
+// Main Draw and Update Loop
+function animate(currentTime) {
     if (!isAnimating) return;
     
+    const dt = (currentTime - lastTime) / 1000;
+    lastTime = currentTime;
+    
+    // Guard against large frame steps when browser tab is inactive
+    const deltaTime = Math.min(dt, 0.1);
+    
+    if (gameRunning) {
+        elapsedTime += deltaTime;
+        document.getElementById('timer-value').textContent = elapsedTime.toFixed(1) + 's';
+    }
+    
+    // Clear Board
     ctx.fillStyle = BG_INNER;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // 1. Draw Grid Dots
-    drawGridDots();
+    // Apply camera shake if active
+    ctx.save();
+    if (shakeTimeRemaining > 0) {
+        shakeTimeRemaining -= deltaTime;
+        const dx = (Math.random() - 0.5) * shakeIntensity;
+        const dy = (Math.random() - 0.5) * shakeIntensity;
+        ctx.translate(dx, dy);
+        if (shakeTimeRemaining <= 0) {
+            shakeIntensity = 0;
+        }
+    }
     
-    // 2. Update and Draw Lines
-    updateLinesState();
-    drawLines();
+    // Render Board Grid
+    drawGridMatrix();
     
-    // 3. Update and Draw Particles
-    updateParticles();
+    // Update and Draw ripples
+    updateRipples(deltaTime);
+    drawRipples();
+    
+    // Update and Draw blocks
+    updateBlocksState(deltaTime);
+    drawBlocks();
+    
+    // Update and Draw particles
+    updateParticles(deltaTime);
     drawParticles();
+    
+    ctx.restore();
     
     animationFrameId = requestAnimationFrame(animate);
 }
 
-function drawGridDots() {
-    ctx.fillStyle = DOT_COLOR;
-    for (let x = 0; x < currentGridWidth; x++) {
-        for (let y = 0; y < currentGridHeight; y++) {
-            const cx = offsetLeft + x * cellSize + cellSize / 2;
-            const cy = offsetTop + y * cellSize + cellSize / 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
+function drawGridMatrix() {
+    // Fill inner board matrix backdrop
+    ctx.fillStyle = '#08090d';
+    ctx.fillRect(offsetLeft, offsetTop, currentGridWidth * cellSize, currentGridHeight * cellSize);
+    
+    // Draw cells wires
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= currentGridWidth; x++) {
+        const lx = offsetLeft + x * cellSize;
+        ctx.beginPath();
+        ctx.moveTo(lx, offsetTop);
+        ctx.lineTo(lx, offsetTop + currentGridHeight * cellSize);
+        ctx.stroke();
     }
+    for (let y = 0; y <= currentGridHeight; y++) {
+        const ly = offsetTop + y * cellSize;
+        ctx.beginPath();
+        ctx.moveTo(offsetLeft, ly);
+        ctx.lineTo(offsetLeft + currentGridWidth * cellSize, ly);
+        ctx.stroke();
+    }
+    
+    // Main Console Neon Glow frame
+    ctx.strokeStyle = 'rgba(0, 255, 204, 0.2)';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 10;
+    ctx.strokeRect(offsetLeft, offsetTop, currentGridWidth * cellSize, currentGridHeight * cellSize);
+    ctx.shadowBlur = 0;
 }
 
-function drawLines() {
-    activeLines.forEach(line => {
-        if (line.state === 'completed') return;
+function drawBlocks() {
+    const now = performance.now();
+    const pulse = Math.sin(now / 150) * 3;
+    
+    activeBlocks.forEach(block => {
+        if (block.state === 'completed') return;
         
-        const path = line.path;
-        const N = path.length - 1;
-        const offset = line.slideOffset;
-        const color = NEON_COLORS[line.color] || '#ffffff';
+        const rx = block.gridX + block.exitDir.x * block.slideOffset;
+        const ry = block.gridY + block.exitDir.y * block.slideOffset;
         
-        // Sample points to draw
-        const drawPoints = [];
-        const startT = offset;
-        const endT = offset + N;
-        
-        // Start point
-        drawPoints.push(getPointOnPath(startT, path, line.exitDir));
-        
-        // Intermediate integers
-        const startInt = Math.ceil(startT);
-        const endInt = Math.floor(endT);
-        for (let k = startInt; k <= endInt; k++) {
-            drawPoints.push(getPointOnPath(k, path, line.exitDir));
+        // Block wiggle shake offset
+        let wx = 0, wy = 0;
+        if (block.shakeTime > 0) {
+            const angle = block.shakeTime * 60;
+            const damp = block.shakeTime / 0.25;
+            wx = Math.sin(angle) * block.shakeIntensity * damp;
+            wy = Math.cos(angle * 1.5) * block.shakeIntensity * damp;
         }
         
-        // End point
-        drawPoints.push(getPointOnPath(endT, path, line.exitDir));
+        const bx = offsetLeft + rx * cellSize + wx;
+        const by = offsetTop + ry * cellSize + wy;
         
-        // Calculate shake offset if shaking
-        let sx = 0, sy = 0;
-        if (shakeStates[line.id]) {
-            const s = shakeStates[line.id];
-            const elapsed = Date.now() - s.timeStart;
-            if (elapsed < s.duration) {
-                const angle = elapsed * 0.08;
-                const damp = 1 - elapsed / s.duration;
-                sx = Math.sin(angle) * s.intensity * damp;
-                sy = Math.cos(angle * 1.3) * s.intensity * damp;
-            } else {
-                delete shakeStates[line.id];
-            }
-        }
+        const padding = 5;
+        const size = cellSize - 2 * padding;
+        const color = NEON_COLORS[block.color] || '#ffffff';
         
-        // Convert grid coords to canvas coords
-        const canvasPoints = drawPoints.map(pt => ({
-            x: offsetLeft + pt.x * cellSize + cellSize / 2 + sx,
-            y: offsetTop + pt.y * cellSize + cellSize / 2 + sy
-        }));
+        ctx.save();
+        ctx.translate(bx + padding, by + padding);
         
-        // 1. Draw Outer Glowing Shadow
+        // Rounded card boundary
+        const r = 8;
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.lineTo(size - r, 0);
+        ctx.quadraticCurveTo(size, 0, size, r);
+        ctx.lineTo(size, size - r);
+        ctx.quadraticCurveTo(size, size, size - r, size);
+        ctx.lineTo(r, size);
+        ctx.quadraticCurveTo(0, size, 0, size - r);
+        ctx.lineTo(0, r);
+        ctx.quadraticCurveTo(0, 0, r, 0);
+        ctx.closePath();
+        
+        // Dark glass button fill
+        ctx.fillStyle = 'rgba(13, 14, 18, 0.88)';
+        ctx.fill();
+        
+        // Border glowing outline
         ctx.strokeStyle = color;
-        ctx.lineWidth = 14;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        ctx.lineWidth = 2.5;
         ctx.shadowColor = color;
-        ctx.shadowBlur = 15;
-        
-        ctx.beginPath();
-        ctx.moveTo(canvasPoints[0].x, canvasPoints[0].y);
-        for (let i = 1; i < canvasPoints.length; i++) {
-            ctx.lineTo(canvasPoints[i].x, canvasPoints[i].y);
-        }
+        ctx.shadowBlur = 8 + pulse;
         ctx.stroke();
         
-        // Reset shadow for inner tube
-        ctx.shadowBlur = 0;
+        ctx.restore();
         
-        // 2. Draw Inner Core Tube
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(canvasPoints[0].x, canvasPoints[0].y);
-        for (let i = 1; i < canvasPoints.length; i++) {
-            ctx.lineTo(canvasPoints[i].x, canvasPoints[i].y);
-        }
-        ctx.stroke();
-        
-        // 3. Draw Arrowhead Indicator at the End (Head)
-        const headPt = canvasPoints[canvasPoints.length - 1];
-        
-        // Get direction of head segment by finding the last two distinct points
-        let lastPt = null;
-        for (let i = canvasPoints.length - 2; i >= 0; i--) {
-            const pt = canvasPoints[i];
-            if (Math.abs(pt.x - headPt.x) > 1e-3 || Math.abs(pt.y - headPt.y) > 1e-3) {
-                lastPt = pt;
-                break;
-            }
-        }
-        
-        let angle;
-        if (lastPt) {
-            angle = Math.atan2(headPt.y - lastPt.y, headPt.x - lastPt.x);
-        } else {
-            angle = Math.atan2(line.exitDir.y, line.exitDir.x);
-        }
-        
-        drawArrowhead(headPt.x, headPt.y, angle, color);
+        // Draw directional HUD indicator chevrons
+        drawChevrons(bx + cellSize / 2, by + cellSize / 2, block.exitDir, color, 8 + pulse);
     });
 }
 
-function drawArrowhead(x, y, angle, color) {
+function drawChevrons(cx, cy, exitDir, color, glowBlur) {
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(cx, cy);
+    
+    let angle = 0;
+    if (exitDir.x === 1 && exitDir.y === 0) angle = 0;          // RIGHT
+    else if (exitDir.x === 0 && exitDir.y === 1) angle = Math.PI / 2; // DOWN
+    else if (exitDir.x === -1 && exitDir.y === 0) angle = Math.PI;    // LEFT
+    else if (exitDir.x === 0 && exitDir.y === -1) angle = -Math.PI / 2; // UP
     ctx.rotate(angle);
     
-    // 1. Draw Masking Background Arrow (removes line cap overlap and creates crisp contrast)
-    ctx.fillStyle = '#0d0e12'; // Canvas background color
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.moveTo(14, 0);
-    ctx.lineTo(-12, -13);
-    ctx.lineTo(-4, 0);
-    ctx.lineTo(-12, 13);
-    ctx.closePath();
-    ctx.fill();
-    
-    // 2. Draw Outer Neon Glowing Arrow
-    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.shadowColor = color;
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.moveTo(12, 0);
-    ctx.lineTo(-10, -11);
-    ctx.lineTo(-4, 0);
-    ctx.lineTo(-10, 11);
-    ctx.closePath();
-    ctx.fill();
+    ctx.shadowBlur = glowBlur;
     
-    // 3. Draw Inner White Core Arrow (matches the line's inner core for high contrast)
-    ctx.fillStyle = '#ffffff';
-    ctx.shadowBlur = 0;
+    // Draw dual nested chevron markers
     ctx.beginPath();
-    ctx.moveTo(7, 0);
-    ctx.lineTo(-8, -6);
-    ctx.lineTo(-3, 0);
-    ctx.lineTo(-8, 6);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(-6, -7);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(-6, 7);
+    
+    ctx.moveTo(1, -7);
+    ctx.lineTo(7, 0);
+    ctx.lineTo(1, 7);
+    ctx.stroke();
     
     ctx.restore();
 }
 
-// Particle Engine
-function spawnClearParticles(x, y, color) {
-    for (let i = 0; i < 20; i++) {
+// Particle System updates
+function spawnClearParticles(gridX, gridY, color) {
+    const cx = offsetLeft + gridX * cellSize + cellSize / 2;
+    const cy = offsetTop + gridY * cellSize + cellSize / 2;
+    for (let i = 0; i < 15; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 2 + Math.random() * 4;
         particles.push({
-            x: offsetLeft + x * cellSize + cellSize / 2,
-            y: offsetTop + y * cellSize + cellSize / 2,
+            x: cx,
+            y: cy,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
             color: color,
@@ -763,7 +728,28 @@ function spawnClearParticles(x, y, color) {
     }
 }
 
-function updateParticles() {
+function spawnExhaustSpark(rx, ry, exitDir, color) {
+    const cx = offsetLeft + rx * cellSize + cellSize / 2;
+    const cy = offsetTop + ry * cellSize + cellSize / 2;
+    
+    // Spray backwards
+    const bx = -exitDir.x;
+    const by = -exitDir.y;
+    
+    const speed = 1.5 + Math.random() * 2.5;
+    particles.push({
+        x: cx - exitDir.x * (cellSize / 4),
+        y: cy - exitDir.y * (cellSize / 4),
+        vx: bx * speed + (Math.random() - 0.5) * 1.2,
+        vy: by * speed + (Math.random() - 0.5) * 1.2,
+        color: color,
+        size: 1.5 + Math.random() * 2.5,
+        alpha: 0.85,
+        decay: 0.04 + Math.random() * 0.04
+    });
+}
+
+function updateParticles(deltaTime) {
     for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
@@ -776,46 +762,76 @@ function updateParticles() {
 }
 
 function drawParticles() {
+    ctx.save();
     particles.forEach(p => {
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.alpha;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 6;
         ctx.shadowColor = p.color;
         
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
     });
-    ctx.globalAlpha = 1.0;
-    ctx.shadowBlur = 0;
+    ctx.restore();
 }
 
-// Collision Check
-function isLineBlocked(line, activeList) {
-    const path = line.path;
-    const head = path[path.length - 1];
-    const dx = line.exitDir.x;
-    const dy = line.exitDir.y;
-    
-    let cx = head.x + dx;
-    let cy = head.y + dy;
+// Expanding Ripples System
+function spawnRipple(gridX, gridY, color, speedScale = 1.0) {
+    ripples.push({
+        x: offsetLeft + gridX * cellSize + cellSize / 2,
+        y: offsetTop + gridY * cellSize + cellSize / 2,
+        color: color,
+        radius: 0,
+        maxRadius: cellSize * 1.8,
+        alpha: 1.0,
+        speed: cellSize * 5 * speedScale
+    });
+}
+
+function updateRipples(deltaTime) {
+    for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.radius += r.speed * deltaTime;
+        r.alpha = Math.max(0, 1 - r.radius / r.maxRadius);
+        if (r.radius >= r.maxRadius || r.alpha <= 0) {
+            ripples.splice(i, 1);
+        }
+    }
+}
+
+function drawRipples() {
+    ctx.save();
+    for (const r of ripples) {
+        ctx.strokeStyle = r.color;
+        ctx.globalAlpha = r.alpha;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = r.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
+// Block Collision and exit paths check
+function isBlockBlocked(block, blocksList) {
+    let cx = block.gridX + block.exitDir.x;
+    let cy = block.gridY + block.exitDir.y;
     
     while (cx >= 0 && cx < currentGridWidth && cy >= 0 && cy < currentGridHeight) {
-        for (const other of activeList) {
-            if (other.id === line.id || other.state === 'completed') continue;
-            for (const pt of other.path) {
-                if (pt.x === cx && pt.y === cy) {
-                    return { blocked: true, by: other };
-                }
-            }
+        const other = blocksList.find(b => b.state !== 'completed' && b.id !== block.id && b.gridX === cx && b.gridY === cy);
+        if (other) {
+            return { blocked: true, by: other };
         }
-        cx += dx;
-        cy += dy;
+        cx += block.exitDir.x;
+        cy += block.exitDir.y;
     }
     return { blocked: false };
 }
 
-// Tap Event Handlers
+// Touch/Click Interaction coordinates mapping
 function handleCanvasTouch(e) {
     e.preventDefault();
     const touch = e.touches[0];
@@ -833,82 +849,67 @@ function handleCanvasClick(e) {
 }
 
 function processSelection(canvasX, canvasY) {
-    if (isAnimatingLines()) return; // Lock inputs during transitions
+    if (activeBlocks.some(b => b.state === 'sliding') || !gameRunning) return;
     
-    // Get Grid Coords from tap position
+    // Scale coordinate space to cells
     const gridX = Math.floor((canvasX - offsetLeft) / cellSize);
     const gridY = Math.floor((canvasY - offsetTop) / cellSize);
     
-    // Find clicked line
-    const clicked = activeLines.find(line => {
-        if (line.state !== 'idle') return false;
-        return line.path.some(pt => pt.x === gridX && pt.y === gridY);
-    });
-    
+    const clicked = activeBlocks.find(b => b.state === 'idle' && b.gridX === gridX && b.gridY === gridY);
     if (!clicked) return;
     
-    // Check if blocked
-    const result = isLineBlocked(clicked, activeLines);
-    if (result.blocked) {
-        // Trigger shake
-        shakeStates[clicked.id] = {
-            timeStart: Date.now(),
-            duration: 250,
-            intensity: 7
-        };
-        sound.playBump();
+    const check = isBlockBlocked(clicked, activeBlocks);
+    if (check.blocked) {
+        // Block collision wiggle
+        clicked.shakeTime = 0.25;
+        clicked.shakeIntensity = 6;
+        
+        // Spawn mini error ripple on block leading edge
+        const edgeX = clicked.gridX + clicked.exitDir.x * 0.45;
+        const edgeY = clicked.gridY + clicked.exitDir.y * 0.45;
+        spawnRipple(edgeX, edgeY, '#ff2d78', 1.8);
+        
+        neonArrowAudio.playBump();
+        triggerCameraShake(3, 0.12);
     } else {
-        // Trigger slide
+        // Slide block off screen
+        undoHistory.push(JSON.parse(JSON.stringify(activeBlocks)));
         clicked.state = 'sliding';
-        movesCount++;
-        document.getElementById('moves-value').textContent = movesCount;
-        
-        // Save history for Undo
-        movesHistory.push(JSON.parse(JSON.stringify(activeLines)));
-        
-        sound.playSlide();
+        neonArrowAudio.playSlide();
     }
 }
 
-function isAnimatingLines() {
-    return activeLines.some(line => line.state === 'sliding');
-}
-
-// Update sliding positions
-function updateLinesState() {
-    activeLines.forEach(line => {
-        if (line.state === 'sliding') {
-            // Slide speed factor
-            line.slideOffset += 0.15;
+// Update sliding transitions
+function updateBlocksState(deltaTime) {
+    activeBlocks.forEach(block => {
+        // Local shake timers decay
+        if (block.shakeTime > 0) {
+            block.shakeTime = Math.max(0, block.shakeTime - deltaTime);
+        }
+        
+        if (block.state === 'sliding') {
+            block.slideOffset += 12 * deltaTime;
             
-            // Spawn trail particles at the head
-            const N = line.path.length - 1;
-            const headCoord = getPointOnPath(line.slideOffset + N, line.path, line.exitDir);
-            if (headCoord.x >= 0 && headCoord.x < currentGridWidth && headCoord.y >= 0 && headCoord.y < currentGridHeight) {
-                particles.push({
-                    x: offsetLeft + headCoord.x * cellSize + cellSize / 2,
-                    y: offsetTop + headCoord.y * cellSize + cellSize / 2,
-                    vx: (Math.random() - 0.5) * 1.5,
-                    vy: (Math.random() - 0.5) * 1.5,
-                    color: NEON_COLORS[line.color],
-                    size: 2 + Math.random() * 2,
-                    alpha: 0.8,
-                    decay: 0.04
-                });
+            const rx = block.gridX + block.exitDir.x * block.slideOffset;
+            const ry = block.gridY + block.exitDir.y * block.slideOffset;
+            
+            if (Math.random() < 0.4) {
+                spawnExhaustSpark(rx, ry, block.exitDir, NEON_COLORS[block.color]);
             }
             
-            // Check if fully exited the grid
-            // Exit condition: tail (offset) goes past the screen boundary
-            const tailCoord = getPointOnPath(line.slideOffset, line.path, line.exitDir);
-            const isOut = tailCoord.x < -0.5 || tailCoord.x >= currentGridWidth + 0.5 ||
-                          tailCoord.y < -0.5 || tailCoord.y >= currentGridHeight + 0.5;
+            // Check out-of-grid condition
+            const isOut = rx < -1.1 || rx > currentGridWidth + 0.1 ||
+                          ry < -1.1 || ry > currentGridHeight + 0.1;
             
             if (isOut) {
-                line.state = 'completed';
+                block.state = 'completed';
                 
-                // Particle burst at final grid location before disappearing
-                const lastIdx = line.path.length - 1;
-                spawnClearParticles(line.path[lastIdx].x, line.path[lastIdx].y, NEON_COLORS[line.color]);
+                // Edge exits effects
+                let edgeX = Math.max(-0.5, Math.min(currentGridWidth - 0.5, rx));
+                let edgeY = Math.max(-0.5, Math.min(currentGridHeight - 0.5, ry));
+                spawnRipple(edgeX, edgeY, NEON_COLORS[block.color], 2.2);
+                spawnClearParticles(edgeX, edgeY, NEON_COLORS[block.color]);
+                triggerCameraShake(6, 0.15);
                 
                 checkVictory();
             }
@@ -917,43 +918,65 @@ function updateLinesState() {
 }
 
 function checkVictory() {
-    const allCleared = activeLines.every(line => line.state === 'completed');
+    const allCleared = activeBlocks.every(b => b.state === 'completed');
     if (allCleared) {
-        sound.playVictory();
+        gameRunning = false;
+        neonArrowAudio.playVictory();
         
-        // Unlock Achievements
+        // Local storage sector unlock logic
+        const maxUnlocked = parseInt(localStorage.getItem('neon_arrows_level') || '0', 10);
+        if (currentLevelIndex === maxUnlocked) {
+            localStorage.setItem('neon_arrows_level', currentLevelIndex + 1);
+        }
+        
+        // Achievements trigger
         if (currentLevelIndex === 0) {
             unlockAchievement('tutorial', 'Arrows Decrypt Rookie');
         }
         
-        const perfectTarget = LEVELS[currentLevelIndex].perfectMoves;
-        if (movesCount <= perfectTarget) {
+        const config = LEVEL_CONFIGS[currentLevelIndex];
+        let stars = 1;
+        if (elapsedTime <= config.time3) {
+            stars = 3;
             unlockAchievement('perfect', 'Arrow Master Logic');
-            document.getElementById('perfect-badge').style.display = 'block';
-        } else {
-            document.getElementById('perfect-badge').style.display = 'none';
+        } else if (elapsedTime <= config.time2) {
+            stars = 2;
         }
         
-        if (currentLevelIndex === LEVELS.length - 1) {
+        if (currentLevelIndex === LEVEL_CONFIGS.length - 1) {
             unlockAchievement('master', 'Sector Mainframe Cracker');
         }
         
-        // Show Complete Screen Overlay
-        document.getElementById('summary-moves').textContent = movesCount;
-        document.getElementById('summary-perfect').textContent = perfectTarget;
+        // Stars display creation
+        let starsHTML = '';
+        for (let i = 1; i <= 3; i++) {
+            if (i <= stars) {
+                starsHTML += `<span class="gold-star">⭐</span>`;
+            } else {
+                starsHTML += `<span class="grey-star">⭐</span>`;
+            }
+        }
+        
+        // Complete commentaries
+        let commentary = 'ACCESS GRANTED';
+        if (stars === 3) commentary = 'HACK LEVEL: ELITE';
+        else if (stars === 2) commentary = 'SYSTEM BYPASSED';
+        
+        document.getElementById('summary-time').textContent = elapsedTime.toFixed(1) + 's';
+        document.getElementById('summary-target').textContent = config.time3 + 's';
+        document.getElementById('star-rating-display').innerHTML = starsHTML;
+        document.getElementById('star-commentary').textContent = commentary;
         
         setTimeout(() => {
             document.getElementById('complete-screen').classList.add('active');
-        }, 600);
+        }, 550);
     }
 }
 
 function undoMove() {
-    if (isAnimatingLines() || movesHistory.length === 0) return;
-    activeLines = movesHistory.pop();
-    movesCount--;
-    document.getElementById('moves-value').textContent = movesCount;
-    sound.playClick();
+    if (activeBlocks.some(b => b.state === 'sliding') || undoHistory.length === 0 || !gameRunning) return;
+    activeBlocks = undoHistory.pop();
+    neonArrowAudio.playClick();
 }
 
 function unlockAchievement(id, title) {
@@ -968,9 +991,8 @@ function unlockAchievement(id, title) {
     }
 }
 
-// Run on Load
+// Run on document load
 window.addEventListener('DOMContentLoaded', () => {
-    // Only initialize when pre-game overlay is clicked to maintain Ads Compliance
     const overlaySeen = localStorage.getItem('arcade_seen_neon-arrows') === '1';
     if (overlaySeen) {
         initGame();

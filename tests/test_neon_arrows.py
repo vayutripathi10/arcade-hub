@@ -56,7 +56,7 @@ def test_neon_arrows():
         assert "active" in level_select_screen.get_attribute("class"), "Level select screen should be active"
         
         level_btns = driver.find_elements(By.CSS_SELECTOR, ".level-btn")
-        assert len(level_btns) == 14, f"Expected 14 level buttons, got {len(level_btns)}"
+        assert len(level_btns) == 20, f"Expected 20 level buttons, got {len(level_btns)}"
         
         # Click first level button (Level 1)
         level_btns[0].click()
@@ -67,37 +67,28 @@ def test_neon_arrows():
         # 5. Check game engine states via Javascript execution
         print("5. Verifying Javascript game states...")
         level = driver.execute_script("return currentLevelIndex;")
-        lines_count = driver.execute_script("return activeLines.length;")
-        moves = driver.execute_script("return movesCount;")
+        blocks_count = driver.execute_script("return activeBlocks.length;")
         
         assert level == 0, f"Expected Level Index = 0, got {level}"
-        assert lines_count == 3, f"Expected 3 lines in level 1, got {lines_count}"
-        assert moves == 0, f"Expected 0 moves at start, got {moves}"
+        assert blocks_count == 5, f"Expected 5 blocks in level 1, got {blocks_count}"
         
-        print(f" -> Game engine status: LevelIndex={level}, LinesCount={lines_count}, MovesCount={moves}")
+        print(f" -> Game engine status: LevelIndex={level}, BlocksCount={blocks_count}")
 
         # 6. Test interaction / slide triggers
-        print("6. Simulating a correct line slide...")
-        # L3 is at (2,0) -> (4,0) with exitDir (1,0) (pointing right) which is clear
+        print("6. Simulating a correct block slide...")
         driver.execute_script("""
-            const line = activeLines.find(l => l.id === 'L3');
-            line.state = 'sliding';
-            movesCount++;
-            document.getElementById('moves-value').textContent = movesCount;
+            const clearBlock = activeBlocks.find(b => !isBlockBlocked(b, activeBlocks));
+            if (clearBlock) {
+                clearBlock.state = 'sliding';
+            }
         """)
         time.sleep(0.2)
-        
-        moves = driver.execute_script("return movesCount;")
-        hud_moves = driver.find_element(By.ID, "moves-value").text
-        assert moves == 1, f"Expected moves = 1, got {moves}"
-        assert hud_moves == "1", f"Expected HUD Moves = '1', got '{hud_moves}'"
-        print(" -> Line L3 triggered sliding. Moves counter synced to HUD.")
+        print(" -> Block triggered sliding.")
 
         # 7. Test Win triggers & Victory overlay
         print("7. Testing Level Complete trigger...")
-        # Mark all lines completed to force victory check
         driver.execute_script("""
-            activeLines.forEach(line => line.state = 'completed');
+            activeBlocks.forEach(b => b.state = 'completed');
             checkVictory();
         """)
         time.sleep(0.8)
@@ -113,8 +104,11 @@ def test_neon_arrows():
         print(f"Test failed: {e}")
         traceback.print_exc()
         print("Browser Console Logs:")
-        for entry in driver.get_log('browser'):
-            print(entry)
+        try:
+            for entry in driver.get_log('browser'):
+                print(entry)
+        except Exception:
+            pass
         raise e
     finally:
         driver.quit()

@@ -257,12 +257,12 @@
                 <span class="stat-value" id="level-value">1</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Moves</span>
-                <span class="stat-value" id="moves-value">0</span>
+                <span class="stat-label">Time</span>
+                <span class="stat-value" id="timer-value">0.0s</span>
             </div>
             <div class="stat-item">
-                <span class="stat-label">Perfect</span>
-                <span class="stat-value" id="perfect-value" style="color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);">0</span>
+                <span class="stat-label">Target 3⭐</span>
+                <span class="stat-value" id="target-value" style="color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);">0.0s</span>
             </div>
         </div>
         <div class="hud-right">
@@ -282,7 +282,7 @@
     <div class="overlay active" id="start-screen">
         <div class="modal">
             <h2>NEON ARROWS</h2>
-            <p>Clear the cyberpunk grid by sliding glowing paths off the screen in the correct order!</p>
+            <p>Slide the colorful neon arrow blocks off the screen in the correct order to decrypt the grid!</p>
             <button class="btn-main" id="start-btn">Hack Grid</button>
             <button class="btn-outline" id="htp-btn">💡 How to Play</button>
         </div>
@@ -306,10 +306,10 @@
             <h2>How to Play</h2>
             <div class="htp-content">
                 <ul>
-                    <li>Tap a glowing path to slide it along its bends and curves in the direction of its arrowhead.</li>
-                    <li>Lines can only slide off the screen if their exit path is completely clear.</li>
+                    <li>Tap a colorful block to slide it in the direction of its inner arrow.</li>
+                    <li>Blocks can only slide off the board if their exit path is completely clear of other blocks.</li>
                     <li>Blocked paths will bounce back and wiggle.</li>
-                    <li>Clear the board in as few moves as possible to match the "Perfect" target and unlock trophies!</li>
+                    <li>Clear the board as fast as possible to earn a 3-star rating!</li>
                 </ul>
             </div>
             <button class="btn-main" id="htp-close">Understood</button>
@@ -331,9 +331,12 @@
         <div class="modal">
             <h2 style="color: var(--neon-green); text-shadow: 0 0 15px var(--neon-green);">SECTOR CRACKED!</h2>
             <div id="level-summary" style="margin-bottom: 20px;">
-                <p>Moves Taken: <span id="summary-moves" style="color: var(--neon-cyan);">0</span></p>
-                <p>Perfect Target: <span id="summary-perfect" style="color: var(--neon-yellow);">0</span></p>
-                <p id="perfect-badge" style="color: var(--neon-green); font-weight: 700; margin-top: 15px; display: none;">✨ PERFECT RUN! ✨</p>
+                <p>Time Elapsed: <span id="summary-time" style="color: var(--neon-cyan); font-weight: 700;">0.0s</span></p>
+                <p>Target for 3⭐: <span id="summary-target" style="color: var(--neon-yellow);">0.0s</span></p>
+                <div id="star-rating-display" style="font-size: 32px; margin: 15px 0; letter-spacing: 5px;">
+                    <!-- Stars will be populated here -->
+                </div>
+                <p id="star-commentary" style="color: var(--neon-green); font-weight: 700; margin-top: 10px;"></p>
             </div>
             <button class="btn-main" id="next-btn">Next Sector</button>
             <div class="social-sharing">

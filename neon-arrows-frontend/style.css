@@ -237,12 +237,38 @@ body {
 /* Level Selection Screen Grid & Buttons */
 .level-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin: 20px 0;
     max-height: 250px;
     overflow-y: auto;
     padding-right: 4px;
+}
+
+/* Star Rating Display */
+#star-rating-display {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.gold-star {
+    display: inline-block;
+    color: #ffd700;
+    text-shadow: 0 0 15px #ffd700, 0 0 30px #ffaa00;
+    animation: pulse-star 1.5s infinite alternate ease-in-out;
+}
+
+.grey-star {
+    display: inline-block;
+    opacity: 0.25;
+    filter: grayscale(1);
+}
+
+@keyframes pulse-star {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.12); }
 }
 
 .level-grid::-webkit-scrollbar {
