@@ -176,7 +176,7 @@ function showLevelSelect() {
     
     const maxUnlocked = parseInt(localStorage.getItem('neon_arrows_level') || '0', 10);
     
-    LEVELS_TOTAL = LEVEL_CONFIGS.length;
+    const LEVELS_TOTAL = LEVEL_CONFIGS.length;
     for (let idx = 0; idx < LEVELS_TOTAL; idx++) {
         const btn = document.createElement('button');
         btn.className = 'level-btn';
@@ -396,7 +396,7 @@ function isSolvable(gridWidth, gridHeight, blocks) {
     return tempBlocks.length === 0;
 }
 
-// Deterministic Procedural Layout Generator
+// Fixed reverse-play generation algorithm
 function generateLevel(gridWidth, gridHeight, numBlocks, initialSeed, time3, time2) {
     let seed = initialSeed;
     let attempts = 0;
@@ -413,30 +413,56 @@ function generateLevel(gridWidth, gridHeight, numBlocks, initialSeed, time3, tim
         
         let blocks = [];
         let occupied = new Set();
+        
+        let allCells = [];
+        for (let x = 0; x < gridWidth; x++) {
+            for (let y = 0; y < gridHeight; y++) {
+                allCells.push({ x, y });
+            }
+        }
+        
         let placed = 0;
         let cellAttempts = 0;
         
-        while (placed < numBlocks && cellAttempts < 1000) {
+        while (placed < numBlocks && cellAttempts < 2000) {
             cellAttempts++;
-            let x = rng.nextInt(0, gridWidth);
-            let y = rng.nextInt(0, gridHeight);
-            let key = `${x},${y}`;
-            if (!occupied.has(key)) {
-                let dir = rng.choose(dirs);
+            let emptyCells = allCells.filter(c => !occupied.has(`${c.x},${c.y}`));
+            if (emptyCells.length === 0) break;
+            
+            let cell = rng.choose(emptyCells);
+            let dir = rng.choose(dirs);
+            
+            // Verify path in exitDir (dir) to check if any already placed blocks are blocking
+            let dx = dir.x;
+            let dy = dir.y;
+            let cx = cell.x + dx;
+            let cy = cell.y + dy;
+            let clear = true;
+            
+            while (cx >= 0 && cx < gridWidth && cy >= 0 && cy < gridHeight) {
+                if (occupied.has(`${cx},${cy}`)) {
+                    clear = false;
+                    break;
+                }
+                cx += dx;
+                cy += dy;
+            }
+            
+            if (clear) {
                 let color = rng.choose(colors);
                 blocks.push({
                     id: 'B' + placed,
-                    x: x,
-                    y: y,
+                    x: cell.x,
+                    y: cell.y,
                     color: color,
                     exitDir: { x: dir.x, y: dir.y }
                 });
-                occupied.add(key);
+                occupied.add(`${cell.x},${cell.y}`);
                 placed++;
             }
         }
         
-        if (blocks.length === numBlocks && isSolvable(gridWidth, gridHeight, blocks)) {
+        if (blocks.length > 0 && isSolvable(gridWidth, gridHeight, blocks)) {
             return {
                 gridWidth: gridWidth,
                 gridHeight: gridHeight,
@@ -615,6 +641,21 @@ function drawGridMatrix() {
     ctx.shadowBlur = 0;
 }
 
+// Rounded rect path helper
+function drawRoundedRectPath(x, y, size, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + size - r, y);
+    ctx.quadraticCurveTo(x + size, y, x + size, y + r);
+    ctx.lineTo(x + size, y + size - r);
+    ctx.quadraticCurveTo(x + size, y + size, x + size - r, y + size);
+    ctx.lineTo(x + r, y + size);
+    ctx.quadraticCurveTo(x, y + size, x, y + size - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
 function drawBlocks() {
     const now = performance.now();
     const pulse = Math.sin(now / 150) * 3;
@@ -641,42 +682,44 @@ function drawBlocks() {
         const size = cellSize - 2 * padding;
         const color = NEON_COLORS[block.color] || '#ffffff';
         
-        ctx.save();
-        ctx.translate(bx + padding, by + padding);
-        
-        // Rounded card boundary
-        const r = 8;
-        ctx.beginPath();
-        ctx.moveTo(r, 0);
-        ctx.lineTo(size - r, 0);
-        ctx.quadraticCurveTo(size, 0, size, r);
-        ctx.lineTo(size, size - r);
-        ctx.quadraticCurveTo(size, size, size - r, size);
-        ctx.lineTo(r, size);
-        ctx.quadraticCurveTo(0, size, 0, size - r);
-        ctx.lineTo(0, r);
-        ctx.quadraticCurveTo(0, 0, r, 0);
-        ctx.closePath();
-        
-        // Dark glass button fill
-        ctx.fillStyle = 'rgba(13, 14, 18, 0.88)';
+        // 1. Draw 3D shadow face
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        drawRoundedRectPath(bx + padding, by + padding + 5, size, 8);
         ctx.fill();
         
-        // Border glowing outline
+        // 2. Draw 3D side extrusion (darker color border)
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 0.45;
+        drawRoundedRectPath(bx + padding, by + padding + 4, size, 8);
+        ctx.stroke();
+        ctx.restore();
+        
+        // 3. Draw main block top face (Gradient glass fill)
+        ctx.save();
+        const grad = ctx.createLinearGradient(bx + padding, by + padding, bx + padding + size, by + padding + size);
+        grad.addColorStop(0, 'rgba(28, 30, 38, 0.94)');
+        grad.addColorStop(1, 'rgba(10, 11, 14, 0.98)');
+        ctx.fillStyle = grad;
+        drawRoundedRectPath(bx + padding, by + padding, size, 8);
+        ctx.fill();
+        
+        // 4. Border glowing outline
         ctx.strokeStyle = color;
         ctx.lineWidth = 2.5;
         ctx.shadowColor = color;
         ctx.shadowBlur = 8 + pulse;
+        drawRoundedRectPath(bx + padding, by + padding, size, 8);
         ctx.stroke();
-        
         ctx.restore();
         
-        // Draw directional HUD indicator chevrons
-        drawChevrons(bx + cellSize / 2, by + cellSize / 2, block.exitDir, color, 8 + pulse);
+        // Draw proper glowing vector arrow
+        drawArrowInBlock(bx + cellSize / 2, by + cellSize / 2, block.exitDir, color, 8 + pulse);
     });
 }
 
-function drawChevrons(cx, cy, exitDir, color, glowBlur) {
+function drawArrowInBlock(cx, cy, exitDir, color, glowBlur) {
     ctx.save();
     ctx.translate(cx, cy);
     
@@ -688,21 +731,21 @@ function drawChevrons(cx, cy, exitDir, color, glowBlur) {
     ctx.rotate(angle);
     
     ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.shadowColor = color;
     ctx.shadowBlur = glowBlur;
     
-    // Draw dual nested chevron markers
+    // Draw proper vector arrow ->
     ctx.beginPath();
-    ctx.moveTo(-6, -7);
-    ctx.lineTo(0, 0);
-    ctx.lineTo(-6, 7);
-    
-    ctx.moveTo(1, -7);
-    ctx.lineTo(7, 0);
-    ctx.lineTo(1, 7);
+    // Arrow stem
+    ctx.moveTo(-11, 0);
+    ctx.lineTo(9, 0);
+    // Arrowhead pointer
+    ctx.moveTo(2, -7);
+    ctx.lineTo(9, 0);
+    ctx.lineTo(2, 7);
     ctx.stroke();
     
     ctx.restore();
