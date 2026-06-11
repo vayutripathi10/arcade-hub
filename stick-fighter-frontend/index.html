@@ -325,14 +325,14 @@
 
             <!-- Pause Menu -->
             <div id="pauseMenu" class="menu-overlay hidden">
-                <h2 style="color: #ffd700; font-family: 'Press Start 2P', Courier;">PAUSED</h2>
+                <h2 style="color: #ffd700; font-family: 'Outfit', sans-serif;">PAUSED</h2>
                 <button id="btn-resume" class="btn primary-btn">Resume</button>
                 <button id="btn-quit" class="btn secondary-btn">Quit to Menu</button>
             </div>
 
             <!-- Game Over Menu -->
             <div id="gameOverMenu" class="menu-overlay hidden">
-                <h2 style="color: #ff0055; font-family: 'Press Start 2P', Courier;">KNOCKED OUT</h2>
+                <h2 style="color: #ff0055; font-family: 'Outfit', sans-serif;">KNOCKED OUT</h2>
                 <p>Score: <span id="final-score">0</span></p>
                 <button id="btn-restart" class="btn primary-btn">Try Again</button>
                 <button id="btn-quit-end" class="btn secondary-btn">Menu</button>
@@ -340,7 +340,7 @@
 
             <!-- How To Play Modal -->
             <div id="howToPlayModal" class="menu-overlay hidden">
-                <h2 style="font-family: 'Press Start 2P', Courier; color: #0df;">HOW TO PLAY</h2>
+                <h2 style="font-family: 'Outfit', sans-serif; color: #0df;">HOW TO PLAY</h2>
                 <div class="rules-container" style="text-align:left; max-width:400px; color:#ddd; font-family:Outfit, sans-serif; font-size:14px; background:rgba(0,0,0,0.8); padding:20px; border:1px solid #0df; border-radius:10px;">
                     <p><b>Movement:</b></p>
                     <ul>
@@ -361,7 +361,7 @@
 
             <!-- Stage Select Menu -->
             <div id="stageMenu" class="menu-overlay hidden">
-                <h2 style="color: #0df; font-family: 'Press Start 2P', Courier; margin-bottom: 20px; font-size: 1.5rem; text-shadow: 0 0 10px rgba(0, 221, 255, 0.4);">SELECT STAGE</h2>
+                <h2 style="color: #0df; font-family: 'Outfit', sans-serif; margin-bottom: 20px; font-size: 1.8rem; text-shadow: 0 0 10px rgba(0, 221, 255, 0.4);">SELECT STAGE</h2>
                 <div id="stage-grid" class="stage-grid">
                     <!-- Populated dynamically -->
                 </div>
@@ -370,7 +370,7 @@
 
             <!-- Stage Clear Overlay -->
             <div id="stageClearOverlay" class="menu-overlay hidden">
-                <h2 style="color: #00ffcc; font-family: 'Press Start 2P', Courier; font-size: 1.8rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); margin-bottom: 15px;">STAGE CLEAR!</h2>
+                <h2 style="color: #00ffcc; font-family: 'Outfit', sans-serif; font-size: 2.2rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); margin-bottom: 15px;">STAGE CLEAR!</h2>
                 <p style="font-size: 1.1rem; color: #fff; margin-bottom: 10px;">Stage <span id="clear-stage-num">1</span> Complete</p>
                 <div id="clear-stars" class="clear-stars" style="margin-bottom: 25px;">
                     <!-- Stars populated by JS -->
@@ -387,7 +387,8 @@
                 <button id="btn-left" class="m-btn">◀</button>
                 <button id="btn-right" class="m-btn">▶</button>
             </div>
-            <div class="dpad-right">
+            <div class="dpad-right" style="display: flex; gap: 12px; align-items: center; pointer-events: auto;">
+                <button id="btn-jump" class="m-btn" style="background: rgba(0, 150, 255, 0.15); border-color: rgba(0, 150, 255, 0.5); color: #0df; font-family: Outfit, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1px; width: 54px; height: 54px;">JUMP</button>
                 <button id="btn-attack" class="m-btn attack-btn">STRIKE</button>
             </div>
         </div>
@@ -405,7 +406,7 @@
     
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Stages_v3"></script>
+    <script src="script.js?v=ArcadeHub_Stages_v5"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {
