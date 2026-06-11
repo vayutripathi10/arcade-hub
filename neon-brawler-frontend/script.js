@@ -29,6 +29,10 @@ let CANVAS_H = 400;
 
 let score = 0;
 let highScore = localStorage.getItem('brawlerHighScore') || 0;
+if (highScore > 0 && highScore < 1000) {
+    highScore = highScore * 100;
+    localStorage.setItem('brawlerHighScore', highScore);
+}
 highScoreEl.textContent = highScore;
 
 let gameRunning = false;
@@ -90,14 +94,314 @@ let consecutiveAttacks = 0;
 let lastAttackDirection = null;
 let lastAttackTime = 0;
 
+// Juice Overhaul State variables
+let currentWave = 1;
+let enemiesSpawnedInWave = 0;
+let enemiesKilledInWave = 0;
+let waveEnemiesToKill = 8;
+let waveBannerTimer = 0;
+let waveBannerText = "";
+let bulletTimeTimer = 0;
+let cameraScale = 1.0;
+let comboScale = 1.0;
+let comboBreakTimer = 0;
+let comboBreakX = 0;
+let comboBreakY = 0;
+let displayedScore = 0;
+let lastBossName = "";
+let bossEntranceTimer = 0;
+let bossHealthBarY = -50;
+let vignetteIntensity = 0;
+let heartParticles = [];
+let multiKillTimer = 0;
+let multiKillCount = 0;
+let lightningStrikeTimer = 0;
+let lightningStrikes = [];
+let freezeFrames = 0;
+let powerUpBannerTimer = 0;
+let powerUpBannerText = "";
+let powerUpBannerColor = "#ffffff";
+let speedLines = [];
+let screenTint = null;
+let lastLifeWarningPulse = 0;
+
 const STAGE_COLORS = ['#00ffcc', '#bc13fe', '#ff3366'];
 let HIT_RANGE = 140; 
 const KILL_RANGE = 35; 
-const BOSS_THRESHOLD = 100;
+const BOSS_THRESHOLD = 30; // Boss every 30 kills!
 const getBasePlayerY = () => CANVAS_H / 2 + 50;
+
+const brawlerAudio = {
+    ctx: null,
+    heartbeatInterval: null,
+    
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                this.ctx = new AudioCtx();
+            }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    },
+    
+    isMuted() {
+        if (window.audioFX) return window.audioFX.isMuted;
+        return false;
+    },
+    
+    playPunch(isHeavy = false) {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        
+        const startFreq = isHeavy ? 100 : 180;
+        const endFreq = isHeavy ? 40 : 60;
+        const duration = isHeavy ? 0.15 : 0.08;
+        
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
+        
+        gain.gain.setValueAtTime(0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+    },
+    
+    playWhiff() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
+        
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.14);
+    },
+    
+    playComboIncrement(comboCount) {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const baseFreq = 261.63; // C4
+        const multiplier = 1 + (comboCount % 12) * 0.0833;
+        const freq = baseFreq * multiplier;
+        
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+    },
+    
+    playComboBreak() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(40, now + 0.3);
+        
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.32);
+    },
+    
+    playEnemyDeath() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+        
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+    },
+    
+    playBossRoar() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const osc1 = this.ctx.createOscillator();
+        const osc2 = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc1.type = 'sawtooth';
+        osc1.frequency.setValueAtTime(60, now);
+        osc1.frequency.linearRampToValueAtTime(30, now + 0.8);
+        
+        osc2.type = 'square';
+        osc2.frequency.setValueAtTime(62, now);
+        osc2.frequency.linearRampToValueAtTime(31, now + 0.8);
+        
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.8);
+        
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(this.ctx.destination);
+        
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.8);
+        osc2.stop(now + 0.8);
+    },
+    
+    playBossHit() {
+        this.playPunch(true);
+    },
+    
+    playPowerUpCollect() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.05);
+            gain.gain.setValueAtTime(0.2, now + i * 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.15);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.05);
+            osc.stop(now + i * 0.05 + 0.15);
+        });
+    },
+    
+    playPlayerDamaged() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.25);
+        
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.27);
+    },
+    
+    startHeartbeat() {
+        this.init();
+        if (this.heartbeatInterval) return;
+        this.heartbeatInterval = setInterval(() => {
+            if (!gameRunning || isPaused || player.lives !== 1 || this.isMuted()) return;
+            this.init();
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            
+            const osc1 = this.ctx.createOscillator();
+            const gain1 = this.ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(60, now);
+            gain1.gain.setValueAtTime(0.3, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            osc1.connect(gain1);
+            gain1.connect(this.ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.1);
+            
+            const osc2 = this.ctx.createOscillator();
+            const gain2 = this.ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(60, now + 0.15);
+            gain2.gain.setValueAtTime(0.3, now + 0.15);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(this.ctx.destination);
+            osc2.start(now + 0.15);
+            osc2.stop(now + 0.25);
+        }, 1000);
+    },
+    
+    stopHeartbeat() {
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+    },
+    
+    playLevelClear() {
+        this.init();
+        if (!this.ctx || this.isMuted()) return;
+        
+        const now = this.ctx.currentTime;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, now + i * 0.08);
+            gain.gain.setValueAtTime(0.2, now + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.27);
+        });
+    }
+};
 
 function initGame() {
     score = 0;
+    displayedScore = 0;
     scoreEl.textContent = '0';
     spawnTimer = 0;
     spawnInterval = 90;
@@ -126,6 +430,30 @@ function initGame() {
     lastAttackDirection = null;
     lastAttackTime = 0;
     
+    // Reset Overhaul State variables
+    currentWave = 1;
+    enemiesSpawnedInWave = 0;
+    enemiesKilledInWave = 0;
+    waveEnemiesToKill = 8;
+    waveBannerTimer = 120; // Show Wave 1 banner at start!
+    waveBannerText = "WAVE 1";
+    bulletTimeTimer = 0;
+    cameraScale = 1.0;
+    comboScale = 1.0;
+    comboBreakTimer = 0;
+    vignetteIntensity = 0;
+    heartParticles = [];
+    multiKillTimer = 0;
+    multiKillCount = 0;
+    lightningStrikeTimer = 0;
+    lightningStrikes = [];
+    freezeFrames = 0;
+    powerUpBannerTimer = 0;
+    powerUpBannerText = "";
+    speedLines = [];
+    screenTint = null;
+    lastLifeWarningPulse = 0;
+    
     player = {
         x: CANVAS_W / 2,
         y: getBasePlayerY(),
@@ -142,11 +470,13 @@ function initGame() {
     
     updateLivesUI();
     generateEnvironment();
+    brawlerAudio.stopHeartbeat(); // Stop heartbeat if it was running
 
     if (window.audioFX) {
         window.audioFX.init();
         if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
+    brawlerAudio.init(); // Initialize brawlerAudio context
     gameRunning = true;
     isPaused = false;
     overlay.classList.add('hidden');
@@ -202,22 +532,34 @@ function defeatEnemy(e, direction, isKatana = false) {
     e.rotationSpeed = direction === 'left' ? -0.25 : 0.25;
     
     comboStreak++;
+    brawlerAudio.playComboIncrement(comboStreak); // Combo synth note!
+    comboScale = 1.8; // Grow combo text scale
+    
     if (comboStreak === 15 && berserkTimer <= 0) {
         berserkTimer = BERSERK_DURATION;
         HIT_RANGE = 280; // Double range
         flashAlpha = 0.6;
         flashColor = '#ff00ea'; // Fuchsia
         floatingTexts.push(new FloatingText(player.x, player.y - 50, "BERSERK ACTIVE!", '#ff00ea'));
-        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
-            window.audioFX.playLevelUp();
-        }
+        brawlerAudio.playPowerUpCollect(); // play fuchsia power up sound
     }
     
     kills++;
-    if (kills === 50 && !bossActive) {
-        triggerDragonBoss();
-    } else if (score === BOSS_THRESHOLD && !bossActive) {
-        triggerBoss();
+    enemiesKilledInWave++;
+    
+    // Multi-kill every 10 kills
+    if (kills % 10 === 0 && kills > 0) {
+        floatingTexts.push(new FloatingText(e.x, e.y - 60, "MULTI-KILL!", '#ff3366'));
+        spawnDeathParticles(e.x, e.y - 20, '#ffffff');
+        spawnDeathParticles(e.x, e.y - 20, STAGE_COLORS[currentStage]);
+    }
+    
+    if (kills > 0 && kills % 30 === 0 && !bossActive) {
+        if (Math.random() > 0.5) {
+            triggerDragonBoss();
+        } else {
+            triggerBoss();
+        }
     }
     
     // Check weapon drops trigger (every 20 kills)
@@ -230,18 +572,43 @@ function defeatEnemy(e, direction, isKatana = false) {
         player.lives++;
         updateLivesUI();
         floatingTexts.push(new FloatingText(player.x, player.y - 65, "EXTRA LIFE +1", '#ff0055'));
-        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
-            window.audioFX.playLevelUp();
-        }
+        brawlerAudio.playPowerUpCollect();
     }
     
-    const pointsGained = (berserkTimer > 0) ? 2 : 1;
+    // Score based on multipliers
+    let comboMult = 1;
+    if (comboStreak >= 20) comboMult = 5;
+    else if (comboStreak >= 10) comboMult = 3;
+    else if (comboStreak >= 5) comboMult = 2;
+    else if (comboStreak >= 3) comboMult = 1.5;
+    
+    const waveMult = 1 + Math.floor((currentWave - 1) / 5);
+    const basePoints = (berserkTimer > 0) ? 2 : 1;
+    const pointsGained = Math.floor(basePoints * comboMult * waveMult);
     score += pointsGained;
-    scoreEl.textContent = score;
-
+    
+    // Floating point indicator
+    floatingTexts.push(new FloatingText(e.x, e.y - 35, "+" + (pointsGained * 100), STAGE_COLORS[currentStage]));
+    
+    // Milestone check
+    if ([500, 1000, 2000].includes(score)) {
+        score += 100;
+        milestoneText = "MILESTONE! +100 BONUS";
+        milestoneTimer = 180;
+        brawlerAudio.playPowerUpCollect();
+    } else if ([10, 25, 50, 75, 100].includes(score)) {
+        if (score === 10) milestoneText = "10 STREAK: WARM UP!";
+        else if (score === 25) milestoneText = "25 STREAK: UNSTOPPABLE!";
+        else if (score === 50) milestoneText = "50 STREAK: DOMINATING!";
+        else if (score === 75) milestoneText = "75 STREAK: SKY BRAWLER!";
+        else if (score === 100) milestoneText = "100 STREAK: ASCENDED GOD!";
+        milestoneTimer = 120;
+        brawlerAudio.playPowerUpCollect();
+    }
+    
     // Handle Katana Cut Splitting
+    const enemyColor = e.color || STAGE_COLORS[currentStage];
     if (isKatana) {
-        // Splitting stickman in half
         enemies.splice(enemies.indexOf(e), 1); // remove from active
         
         // Spawn dead upper half
@@ -255,7 +622,9 @@ function defeatEnemy(e, direction, isKatana = false) {
             dead: true,
             type: 'deadUpper',
             side: e.side,
-            color: e.color || STAGE_COLORS[currentStage]
+            color: enemyColor,
+            life: 1.0,
+            decay: 0.04
         });
         
         // Spawn dead lower half
@@ -269,7 +638,9 @@ function defeatEnemy(e, direction, isKatana = false) {
             dead: true,
             type: 'deadLower',
             side: e.side,
-            color: e.color || STAGE_COLORS[currentStage]
+            color: enemyColor,
+            life: 1.0,
+            decay: 0.04
         });
         
         // Neon Red Blood Spray
@@ -280,34 +651,42 @@ function defeatEnemy(e, direction, isKatana = false) {
                 vx: (direction === 'left' ? -1 : 1) * (6 + Math.random() * 12) + (Math.random() - 0.5) * 5,
                 vy: -4 - Math.random() * 10,
                 life: 0.8 + Math.random() * 0.4,
-                color: '#ff003c', // glowing neon blood red!
+                decay: 0.04,
+                color: '#ff003c', // glowing blood red!
                 isBlood: true
             });
         }
         
         impactRings.push(new ImpactRing(e.x, e.y, '#ff003c'));
-        if (window.audioFX) window.audioFX.playEat();
+        brawlerAudio.playEnemyDeath();
     } else {
         // Standard death particles and impact rings
-        spawnParticles(e.x, e.y, STAGE_COLORS[currentStage]);
-        impactRings.push(new ImpactRing(e.x, e.y, STAGE_COLORS[currentStage]));
-        if (window.audioFX) window.audioFX.playEat();
+        spawnDeathParticles(e.x, e.y, enemyColor);
+        impactRings.push(new ImpactRing(e.x, e.y, enemyColor));
+        brawlerAudio.playEnemyDeath();
     }
-
-    // Milestone check
-    if ([10, 25, 50, 75, 100].includes(score)) {
-        if (score === 10) milestoneText = "10 STREAK: WARM UP!";
-        else if (score === 25) milestoneText = "25 STREAK: UNSTOPPABLE!";
-        else if (score === 50) milestoneText = "50 STREAK: DOMINATING!";
-        else if (score === 75) milestoneText = "75 STREAK: SKY BRAWLER!";
-        else if (score === 100) milestoneText = "100 STREAK: ASCENDED GOD!";
+    
+    // Wave complete transition
+    if (enemiesKilledInWave >= waveEnemiesToKill && !bossActive) {
+        brawlerAudio.playLevelClear();
+        currentWave++;
+        enemiesSpawnedInWave = 0;
+        enemiesKilledInWave = 0;
         
-        milestoneTimer = 100;
-        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
-            window.audioFX.playLevelUp();
+        if (currentWave === 5 || currentWave === 10 || currentWave === 15) {
+            waveEnemiesToKill = 12; // Danger waves
+            waveBannerText = "DANGER WAVE " + currentWave;
+        } else if (currentWave === 6 || currentWave === 11 || currentWave === 16) {
+            waveEnemiesToKill = 2; // Breathing room
+            waveBannerText = "BREATHING ROOM";
+        } else {
+            waveEnemiesToKill = 8 + currentWave * 2;
+            waveBannerText = "WAVE " + currentWave;
         }
+        waveBannerTimer = 120;
+        floatingTexts.push(new FloatingText(player.x, player.y - 60, waveBannerText + " START!", '#00ffcc'));
     }
-
+    
     // Evolution / Stage Logic
     if (score > 0 && score % 50 === 0) {
         currentStage = Math.min(2, Math.floor(score / 50));
@@ -359,7 +738,12 @@ function attack(direction) {
     if (activeWeapon === 'laserstaff') {
         laserBeams.push(new LaserBeam(player.x, player.y - 20, '#bc13fe', direction));
         weaponCharges--;
-        if (weaponCharges <= 0) activeWeapon = null;
+        if (weaponCharges <= 0) {
+            activeWeapon = null;
+            powerUpBannerText = "POWER UP EXPIRED";
+            powerUpBannerTimer = 120;
+            screenTint = { color: '#bc13fe', alpha: 0.1 };
+        }
     }
 
     // If Berserk is active, release expanding shockwave ring (Idea 1)
@@ -384,7 +768,7 @@ function attack(direction) {
                     
                     screenShake = 5;
                     impactRings.push(new ImpactRing(p.x, p.y, '#00ffff'));
-                    if (window.audioFX) window.audioFX.playJump();
+                    brawlerAudio.playPunch(true);
                 }
             }
         });
@@ -400,14 +784,20 @@ function attack(direction) {
                 damageDealt = 1.5; // Katana deals more damage
             }
             boss.health -= damageDealt;
-            screenShake = 10;
-            spawnParticles(boss.x, boss.y - 40, '#ff3300');
+            
+            // Hit juice for boss
+            boss.flashTimer = 5; // Flash white
+            spawnHitSparks(boss.x, boss.y - 40, boss.color);
+            freezeFrames = 3; // AAA hit freeze
+            screenShake = 12; // Shake
+            brawlerAudio.playBossHit();
+            
             impactRings.push(new ImpactRing(boss.x, boss.y - 40, '#ff3300'));
             
             if (boss.health <= 0) {
                 boss.die();
             } else {
-                floatingTexts.push(new FloatingText(boss.x, boss.y - 60, activeWeapon === 'katana' ? "SLASH!" : "HIT!", '#ff3300'));
+                floatingTexts.push(new FloatingText(boss.x, boss.y - 60, activeWeapon === 'katana' ? "SLASH!" : "HIT!", '#ffff00'));
             }
             return;
         }
@@ -433,7 +823,7 @@ function attack(direction) {
             // Shield blocks normal attacks
             spawnParticles(closestEnemy.x, closestEnemy.y, '#ffffff');
             floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, "BLOCK", '#ffffff'));
-            if (window.audioFX) window.audioFX.playJump();
+            brawlerAudio.playWhiff(); // play block / whiff sound
             screenShake = 4;
             return;
         }
@@ -448,43 +838,97 @@ function attack(direction) {
         
         closestEnemy.hp -= damageDealt;
         
+        // Hit juice for enemy
+        closestEnemy.flashTimer = 5; // flash white for 80ms
+        spawnHitSparks(closestEnemy.x, closestEnemy.y - 20, STAGE_COLORS[currentStage]);
+        freezeFrames = 3; // AAA hit stop
+        screenShake = isPerfect ? 8 : 4; // screen micro-shake
+        brawlerAudio.playPunch(isPerfect); // punch sound
+        
         if (closestEnemy.hp <= 0) {
             defeatEnemy(closestEnemy, direction, activeWeapon === 'katana');
             
             if (activeWeapon === 'katana') {
                 weaponCharges--;
-                if (weaponCharges <= 0) activeWeapon = null;
+                if (weaponCharges <= 0) {
+                    activeWeapon = null;
+                    powerUpBannerText = "POWER UP EXPIRED";
+                    powerUpBannerTimer = 120;
+                    screenTint = { color: '#ff3300', alpha: 0.1 };
+                }
             }
         } else {
             // Hit feedback
-            floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, activeWeapon === 'katana' ? "SLASH!" : "HIT", STAGE_COLORS[currentStage]));
-            screenShake = closestEnemy.type === 'elite' ? 8 : 3;
-            if (window.audioFX) window.audioFX.playEat();
+            floatingTexts.push(new FloatingText(closestEnemy.x, closestEnemy.y - 30, isPerfect ? "CRITICAL!" : "HIT", '#ffff00'));
             
-            // Push back slightly
-            closestEnemy.x += direction === 'left' ? -20 : 20;
+            // Push back slightly (knockback with smooth slide)
+            closestEnemy.knockbackX = direction === 'left' ? -20 : 20;
         }
     } else {
-        if (window.audioFX) window.audioFX.playJump();
+        brawlerAudio.playWhiff(); // Whiff whoosh sound
     }
 }
 
 function takeDamage() {
-    if (player.invulnerable || !gameRunning) return;
+    if (player.invulnerable || !gameRunning || player.state === 'dead') return;
     
     player.lives--;
     updateLivesUI();
     player.invulnerable = true;
     player.invulnTimer = 90; // 1.5s invulerability
-    screenShake = 20;
+    screenShake = 22; // rapid camera rumble
     
-    flashAlpha = 0.7;
-    flashColor = 'rgba(255, 0, 51, 0.4)';
+    flashAlpha = 0.85;
+    flashColor = 'rgba(255, 0, 0, 0.45)'; // red screen flash
+    vignetteIntensity = 0.9; // screen edge vignette pulse
     
-    if (navigator.vibrate) navigator.vibrate(100);
+    brawlerAudio.playPlayerDamaged(); // distorted impact audio
+    
+    if (comboStreak >= 3) {
+        // Combo break!
+        brawlerAudio.playComboBreak();
+        comboBreakTimer = 90; // Show COMBO BREAKER! text for 1.5s
+        comboBreakX = player.x;
+        comboBreakY = player.y - 60;
+        
+        // Explode combo text particles
+        for (let i = 0; i < 15; i++) {
+            particles.push({
+                x: player.x,
+                y: player.y - 60,
+                vx: (Math.random() - 0.5) * 14,
+                vy: (Math.random() - 0.5) * 14,
+                life: 1.0,
+                decay: 0.05,
+                color: '#ffcc00'
+            });
+        }
+    }
+    comboStreak = 0;
+    
+    // Heart break shard particles at player torso
+    for (let i = 0; i < 15; i++) {
+        heartParticles.push({
+            x: player.x,
+            y: player.y - 20,
+            vx: (Math.random() - 0.5) * 10,
+            vy: -4 - Math.random() * 6,
+            life: 1.0,
+            decay: 0.03 + Math.random() * 0.02,
+            color: '#ff3366',
+            size: 4 + Math.random() * 6
+        });
+    }
+    
+    if (player.lives === 1) {
+        brawlerAudio.startHeartbeat(); // Subtle heartbeat pulse
+    }
+    
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
     spawnParticles(player.x, player.y - 20, '#ff0000');
     
     if (player.lives <= 0) {
+        brawlerAudio.stopHeartbeat();
         gameOver();
     }
 }
@@ -495,17 +939,29 @@ function takeDamage() {
 function triggerBoss() {
     bossActive = true;
     warningTimer = 180; // 3 seconds
-    warningText = 'WARNING: WYRM INCOMING';
+    warningText = 'WARNING: BOSS INCOMING';
+    bulletTimeTimer = 90; // 1.5s bullet time
+    screenShake = 15;
+    
+    const bossNames = ["SHADOW TITAN", "BLOOD REAPER", "DARK OVERLORD"];
+    lastBossName = bossNames[Math.floor(Math.random() * bossNames.length)];
+    
     boss = new Wyrm();
-    if (window.audioFX) window.audioFX.playGameOver(); // Reuse for alert
+    brawlerAudio.playBossRoar();
 }
 
 function triggerDragonBoss() {
     bossActive = true;
     warningTimer = 180; // 3 seconds
-    warningText = 'WARNING: DRAGON INCOMING';
+    warningText = 'WARNING: BOSS INCOMING';
+    bulletTimeTimer = 90; // 1.5s bullet time
+    screenShake = 15;
+    
+    const bossNames = ["SHADOW TITAN", "BLOOD REAPER", "DARK OVERLORD"];
+    lastBossName = bossNames[Math.floor(Math.random() * bossNames.length)];
+    
     boss = new Dragon();
-    if (window.audioFX) window.audioFX.playGameOver(); // Reuse for alert
+    brawlerAudio.playBossRoar();
 }
 
 class Wyrm {
@@ -519,13 +975,26 @@ class Wyrm {
         this.sinOffset = 0;
         this.active = false;
         this.color = '#ff00ff';
+        this.flashTimer = 0;
         this.segments = [];
         for(let i=0; i<10; i++) this.segments.push({x: -200, y: this.y});
     }
 
     update(deltaTime) {
-        if (warningTimer > 0) return;
+        if (warningTimer > 0) {
+            // Smoothly slide in from left towards the center of screen
+            this.x += 4.5 * deltaTime;
+            this.y = player.y - 120;
+            this.segments[0].x = this.x;
+            this.segments[0].y = this.y;
+            for(let i=this.segments.length-1; i>0; i--) {
+                this.segments[i].x += (this.segments[i-1].x - this.segments[i].x) * 0.2 * deltaTime;
+                this.segments[i].y += (this.segments[i-1].y - this.segments[i].y) * 0.2 * deltaTime;
+            }
+            return;
+        }
         this.active = true;
+        if (this.flashTimer > 0) this.flashTimer -= deltaTime;
         this.sinOffset += 0.04 * deltaTime;
         this.x = (CANVAS_W/2) + Math.sin(this.sinOffset) * (CANVAS_W/2.5);
         this.y = (CANVAS_H/2 - 100) + Math.cos(this.sinOffset * 0.5) * 50;
@@ -600,16 +1069,37 @@ class Wyrm {
     die() {
         bossActive = false;
         score += 500;
-        scoreEl.textContent = score;
-        spawnParticles(this.x, this.y, '#ffffff');
+        
+        flashAlpha = 1.0;
+        flashColor = '#ffffff';
+        screenShake = 25;
+        
+        for (let i = 0; i < 55; i++) {
+            particles.push({
+                x: this.x,
+                y: this.y,
+                vx: (Math.random() - 0.5) * 16,
+                vy: (Math.random() - 0.5) * 16,
+                life: 1.0,
+                decay: 0.02 + Math.random() * 0.02,
+                color: this.color,
+                bounces: 2,
+                isDeathParticle: true
+            });
+        }
+        
+        floatingTexts.push(new FloatingText(this.x, this.y - 80, "BOSS DEFEATED! +50000", '#ffd700'));
+        brawlerAudio.playLevelClear();
+        
         boss = null;
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
     }
 
     draw() {
         ctx.save();
         ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
+        ctx.strokeStyle = this.flashTimer > 0 ? '#ffffff' : this.color;
         ctx.lineWidth = 10;
         
         ctx.beginPath();
@@ -651,11 +1141,18 @@ class Dragon {
         this.active = false;
         this.color = '#ff3300'; // Neon orange/red
         this.jumpCooldown = 0;
+        this.flashTimer = 0;
     }
 
     update(deltaTime) {
-        if (warningTimer > 0) return;
+        if (warningTimer > 0) {
+            // Smoothly slide in from right towards the screen
+            this.x += this.vx * deltaTime;
+            this.y = getBasePlayerY();
+            return;
+        }
         this.active = true;
+        if (this.flashTimer > 0) this.flashTimer -= deltaTime;
 
         if (this.jumpCooldown > 0) {
             this.jumpCooldown -= deltaTime;
@@ -782,21 +1279,40 @@ class Dragon {
     die() {
         bossActive = false;
         score += 800;
-        scoreEl.textContent = score;
-        spawnParticles(this.x, this.y - 30, '#ff3300');
+        
+        flashAlpha = 1.0;
+        flashColor = '#ffffff';
+        screenShake = 28;
+        
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: this.x,
+                y: this.y - 30,
+                vx: (Math.random() - 0.5) * 18,
+                vy: (Math.random() - 0.5) * 18,
+                life: 1.0,
+                decay: 0.02 + Math.random() * 0.025,
+                color: this.color,
+                bounces: 2,
+                isDeathParticle: true
+            });
+        }
+        
         impactRings.push(new ImpactRing(this.x, this.y - 30, '#ff3300'));
         impactRings.push(new ImpactRing(this.x, this.y - 30, '#ffcc00'));
         
-        floatingTexts.push(new FloatingText(this.x, this.y - 80, "GIANT BRAWLER DEFEATED! +800", '#ffcc00'));
+        floatingTexts.push(new FloatingText(this.x, this.y - 80, "BOSS DEFEATED! +80000", '#ffd700'));
+        brawlerAudio.playLevelClear();
+        
         boss = null;
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
     }
 
     draw() {
         ctx.save();
         ctx.shadowBlur = 20;
         ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
+        ctx.strokeStyle = this.flashTimer > 0 ? '#ffffff' : this.color;
         ctx.lineWidth = 12; // Extra thick lines for the GIANT!
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -1091,15 +1607,21 @@ class Cloud {
     }
     draw(ctx) {
         ctx.save();
+        
+        // Calculate pulse based on combo level
+        const pulseSpeed = (comboStreak >= 10) ? 0.012 : 0.004;
+        const pulseAmp = (comboStreak >= 10) ? 0.15 : 0.05;
+        const pulse = 1.0 + Math.sin(performance.now() * pulseSpeed + this.x) * pulseAmp;
+        
         ctx.fillStyle = this.color;
-        ctx.globalAlpha = this.opacity;
+        ctx.globalAlpha = this.opacity * pulse;
         ctx.shadowColor = this.color;
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 15 * pulse;
         
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.arc(this.x + this.size * 0.6, this.y - this.size * 0.2, this.size * 0.8, 0, Math.PI * 2);
-        ctx.arc(this.x - this.size * 0.6, this.y - this.size * 0.1, this.size * 0.7, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.size * pulse, 0, Math.PI * 2);
+        ctx.arc(this.x + this.size * 0.6, this.y - this.size * 0.2, this.size * 0.8 * pulse, 0, Math.PI * 2);
+        ctx.arc(this.x - this.size * 0.6, this.y - this.size * 0.1, this.size * 0.7 * pulse, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }
@@ -1274,19 +1796,27 @@ function generateEnvironment() {
     }
 }
 
-function createEnemy() {
-    if (bossActive) return; // Stop enemies during boss
+function createEnemy(forceStageColor = false, speedScale = 1.0) {
+    if (bossActive) return;
     let side = Math.random() > 0.5 ? 'left' : 'right';
-    let type = score > 30 && Math.random() > 0.7 ? 'elite' : 'basic';
+    const eliteChance = Math.min(0.6, 0.1 + currentWave * 0.05);
+    let type = (score > 30 || currentWave > 1) && Math.random() < eliteChance ? 'elite' : 'basic';
+    
+    const waveSpeedMultiplier = (1.0 + (currentWave - 1) * 0.12) * speedScale;
+    const vx = (side === 'left' ? 3.5 : -3.5) * waveSpeedMultiplier;
+    
     enemies.push({
         x: side === 'left' ? -30 : CANVAS_W + 30,
         y: player.y,
-        vx: (side === 'left' ? 3.5 : -3.5) * gameSpeedMultiplier,
+        vx: vx,
         vy: 0,
+        knockbackX: 0,
         side: side,
         dead: false,
         hp: type === 'elite' ? 2 : 1,
-        type: type
+        type: type,
+        flashTimer: 0,
+        color: forceStageColor ? '#ff3366' : STAGE_COLORS[currentStage]
     });
 }
 
@@ -1301,6 +1831,39 @@ function spawnParticles(x, y, color) {
     }
 }
 
+function spawnDeathParticles(x, y, color) {
+    const count = 15 + Math.floor(Math.random() * 6); // 15-20 particles
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 12,
+            vy: -4 - Math.random() * 6,
+            life: 1.0,
+            decay: 0.03 + Math.random() * 0.02,
+            color: color,
+            bounces: 1, // bounces off the ground once
+            isDeathParticle: true
+        });
+    }
+}
+
+function spawnHitSparks(x, y, color) {
+    const count = 8 + Math.floor(Math.random() * 5); // 8-12 particles
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 16,
+            vy: (Math.random() - 0.5) * 16,
+            life: 1.0,
+            decay: 0.15 + Math.random() * 0.05, // fades out in ~200ms
+            color: color,
+            isSpark: true
+        });
+    }
+}
+
 function gameOver() {
     gameRunning = false;
     isPaused = false;
@@ -1309,17 +1872,48 @@ function gameOver() {
     if (window.audioFX) window.audioFX.playGameOver();
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     
-    if (score > highScore) {
-        highScore = score;
+    if (score * 100 > highScore) {
+        highScore = score * 100;
         localStorage.setItem('brawlerHighScore', highScore);
         highScoreEl.textContent = highScore;
     }
     
     document.getElementById('overlayTitle').textContent = "Knockout!";
-    document.getElementById('overlayMessage').innerHTML = `Final Streak: ${score}<br>You were overwhelmed!`;
+    document.getElementById('overlayMessage').innerHTML = `Final Streak: ${score * 100}<br>You were overwhelmed!`;
     document.getElementById('shareContainer').classList.remove('hidden');
     startBtn.textContent = "Fight Again";
     overlay.classList.remove('hidden');
+}
+
+function triggerLightningStrike() {
+    const startX = Math.random() * CANVAS_W;
+    const segments = [];
+    let curX = startX;
+    let curY = 0;
+    const targetY = getBasePlayerY() + 20;
+    
+    while (curY < targetY) {
+        const nextX = curX + (Math.random() - 0.5) * 45;
+        const nextY = curY + 15 + Math.random() * 25;
+        segments.push({
+            x1: curX,
+            y1: curY,
+            x2: nextX,
+            y2: Math.min(targetY, nextY)
+        });
+        curX = nextX;
+        curY = nextY;
+    }
+    
+    lightningStrikes.push({
+        segments: segments,
+        life: 15 // 15 frames duration
+    });
+    
+    // Screen feedback
+    screenShake = Math.max(screenShake, 8);
+    flashAlpha = 0.35;
+    flashColor = '#00ffff';
 }
 
 function update(deltaTime) {
@@ -1378,6 +1972,68 @@ function update(deltaTime) {
         milestoneTimer -= deltaTime;
     }
 
+    // Decay juice overhaul state timers
+    if (waveBannerTimer > 0) {
+        waveBannerTimer -= deltaTime;
+    }
+    if (powerUpBannerTimer > 0) {
+        powerUpBannerTimer -= deltaTime;
+    }
+    if (comboBreakTimer > 0) {
+        comboBreakTimer -= deltaTime;
+    }
+    if (multiKillTimer > 0) {
+        multiKillTimer -= deltaTime;
+    }
+    if (vignetteIntensity > 0) {
+        vignetteIntensity -= 0.015 * deltaTime;
+        if (vignetteIntensity < 0) vignetteIntensity = 0;
+    }
+    if (comboScale > 1.0) {
+        comboScale -= 0.04 * deltaTime;
+        if (comboScale < 1.0) comboScale = 1.0;
+    }
+    if (screenTint && screenTint.alpha > 0) {
+        screenTint.alpha -= 0.015 * deltaTime;
+    }
+
+    // Score HUD counting up tick
+    if (displayedScore < score * 100) {
+        const diff = (score * 100) - displayedScore;
+        const increment = Math.ceil(diff * 0.15 * deltaTime);
+        displayedScore += increment;
+        if (displayedScore > score * 100) displayedScore = score * 100;
+        scoreEl.textContent = displayedScore;
+    }
+
+    // Camera scale (zoom out 5% during boss fights)
+    let targetCameraScale = bossActive ? 0.95 : 1.0;
+    if (cameraScale !== targetCameraScale) {
+        if (cameraScale < targetCameraScale) {
+            cameraScale += 0.005 * deltaTime;
+            if (cameraScale > targetCameraScale) cameraScale = targetCameraScale;
+        } else {
+            cameraScale -= 0.005 * deltaTime;
+            if (cameraScale < targetCameraScale) cameraScale = targetCameraScale;
+        }
+    }
+
+    // Lightning strike checks & updates
+    if (lightningStrikeTimer > 0) {
+        lightningStrikeTimer -= deltaTime;
+    } else if (comboStreak >= 10 || bossActive) {
+        if (Math.random() < 0.005 * deltaTime) {
+            triggerLightningStrike();
+            lightningStrikeTimer = 180;
+        }
+    }
+    for (let i = lightningStrikes.length - 1; i >= 0; i--) {
+        lightningStrikes[i].life -= deltaTime;
+        if (lightningStrikes[i].life <= 0) {
+            lightningStrikes.splice(i, 1);
+        }
+    }
+
     // Update sky elements
     stars.forEach(s => s.update(deltaTime));
     clouds.forEach(c => c.update(deltaTime));
@@ -1406,23 +2062,67 @@ function update(deltaTime) {
     berserkRings.forEach(r => r.update(deltaTime));
     berserkRings = berserkRings.filter(r => r.life > 0);
 
+    // Wave spawning engine when not fighting boss
     if (!bossActive) {
-        spawnTimer += deltaTime;
-        if (spawnTimer >= spawnInterval) {
-            createEnemy();
-            spawnTimer = 0;
+        const isDangerWave = (currentWave === 5 || currentWave === 10 || currentWave === 15);
+        const isBreathingRoom = (currentWave === 6 || currentWave === 11 || currentWave === 16);
+        
+        if (isDangerWave && enemiesSpawnedInWave === 0) {
+            // Spawn all at once
+            for (let k = 0; k < waveEnemiesToKill; k++) {
+                createEnemy();
+                enemiesSpawnedInWave++;
+            }
+            screenShake = Math.max(screenShake, 15);
+        } else if (enemiesSpawnedInWave < waveEnemiesToKill) {
+            spawnTimer += deltaTime;
+            const currentSpawnInterval = isBreathingRoom ? spawnInterval * 2 : spawnInterval;
+            if (spawnTimer >= currentSpawnInterval) {
+                createEnemy();
+                enemiesSpawnedInWave++;
+                spawnTimer = 0;
+            }
         }
     } else if (boss) {
         boss.update(deltaTime);
         if (warningTimer > 0) warningTimer -= deltaTime;
+
+        // Spawn small normal enemies during Dragon boss fight to make it more complex
+        if (boss instanceof Dragon && warningTimer <= 0) {
+            if (frameCount % 210 === 0) {
+                let side = Math.random() > 0.5 ? 'left' : 'right';
+                const vx = (side === 'left' ? 3.5 : -3.5) * (1.0 + (currentWave - 1) * 0.12);
+                enemies.push({
+                    x: side === 'left' ? -30 : CANVAS_W + 30,
+                    y: player.y,
+                    vx: vx,
+                    vy: 0,
+                    knockbackX: 0,
+                    side: side,
+                    dead: false,
+                    hp: 1,
+                    type: 'basic',
+                    flashTimer: 0,
+                    color: STAGE_COLORS[currentStage]
+                });
+            }
+        }
+
+        // Provide weapon (neon katana) when boss health falls below 30%
+        if (boss.health / boss.maxHealth <= 0.3 && !boss.droppedSwordAt30) {
+            boss.droppedSwordAt30 = true;
+            spawnWeaponDrop();
+            floatingTexts.push(new FloatingText(player.x, player.y - 70, "NEON KATANA DROPPED!", '#ff3300'));
+        }
     }
     
+    // Update enemies list
     for (let i = enemies.length - 1; i >= 0; i--) {
         let e = enemies[i];
-        e.x += e.vx * deltaTime;
-        e.y += e.vy * deltaTime;
         
         if (e.dead) {
+            e.x += e.vx * deltaTime;
+            e.y += e.vy * deltaTime;
             e.vy += 0.8 * deltaTime; 
             // Dead enemy dynamic rotation
             e.rotation = (e.rotation || 0) + (e.rotationSpeed || 0.15) * deltaTime;
@@ -1441,6 +2141,17 @@ function update(deltaTime) {
             
             if (e.y > CANVAS_H + 100) enemies.splice(i, 1);
         } else {
+            // Decaying knockback slide for non-dead enemies
+            if (e.knockbackX) {
+                e.x += e.knockbackX * deltaTime;
+                e.knockbackX *= Math.pow(0.8, deltaTime);
+                if (Math.abs(e.knockbackX) < 0.1) e.knockbackX = 0;
+            }
+            
+            // Standard move
+            e.x += e.vx * deltaTime;
+            e.y += e.vy * deltaTime;
+            
             let dist = Math.abs(e.x - player.x);
             if (dist < KILL_RANGE) {
                 takeDamage();
@@ -1451,36 +2162,149 @@ function update(deltaTime) {
         }
     }
     
+    // Update general particles
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         p.x += p.vx * deltaTime;
         if (p.isBlood) {
-            p.vy += 0.4 * deltaTime; // blood falling gravity!
+            p.vy += 0.4 * deltaTime; // blood falling gravity
+        } else if (p.isDeathParticle || p.isSpark) {
+            p.vy += 0.3 * deltaTime; // gravity for death/sparks
         }
         p.y += p.vy * deltaTime;
-        p.life -= 0.04 * deltaTime;
+        
+        // Ground bounce for death particles
+        const groundY = getBasePlayerY() + 20;
+        if (p.y >= groundY) {
+            p.y = groundY;
+            if (p.bounces > 0) {
+                p.vy = -p.vy * 0.5;
+                p.bounces--;
+            } else {
+                p.vy = 0;
+                p.vx *= 0.8; // friction
+            }
+        }
+        
+        p.life -= (p.decay || 0.04) * deltaTime;
         if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Update heart shards
+    for (let i = heartParticles.length - 1; i >= 0; i--) {
+        const hp = heartParticles[i];
+        hp.x += hp.vx * deltaTime;
+        hp.vy += 0.3 * deltaTime; // gravity
+        hp.y += hp.vy * deltaTime;
+        hp.life -= hp.decay * deltaTime;
+        if (hp.life <= 0) {
+            heartParticles.splice(i, 1);
+        }
     }
 }
 
 function draw() {
     ctx.save();
+    
+    // Camera Shake
     if (screenShake > 1) {
         ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
     }
     
+    // Zoom out camera (centered) by 5% during boss fights
+    if (cameraScale !== 1.0) {
+        ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+        ctx.scale(cameraScale, cameraScale);
+        ctx.translate(-CANVAS_W / 2, -CANVAS_H / 2);
+    }
+    
     // 1. Celestial Atmospheric Sky Gradient
     const skyGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-    skyGrad.addColorStop(0, '#04020a');
-    skyGrad.addColorStop(0.3, '#0b061e');
-    skyGrad.addColorStop(0.65, '#3a1146'); // twilight violet
-    skyGrad.addColorStop(0.85, '#d44b68'); // sunset pink
-    skyGrad.addColorStop(1.0, '#1c1c3c'); // horizon blue
+    let baseColor1 = '#04020a';
+    let baseColor2 = '#0b061e';
+    let baseColor3 = '#3a1146'; // twilight violet
+    let baseColor4 = '#d44b68'; // sunset pink
+    let baseColor5 = '#1c1c3c'; // horizon blue
+
+    if (bossActive) {
+        // Darkened boss backdrop
+        baseColor1 = '#020005';
+        baseColor2 = '#04010a';
+        baseColor3 = '#180424'; // deep purple-black
+        baseColor4 = '#420a1c'; // blood crimson
+        baseColor5 = '#090515';
+    } else if (comboStreak >= 3) {
+        // Warmer/intense combo shift towards red/orange HSL
+        const shift = Math.min(1.0, comboStreak / 20); // max shift at 20 combo
+        baseColor3 = `hsl(${280 - shift * 120}, 65%, 18%)`; 
+        baseColor4 = `hsl(${340 - shift * 60}, 75%, 45%)`;
+    }
+    
+    skyGrad.addColorStop(0, baseColor1);
+    skyGrad.addColorStop(0.3, baseColor2);
+    skyGrad.addColorStop(0.65, baseColor3);
+    skyGrad.addColorStop(0.85, baseColor4);
+    skyGrad.addColorStop(1.0, baseColor5);
+    
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     
+    // Boss fight dark red fog rolling in from sides
+    if (bossActive) {
+        ctx.save();
+        const gradLeft = ctx.createLinearGradient(0, 0, CANVAS_W * 0.35, 0);
+        gradLeft.addColorStop(0, 'rgba(120, 10, 25, 0.35)');
+        gradLeft.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradLeft;
+        ctx.fillRect(0, 0, CANVAS_W * 0.35, CANVAS_H);
+
+        const gradRight = ctx.createLinearGradient(CANVAS_W, 0, CANVAS_W * 0.65, 0);
+        gradRight.addColorStop(0, 'rgba(120, 10, 25, 0.35)');
+        gradRight.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradRight;
+        ctx.fillRect(CANVAS_W * 0.65, 0, CANVAS_W * 0.35, CANVAS_H);
+        ctx.restore();
+    }
+    
     // 2. Draw stars
     stars.forEach(s => s.draw(ctx));
+    
+    // 2.5 Draw lightning energy crackles
+    if (lightningStrikes.length > 0) {
+        ctx.save();
+        ctx.strokeStyle = '#00ffff';
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 2.5;
+        
+        lightningStrikes.forEach(l => {
+            ctx.globalAlpha = Math.min(1.0, Math.max(0, l.life / 10));
+            ctx.beginPath();
+            l.segments.forEach(seg => {
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+            });
+            ctx.stroke();
+        });
+        ctx.restore();
+    }
+
+    // 2.7 Draw Speed Lines at high combos
+    if (comboStreak >= 10) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+        ctx.lineWidth = 1;
+        ctx.shadowBlur = 0;
+        for (let i = 0; i < 5; i++) {
+            const y = 50 + (i * 40) + Math.sin(performance.now() / 50 + i) * 10;
+            const x = (performance.now() * 2.5 + i * 200) % (CANVAS_W + 200) - 100;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 120, y);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
     
     // 3. Draw Background Clouds (layer bg)
     clouds.forEach(c => {
@@ -1543,6 +2367,20 @@ function draw() {
     ctx.moveTo(0, deckY);
     ctx.lineTo(CANVAS_W, deckY);
     ctx.stroke();
+    
+    // Rhythm ground glow
+    ctx.save();
+    const groundPulse = 5 + Math.sin(performance.now() / 200) * 4;
+    ctx.strokeStyle = baseColor;
+    ctx.lineWidth = groundPulse;
+    ctx.globalAlpha = 0.35 + Math.sin(performance.now() / 200) * 0.15;
+    ctx.shadowBlur = groundPulse * 3;
+    ctx.shadowColor = baseColor;
+    ctx.beginPath();
+    ctx.moveTo(0, deckY);
+    ctx.lineTo(CANVAS_W, deckY);
+    ctx.stroke();
+    ctx.restore();
     
     // Under-deck support wire
     ctx.strokeStyle = '#222';
@@ -1612,6 +2450,11 @@ function draw() {
 
     const pColor = player.state === 'dead' ? '#555' : STAGE_COLORS[currentStage];
     ctx.save();
+    if (activeWeapon === 'katana' && player.state !== 'dead') {
+        ctx.translate(player.x, player.y);
+        ctx.scale(1.15, 1.15);
+        ctx.translate(-player.x, -player.y);
+    }
     ctx.shadowBlur = 15;
     ctx.shadowColor = pColor;
     ctx.strokeStyle = pColor;
@@ -1628,21 +2471,23 @@ function draw() {
     if (player.state === 'attackLeft') px -= 15;
     if (player.state === 'attackRight') px += 15;
     
+    const breathY = (player.state === 'idle') ? Math.sin(performance.now() / 250) * 2.2 : 0;
+    
     ctx.beginPath();
-    ctx.arc(px, py - 40, 10, 0, Math.PI * 2); // Head
-    ctx.moveTo(px, py - 30); ctx.lineTo(px, py - 10); // Spine
-    ctx.moveTo(px, py - 10); ctx.lineTo(px - 15, py + 15); // L Leg
-    ctx.moveTo(px, py - 10); ctx.lineTo(px + 15, py + 15); // R Leg
+    ctx.arc(px, py - 40 + breathY, 10, 0, Math.PI * 2); // Head (bobs)
+    ctx.moveTo(px, py - 30 + breathY); ctx.lineTo(px, py - 10 + breathY * 0.5); // Spine (stretches)
+    ctx.moveTo(px, py - 10 + breathY * 0.5); ctx.lineTo(px - 15, py + 15); // L Leg (grounded)
+    ctx.moveTo(px, py - 10 + breathY * 0.5); ctx.lineTo(px + 15, py + 15); // R Leg (grounded)
     
     if (player.state === 'attackLeft') {
-        ctx.moveTo(px, py - 20); ctx.lineTo(px - 35, py - 20); // punch L
+        ctx.moveTo(px, py - 20); ctx.lineTo(px - 45, py - 20); // punch L
         ctx.moveTo(px, py - 20); ctx.lineTo(px + 15, py - 5);  // off arm
     } else if (player.state === 'attackRight') {
-        ctx.moveTo(px, py - 20); ctx.lineTo(px + 35, py - 20); // punch R
+        ctx.moveTo(px, py - 20); ctx.lineTo(px + 45, py - 20); // punch R
         ctx.moveTo(px, py - 20); ctx.lineTo(px - 15, py - 5);  // off arm
     } else {
-        ctx.moveTo(px, py - 20); ctx.lineTo(px - 20, py - 10); // idle arm L
-        ctx.moveTo(px, py - 20); ctx.lineTo(px + 20, py - 10); // idle arm R
+        ctx.moveTo(px, py - 20 + breathY * 0.8); ctx.lineTo(px - 20, py - 10 + breathY * 0.4); // idle arm L
+        ctx.moveTo(px, py - 20 + breathY * 0.8); ctx.lineTo(px + 20, py - 10 + breathY * 0.4); // idle arm R
     }
     ctx.stroke();
     ctx.restore();
@@ -1761,7 +2606,9 @@ function draw() {
     
     for (let e of enemies) {
         let eColor;
-        if (e.type === 'deadUpper' || e.type === 'deadLower') {
+        if (e.flashTimer > 0) {
+            eColor = '#ffffff';
+        } else if (e.type === 'deadUpper' || e.type === 'deadLower') {
             eColor = e.color || '#ff3366';
         } else {
             eColor = e.dead ? '#333' : (e.type === 'elite' ? '#ffcc00' : '#ff3366');
@@ -1774,7 +2621,10 @@ function draw() {
         ctx.lineWidth = e.type === 'elite' ? 6.5 : 5.0; // Make enemies thick & bold!
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.translate(e.x, e.y - 10);
+        
+        // Bobbing sway for walking enemies
+        const swayY = (!e.dead) ? Math.sin(performance.now() / 150 + e.x * 0.05) * 3 : 0;
+        ctx.translate(e.x, e.y - 10 + swayY);
         if (e.dead) {
             ctx.rotate(e.rotation || (e.vx * 0.1)); 
         }
@@ -1834,17 +2684,48 @@ function draw() {
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.life;
         ctx.beginPath(); 
-        ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+        ctx.arc(p.x, p.y, p.isDust ? 6 : 4, 0, Math.PI*2);
         ctx.fill();
     }
     ctx.globalAlpha = 1.0;
     ctx.shadowBlur = 0;
+
+    // Draw heart particles (heartbreak shards)
+    ctx.save();
+    for (let hp of heartParticles) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = hp.color;
+        ctx.fillStyle = hp.color;
+        ctx.globalAlpha = hp.life;
+        ctx.beginPath();
+        ctx.fillRect(hp.x - hp.size/2, hp.y - hp.size/2, hp.size, hp.size);
+    }
+    ctx.restore();
 
     // Draw attack slash arcs
     slashArcs.forEach(sa => sa.draw(ctx));
 
     // Draw floating texts
     floatingTexts.forEach(ft => ft.draw(ctx));
+
+    // Combo break shattered text
+    if (comboBreakTimer > 0) {
+        ctx.save();
+        ctx.font = 'bold 36px "Outfit", sans-serif';
+        ctx.fillStyle = '#ff003c';
+        ctx.shadowColor = '#ff003c';
+        ctx.shadowBlur = 25;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const progress = (90 - comboBreakTimer) / 90;
+        const scale = 1.0 + progress * 0.15;
+        ctx.globalAlpha = comboBreakTimer > 20 ? 1.0 : comboBreakTimer / 20;
+        ctx.translate(comboBreakX, comboBreakY);
+        ctx.scale(scale, scale);
+        ctx.fillText("COMBO BREAKER!", 0, 0);
+        ctx.restore();
+    }
 
     // Milestone Announcements
     if (milestoneTimer > 0) {
@@ -1864,10 +2745,93 @@ function draw() {
         ctx.restore();
     }
 
+    // Power-up Banner Title slam-in
+    if (powerUpBannerTimer > 0) {
+        ctx.save();
+        ctx.font = 'bold 32px "Outfit", sans-serif';
+        ctx.fillStyle = powerUpBannerColor;
+        ctx.shadowColor = powerUpBannerColor;
+        ctx.shadowBlur = 25;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const progress = (120 - powerUpBannerTimer) / 120;
+        let scale = 1.0;
+        if (progress < 0.25) {
+            scale = 2.5 - (progress / 0.25) * 1.5;
+        }
+        ctx.globalAlpha = powerUpBannerTimer > 20 ? 1.0 : powerUpBannerTimer / 20;
+        ctx.translate(CANVAS_W / 2, CANVAS_H / 2 - 80);
+        ctx.scale(scale, scale);
+        ctx.fillText(powerUpBannerText, 0, 0);
+        ctx.restore();
+    }
+
+    // Wave Banner text slam-in and fade
+    if (waveBannerTimer > 0) {
+        ctx.save();
+        ctx.font = 'bold 44px "Outfit", sans-serif';
+        ctx.fillStyle = waveBannerText.includes('DANGER') ? '#ff3300' : '#00ffcc';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 30;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const progress = (120 - waveBannerTimer) / 120;
+        let scale = 1.0;
+        if (progress < 0.2) {
+            scale = 3.0 - (progress / 0.2) * 2.0; // Slam in from large
+        }
+        ctx.globalAlpha = waveBannerTimer > 30 ? 1.0 : waveBannerTimer / 30;
+        
+        ctx.translate(CANVAS_W / 2, CANVAS_H / 2 - 20);
+        ctx.scale(scale, scale);
+        ctx.fillText(waveBannerText, 0, 0);
+        ctx.restore();
+    }
+
+    // Combo Counter at Center-Screen
+    if (comboStreak >= 3) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        ctx.translate(CANVAS_W / 2, 115);
+        ctx.scale(comboScale, comboScale);
+        
+        let comboColor = '#ffffff';
+        if (comboStreak >= 20) {
+            comboColor = `hsl(${(performance.now() / 4) % 360}, 100%, 65%)`; // rainbow HSL flash
+        } else if (comboStreak >= 15) {
+            comboColor = '#ff3300';
+        } else if (comboStreak >= 10) {
+            comboColor = '#ff9900';
+        } else if (comboStreak >= 5) {
+            comboColor = '#ffff00';
+        }
+        
+        ctx.font = 'bold 36px "Outfit", sans-serif';
+        ctx.fillStyle = comboColor;
+        ctx.shadowColor = comboColor;
+        ctx.shadowBlur = 20;
+        ctx.fillText(`${comboStreak} COMBO`, 0, 0);
+        ctx.restore();
+    }
+
     // Draw active weapon and Berserk HUD indicators
     ctx.save();
     let hudY = 70; // Position below HTML header
     
+    // 0. Global Multiplier HUD (Idea 9)
+    const waveMult = 1 + Math.floor((currentWave - 1) / 5);
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#00ffcc';
+    ctx.fillStyle = '#00ffcc';
+    ctx.font = 'bold 11px "Outfit", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`⚡ MULTIPLIER: x${waveMult}`, 25, hudY);
+    hudY += 22;
+
     // 1. Berserk Indicator
     if (berserkTimer > 0) {
         const secondsLeft = (berserkTimer / 60).toFixed(1);
@@ -1875,17 +2839,17 @@ function draw() {
         ctx.shadowColor = '#ff00ea';
         ctx.fillStyle = '#ff00ea';
         
-        ctx.font = 'bold 12px "Outfit", sans-serif';
+        ctx.font = 'bold 11px "Outfit", sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(`🔥 BERSERK: ${secondsLeft}s`, 25, hudY);
         
         // Progress bar
         ctx.fillStyle = 'rgba(255, 0, 234, 0.2)';
-        ctx.fillRect(25, hudY + 8, 120, 6);
+        ctx.fillRect(25, hudY + 6, 120, 5);
         ctx.fillStyle = '#ff00ea';
-        ctx.fillRect(25, hudY + 8, 120 * (berserkTimer / BERSERK_DURATION), 6);
+        ctx.fillRect(25, hudY + 6, 120 * (berserkTimer / BERSERK_DURATION), 5);
         
-        hudY += 30;
+        hudY += 26;
     }
     
     // 2. Weapon Charges Indicator
@@ -1898,17 +2862,41 @@ function draw() {
         ctx.shadowColor = weaponColor;
         ctx.fillStyle = weaponColor;
         
-        ctx.font = 'bold 12px "Outfit", sans-serif';
+        ctx.font = 'bold 11px "Outfit", sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(`⚔️ ${weaponName}: ${weaponCharges} hits`, 25, hudY);
         
         // Progress bar for weapon charges (max 15 charges)
         ctx.fillStyle = isKatana ? 'rgba(255, 51, 0, 0.2)' : 'rgba(188, 19, 254, 0.2)';
-        ctx.fillRect(25, hudY + 8, 120, 6);
+        ctx.fillRect(25, hudY + 6, 120, 5);
         ctx.fillStyle = weaponColor;
-        ctx.fillRect(25, hudY + 8, 120 * (weaponCharges / 15), 6);
+        ctx.fillRect(25, hudY + 6, 120 * (weaponCharges / 15), 5);
     }
     ctx.restore();
+
+    // Screen Tint for powerups
+    if (screenTint && screenTint.alpha > 0.01) {
+        ctx.save();
+        ctx.fillStyle = screenTint.color;
+        ctx.globalAlpha = screenTint.alpha;
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.restore();
+    }
+
+    // Red Vignette Pulse (damage or low health)
+    let finalVignetteAlpha = vignetteIntensity;
+    if (player && player.lives === 1 && gameRunning && !isPaused) {
+        finalVignetteAlpha = Math.max(vignetteIntensity, 0.2 + Math.abs(Math.sin(performance.now() / 400)) * 0.3);
+    }
+    if (finalVignetteAlpha > 0.01) {
+        ctx.save();
+        const vignette = ctx.createRadialGradient(CANVAS_W/2, CANVAS_H/2, CANVAS_H/3, CANVAS_W/2, CANVAS_H/2, CANVAS_W/1.8);
+        vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        vignette.addColorStop(1, `rgba(255, 0, 51, ${Math.min(0.75, finalVignetteAlpha)})`);
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.restore();
+    }
 
     // Fullscreen Flash Overlay
     if (flashAlpha > 0) {
@@ -1926,7 +2914,6 @@ let frameCount = 0;
 function loop(timestamp = 0) {
     if (isPaused) return;
     if (gameRunning) {
-        frameCount++;
         frameId = requestAnimationFrame(loop);
         if (!lastTime) lastTime = timestamp;
         let dt = timestamp - lastTime;
@@ -1934,6 +2921,19 @@ function loop(timestamp = 0) {
         
         let deltaTime = Math.min(dt / 16.67, 3);
         
+        // Bullet time slowdown
+        if (bulletTimeTimer > 0) {
+            deltaTime *= 0.2;
+        }
+        
+        // Hit freeze frame (AAA Hit Stop)
+        if (freezeFrames > 0) {
+            freezeFrames--;
+            draw();
+            return;
+        }
+        
+        frameCount++;
         update(deltaTime);
         draw();
     } else if (player && player.state === 'dead') {
@@ -1992,6 +2992,7 @@ btnQuit?.addEventListener('click', (e) => {
     milestoneText = "";
     milestoneTimer = 0;
     score = 0;
+    displayedScore = 0;
     scoreEl.textContent = '0';
     draw();
 });
@@ -2029,7 +3030,7 @@ function togglePause(forcePause) {
 }
 
 function shareScore(platform) {
-    const text = `I just reached a streak of ${score} in Neon Brawler 🥊 at Arcade Hub! Can you beat me?`;
+    const text = `I just reached a streak of ${score * 100} in Neon Brawler 🥊 at Arcade Hub! Can you beat me?`;
     const url = 'https://arcadehubplay.com';
     if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
     else if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
