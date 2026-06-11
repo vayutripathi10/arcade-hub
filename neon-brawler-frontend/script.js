@@ -2954,6 +2954,9 @@ function loop(timestamp = 0) {
 startBtn.addEventListener('click', initGame);
 
 window.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+    }
     if (!gameRunning) {
         if(e.key === ' ' || e.key === 'Enter') initGame();
         return;
