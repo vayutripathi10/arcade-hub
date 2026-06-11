@@ -1000,10 +1000,9 @@ function spawnEnemy() {
     const config = getStageConfig(currentStage);
     const theme = getStageTheme(currentStage);
     
-    // If boss is already active, don't spawn anything else
-    if (enemies.some(e => e.isBoss)) return;
+    const hasBossActive = enemies.some(e => e.isBoss);
     
-    if (stageKills === config.targetKills - 1) {
+    if (!hasBossActive && stageKills === config.targetKills - 1) {
         // Spawn boss only when all other enemies are dead
         if (enemies.length === 0) {
             const side = Math.random() > 0.5 ? 1 : -1;
@@ -1022,11 +1021,17 @@ function spawnEnemy() {
         return;
     }
     
-    // Cap normal enemies
-    const cap = Math.min(6, 2 + Math.floor(stageKills / 4));
-    if (enemies.length >= cap) return;
-    // Leave room for boss (normal enemies can only spawn if stageKills + enemies.length < targetKills - 1)
-    if (stageKills + enemies.length >= config.targetKills - 1) return;
+    if (hasBossActive) {
+        // Boss is active. Cap small enemies to 2.
+        const normalEnemiesCount = enemies.filter(e => !e.isBoss).length;
+        if (normalEnemiesCount >= 2) return;
+    } else {
+        // Boss is not active. Cap normal enemies using standard stage logic.
+        const cap = Math.min(6, 2 + Math.floor(stageKills / 4));
+        if (enemies.length >= cap) return;
+        // Leave room for boss (normal enemies can only spawn if stageKills + enemies.length < targetKills - 1)
+        if (stageKills + enemies.length >= config.targetKills - 1) return;
+    }
     
     const side = Math.random() > 0.5 ? 1 : -1;
     const x = canvas.width / 2 + (side * (canvas.width/2 + 50));
@@ -1559,21 +1564,14 @@ function checkHitbox(attacker, defender) {
         let finalDamage = h.damage;
         let isPlayerSwordHit = (attacker === player && playerWeapon === 'sword');
         if (isPlayerSwordHit) {
-            finalDamage = defender.isBoss ? 75 : defender.hp;
+            finalDamage = defender.isBoss ? 75 : h.damage * 1.8;
         }
         
-        if (h.type === 'attack4' && attacker === player && !defender.isBoss) {
-            defender.hp = 0; 
+        defender.hp -= finalDamage;
+        if (attacker === player && h.type === 'attack4') {
             flashAlpha = 0.35;
             flashColor = '#ffffff';
             screenShake = 20;
-        } else {
-            defender.hp -= finalDamage;
-            if (attacker === player && h.type === 'attack4') {
-                flashAlpha = 0.25;
-                flashColor = '#ffffff';
-                screenShake = 18;
-            }
         }
         defender.hitStun = 300; 
         
@@ -1789,7 +1787,11 @@ function update(deltaTime) {
         
         if (e.hp <= 0) {
             kills++;
-            stageKills++;
+            if (!e.isBoss && enemies.some(ent => ent.isBoss)) {
+                // Small helper enemies killed during boss fight do not advance stage progression
+            } else {
+                stageKills++;
+            }
             if (kills % 40 === 0) {
                 player.hp = Math.min(player.maxHp, player.hp + 40);
                 spawnFloatingText(player.x, player.y - 100, "+40 HP!", "#00ff66");
