@@ -73,6 +73,8 @@ let weaponDrop = null;
 let playerWeapon = null; // 'sword' or null
 let weaponCharges = 0;
 let lastWeaponSpawnKills = -1;
+let bossLowHPSwordTriggered = false;
+let playerLowHPSwordTriggered = false;
 
 // Combo System
 let comboCount = 0;
@@ -1010,6 +1012,8 @@ function spawnEnemy() {
             enemies.push(new Entity(x, getBossColor(currentStage), true));
             spawnFloatingText(canvas.width/2, 200, "WARNING: BOSS INCOMING", getBossColor(currentStage));
             playSound('heavy');
+            bossLowHPSwordTriggered = false;
+            playerLowHPSwordTriggered = false;
             
             // Show Boss Strip
             if (bossHealthStrip) {
@@ -1062,6 +1066,8 @@ function initGame() {
     playerWeapon = null;
     weaponCharges = 0;
     lastWeaponSpawnKills = -1;
+    bossLowHPSwordTriggered = false;
+    playerLowHPSwordTriggered = false;
     
     generateEnvironment();
     
@@ -1775,6 +1781,34 @@ function update(deltaTime) {
         const bossPercent = Math.max(0, (activeBoss.hp / activeBoss.maxHp) * 100);
         if (bossHealthBar) bossHealthBar.style.width = bossPercent + "%";
         if (bossHpVal) bossHpVal.textContent = `${Math.ceil(activeBoss.hp)}/${activeBoss.maxHp}`;
+        
+        // 1. Boss HP drops below 30% trigger
+        if (bossPercent <= 30 && !bossLowHPSwordTriggered) {
+            bossLowHPSwordTriggered = true;
+            if (playerWeapon !== 'sword') {
+                playerWeapon = 'sword';
+                weaponCharges = 15;
+                playSound('heavy');
+                spawnFloatingText(player.x, player.y - 120, "FINISH HIM! SWORD ENABLED", "#ff3300");
+                createHitSparks(player.x, player.y - 40, '#ff3300');
+                flashAlpha = 0.3;
+                flashColor = '#ff3300';
+            }
+        }
+        
+        // 2. Player HP drops below 30% trigger during boss fight
+        const playerPercent = (player.hp / player.maxHp) * 100;
+        if (playerPercent <= 30 && player.hp > 0 && !playerLowHPSwordTriggered) {
+            playerLowHPSwordTriggered = true;
+            playerWeapon = 'sword';
+            weaponCharges = 20; // extra charges for survival
+            player.hp = Math.min(player.maxHp, player.hp + 40); // heal +40 HP to help survive
+            playSound('heavy');
+            spawnFloatingText(player.x, player.y - 120, "CLUTCH TIME! SWORD + HEALTH INCOMING!", "#00ff66");
+            createHitSparks(player.x, player.y - 40, '#00ff66');
+            flashAlpha = 0.3;
+            flashColor = '#00ff66';
+        }
     } else {
         if (bossHealthStrip && !bossHealthStrip.classList.contains('hidden')) {
             bossHealthStrip.classList.add('hidden');
