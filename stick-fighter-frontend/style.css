@@ -559,3 +559,36 @@ body {
     box-shadow: 0 0 8px var(--secondary);
     border-radius: 2px;
 }
+
+/* Stage Clear Overlay Grid & Stats */
+.clear-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 30px);
+    gap: 8px;
+    justify-content: center;
+    align-content: center;
+    min-height: 80px;
+    margin-bottom: 20px;
+    position: relative;
+    width: 300px;
+}
+.clear-stats-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    width: 300px;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+.clear-enemy-icon-wrapper {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

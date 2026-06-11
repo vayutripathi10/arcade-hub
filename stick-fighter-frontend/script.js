@@ -494,8 +494,8 @@ function getStageConfig(stageNum) {
 }
 
 function getStageTheme(stageNum) {
-    if (stageNum <= 5) {
-        return {
+    const themes = {
+        1: {
             skyGradient: ['#0a0518', '#1b0e35', '#3d163d', '#65113d'],
             sunColor: ['#ffe600', '#ff5a00', '#ff0077'],
             sunGlow: '#ff0077',
@@ -503,28 +503,135 @@ function getStageTheme(stageNum) {
             gridHorizon: '#ff00ff',
             enemyColor: '#f0f',
             bgStyle: 'stars'
-        };
-    } else if (stageNum <= 10) {
-        return {
-            skyGradient: ['#050d05', '#0c1a0e', '#132c18', '#1c4524'],
-            sunColor: ['#a3ff00', '#41ff00', '#00ff3c'],
-            sunGlow: '#00ff3c',
-            gridColor: 'rgba(0, 255, 60, 0.25)',
-            gridHorizon: '#00ff3c',
-            enemyColor: '#ffd700',
+        },
+        2: {
+            skyGradient: ['#020b14', '#051b2d', '#08334e', '#0b4d6b'],
+            sunColor: ['#00ffff', '#0ea5e9', '#0284c7'],
+            sunGlow: '#00ffff',
+            gridColor: 'rgba(0, 255, 255, 0.25)',
+            gridHorizon: '#00ffff',
+            enemyColor: '#0ea5e9',
+            bgStyle: 'stars'
+        },
+        3: {
+            skyGradient: ['#050c05', '#0e2411', '#183b1c', '#225527'],
+            sunColor: ['#a3ff00', '#22c55e', '#15803d'],
+            sunGlow: '#22c55e',
+            gridColor: 'rgba(34, 197, 94, 0.25)',
+            gridHorizon: '#22c55e',
+            enemyColor: '#22c55e',
+            bgStyle: 'stars'
+        },
+        4: {
+            skyGradient: ['#0c0402', '#240d05', '#451a09', '#63250e'],
+            sunColor: ['#f59e0b', '#ea580c', '#b91c1c'],
+            sunGlow: '#ea580c',
+            gridColor: 'rgba(234, 88, 12, 0.25)',
+            gridHorizon: '#ea580c',
+            enemyColor: '#f97316',
+            bgStyle: 'stars'
+        },
+        5: {
+            skyGradient: ['#02021e', '#080c38', '#121b5c', '#1e2b85'],
+            sunColor: ['#38bdf8', '#3b82f6', '#1d4ed8'],
+            sunGlow: '#3b82f6',
+            gridColor: 'rgba(59, 130, 246, 0.25)',
+            gridHorizon: '#3b82f6',
+            enemyColor: '#60a5fa',
+            bgStyle: 'stars'
+        },
+        6: {
+            skyGradient: ['#020804', '#051c09', '#0d3814', '#155720'],
+            sunColor: ['#86efac', '#22c55e', '#166534'],
+            sunGlow: '#22c55e',
+            gridColor: 'rgba(34, 197, 94, 0.25)',
+            gridHorizon: '#22c55e',
+            enemyColor: '#86efac',
             bgStyle: 'matrix'
-        };
-    } else {
-        return {
+        },
+        7: {
+            skyGradient: ['#0c0902', '#241a05', '#3d2b07', '#573d0a'],
+            sunColor: ['#fef08a', '#eab308', '#a16207'],
+            sunGlow: '#eab308',
+            gridColor: 'rgba(234, 179, 8, 0.25)',
+            gridHorizon: '#eab308',
+            enemyColor: '#fef08a',
+            bgStyle: 'matrix'
+        },
+        8: {
+            skyGradient: ['#0c0204', '#24050c', '#3d0714', '#570a1d'],
+            sunColor: ['#fecdd3', '#f43f5e', '#be123c'],
+            sunGlow: '#f43f5e',
+            gridColor: 'rgba(244, 63, 94, 0.25)',
+            gridHorizon: '#f43f5e',
+            enemyColor: '#fecdd3',
+            bgStyle: 'matrix'
+        },
+        9: {
+            skyGradient: ['#06020c', '#140524', '#24073d', '#350a57'],
+            sunColor: ['#f5d0fe', '#d946ef', '#a21caf'],
+            sunGlow: '#d946ef',
+            gridColor: 'rgba(217, 70, 239, 0.25)',
+            gridHorizon: '#d946ef',
+            enemyColor: '#f5d0fe',
+            bgStyle: 'matrix'
+        },
+        10: {
+            skyGradient: ['#020617', '#0f172a', '#1e293b', '#334155'],
+            sunColor: ['#e2e8f0', '#94a3b8', '#475569'],
+            sunGlow: '#94a3b8',
+            gridColor: 'rgba(148, 163, 184, 0.25)',
+            gridHorizon: '#94a3b8',
+            enemyColor: '#cbd5e1',
+            bgStyle: 'matrix'
+        },
+        11: {
             skyGradient: ['#05051a', '#0d0c35', '#161355', '#241a7c'],
-            sunColor: ['#00ffff', '#3d00ff', '#8f00ff'],
-            sunGlow: '#8f00ff',
-            gridColor: 'rgba(0, 150, 255, 0.25)',
-            gridHorizon: '#0099ff',
-            enemyColor: '#ff3c00',
+            sunColor: ['#c084fc', '#8b5cf6', '#6d28d9'],
+            sunGlow: '#8b5cf6',
+            gridColor: 'rgba(139, 92, 246, 0.25)',
+            gridHorizon: '#8b5cf6',
+            enemyColor: '#c084fc',
             bgStyle: 'meteor'
-        };
-    }
+        },
+        12: {
+            skyGradient: ['#180202', '#380505', '#5a0707', '#7f0a0a'],
+            sunColor: ['#f87171', '#ef4444', '#b91c1c'],
+            sunGlow: '#ef4444',
+            gridColor: 'rgba(239, 68, 68, 0.25)',
+            gridHorizon: '#ef4444',
+            enemyColor: '#f87171',
+            bgStyle: 'meteor'
+        },
+        13: {
+            skyGradient: ['#021212', '#052929', '#083f3f', '#0b5656'],
+            sunColor: ['#2dd4bf', '#14b8a6', '#0f766e'],
+            sunGlow: '#14b8a6',
+            gridColor: 'rgba(20, 184, 166, 0.25)',
+            gridHorizon: '#14b8a6',
+            enemyColor: '#2dd4bf',
+            bgStyle: 'meteor'
+        },
+        14: {
+            skyGradient: ['#140702', '#2a0e05', '#441407', '#5f1a0a'],
+            sunColor: ['#fdba74', '#f97316', '#c2410c'],
+            sunGlow: '#f97316',
+            gridColor: 'rgba(249, 115, 22, 0.25)',
+            gridHorizon: '#f97316',
+            enemyColor: '#fdba74',
+            bgStyle: 'meteor'
+        },
+        15: {
+            skyGradient: ['#000000', '#180018', '#300030', '#480048'],
+            sunColor: ['#ec4899', '#db2777', '#be185d'],
+            sunGlow: '#db2777',
+            gridColor: 'rgba(219, 39, 119, 0.25)',
+            gridHorizon: '#db2777',
+            enemyColor: '#ec4899',
+            bgStyle: 'meteor'
+        }
+    };
+    return themes[stageNum] || themes[1];
 }
 
 // Stage Progress LocalStorage Helpers
@@ -615,22 +722,146 @@ function startStage(stageNum) {
     }, 400);
 }
 
+function drawTinyStickman(ctx, color) {
+    ctx.clearRect(0, 0, 24, 24);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = color;
+    
+    // Head
+    ctx.beginPath();
+    ctx.arc(12, 6, 3, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Spine
+    ctx.beginPath();
+    ctx.moveTo(12, 9);
+    ctx.lineTo(12, 16);
+    ctx.stroke();
+    
+    // Arms
+    ctx.beginPath();
+    ctx.moveTo(7, 11);
+    ctx.lineTo(17, 11);
+    ctx.stroke();
+    
+    // Legs
+    ctx.beginPath();
+    ctx.moveTo(12, 16);
+    ctx.lineTo(8, 22);
+    ctx.moveTo(12, 16);
+    ctx.lineTo(16, 22);
+    ctx.stroke();
+}
+
+function animateClearScreenIcons() {
+    const grid = document.getElementById('clear-icon-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    const theme = getStageTheme(currentStage);
+    const count = stageKills;
+    
+    if (count > 40) {
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.gap = '12px';
+        wrapper.style.fontSize = '1.8rem';
+        wrapper.style.color = '#ff0055';
+        wrapper.style.fontWeight = 'bold';
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 24;
+        canvas.height = 24;
+        const ctx = canvas.getContext('2d');
+        drawTinyStickman(ctx, theme.enemyColor);
+        
+        wrapper.appendChild(canvas);
+        const text = document.createElement('span');
+        text.textContent = `x${count}`;
+        wrapper.appendChild(text);
+        grid.appendChild(wrapper);
+        
+        wrapper.style.position = 'relative';
+        const edge = Math.floor(Math.random() * 4);
+        let startX = 0, startY = 0;
+        if (edge === 0) startX = -400;
+        else if (edge === 1) startX = 400;
+        else if (edge === 2) startY = -400;
+        else startY = 400;
+        
+        wrapper.style.transform = `translate(${startX}px, ${startY}px)`;
+        wrapper.style.opacity = '0';
+        wrapper.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        
+        setTimeout(() => {
+            wrapper.style.transform = 'translate(0, 0)';
+            wrapper.style.opacity = '1';
+        }, 100);
+    } else {
+        for (let i = 0; i < count; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'clear-enemy-icon-wrapper';
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 24;
+            canvas.height = 24;
+            const ctx = canvas.getContext('2d');
+            drawTinyStickman(ctx, theme.enemyColor);
+            
+            cell.appendChild(canvas);
+            grid.appendChild(cell);
+            
+            const edge = Math.floor(Math.random() * 4);
+            let startX = 0, startY = 0;
+            if (edge === 0) { startX = -500 - Math.random() * 200; startY = (Math.random() - 0.5) * 500; }
+            else if (edge === 1) { startX = 500 + Math.random() * 200; startY = (Math.random() - 0.5) * 500; }
+            else if (edge === 2) { startX = (Math.random() - 0.5) * 500; startY = -500 - Math.random() * 200; }
+            else { startX = (Math.random() - 0.5) * 500; startY = 500 + Math.random() * 200; }
+            
+            canvas.style.position = 'absolute';
+            canvas.style.transform = `translate(${startX}px, ${startY}px) scale(0)`;
+            canvas.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            
+            setTimeout(() => {
+                canvas.style.transform = 'translate(0, 0) scale(1)';
+                playSound('swing');
+            }, i * 50);
+        }
+    }
+}
+
 // Handle stage complete
 function stageComplete() {
     gameState = 'gameover'; // Pause updates
     
-    const hpPercent = player.hp / player.maxHp;
+    const isPerfect = (player.hp >= player.maxHp);
+    const perfectBonus = isPerfect ? 500 : 0;
+    if (isPerfect) score += 500;
+    stageStartScore = score;
+    
     let earnedStars = 1;
-    if (hpPercent >= 0.7) earnedStars = 3;
-    else if (hpPercent >= 0.3) earnedStars = 2;
+    if (isPerfect) earnedStars = 3;
+    else {
+        const hpPercent = player.hp / player.maxHp;
+        if (hpPercent >= 0.7) earnedStars = 3;
+        else if (hpPercent >= 0.3) earnedStars = 2;
+    }
     
     saveStageProgress(currentStage, earnedStars);
     
-    // Save current score as the starting score for the next stage
-    stageStartScore = score;
+    const clearTitle = document.getElementById('clear-title');
+    if (clearTitle) clearTitle.textContent = `⚡ STAGE ${currentStage} CLEAR! ⚡`;
     
-    const clearStageNum = document.getElementById('clear-stage-num');
-    if (clearStageNum) clearStageNum.textContent = currentStage;
+    const clearDefeated = document.getElementById('clear-defeated-count');
+    if (clearDefeated) clearDefeated.textContent = stageKills;
+    
+    const clearPerfect = document.getElementById('clear-perfect-bonus');
+    if (clearPerfect) clearPerfect.textContent = isPerfect ? "+500" : "+0";
     
     const clearStarsContainer = document.getElementById('clear-stars');
     if (clearStarsContainer) {
@@ -642,6 +873,9 @@ function stageComplete() {
     
     if (stageClearOverlayElement) stageClearOverlayElement.classList.remove('hidden');
     playSound('heavy');
+    
+    // Run grid stagger animation
+    animateClearScreenIcons();
 }
 
 function spawnEnemy() {
@@ -722,13 +956,14 @@ function initGame() {
         window.audioFX.init();
         if (btnMute) btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
-    requestAnimationFrame(loop);
 }
 
 function gameOver() {
     gameState = 'gameover';
-    document.getElementById('final-score').textContent = score;
-    document.getElementById('final-kills').textContent = kills;
+    const finalScore = document.getElementById('final-score');
+    if (finalScore) finalScore.textContent = Math.floor(score);
+    const finalKills = document.getElementById('final-kills');
+    if (finalKills) finalKills.textContent = kills;
     gameOverMenu.classList.remove('hidden');
     playSound('gameover');
 }
@@ -740,8 +975,6 @@ function togglePause() {
     } else if (gameState === 'paused') {
         gameState = 'playing';
         pauseMenu.classList.add('hidden');
-        lastTime = performance.now();
-        requestAnimationFrame(loop);
     }
 }
 
@@ -1445,7 +1678,19 @@ function update(deltaTime) {
                 playSound('heavy');
             }
             score += e.isBoss ? 50 : 10;
-            if (e.isBoss && window.achievements) window.achievements.unlock('stickfighter', 'boss_kill', 'Giant Slayer');
+            if (e.isBoss) {
+                if (window.achievements) window.achievements.unlock('stickfighter', 'boss_kill', 'Giant Slayer');
+                weaponDrop = {
+                    x: e.x,
+                    y: e.y - 15,
+                    vy: 0,
+                    active: true,
+                    color: '#ff3300',
+                    glowColor: '#ff6600',
+                    onGround: true
+                };
+                spawnFloatingText(e.x, e.y - 100, "SWORD DROPPED!", "#ff6600");
+            }
             createHitSparks(e.x, e.y-40, e.color);
             
             if (stageKills >= stageTargetKills) {
@@ -1492,7 +1737,7 @@ function update(deltaTime) {
         else {
             const dist = player.x - e.x;
             const reach = e.isBoss ? 70 : 50;
-            const speedFactor = 1 + (currentStage - 1) * 0.05;
+            const speedFactor = 1 + (currentStage - 1) * 0.08;
             const attackFactor = 1 + (currentStage - 1) * 0.04;
             if (Math.abs(dist) > reach) {
                 const baseSpeed = e.isBoss ? 1.67 : 1.33;
@@ -1786,18 +2031,14 @@ function draw() {
 }
 
 function loop(timestamp) {
-    if (gameState !== 'playing') {
-        lastTime = timestamp;
-        requestAnimationFrame(loop);
-        return;
-    }
-    
     const dt = timestamp - lastTime;
     lastTime = timestamp;
     
     const deltaTime = Math.min(dt / 16.67, 3);
     
-    update(deltaTime);
+    if (gameState === 'playing') {
+        update(deltaTime);
+    }
     draw();
     
     requestAnimationFrame(loop);
@@ -1861,3 +2102,4 @@ player = new Entity(window.innerWidth/2, '#0ff', false);
 updateHUD();
 resize();
 draw();
+requestAnimationFrame(loop);

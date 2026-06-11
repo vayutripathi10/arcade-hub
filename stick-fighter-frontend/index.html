@@ -333,7 +333,8 @@
             <!-- Game Over Menu -->
             <div id="gameOverMenu" class="menu-overlay hidden">
                 <h2 style="color: #ff0055; font-family: 'Outfit', sans-serif;">KNOCKED OUT</h2>
-                <p>Score: <span id="final-score">0</span></p>
+                <p style="margin-bottom: 5px;">Score: <span id="final-score">0</span></p>
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">Kills: <span id="final-kills">0</span></p>
                 <button id="btn-restart" class="btn primary-btn">Try Again</button>
                 <button id="btn-quit-end" class="btn secondary-btn">Menu</button>
             </div>
@@ -370,14 +371,25 @@
 
             <!-- Stage Clear Overlay -->
             <div id="stageClearOverlay" class="menu-overlay hidden">
-                <h2 style="color: #00ffcc; font-family: 'Outfit', sans-serif; font-size: 2.2rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); margin-bottom: 15px;">STAGE CLEAR!</h2>
-                <p style="font-size: 1.1rem; color: #fff; margin-bottom: 10px;">Stage <span id="clear-stage-num">1</span> Complete</p>
-                <div id="clear-stars" class="clear-stars" style="margin-bottom: 25px;">
+                <h2 id="clear-title" style="color: #00ffcc; font-family: 'Outfit', sans-serif; font-size: 2.2rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); margin-bottom: 10px;">⚡ STAGE CLEAR! ⚡</h2>
+                
+                <!-- Icon grid animation container -->
+                <div id="clear-icon-grid" class="clear-icon-grid"></div>
+                
+                <div class="clear-stats-card">
+                    <div style="margin-bottom: 8px;">ENEMIES DEFEATED: <span id="clear-defeated-count" style="color: #ffd700; font-weight: bold;">0</span></div>
+                    <div>PERFECT CLEAR BONUS: <span id="clear-perfect-bonus" style="color: #00ffcc; font-weight: bold;">+0</span></div>
+                </div>
+                
+                <div id="clear-stars" class="clear-stars" style="margin-bottom: 20px;">
                     <!-- Stars populated by JS -->
                 </div>
-                <button id="btn-next-stage" class="btn primary-btn">Next Stage</button>
-                <button id="btn-replay-stage" class="btn secondary-btn">Replay</button>
-                <button id="btn-menu-stages" class="btn secondary-btn">Select Stage</button>
+                
+                <button id="btn-next-stage" class="btn primary-btn">Continue</button>
+                <div style="display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 300px;">
+                    <button id="btn-replay-stage" class="btn secondary-btn" style="flex: 1; padding: 10px; font-size: 10px; margin: 0;">Replay</button>
+                    <button id="btn-menu-stages" class="btn secondary-btn" style="flex: 1; padding: 10px; font-size: 10px; margin: 0;">Menu</button>
+                </div>
             </div>
         </div>
 
@@ -406,7 +418,7 @@
     
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Stages_v5"></script>
+    <script src="script.js?v=ArcadeHub_Stages_v6"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {
