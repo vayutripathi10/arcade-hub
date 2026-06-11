@@ -25,6 +25,31 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="../retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="../achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="../blog" class="sidebar-link active-hub">📝 Blog & Guides</a>
+            <a href="../about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="../contact" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
     <div class="article-container">
         <div class="article-header">
             <div class="article-meta">Web Audio & Sound Design</div>
@@ -88,5 +113,31 @@
             <p style="margin-top: 40px;"><a href="../blog" style="color: #00ffcc; text-decoration: none; font-weight: 700;">← Back to Blog & Guides</a></p>
         </div>
     </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy">Privacy Policy</a> | <a href="../tos">Terms of Service</a> | <a href="../contact">Contact Us</a> | <a href="../updates">News</a> | <a href="../blog">Blog &amp; Guides</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+    <script src="../shared/pwa-setup.js"></script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 // Resolve paths dynamically for subfolders and error pages
 const isSubfolder = window.location.pathname.includes('/retro-racer-frontend/') || 
                     window.location.pathname.includes('/cyber-survivor-frontend/') || 
-                    window.location.pathname.includes('/dino-frontend/');
+                    window.location.pathname.includes('/dino-frontend/') ||
+                    window.location.pathname.includes('/blog/');
 
 const swPath = window.location.pathname.endsWith('/404.html') ? '/sw.js' : (isSubfolder ? '../sw.js' : 'sw.js');
 
