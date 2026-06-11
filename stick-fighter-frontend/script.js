@@ -143,7 +143,7 @@ function generateEnvironment() {
             x: Math.random() * canvas.width,
             y: 40 + Math.random() * 120,
             width: 80 + Math.random() * 100,
-            height: 20 + Math.random() * 15,
+            height: 30 + Math.random() * 15,
             speed: 0.05 + Math.random() * 0.1
         });
     }
@@ -187,6 +187,23 @@ function updateEnvironment(deltaTime) {
             c.y = 40 + Math.random() * 120;
         }
     });
+}
+
+function drawRealCloud(x, y, width, height) {
+    ctx.beginPath();
+    let r = height / 2;
+    // Left cap
+    ctx.arc(x + r, y + height - r, r, Math.PI * 0.5, Math.PI * 1.5);
+    // Top-left puff
+    ctx.arc(x + width * 0.35, y + height - r * 1.4, r * 1.2, Math.PI, Math.PI * 1.85);
+    // Top-right puff
+    ctx.arc(x + width * 0.65, y + height - r * 1.5, r * 1.4, Math.PI * 1.3, Math.PI * 2);
+    // Right cap
+    ctx.arc(x + width - r, y + height - r, r, Math.PI * 1.5, Math.PI * 0.5);
+    // Flat bottom line
+    ctx.lineTo(x + r, y + height);
+    ctx.closePath();
+    ctx.fill();
 }
 
 function drawRoundedRect(x, y, width, height, radius) {
@@ -1006,7 +1023,7 @@ function spawnEnemy() {
     }
     
     // Cap normal enemies
-    const cap = Math.min(6, 1 + Math.floor(stageKills / 5));
+    const cap = Math.min(6, 2 + Math.floor(stageKills / 4));
     if (enemies.length >= cap) return;
     // Leave room for boss (normal enemies can only spawn if stageKills + enemies.length < targetKills - 1)
     if (stageKills + enemies.length >= config.targetKills - 1) return;
@@ -1703,7 +1720,7 @@ function update(deltaTime) {
         }
     }
     
-    if (Math.random() < 0.01 * deltaTime) spawnEnemy();
+    if (Math.random() < 0.06 * deltaTime) spawnEnemy();
     
     if (keys.up && player.y === groundY && player.hitStun <= 0) {
         player.vy = -16;
@@ -1988,7 +2005,7 @@ function draw() {
         ctx.fillStyle = theme.gridHorizon + '14';
         ctx.shadowBlur = 10;
         ctx.shadowColor = theme.gridHorizon + '33';
-        drawRoundedRect(c.x, c.y, c.width, c.height, c.height / 2);
+        drawRealCloud(c.x, c.y, c.width, c.height);
         ctx.restore();
     });
     
