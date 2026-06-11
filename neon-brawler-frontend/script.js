@@ -775,13 +775,15 @@ function attack(direction) {
     }
 
     // Deal direct damage to brawler boss
-    if (bossActive && boss) {
+    if (bossActive && boss && warningTimer <= 0) {
         let dist = Math.abs(boss.x - player.x);
         let side = boss.x < player.x ? 'left' : 'right';
         if (side === direction && dist < currentHitRange) {
-            let damageDealt = 0.2;
+            // Check for perfect strike timing!
+            const isPerfect = dist >= 105 && dist <= 140;
+            let damageDealt = isPerfect ? 0.4 : 0.2;
             if (activeWeapon === 'katana') {
-                damageDealt = 1.5; // Katana deals more damage
+                damageDealt = isPerfect ? 3.0 : 1.5; // Katana deals more damage
             }
             boss.health -= damageDealt;
             
@@ -789,7 +791,7 @@ function attack(direction) {
             boss.flashTimer = 5; // Flash white
             spawnHitSparks(boss.x, boss.y - 40, boss.color);
             freezeFrames = 3; // AAA hit freeze
-            screenShake = 12; // Shake
+            screenShake = isPerfect ? 15 : 10; // Shake
             brawlerAudio.playBossHit();
             
             impactRings.push(new ImpactRing(boss.x, boss.y - 40, '#ff3300'));
@@ -797,7 +799,7 @@ function attack(direction) {
             if (boss.health <= 0) {
                 boss.die();
             } else {
-                floatingTexts.push(new FloatingText(boss.x, boss.y - 60, activeWeapon === 'katana' ? "SLASH!" : "HIT!", '#ffff00'));
+                floatingTexts.push(new FloatingText(boss.x, boss.y - 60, activeWeapon === 'katana' ? (isPerfect ? "CRITICAL SLASH!" : "SLASH!") : (isPerfect ? "CRITICAL HIT!" : "HIT!"), '#ffff00'));
             }
             return;
         }
@@ -968,8 +970,8 @@ class Wyrm {
     constructor() {
         this.x = -200;
         this.y = player.y - 120;
-        this.health = 5;
-        this.maxHealth = 5;
+        this.health = 30;
+        this.maxHealth = 30;
         this.projectiles = [];
         this.lastShot = 0;
         this.sinOffset = 0;
@@ -1024,7 +1026,7 @@ class Wyrm {
                 let dx = p.x - this.x;
                 let dy = p.y - this.y;
                 if (Math.sqrt(dx*dx + dy*dy) < 60) {
-                    this.health--;
+                    this.health -= 5;
                     this.projectiles.splice(i, 1);
                     screenShake = 15;
                     if (this.health <= 0) this.die();
@@ -1134,8 +1136,8 @@ class Dragon {
         this.vx = -3.5;
         this.vy = 0;
         this.isJumping = false;
-        this.health = 10;
-        this.maxHealth = 10;
+        this.health = 60;
+        this.maxHealth = 60;
         this.projectiles = [];
         this.lastShot = 0;
         this.active = false;
@@ -1240,7 +1242,7 @@ class Dragon {
                 let dx = p.x - this.x;
                 let dy = p.y - (this.y - 40); // Target torso/head of giant
                 if (Math.sqrt(dx * dx + dy * dy) < 70) {
-                    this.health--;
+                    this.health -= 10;
                     this.projectiles.splice(i, 1);
                     screenShake = 15;
                     flashAlpha = 0.3;
@@ -1976,6 +1978,14 @@ function update(deltaTime) {
     if (waveBannerTimer > 0) {
         waveBannerTimer -= deltaTime;
     }
+    if (bulletTimeTimer > 0) {
+        bulletTimeTimer -= deltaTime;
+        if (bulletTimeTimer < 0) bulletTimeTimer = 0;
+    }
+    if (warningTimer > 0) {
+        warningTimer -= deltaTime;
+        if (warningTimer < 0) warningTimer = 0;
+    }
     if (powerUpBannerTimer > 0) {
         powerUpBannerTimer -= deltaTime;
     }
@@ -2085,7 +2095,6 @@ function update(deltaTime) {
         }
     } else if (boss) {
         boss.update(deltaTime);
-        if (warningTimer > 0) warningTimer -= deltaTime;
 
         // Spawn small normal enemies during Dragon boss fight to make it more complex
         if (boss instanceof Dragon && warningTimer <= 0) {
