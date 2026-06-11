@@ -518,7 +518,15 @@ function spawnWeaponDrop() {
     weaponDropActive = true;
     weaponDropX = CANVAS_W / 2; // Spawn directly above the player
     weaponDropY = 0;
-    weaponDropType = weaponDropType === 'katana' ? 'laserstaff' : 'katana';
+    
+    // Cycle drops: katana -> laserstaff -> heart
+    if (weaponDropType === 'katana') {
+        weaponDropType = 'laserstaff';
+    } else if (weaponDropType === 'laserstaff') {
+        weaponDropType = 'heart';
+    } else {
+        weaponDropType = 'katana';
+    }
     weaponDropTimer = 0;
 }
 
@@ -567,10 +575,13 @@ function defeatEnemy(e, direction, isKatana = false) {
         spawnWeaponDrop();
     }
     
-    // Check extra life trigger (every 40 kills)
-    if (kills > 0 && kills % 40 === 0) {
+    // Check extra life trigger (every 25 kills)
+    if (kills > 0 && kills % 25 === 0) {
         player.lives++;
         updateLivesUI();
+        if (player.lives > 1) {
+            brawlerAudio.stopHeartbeat();
+        }
         floatingTexts.push(new FloatingText(player.x, player.y - 65, "EXTRA LIFE +1", '#ff0055'));
         brawlerAudio.playPowerUpCollect();
     }
@@ -1938,17 +1949,34 @@ function update(deltaTime) {
         
         // Check pickup distance
         if (Math.abs(player.x - weaponDropX) < 45 && Math.abs(player.y - weaponDropY) < 50) {
-            activeWeapon = weaponDropType;
-            weaponCharges = 15;
             weaponDropActive = false;
             
-            // Pickup feedback
-            flashAlpha = 0.4;
-            flashColor = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
-            floatingTexts.push(new FloatingText(player.x, player.y - 45, weaponDropType === 'katana' ? "NEON KATANA ACQUIRED!" : "LASER STAFF ACQUIRED!", flashColor));
-            
-            if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
-                window.audioFX.playLevelUp();
+            if (weaponDropType === 'heart') {
+                player.lives++;
+                updateLivesUI();
+                if (player.lives > 1) {
+                    brawlerAudio.stopHeartbeat();
+                }
+                
+                flashAlpha = 0.4;
+                flashColor = '#ff3366'; // Pink flash
+                floatingTexts.push(new FloatingText(player.x, player.y - 45, "EXTRA LIFE +1", flashColor));
+                
+                if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+                    window.audioFX.playLevelUp();
+                }
+            } else {
+                activeWeapon = weaponDropType;
+                weaponCharges = 15;
+                
+                // Pickup feedback
+                flashAlpha = 0.4;
+                flashColor = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
+                floatingTexts.push(new FloatingText(player.x, player.y - 45, weaponDropType === 'katana' ? "NEON KATANA ACQUIRED!" : "LASER STAFF ACQUIRED!", flashColor));
+                
+                if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+                    window.audioFX.playLevelUp();
+                }
             }
         }
     }
@@ -2418,27 +2446,44 @@ function draw() {
     if (weaponDropActive) {
         ctx.save();
         ctx.shadowBlur = 20;
-        ctx.shadowColor = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
-        ctx.fillStyle = weaponDropType === 'katana' ? '#ff3300' : '#bc13fe';
+        ctx.shadowColor = weaponDropType === 'katana' ? '#ff3300' : (weaponDropType === 'heart' ? '#ff3366' : '#bc13fe');
+        ctx.fillStyle = weaponDropType === 'katana' ? '#ff3300' : (weaponDropType === 'heart' ? '#ff3366' : '#bc13fe');
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         
-        // Draw a diamond shape at weaponDropX, weaponDropY
-        ctx.beginPath();
-        ctx.moveTo(weaponDropX, weaponDropY - 12);
-        ctx.lineTo(weaponDropX + 10, weaponDropY);
-        ctx.lineTo(weaponDropX, weaponDropY + 12);
-        ctx.lineTo(weaponDropX - 10, weaponDropY);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        if (weaponDropType === 'heart') {
+            // Draw a cute heart shape!
+            const size = 12;
+            const hx = weaponDropX;
+            const hy = weaponDropY;
+            ctx.beginPath();
+            ctx.moveTo(hx, hy - size / 4);
+            ctx.bezierCurveTo(hx - size / 2, hy - size * 0.75, hx - size, hy - size / 3, hx, hy + size * 0.75);
+            ctx.bezierCurveTo(hx + size, hy - size / 3, hx + size / 2, hy - size * 0.75, hx, hy - size / 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            // Draw a diamond shape at weaponDropX, weaponDropY
+            ctx.beginPath();
+            ctx.moveTo(weaponDropX, weaponDropY - 12);
+            ctx.lineTo(weaponDropX + 10, weaponDropY);
+            ctx.lineTo(weaponDropX, weaponDropY + 12);
+            ctx.lineTo(weaponDropX - 10, weaponDropY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
         
         // Draw float text/glow label above
         ctx.font = 'bold 9px "Outfit", sans-serif';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.shadowBlur = 5;
-        ctx.fillText(weaponDropType === 'katana' ? 'KATANA' : 'STAFF', weaponDropX, weaponDropY - 20);
+        let label = 'STAFF';
+        if (weaponDropType === 'katana') label = 'KATANA';
+        else if (weaponDropType === 'heart') label = 'LIFE';
+        ctx.fillText(label, weaponDropX, weaponDropY - 20);
         ctx.restore();
     }
 
