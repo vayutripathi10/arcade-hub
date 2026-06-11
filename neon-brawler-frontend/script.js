@@ -564,7 +564,10 @@ class Wyrm {
             }
 
             // Hit player
-            if (!p.reflected && Math.abs(p.x - player.x) < 30 && Math.abs(p.y - (player.y - 20)) < 30) {
+            const closestY = Math.max(player.y - 50, Math.min(player.y + 15, p.y));
+            const distY = Math.abs(p.y - closestY);
+            const distX = Math.abs(p.x - player.x);
+            if (!p.reflected && distX < 30 && distY < 20) {
                 takeDamage();
                 this.projectiles.splice(i, 1);
                 continue;
@@ -575,12 +578,20 @@ class Wyrm {
     }
 
     fire() {
-        let side = this.x < player.x ? -1 : 1;
+        const targetX = player.x;
+        const targetY = player.y - 20;
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const speed = 8;
+        const vx = dist > 0 ? (dx / dist) * speed : -speed;
+        const vy = dist > 0 ? (dy / dist) * speed : 0;
+
         this.projectiles.push({
             x: this.x,
-            y: getBasePlayerY() - 20,
-            vx: side === -1 ? 8 : -8,
-            vy: 0,
+            y: this.y,
+            vx: vx,
+            vy: vy,
             reflected: false,
             color: '#00ffff'
         });
@@ -639,11 +650,16 @@ class Dragon {
         this.lastShot = 0;
         this.active = false;
         this.color = '#ff3300'; // Neon orange/red
+        this.jumpCooldown = 0;
     }
 
     update(deltaTime) {
         if (warningTimer > 0) return;
         this.active = true;
+
+        if (this.jumpCooldown > 0) {
+            this.jumpCooldown -= deltaTime;
+        }
 
         // Move horizontally
         this.x += this.vx * deltaTime;
@@ -659,19 +675,23 @@ class Dragon {
                 this.vy = 0;
                 this.isJumping = false;
                 // Switch direction of movement
-                this.vx = this.x < player.x ? 3.5 : -3.5;
+                this.vx = this.x < player.x ? 3.0 : -3.0;
             }
         } else {
             // Stand on ground
             this.y = getBasePlayerY();
             
-            // Check if close to player to trigger jump over player
+            // Constantly face and walk towards player on ground
+            this.vx = this.x < player.x ? 3.0 : -3.0;
+            
+            // Check if close to player to trigger jump over player (with cooldown)
             const distToPlayer = Math.abs(this.x - player.x);
-            if (distToPlayer < 160 && !this.isJumping) {
+            if (distToPlayer < 160 && !this.isJumping && this.jumpCooldown <= 0) {
                 this.isJumping = true;
                 this.vy = -14; // High jump force
                 // Keep moving in current direction to cross over player
                 this.vx = this.x < player.x ? 6 : -6; 
+                this.jumpCooldown = 180; // 3 seconds cooldown
             }
         }
 
@@ -734,7 +754,10 @@ class Dragon {
             }
 
             // Hit player check
-            if (!p.reflected && Math.abs(p.x - player.x) < 30 && Math.abs(p.y - (player.y - 20)) < 30) {
+            const closestY = Math.max(player.y - 50, Math.min(player.y + 15, p.y));
+            const distY = Math.abs(p.y - closestY);
+            const distX = Math.abs(p.x - player.x);
+            if (!p.reflected && distX < 30 && distY < 20) {
                 takeDamage();
                 this.projectiles.splice(i, 1);
                 continue;
