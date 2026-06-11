@@ -464,13 +464,12 @@ class Player {
                 if (target) {
                     this.weapons.blaster.timer = currentCooldown;
                     const angle = Math.atan2(target.y - this.y, target.x - this.x);
-                    const dmgBonus = Math.floor(killCount / 10) * 10;
-                    const bulletRadius = 4 + Math.min(8, Math.floor(killCount / 10) * 0.5);
+                    const bulletRadius = 4;
                     
                     if (this.rapidFireTimer > 0) {
                         const proj = new Projectile(this.x, this.y, angle, {
                             speed: this.weapons.blaster.speed * 1.3,
-                            damage: this.weapons.blaster.damage + dmgBonus,
+                            damage: this.weapons.blaster.damage,
                             pierce: this.weapons.blaster.pierce
                         }, '#ff6600');
                         proj.radius = bulletRadius + 1;
@@ -483,7 +482,7 @@ class Player {
                     } else {
                         const proj = new Projectile(this.x, this.y, angle, {
                             speed: this.weapons.blaster.speed,
-                            damage: this.weapons.blaster.damage + dmgBonus,
+                            damage: this.weapons.blaster.damage,
                             pierce: this.weapons.blaster.pierce
                         });
                         proj.radius = bulletRadius;
@@ -556,12 +555,11 @@ class Player {
             }
         }
 
-        // Magnetic Gems
-        const activePickupRadius = this.getPickupRadius();
+        // Collect Gems when ship physically touches/collides with them
         gems.forEach(gem => {
             if (gem.collecting) return;
             const dist = Math.hypot(gem.x - this.x, gem.y - this.y);
-            if (dist < activePickupRadius) {
+            if (dist < this.radius + gem.radius + 3) {
                 gem.collecting = true;
             }
         });
@@ -854,33 +852,30 @@ class Enemy {
         this.knockbackX = 0;
         this.knockbackY = 0;
 
-        // Scaling based on time
-        const scale = 1 + (gameTime / 60);
-
         if (type === 'basic') {
             this.radius = 12;
-            this.hp = 20 * scale;
+            this.hp = 30;
             this.speed = 100 + Math.random() * 20;
             this.color = '#ff00ea';
             this.xp = 1;
             this.damage = 10;
         } else if (type === 'tank') {
             this.radius = 20;
-            this.hp = 80 * scale;
+            this.hp = 70;
             this.speed = 60 + Math.random() * 10;
             this.color = '#ff0055';
             this.xp = 5;
             this.damage = 25;
         } else if (type === 'fast') {
             this.radius = 8;
-            this.hp = 10 * scale;
+            this.hp = 20;
             this.speed = 160 + Math.random() * 30;
             this.color = '#00ff66';
             this.xp = 1;
             this.damage = 5;
         } else if (type === 'boss') {
             this.radius = 40;
-            this.hp = 2000 * scale;
+            this.hp = 1200;
             this.speed = 80;
             this.color = '#ffb700';
             this.xp = 50;
@@ -1275,17 +1270,11 @@ class PowerUp {
         this.life -= deltaTime * 0.01667;
         if (this.life <= 0) this.markedForDeletion = true;
         
-        // Attraction to player if within magnet range
+        // Collect when ship physically touches/collides with the power-up
         const dist = Math.hypot(player.x - this.x, player.y - this.y);
-        if (dist < player.getPickupRadius()) {
-            const speed = 450;
-            if (dist < 15) {
-                this.markedForDeletion = true;
-                this.collect();
-            } else {
-                this.x += ((player.x - this.x) / dist) * (speed / 60) * deltaTime;
-                this.y += ((player.y - this.y) / dist) * (speed / 60) * deltaTime;
-            }
+        if (dist < player.radius + this.radius + 3) {
+            this.markedForDeletion = true;
+            this.collect();
         }
     }
     collect() {
@@ -1450,10 +1439,6 @@ const UPGRADES = [
     {
         id: 'speed_up', name: 'Neon Boots', icon: '👟', desc: 'Increases your movement speed.',
         apply: () => { player.speed += 30; }
-    },
-    {
-        id: 'magnet', name: 'Magnetism', icon: '🧲', desc: 'Increases XP gem pickup radius.',
-        apply: () => { player.pickupRadius += 50; }
     },
     {
         id: 'heal', name: 'Emergency Repair', icon: '❤️', desc: 'Restores 50% max HP.',
