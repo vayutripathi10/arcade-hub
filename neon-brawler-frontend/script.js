@@ -2204,21 +2204,10 @@ function update(deltaTime) {
 }
 
 function draw() {
-    ctx.save();
+    // Clear the full canvas context first (in untransformed space)
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     
-    // Camera Shake
-    if (screenShake > 1) {
-        ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
-    }
-    
-    // Zoom out camera (centered) by 5% during boss fights
-    if (cameraScale !== 1.0) {
-        ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
-        ctx.scale(cameraScale, cameraScale);
-        ctx.translate(-CANVAS_W / 2, -CANVAS_H / 2);
-    }
-    
-    // 1. Celestial Atmospheric Sky Gradient
+    // Draw the background sky gradient in untransformed space so it always covers the full screen
     const skyGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
     let baseColor1 = '#04020a';
     let baseColor2 = '#0b061e';
@@ -2227,15 +2216,13 @@ function draw() {
     let baseColor5 = '#1c1c3c'; // horizon blue
 
     if (bossActive) {
-        // Darkened boss backdrop
         baseColor1 = '#020005';
         baseColor2 = '#04010a';
         baseColor3 = '#180424'; // deep purple-black
         baseColor4 = '#420a1c'; // blood crimson
         baseColor5 = '#090515';
     } else if (comboStreak >= 3) {
-        // Warmer/intense combo shift towards red/orange HSL
-        const shift = Math.min(1.0, comboStreak / 20); // max shift at 20 combo
+        const shift = Math.min(1.0, comboStreak / 20);
         baseColor3 = `hsl(${280 - shift * 120}, 65%, 18%)`; 
         baseColor4 = `hsl(${340 - shift * 60}, 75%, 45%)`;
     }
@@ -2248,6 +2235,19 @@ function draw() {
     
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    
+    // Now apply camera transformations for the entities and environment
+    ctx.save();
+    
+    if (screenShake > 1) {
+        ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
+    }
+    
+    if (cameraScale !== 1.0) {
+        ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
+        ctx.scale(cameraScale, cameraScale);
+        ctx.translate(-CANVAS_W / 2, -CANVAS_H / 2);
+    }
     
     // Boss fight dark red fog rolling in from sides
     if (bossActive) {
@@ -2708,6 +2708,9 @@ function draw() {
     // Draw floating texts
     floatingTexts.forEach(ft => ft.draw(ctx));
 
+    // Restore context to exit camera shake/zoom transformed space (HUD & overlays are untransformed)
+    ctx.restore();
+
     // Combo break shattered text
     if (comboBreakTimer > 0) {
         ctx.save();
@@ -2906,8 +2909,6 @@ function draw() {
         ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
         ctx.restore();
     }
-
-    ctx.restore(); 
 }
 
 let frameCount = 0;
