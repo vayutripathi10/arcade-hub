@@ -15,7 +15,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../hub-style.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_Stages_v8">
     <!-- Google AdSense -->
     
 
@@ -371,24 +371,32 @@
 
             <!-- Stage Clear Overlay -->
             <div id="stageClearOverlay" class="menu-overlay hidden">
-                <h2 id="clear-title" style="color: #00ffcc; font-family: 'Outfit', sans-serif; font-size: 2.2rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.4); margin-bottom: 10px;">⚡ STAGE CLEAR! ⚡</h2>
-                
-                <!-- Icon grid animation container -->
-                <div id="clear-icon-grid" class="clear-icon-grid"></div>
-                
-                <div class="clear-stats-card">
-                    <div style="margin-bottom: 8px;">ENEMIES DEFEATED: <span id="clear-defeated-count" style="color: #ffd700; font-weight: bold;">0</span></div>
-                    <div>PERFECT CLEAR BONUS: <span id="clear-perfect-bonus" style="color: #00ffcc; font-weight: bold;">+0</span></div>
-                </div>
-                
-                <div id="clear-stars" class="clear-stars" style="margin-bottom: 20px;">
-                    <!-- Stars populated by JS -->
-                </div>
-                
-                <button id="btn-next-stage" class="btn primary-btn">Continue</button>
-                <div style="display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 300px;">
-                    <button id="btn-replay-stage" class="btn secondary-btn" style="flex: 1; padding: 10px; font-size: 10px; margin: 0;">Replay</button>
-                    <button id="btn-menu-stages" class="btn secondary-btn" style="flex: 1; padding: 10px; font-size: 10px; margin: 0;">Menu</button>
+                <div class="clear-card">
+                    <h2 id="clear-title" class="clear-card-title">⚡ STAGE CLEAR! ⚡</h2>
+                    
+                    <!-- Icon grid animation container -->
+                    <div id="clear-icon-grid" class="clear-icon-grid"></div>
+                    
+                    <div class="clear-stats-holder">
+                        <div class="clear-stat-row">
+                            <span class="stat-label">ENEMIES DEFEATED:</span>
+                            <span id="clear-defeated-count" class="stat-val yellow-text">0</span>
+                        </div>
+                        <div class="clear-stat-row">
+                            <span class="stat-label">PERFECT CLEAR BONUS:</span>
+                            <span id="clear-perfect-bonus" class="stat-val green-text">+0</span>
+                        </div>
+                    </div>
+                    
+                    <div id="clear-stars" class="clear-stars-row">
+                        <!-- Stars populated by JS -->
+                    </div>
+                    
+                    <button id="btn-next-stage" class="btn primary-btn continue-btn">Continue</button>
+                    <div class="clear-sub-buttons">
+                        <button id="btn-replay-stage" class="clear-sub-btn">Replay</button>
+                        <button id="btn-menu-stages" class="clear-sub-btn">Menu</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -418,7 +426,7 @@
     
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Stages_v6"></script>
+    <script src="script.js?v=ArcadeHub_Stages_v8"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {

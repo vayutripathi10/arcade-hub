@@ -756,27 +756,53 @@ function drawTinyStickman(ctx, color) {
     ctx.stroke();
 }
 
+function hexToRgba(hex, opacity) {
+    hex = hex.replace('#', '');
+    let r, g, b;
+    if (hex.length === 3) {
+        r = parseInt(hex.charAt(0) + hex.charAt(0), 16);
+        g = parseInt(hex.charAt(1) + hex.charAt(1), 16);
+        b = parseInt(hex.charAt(2) + hex.charAt(2), 16);
+    } else if (hex.length === 6) {
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+    } else {
+        return hex;
+    }
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
+
 function animateClearScreenIcons() {
     const grid = document.getElementById('clear-icon-grid');
     if (!grid) return;
     grid.innerHTML = '';
     
+    const countText = document.getElementById('clear-defeated-count');
+    if (countText) countText.textContent = '0';
+    
     const theme = getStageTheme(currentStage);
     const count = stageKills;
     
-    if (count > 40) {
+    grid.style.setProperty('--ripple-color', theme.enemyColor);
+    
+    if (count > 24) {
+        // xCount style
         const wrapper = document.createElement('div');
         wrapper.style.display = 'flex';
         wrapper.style.alignItems = 'center';
         wrapper.style.justifyContent = 'center';
         wrapper.style.gap = '12px';
         wrapper.style.fontSize = '1.8rem';
-        wrapper.style.color = '#ff0055';
+        wrapper.style.color = theme.enemyColor;
         wrapper.style.fontWeight = 'bold';
         
         const canvas = document.createElement('canvas');
         canvas.width = 24;
         canvas.height = 24;
+        canvas.style.width = '24px';
+        canvas.style.height = '24px';
+        canvas.style.display = 'block';
         const ctx = canvas.getContext('2d');
         drawTinyStickman(ctx, theme.enemyColor);
         
@@ -794,22 +820,72 @@ function animateClearScreenIcons() {
         else if (edge === 2) startY = -400;
         else startY = 400;
         
-        wrapper.style.transform = `translate(${startX}px, ${startY}px)`;
+        wrapper.style.transform = `translate(${startX}px, ${startY}px) scale(0.3)`;
         wrapper.style.opacity = '0';
-        wrapper.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        wrapper.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         
         setTimeout(() => {
-            wrapper.style.transform = 'translate(0, 0)';
+            wrapper.style.transform = 'translate(0, 0) scale(1)';
             wrapper.style.opacity = '1';
-        }, 100);
+            playSound('swing');
+            
+            setTimeout(() => {
+                playSound('hit');
+                // Count up animation
+                let current = 0;
+                const step = Math.max(1, Math.floor(count / 20));
+                const timer = setInterval(() => {
+                    current = Math.min(count, current + step);
+                    if (countText) {
+                        countText.textContent = current;
+                        countText.style.transform = 'scale(1.3)';
+                        countText.style.transition = 'transform 0.05s ease';
+                        setTimeout(() => {
+                            countText.style.transform = 'scale(1)';
+                        }, 50);
+                    }
+                    if (current >= count) {
+                        clearInterval(timer);
+                    } else {
+                        playSound('hit');
+                    }
+                }, 60);
+            }, 600);
+        }, 150);
     } else {
+        // Individual icons
+        let staggerInterval = 120;
+        if (count <= 5) {
+            staggerInterval = 300;
+        } else if (count <= 10) {
+            staggerInterval = 200;
+        }
+        
         for (let i = 0; i < count; i++) {
             const cell = document.createElement('div');
             cell.className = 'clear-enemy-icon-wrapper';
+            cell.style.position = 'relative';
+            cell.style.width = '28px';
+            cell.style.height = '28px';
+            cell.style.display = 'flex';
+            cell.style.alignItems = 'center';
+            cell.style.justifyContent = 'center';
+            cell.style.background = 'rgba(255, 255, 255, 0.02)';
+            cell.style.border = '1px solid rgba(255, 255, 255, 0.05)';
+            cell.style.borderRadius = '6px';
+            cell.style.boxSizing = 'border-box';
+            cell.style.setProperty('--ripple-color', theme.enemyColor);
             
             const canvas = document.createElement('canvas');
             canvas.width = 24;
             canvas.height = 24;
+            canvas.style.width = '24px';
+            canvas.style.height = '24px';
+            canvas.style.display = 'block';
+            canvas.style.boxSizing = 'border-box';
+            canvas.style.margin = 'auto';
+            canvas.style.pointerEvents = 'none';
+            
             const ctx = canvas.getContext('2d');
             drawTinyStickman(ctx, theme.enemyColor);
             
@@ -818,19 +894,44 @@ function animateClearScreenIcons() {
             
             const edge = Math.floor(Math.random() * 4);
             let startX = 0, startY = 0;
-            if (edge === 0) { startX = -500 - Math.random() * 200; startY = (Math.random() - 0.5) * 500; }
-            else if (edge === 1) { startX = 500 + Math.random() * 200; startY = (Math.random() - 0.5) * 500; }
-            else if (edge === 2) { startX = (Math.random() - 0.5) * 500; startY = -500 - Math.random() * 200; }
-            else { startX = (Math.random() - 0.5) * 500; startY = 500 + Math.random() * 200; }
+            const distRange = 400 + Math.random() * 200;
+            if (edge === 0) { startX = -distRange; startY = (Math.random() - 0.5) * 300; }
+            else if (edge === 1) { startX = distRange; startY = (Math.random() - 0.5) * 300; }
+            else if (edge === 2) { startX = (Math.random() - 0.5) * 300; startY = -distRange; }
+            else { startX = (Math.random() - 0.5) * 300; startY = distRange; }
             
-            canvas.style.position = 'absolute';
-            canvas.style.transform = `translate(${startX}px, ${startY}px) scale(0)`;
-            canvas.style.transition = 'all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            canvas.style.transform = `translate(${startX}px, ${startY}px) scale(0.3)`;
+            canvas.style.opacity = '0';
+            canvas.style.transition = 'transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease';
             
+            const staggerTime = i * staggerInterval;
             setTimeout(() => {
                 canvas.style.transform = 'translate(0, 0) scale(1)';
+                canvas.style.opacity = '1';
                 playSound('swing');
-            }, i * 50);
+                
+                setTimeout(() => {
+                    playSound('hit');
+                    
+                    cell.classList.add('landed', 'ripple');
+                    cell.style.background = hexToRgba(theme.enemyColor, 0.1);
+                    cell.style.borderColor = hexToRgba(theme.enemyColor, 0.4);
+                    cell.style.boxShadow = `0 0 10px ${hexToRgba(theme.enemyColor, 0.4)}`;
+                    
+                    setTimeout(() => {
+                        cell.classList.remove('landed');
+                    }, 250);
+                    
+                    if (countText) {
+                        countText.textContent = i + 1;
+                        countText.style.transform = 'scale(1.3)';
+                        countText.style.transition = 'transform 0.05s ease';
+                        setTimeout(() => {
+                            countText.style.transform = 'scale(1)';
+                        }, 55);
+                    }
+                }, 600);
+            }, staggerTime);
         }
     }
 }
