@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v70';
+const CACHE_NAME = 'arcade-hub-cache-v71';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -38,6 +38,12 @@ const CORE_ASSETS = [
     'blog/evolution-of-cyberpunk-web-games.html',
     'blog/pwa-html5-mobile-gaming-revolution.html',
     'blog/retro-arcade-game-strategy-guide.html',
+    'blog/tic-tac-toe-game-theory.html',
+    'blog/classic-snake-grid-control.html',
+    'blog/html5-canvas-rendering-performance.html',
+    'blog/web-audio-api-retro-synthesis.html',
+    'blog/game-physics-hitbox-collision.html',
+    'blog/top-free-retro-arcade-games.html',
     'play-neon-cypher.html',
     'play-neon-swing.html',
     'play-neon-bolts.html',
