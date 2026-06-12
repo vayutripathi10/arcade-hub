@@ -295,14 +295,10 @@ function generateFallbackLevel(gridWidth, gridHeight, numBlocks, time3, time2) {
     let placed = 0;
     
     const borderCells = [];
-    // Top row
-    for (let x = 0; x < gridWidth; x++) borderCells.push({ x, y: 0, dir: { x: 0, y: -1 } });
-    // Bottom row
-    for (let x = 0; x < gridWidth; x++) borderCells.push({ x, y: gridHeight - 1, dir: { x: 0, y: 1 } });
-    // Left col
-    for (let y = 1; y < gridHeight - 1; y++) borderCells.push({ x: 0, y, dir: { x: -1, y: 0 } });
-    // Right col
-    for (let y = 1; y < gridHeight - 1; y++) borderCells.push({ x: gridWidth - 1, y, dir: { x: 1, y: 0 } });
+    for (let x = 0; x < gridWidth; x++) borderCells.push({ x, y: 0 });
+    for (let x = 0; x < gridWidth; x++) borderCells.push({ x, y: gridHeight - 1 });
+    for (let y = 1; y < gridHeight - 1; y++) borderCells.push({ x: 0, y });
+    for (let y = 1; y < gridHeight - 1; y++) borderCells.push({ x: gridWidth - 1, y });
     
     const insideCells = [];
     for (let x = 1; x < gridWidth - 1; x++) {
@@ -311,12 +307,21 @@ function generateFallbackLevel(gridWidth, gridHeight, numBlocks, time3, time2) {
         }
     }
     
-    const allDirs = [
-        { x: 0, y: -1 }, // UP
-        { x: 0, y: 1 },  // DOWN
-        { x: -1, y: 0 }, // LEFT
-        { x: 1, y: 0 }   // RIGHT
-    ];
+    function getQuadrantDir(x, y) {
+        if (y < gridHeight / 2) {
+            if (x < gridWidth / 2) {
+                return { x: 0, y: -1 }; // UP
+            } else {
+                return { x: 1, y: 0 };  // RIGHT
+            }
+        } else {
+            if (x < gridWidth / 2) {
+                return { x: -1, y: 0 }; // LEFT
+            } else {
+                return { x: 0, y: 1 };  // DOWN
+            }
+        }
+    }
     
     for (const cell of borderCells) {
         if (placed >= numBlocks) break;
@@ -325,7 +330,7 @@ function generateFallbackLevel(gridWidth, gridHeight, numBlocks, time3, time2) {
             x: cell.x,
             y: cell.y,
             color: colors[placed % colors.length],
-            exitDir: cell.dir
+            exitDir: getQuadrantDir(cell.x, cell.y)
         });
         placed++;
     }
@@ -337,7 +342,7 @@ function generateFallbackLevel(gridWidth, gridHeight, numBlocks, time3, time2) {
             x: cell.x,
             y: cell.y,
             color: colors[placed % colors.length],
-            exitDir: allDirs[placed % 4]
+            exitDir: getQuadrantDir(cell.x, cell.y)
         });
         placed++;
     }
