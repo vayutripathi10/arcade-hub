@@ -410,6 +410,7 @@ body {
 }
 
 .cell-empty {
+    position: relative;
     background: #0d0d1a;
     border: 1px solid rgba(255, 255, 255, 0.03);
     box-sizing: border-box;

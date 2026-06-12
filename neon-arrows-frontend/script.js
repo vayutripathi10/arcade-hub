@@ -548,13 +548,14 @@ function renderGridDOM() {
         for (let x = 0; x < currentGridWidth; x++) {
             const empty = document.createElement('div');
             empty.className = 'cell-empty';
+            empty.id = `cell-${x}-${y}`;
             empty.style.gridColumnStart = x + 1;
             empty.style.gridRowStart = y + 1;
             gridEl.appendChild(empty);
         }
     }
     
-    // 2. Render blocks on top using explicit grid positions (z-index 2)
+    // 2. Render blocks nested inside their respective empty cells (z-index 2)
     activeBlocks.forEach(block => {
         if (block.state === 'completed') return;
         
@@ -562,9 +563,6 @@ function renderGridDOM() {
         el.className = 'block';
         el.id = 'block-' + block.id;
         el.setAttribute('data-color', block.color);
-        
-        el.style.gridColumnStart = block.gridX + 1;
-        el.style.gridRowStart = block.gridY + 1;
         
         const styleValues = BLOCK_COLORS[block.color];
         el.style.setProperty('--bg-color', styleValues.bg);
@@ -582,7 +580,10 @@ function renderGridDOM() {
         el.addEventListener('mousedown', (e) => onBlockTouchStart(block, e));
         el.addEventListener('touchstart', (e) => onBlockTouchStart(block, e), { passive: true });
         
-        gridEl.appendChild(el);
+        const cellEl = document.getElementById(`cell-${block.gridX}-${block.gridY}`);
+        if (cellEl) {
+            cellEl.appendChild(el);
+        }
     });
     
     updateBlockFreeClasses();
