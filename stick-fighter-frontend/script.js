@@ -469,8 +469,25 @@ function resize() {
     const pStripH = pStrip?.offsetHeight || 0;
     const bStripH = (bStrip && !bStrip.classList.contains('hidden')) ? bStrip.offsetHeight : 0;
     
-    canvas.width = root.clientWidth;
-    canvas.height = totalH - headerH - pStripH - bStripH;
+    const physicalWidth = root.clientWidth;
+    const physicalHeight = totalH - headerH - pStripH - bStripH;
+    
+    // Enforce a minimum logical coordinate space for brawling:
+    // Minimum logical width = 800px (to prevent enemies spawning too close and give dodge room)
+    // Minimum logical height = 520px (to prevent the ground and player falling off the canvas in landscape)
+    let scale = 1.0;
+    
+    if (physicalWidth < 800) {
+        scale = physicalWidth / 800;
+    }
+    
+    const minLogicalHeight = 520;
+    if (physicalHeight / scale < minLogicalHeight) {
+        scale = physicalHeight / minLogicalHeight;
+    }
+    
+    canvas.width = physicalWidth / scale;
+    canvas.height = physicalHeight / scale;
     
     generateEnvironment();
     
