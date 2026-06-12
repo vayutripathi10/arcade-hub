@@ -247,22 +247,26 @@
     <!-- END PRE-GAME INFO OVERLAY -->
 
     <!-- HUD Header -->
-    <header class="hud">
+    <header class="hud-header">
         <div class="hud-left">
             <button class="hud-btn" id="home-btn" title="Exit to Hub">🏠</button>
         </div>
         <div class="hud-center">
-            <div class="stat-item">
-                <span class="stat-label">Level</span>
-                <span class="stat-value" id="level-value">1</span>
+            <div class="hud-stat">
+                <span class="hud-stat-label">Level</span>
+                <span class="hud-stat-value" id="level-value">1</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Time</span>
-                <span class="stat-value" id="timer-value">0.0s</span>
+            <div class="hud-stat">
+                <span class="hud-stat-label">Moves</span>
+                <span class="hud-stat-value" id="moves-value">0</span>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Target 3⭐</span>
-                <span class="stat-value" id="target-value" style="color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow);">0.0s</span>
+            <div class="hud-stat">
+                <span class="hud-stat-label">Time</span>
+                <span class="hud-stat-value" id="timer-value">0.0s</span>
+            </div>
+            <div class="hud-stat target">
+                <span class="hud-stat-label">Target</span>
+                <span class="hud-stat-value" id="target-value">5</span>
             </div>
         </div>
         <div class="hud-right">
@@ -275,7 +279,10 @@
 
     <!-- Game Main Container -->
     <main class="game-container">
-        <canvas id="game-canvas"></canvas>
+        <div id="game-wrapper">
+            <div id="game-grid" class="game-grid"></div>
+            <canvas id="game-canvas"></canvas>
+        </div>
     </main>
 
     <!-- Start Overlay -->
@@ -357,6 +364,11 @@
             <p>Congratulations, you cracked all security sectors of the grid! You are the ultimate Arrow Master!</p>
             <button class="btn-main" id="victory-home-btn">Return to Hub</button>
         </div>
+    </div>
+
+    <div class="mobile-bottom-bar">
+        <button class="hud-btn-mobile" id="mobile-undo-btn">↩️ Undo</button>
+        <button class="hud-btn-mobile" id="mobile-reset-btn">🔄 Restart</button>
     </div>
 
     <!-- Audio FX and Achievements Scripts -->
