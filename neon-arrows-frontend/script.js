@@ -213,7 +213,7 @@ function getPuzzleDifficulty(levelIndex) {
     return           { maxFree: 1 };
 }
 
-// Solver validation
+// Solver validation (Checks empty space along ray)
 function isBlocked(block, blocksList, gridWidth, gridHeight) {
     let cx = block.x + block.exitDir.x;
     let cy = block.y + block.exitDir.y;
@@ -359,7 +359,6 @@ function generateLevel(gridWidth, gridHeight, numBlocks, initialSeed, time3, tim
 
 // Show PAR Moves start banner
 function showParBanner(par) {
-    // Clean old banners
     const old = document.querySelectorAll('.par-banner');
     old.forEach(b => b.remove());
     
@@ -489,7 +488,8 @@ function isBlockBlocked(block, blocksList) {
     let cy = block.gridY + block.exitDir.y;
     
     while (cx >= 0 && cx < currentGridWidth && cy >= 0 && cy < currentGridHeight) {
-        const other = blocksList.find(b => b.state !== 'completed' && b.id !== block.id && b.gridX === cx && b.gridY === cy);
+        // Both idle and sliding blocks block the exit path
+        const other = blocksList.find(b => (b.state === 'idle' || b.state === 'sliding') && b.id !== block.id && b.gridX === cx && b.gridY === cy);
         if (other) {
             return { blocked: true, by: other };
         }
@@ -532,7 +532,63 @@ function updateBlockFreeClasses() {
     });
 }
 
-// Load Level node
+// Render HTML Grid and Blocks DOM Elements securely (Fixes positional shifting issues)
+function renderGridDOM() {
+    const gridEl = document.getElementById('game-grid');
+    gridEl.innerHTML = '';
+    gridEl.style.gridTemplateColumns = `repeat(${currentGridWidth}, 1fr)`;
+    gridEl.style.gridTemplateRows = `repeat(${currentGridHeight}, 1fr)`;
+    
+    const wrapper = document.getElementById('game-wrapper');
+    wrapper.style.setProperty('--cols', currentGridWidth);
+    wrapper.style.setProperty('--rows', currentGridHeight);
+    
+    // 1. Render cell-empty background placeholders for all slots first (stays at z-index 1)
+    for (let y = 0; y < currentGridHeight; y++) {
+        for (let x = 0; x < currentGridWidth; x++) {
+            const empty = document.createElement('div');
+            empty.className = 'cell-empty';
+            empty.style.gridColumnStart = x + 1;
+            empty.style.gridRowStart = y + 1;
+            gridEl.appendChild(empty);
+        }
+    }
+    
+    // 2. Render blocks on top using explicit grid positions (z-index 2)
+    activeBlocks.forEach(block => {
+        if (block.state === 'completed') return;
+        
+        const el = document.createElement('div');
+        el.className = 'block';
+        el.id = 'block-' + block.id;
+        el.setAttribute('data-color', block.color);
+        
+        el.style.gridColumnStart = block.gridX + 1;
+        el.style.gridRowStart = block.gridY + 1;
+        
+        const styleValues = BLOCK_COLORS[block.color];
+        el.style.setProperty('--bg-color', styleValues.bg);
+        el.style.setProperty('--border-color', styleValues.border);
+        el.style.setProperty('--glow-color', styleValues.glow);
+        
+        let arrowChar = '→';
+        if (block.exitDir.x === -1) arrowChar = '←';
+        else if (block.exitDir.y === -1) arrowChar = '↑';
+        else if (block.exitDir.y === 1) arrowChar = '↓';
+        
+        el.innerHTML = `<span class="block-arrow">${arrowChar}</span>`;
+        
+        // Interaction Listeners
+        el.addEventListener('mousedown', (e) => onBlockTouchStart(block, e));
+        el.addEventListener('touchstart', (e) => onBlockTouchStart(block, e), { passive: true });
+        
+        gridEl.appendChild(el);
+    });
+    
+    updateBlockFreeClasses();
+}
+
+// Load Level Data
 function loadLevel(index) {
     if (index < 0 || index >= LEVEL_CONFIGS.length) return;
     currentLevelIndex = index;
@@ -569,54 +625,9 @@ function loadLevel(index) {
     document.getElementById('level-value').textContent = currentLevelIndex + 1;
     document.getElementById('moves-value').textContent = '0';
     document.getElementById('timer-value').textContent = '0.0s';
-    document.getElementById('target-value').textContent = config.numBlocks; // Par Target
+    document.getElementById('target-value').textContent = config.numBlocks;
     
-    // Clear & Populate HTML Grid DOM cells
-    const gridEl = document.getElementById('game-grid');
-    gridEl.innerHTML = '';
-    gridEl.style.gridTemplateColumns = `repeat(${currentGridWidth}, 1fr)`;
-    gridEl.style.gridTemplateRows = `repeat(${currentGridHeight}, 1fr)`;
-    
-    // Set columns/rows variables for CSS calculations
-    const wrapper = document.getElementById('game-wrapper');
-    wrapper.style.setProperty('--cols', currentGridWidth);
-    wrapper.style.setProperty('--rows', currentGridHeight);
-    
-    for (let y = 0; y < currentGridHeight; y++) {
-        for (let x = 0; x < currentGridWidth; x++) {
-            const block = activeBlocks.find(b => b.gridX === x && b.gridY === y);
-            if (block) {
-                const el = document.createElement('div');
-                el.className = 'block';
-                el.id = 'block-' + block.id;
-                el.setAttribute('data-color', block.color);
-                
-                const styleValues = BLOCK_COLORS[block.color];
-                el.style.setProperty('--bg-color', styleValues.bg);
-                el.style.setProperty('--border-color', styleValues.border);
-                el.style.setProperty('--glow-color', styleValues.glow);
-                
-                let arrowChar = '→';
-                if (block.exitDir.x === -1) arrowChar = '←';
-                else if (block.exitDir.y === -1) arrowChar = '↑';
-                else if (block.exitDir.y === 1) arrowChar = '↓';
-                
-                el.innerHTML = `<span class="block-arrow">${arrowChar}</span>`;
-                
-                // Interaction Listeners
-                el.addEventListener('mousedown', (e) => onBlockTouchStart(block, e));
-                el.addEventListener('touchstart', (e) => onBlockTouchStart(block, e), { passive: true });
-                
-                gridEl.appendChild(el);
-            } else {
-                const empty = document.createElement('div');
-                empty.className = 'cell-empty';
-                gridEl.appendChild(empty);
-            }
-        }
-    }
-    
-    updateBlockFreeClasses();
+    renderGridDOM();
     showParBanner(config.numBlocks);
     resizeCanvas();
 }
@@ -637,6 +648,10 @@ function loadNextLevel() {
 
 // Interaction Listeners
 function onBlockTouchStart(block, e) {
+    if (e.type === 'mousedown' && 'ontouchstart' in window) {
+        // Ignore duplicate mousedown events on touch devices
+        return;
+    }
     if (activeBlocks.some(b => b.state === 'sliding') || !gameRunning) return;
     
     activeTouchBlock = block;
@@ -691,6 +706,7 @@ function processBlockClick(block) {
         
         const el = document.getElementById('block-' + block.id);
         if (el) {
+            el.classList.add('sliding');
             el.classList.add('pressed');
             setTimeout(() => {
                 if (el) el.classList.remove('pressed');
@@ -886,7 +902,15 @@ function updateBlocksState(deltaTime) {
             if (el) {
                 const tx = block.exitDir.x * block.slideOffset * cellSize;
                 const ty = block.exitDir.y * block.slideOffset * cellSize;
-                el.style.transform = `translate(${tx}px, ${ty}px)`;
+                
+                // Vanish effect: scale down and fade out as the block slides
+                if (block.slideOffset > 0.2) {
+                    const progress = Math.min(1, (block.slideOffset - 0.2) / 0.8); // 0 to 1
+                    el.style.opacity = 1 - progress;
+                    el.style.transform = `translate(${tx}px, ${ty}px) scale(${1 - progress * 0.4})`;
+                } else {
+                    el.style.transform = `translate(${tx}px, ${ty}px)`;
+                }
             }
             
             if (Math.random() < 0.4) {
@@ -899,6 +923,8 @@ function updateBlocksState(deltaTime) {
             if (isOut) {
                 block.state = 'completed';
                 if (el) el.remove();
+                
+                updateBlockFreeClasses(); // Refresh unblocked list when block vanishes
                 
                 let edgeX = Math.max(-0.5, Math.min(currentGridWidth - 0.5, rx));
                 let edgeY = Math.max(-0.5, Math.min(currentGridHeight - 0.5, ry));
@@ -978,42 +1004,7 @@ function undoMove() {
     movesCount--;
     document.getElementById('moves-value').textContent = movesCount;
     
-    // Repopulate DOM grid to match undone state
-    const gridEl = document.getElementById('game-grid');
-    gridEl.innerHTML = '';
-    
-    activeBlocks.forEach(block => {
-        if (block.state === 'completed') {
-            const empty = document.createElement('div');
-            empty.className = 'cell-empty';
-            gridEl.appendChild(empty);
-        } else {
-            const el = document.createElement('div');
-            el.className = 'block';
-            el.id = 'block-' + block.id;
-            el.setAttribute('data-color', block.color);
-            
-            const styleValues = BLOCK_COLORS[block.color];
-            el.style.setProperty('--bg-color', styleValues.bg);
-            el.style.setProperty('--border-color', styleValues.border);
-            el.style.setProperty('--glow-color', styleValues.glow);
-            
-            let arrowChar = '→';
-            if (block.exitDir.x === -1) arrowChar = '←';
-            else if (block.exitDir.y === -1) arrowChar = '↑';
-            else if (block.exitDir.y === 1) arrowChar = '↓';
-            
-            el.innerHTML = `<span class="block-arrow">${arrowChar}</span>`;
-            
-            el.addEventListener('mousedown', (e) => onBlockTouchStart(block, e));
-            el.addEventListener('touchstart', (e) => onBlockTouchStart(block, e), { passive: true });
-            
-            gridEl.appendChild(el);
-        }
-    });
-    
-    // Re-verify free / blocked classes
-    updateBlockFreeClasses();
+    renderGridDOM();
     neonArrowAudio.playClick();
 }
 
@@ -1049,6 +1040,7 @@ function spawnClearParticles(gridX, gridY, color) {
     }
 }
 
+// Exhaust sparks spray backwards
 function spawnExhaustSpark(rx, ry, exitDir, color) {
     const cx = offsetLeft + rx * cellSize + cellSize / 2;
     const cy = offsetTop + ry * cellSize + cellSize / 2;
@@ -1120,6 +1112,7 @@ function updateRipples(deltaTime) {
     }
 }
 
+// draw overlay ripples
 function drawRipples() {
     ctx.save();
     for (const r of ripples) {
@@ -1135,7 +1128,7 @@ function drawRipples() {
     ctx.restore();
 }
 
-function drawGridMatrix() {} // Not required, handled natively by DOM border styles
+function drawGridMatrix() {}
 
 // Mute status
 function updateMuteUI() {
