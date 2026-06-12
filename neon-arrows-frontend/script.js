@@ -36,7 +36,7 @@ class SeededRandom {
 const LEVEL_CONFIGS = [
     { gridWidth: 3, gridHeight: 3, numBlocks: 5, seed: 2001, time3: 8, time2: 15 },
     { gridWidth: 3, gridHeight: 3, numBlocks: 7, seed: 2002, time3: 10, time2: 18 },
-    { gridWidth: 3, gridHeight: 3, numBlocks: 9, seed: 2003, time3: 12, time2: 22 },
+    { gridWidth: 3, gridHeight: 3, numBlocks: 8, seed: 2003, time3: 12, time2: 22 },
     { gridWidth: 4, gridHeight: 4, numBlocks: 8, seed: 2004, time3: 15, time2: 28 },
     { gridWidth: 4, gridHeight: 4, numBlocks: 11, seed: 2005, time3: 18, time2: 32 },
     { gridWidth: 4, gridHeight: 4, numBlocks: 14, seed: 2006, time3: 20, time2: 36 },
@@ -318,8 +318,8 @@ function generateLevel(gridWidth, gridHeight, numBlocks, initialSeed, time3, tim
             }
         }
         
-        // Validate solvability AND strict difficulty constraints
-        if (blocks.length > 0 && verifyDifficulty(gridWidth, gridHeight, blocks, diff.maxFree)) {
+        // Validate solvability, strict difficulty constraints AND block count completeness
+        if (blocks.length === numBlocks && verifyDifficulty(gridWidth, gridHeight, blocks, diff.maxFree)) {
             return {
                 gridWidth: gridWidth,
                 gridHeight: gridHeight,
