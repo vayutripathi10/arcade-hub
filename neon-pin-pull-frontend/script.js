@@ -1052,10 +1052,10 @@ class PinPullGame {
             if (window.audioFX) window.audioFX.playWhoosh();
             this.startLevel(this.currentLevelIndex);
         });
-
         document.getElementById('btn-next').addEventListener('click', () => {
             if (window.audioFX) window.audioFX.playWhoosh();
-            if (this.currentLevelIndex < 25) {
+            if (this.currentLevelIndex !== -1 && this.currentLevelIndex < 25) {
+                document.getElementById('successMenu').classList.add('hidden');
                 this.startLevel(this.currentLevelIndex + 1);
             } else {
                 this.gameState = 'START';
@@ -1093,13 +1093,22 @@ class PinPullGame {
 
         // Coins hint purchase button
         document.getElementById('btn-hint')?.addEventListener('click', () => {
-            if (this.coins >= 10) {
-                this.coins -= 10;
-                this.saveProgress();
+            const isFree = !this.freeHintUsed;
+            if (isFree || this.coins >= 5) {
+                if (!isFree) {
+                    this.coins -= 5;
+                    this.saveProgress();
+                }
                 this.startLevel(this.currentLevelIndex);
+                if (isFree) {
+                    this.freeHintUsed = true;
+                }
                 this.showNextMoveHint();
+                if (isFree) {
+                    this.spawnFloatingText(300, 300, "FREE HINT ACTIVATED!", "#ffd700");
+                }
             } else {
-                this.spawnFloatingText(300, 300, "NOT ENOUGH COINS!", "#ff4444");
+                this.spawnFloatingText(300, 300, "NEED 5 COINS FOR HINT", "#ff4444");
                 if (window.audioFX && typeof window.audioFX.playBuzz === 'function') window.audioFX.playBuzz();
             }
         });
@@ -1113,14 +1122,18 @@ class PinPullGame {
         // Daily challenge has a pseudo-random seed based on day date
         const today = new Date().toDateString();
         // Construct level 26 config with mixed styles
-        this.currentLevelIndex = -1; // Flag for daily
-        this.startLevel(25); // Run Level 26 structure
+        this.startLevel(-1); // Start daily challenge
         document.getElementById('hud-level').textContent = "DAILY CHALLENGE";
         this.spawnFloatingText(300, 350, "DAILY ENCRYPTION INITIATED", "#ffd700");
     }
 
     startLevel(index) {
-        this.currentLevelIndex = index;
+        if (index === -1) {
+            this.currentLevelIndex = -1;
+            index = 25;
+        } else {
+            this.currentLevelIndex = index;
+        }
         const config = LEVELS[index];
         
         // Deep copy parameters
@@ -1135,6 +1148,7 @@ class PinPullGame {
         this.particles = [];
         this.floatingTexts = [];
         this.undoStack = [];
+        this.freeHintUsed = false;
         
         this.totalBallsCount = this.balls.length;
         this.collectedCount = 0;
@@ -1259,11 +1273,19 @@ class PinPullGame {
     }
 
     purchaseHUDHint() {
-        // Gives the next pin sequence directly highlighting in gold
-        if (this.coins >= 5) {
-            this.coins -= 5;
-            this.saveProgress();
+        const isFree = !this.freeHintUsed;
+        if (isFree || this.coins >= 5) {
+            if (!isFree) {
+                this.coins -= 5;
+                this.saveProgress();
+            } else {
+                this.freeHintUsed = true;
+            }
             this.showNextMoveHint();
+            if (isFree) {
+                this.spawnFloatingText(300, 300, "FREE HINT ACTIVATED!", "#ffd700");
+            }
+            this.updateHUD();
         } else {
             this.spawnFloatingText(300, 300, "NEED 5 COINS FOR HINT", "#ff4444");
             if (window.audioFX && typeof window.audioFX.playBuzz === 'function') window.audioFX.playBuzz();
@@ -1271,7 +1293,7 @@ class PinPullGame {
     }
 
     showNextMoveHint() {
-        const config = LEVELS[this.currentLevelIndex];
+        const config = this.currentLevelIndex === -1 ? LEVELS[25] : LEVELS[this.currentLevelIndex];
         if (!config) return;
         
         // Highlight first remaining correct pin
@@ -1408,7 +1430,7 @@ class PinPullGame {
                 p.slideOffset += p.pullSpeed * deltaTime;
                 
                 // Add glowing trail coordinates
-                let trailX = p.direction === 'right' ? p.x + p.slideOffset : p.x + p.w - p.slideOffset;
+                let trailX = p.direction === 'right' ? p.x + p.w + p.slideOffset : p.x - p.slideOffset;
                 p.glowingTrail.push({ x: trailX, y: p.y });
                 if (p.glowingTrail.length > 8) p.glowingTrail.shift();
 
@@ -1731,7 +1753,7 @@ class PinPullGame {
         });
 
         // Calculate stars based on par pulls comparison
-        const config = LEVELS[this.currentLevelIndex];
+        const config = this.currentLevelIndex === -1 ? LEVELS[25] : LEVELS[this.currentLevelIndex];
         let starsCount = 3;
         if (config) {
             const extraPulls = this.pullsCount - config.par;
@@ -2046,32 +2068,30 @@ class PinPullGame {
             this.ctx.stroke();
 
             // Draw pin circular arrow cap (the handle)
-            let capX = p.direction === 'right' ? p.x + p.slideOffset : p.x + p.w - p.slideOffset;
-            if ((p.direction === 'right' && capX < p.x + p.w) || (p.direction === 'left' && capX > p.x)) {
-                this.ctx.fillStyle = '#0a0b10';
-                this.ctx.strokeStyle = strokeColor;
-                this.ctx.lineWidth = 3;
-                this.ctx.beginPath();
-                this.ctx.arc(capX, p.y, 15, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.stroke();
-                
-                // Draw arrow indicator on the cap
-                this.ctx.fillStyle = strokeColor;
-                this.ctx.font = 'bold 12px Outfit';
-                this.ctx.textAlign = 'center';
-                this.ctx.textBaseline = 'middle';
-                const arrow = p.direction === 'right' ? '➔' : '⬅';
-                this.ctx.fillText(arrow, capX, p.y);
+            let capX = p.direction === 'right' ? p.x + p.w + p.slideOffset : p.x - p.slideOffset;
+            this.ctx.fillStyle = '#0a0b10';
+            this.ctx.strokeStyle = strokeColor;
+            this.ctx.lineWidth = 3;
+            this.ctx.beginPath();
+            this.ctx.arc(capX, p.y, 15, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.stroke();
+            
+            // Draw arrow indicator on the cap
+            this.ctx.fillStyle = strokeColor;
+            this.ctx.font = 'bold 12px Outfit';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            const arrow = p.direction === 'right' ? '➔' : '⬅';
+            this.ctx.fillText(arrow, capX, p.y);
 
-                // Lock padlock overlay or timer countdown display
-                if (blocked) {
-                    this.ctx.fillText('🔒', capX, p.y - 14);
-                } else if (p.timer > 0) {
-                    this.ctx.fillStyle = '#ffffff';
-                    this.ctx.font = 'bold 9px Outfit';
-                    this.ctx.fillText(Math.ceil(p.timer).toString() + "s", capX, p.y - 14);
-                }
+            // Lock padlock overlay or timer countdown display
+            if (blocked) {
+                this.ctx.fillText('🔒', capX, p.y - 14);
+            } else if (p.timer > 0) {
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.font = 'bold 9px Outfit';
+                this.ctx.fillText(Math.ceil(p.timer).toString() + "s", capX, p.y - 14);
             }
             this.ctx.restore();
         });
@@ -2132,7 +2152,7 @@ class PinPullGame {
             const p = this.pins[i];
             if (p.isRemoved || p.isPulling) continue;
             
-            let capX = p.direction === 'right' ? p.x + p.slideOffset : p.x + p.w - p.slideOffset;
+            let capX = p.direction === 'right' ? p.x + p.w + p.slideOffset : p.x - p.slideOffset;
             const dist = Math.sqrt((tapX - capX)**2 + (tapY - p.y)**2);
             
             if (dist <= 28) {

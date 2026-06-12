@@ -68,19 +68,32 @@ def test_neon_pin_pull():
 
         # 6. Test interaction / pin-pull sliding mechanics
         print("6. Simulating pin pull and verifying sliding states...")
-        # Get coordinates of first pin's handle to tap
-        driver.execute_script("""
-            let p = gameInstance.pins[0];
-            p.isPulling = true;
-            // tick update loop a few times
-            gameInstance.update(2.0);
-        """)
-        time.sleep(0.3)
+        # Get canvas location and size
+        canvas = driver.find_element(By.ID, "gameCanvas")
+        rect = canvas.rect
+        print(f" -> Canvas rect: {rect}")
+        
+        # Calculate coordinates of pin1 handle cap (x=150, y=380 in game coordinates 600x800)
+        cap_game_x = 150
+        cap_game_y = 380
+        
+        # Map to client offset relative to canvas top-left
+        offset_x = (cap_game_x / 600.0) * rect['width']
+        offset_y = (cap_game_y / 800.0) * rect['height']
+        
+        # Calculate absolute viewport-relative client coordinates
+        client_x = rect['x'] + (cap_game_x / 600.0) * rect['width']
+        client_y = rect['y'] + (cap_game_y / 800.0) * rect['height']
+        
+        print(f" -> Invoking handleTap directly with viewport coordinates: ({client_x}, {client_y})")
+        driver.execute_script(f"gameInstance.handleTap({client_x}, {client_y});")
+        time.sleep(0.5)
         
         is_pulling = driver.execute_script("return gameInstance.pins[0].isPulling;")
         slide_offset = driver.execute_script("return gameInstance.pins[0].slideOffset;")
+        print(f" -> pin0 isPulling={is_pulling}, slideOffset={slide_offset}")
         assert is_pulling or slide_offset > 0, "Pin should be pulling and have a slide offset"
-        print(" -> Pin pull initiated and sliding state verified.")
+        print(" -> Pin pull initiated via click and sliding state verified.")
 
         # 7. Test Win conditions & Success overlay
         print("7. Testing Success state and overlay triggers by completing level programmatically...")
