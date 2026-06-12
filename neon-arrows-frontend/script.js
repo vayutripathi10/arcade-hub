@@ -209,45 +209,146 @@ function getPuzzleDifficulty(levelIndex) {
     const level = levelIndex + 1;
     if (level <= 5)  return { maxFree: 2 };
     if (level <= 12) return { maxFree: 2 };
-    if (level <= 20) return { maxFree: 1 };
-    return           { maxFree: 1 };
+    return           { maxFree: 1 }; // Hard levels (13-20): exactly 1 free option at each step
 }
 
-// Solver validation (Checks empty space along ray)
-function isBlocked(block, blocksList, gridWidth, gridHeight) {
-    let cx = block.x + block.exitDir.x;
-    let cy = block.y + block.exitDir.y;
-    while (cx >= 0 && cx < gridWidth && cy >= 0 && cy < gridHeight) {
-        for (const other of blocksList) {
-            if (other.id === block.id) continue;
-            if (other.x === cx && other.y === cy) {
-                return true;
-            }
+// Fast difficulty and solvability check using BFS
+function checkLevelDifficultyBFS(gridWidth, gridHeight, blocks, maxFree) {
+    const numBlocks = blocks.length;
+    const startState = blocks.map(b => b.id).sort().join(',');
+    
+    const queue = [[startState, []]];
+    const visited = new Set();
+    visited.add(startState);
+    
+    let solutionPath = null;
+    let maxFreeSeen = 0;
+    
+    let visitedCount = 0;
+    const maxStatesLimit = 2000;
+    
+    while (queue.length > 0) {
+        visitedCount++;
+        if (visitedCount > maxStatesLimit) {
+            return null; // Too branchy/unstructured, reject
         }
-        cx += block.exitDir.x;
-        cy += block.exitDir.y;
-    }
-    return false;
-}
-
-function verifyDifficulty(gridWidth, gridHeight, blocks, maxFree) {
-    let tempBlocks = blocks.map(b => ({ ...b }));
-    while (tempBlocks.length > 0) {
-        let freeList = [];
-        for (const b of tempBlocks) {
-            if (!isBlocked(b, tempBlocks, gridWidth, gridHeight)) {
-                freeList.push(b);
-            }
-        }
-        if (freeList.length === 0) return false;
-        if (freeList.length > maxFree) return false; // Fail difficulty check
         
-        // Remove first free block
-        const toRemove = freeList[0];
-        const idx = tempBlocks.findIndex(b => b.id === toRemove.id);
-        tempBlocks.splice(idx, 1);
+        const [currentState, path] = queue.shift();
+        
+        if (currentState === '') {
+            solutionPath = path;
+            break;
+        }
+        
+        const remainingIds = currentState.split(',');
+        const remainingBlocks = blocks.filter(b => remainingIds.includes(b.id));
+        
+        // Find free blocks in the current state
+        const freeBlocks = remainingBlocks.filter(b => {
+            let cx = b.gridX + b.exitDir.x;
+            let cy = b.gridY + b.exitDir.y;
+            while (cx >= 0 && cx < gridWidth && cy >= 0 && cy < gridHeight) {
+                if (remainingIds.some(id => {
+                    const other = blocks.find(ob => ob.id === id);
+                    return other && other.id !== b.id && other.gridX === cx && other.gridY === cy;
+                })) {
+                    return false;
+                }
+                cx += b.exitDir.x;
+                cy += b.exitDir.y;
+            }
+            return true;
+        });
+        
+        if (freeBlocks.length === 0) {
+            continue; // Dead end
+        }
+        
+        // If there are more free options than allowed, reject this branch or level
+        if (freeBlocks.length > maxFree) {
+            return null; // Too easy, reject
+        }
+        
+        maxFreeSeen = Math.max(maxFreeSeen, freeBlocks.length);
+        
+        for (const fb of freeBlocks) {
+            const nextIds = remainingIds.filter(id => id !== fb.id).sort().join(',');
+            if (!visited.has(nextIds)) {
+                visited.add(nextIds);
+                queue.push([nextIds, [...path, fb.id]]);
+            }
+        }
     }
-    return true;
+    
+    if (!solutionPath) return null; // Unsolvable
+    
+    return {
+        path: solutionPath,
+        maxFreeOptions: maxFreeSeen
+    };
+}
+
+// Fallback: Guaranteed solvable layout containing all 4 directions pointing outwards from border
+function generateFallbackLevel(gridWidth, gridHeight, numBlocks, time3, time2) {
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
+    let blocks = [];
+    let placed = 0;
+    
+    const borderCells = [];
+    // Top row
+    for (let x = 0; x < gridWidth; x++) borderCells.push({ x, y: 0, dir: { x: 0, y: -1 } });
+    // Bottom row
+    for (let x = 0; x < gridWidth; x++) borderCells.push({ x, y: gridHeight - 1, dir: { x: 0, y: 1 } });
+    // Left col
+    for (let y = 1; y < gridHeight - 1; y++) borderCells.push({ x: 0, y, dir: { x: -1, y: 0 } });
+    // Right col
+    for (let y = 1; y < gridHeight - 1; y++) borderCells.push({ x: gridWidth - 1, y, dir: { x: 1, y: 0 } });
+    
+    const insideCells = [];
+    for (let x = 1; x < gridWidth - 1; x++) {
+        for (let y = 1; y < gridHeight - 1; y++) {
+            insideCells.push({ x, y });
+        }
+    }
+    
+    const allDirs = [
+        { x: 0, y: -1 }, // UP
+        { x: 0, y: 1 },  // DOWN
+        { x: -1, y: 0 }, // LEFT
+        { x: 1, y: 0 }   // RIGHT
+    ];
+    
+    for (const cell of borderCells) {
+        if (placed >= numBlocks) break;
+        blocks.push({
+            id: 'B' + placed,
+            x: cell.x,
+            y: cell.y,
+            color: colors[placed % colors.length],
+            exitDir: cell.dir
+        });
+        placed++;
+    }
+    
+    for (const cell of insideCells) {
+        if (placed >= numBlocks) break;
+        blocks.push({
+            id: 'B' + placed,
+            x: cell.x,
+            y: cell.y,
+            color: colors[placed % colors.length],
+            exitDir: allDirs[placed % 4]
+        });
+        placed++;
+    }
+    
+    return {
+        gridWidth: gridWidth,
+        gridHeight: gridHeight,
+        time3Stars: time3,
+        time2Stars: time2,
+        blocks: blocks
+    };
 }
 
 // Procedural reverse-play difficulty-constrained layout generator
@@ -256,105 +357,88 @@ function generateLevel(gridWidth, gridHeight, numBlocks, initialSeed, time3, tim
     let seed = initialSeed;
     let attempts = 0;
     
+    const dirs = [
+        { x: 0, y: -1 }, // UP
+        { x: 0, y: 1 },  // DOWN
+        { x: -1, y: 0 }, // LEFT
+        { x: 1, y: 0 }   // RIGHT
+    ];
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
+    
     while (attempts < 1000) {
         attempts++;
         const rng = new SeededRandom(seed);
-        const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
-        const dirs = [
-            { x: 0, y: -1 }, // UP
-            { x: 0, y: 1 },  // DOWN
-            { x: -1, y: 0 }, // LEFT
-            { x: 1, y: 0 }   // RIGHT
-        ];
         
         let blocks = [];
         let occupied = new Set();
-        
-        let allCells = [];
-        for (let x = 0; x < gridWidth; x++) {
-            for (let y = 0; y < gridHeight; y++) {
-                allCells.push({ x, y });
-            }
-        }
         
         let placed = 0;
         let cellAttempts = 0;
         
         while (placed < numBlocks && cellAttempts < 2000) {
             cellAttempts++;
-            let emptyCells = allCells.filter(c => !occupied.has(`${c.x},${c.y}`));
-            if (emptyCells.length === 0) break;
             
-            let cell = rng.choose(emptyCells);
+            let rx = rng.nextInt(0, gridWidth);
+            let ry = rng.nextInt(0, gridHeight);
+            
+            if (occupied.has(`${rx},${ry}`)) continue;
+            
             let dir = rng.choose(dirs);
             
-            // Exit path validation
-            let dx = dir.x;
-            let dy = dir.y;
-            let cx = cell.x + dx;
-            let cy = cell.y + dy;
-            let clear = true;
+            let cx = rx + dir.x;
+            let cy = ry + dir.y;
+            let pathClear = true;
             
             while (cx >= 0 && cx < gridWidth && cy >= 0 && cy < gridHeight) {
                 if (occupied.has(`${cx},${cy}`)) {
-                    clear = false;
+                    pathClear = false;
                     break;
                 }
-                cx += dx;
-                cy += dy;
+                cx += dir.x;
+                cy += dir.y;
             }
             
-            if (clear) {
-                let color = rng.choose(colors);
+            if (pathClear) {
                 blocks.push({
                     id: 'B' + placed,
-                    x: cell.x,
-                    y: cell.y,
-                    color: color,
+                    gridX: rx,
+                    gridY: ry,
+                    color: rng.choose(colors),
                     exitDir: { x: dir.x, y: dir.y }
                 });
-                occupied.add(`${cell.x},${cell.y}`);
+                occupied.add(`${rx},${ry}`);
                 placed++;
             }
         }
         
-        // Validate solvability, strict difficulty constraints AND block count completeness
-        if (blocks.length === numBlocks && verifyDifficulty(gridWidth, gridHeight, blocks, diff.maxFree)) {
-            return {
-                gridWidth: gridWidth,
-                gridHeight: gridHeight,
-                time3Stars: time3,
-                time2Stars: time2,
-                blocks: blocks
-            };
+        if (blocks.length === numBlocks) {
+            // Check if all 4 directions are represented
+            const directionsRepresented = new Set(blocks.map(b => `${b.exitDir.x},${b.exitDir.y}`));
+            const allDirsPresent = numBlocks < 4 || directionsRepresented.size === 4;
+            
+            if (allDirsPresent) {
+                const solveResult = checkLevelDifficultyBFS(gridWidth, gridHeight, blocks, diff.maxFree);
+                if (solveResult) {
+                    return {
+                        gridWidth: gridWidth,
+                        gridHeight: gridHeight,
+                        time3Stars: time3,
+                        time2Stars: time2,
+                        blocks: blocks.map(b => ({
+                            id: b.id,
+                            x: b.gridX,
+                            y: b.gridY,
+                            color: b.color,
+                            exitDir: { x: b.exitDir.x, y: b.exitDir.y }
+                        }))
+                    };
+                }
+            }
         }
         seed = (seed + 1) % 1000000;
     }
     
-    // Safety Fallback (Outward pointing blocks)
-    let blocks = [];
-    let placed = 0;
-    for (let x = 0; x < gridWidth; x++) {
-        for (let y = 0; y < gridHeight; y++) {
-            if (placed >= numBlocks) break;
-            let dx = x < gridWidth / 2 ? -1 : 1;
-            blocks.push({
-                id: 'B' + placed,
-                x: x,
-                y: y,
-                color: 'cyan',
-                exitDir: { x: dx, y: 0 }
-            });
-            placed++;
-        }
-    }
-    return {
-        gridWidth: gridWidth,
-        gridHeight: gridHeight,
-        time3Stars: time3,
-        time2Stars: time2,
-        blocks: blocks
-    };
+    return generateFallbackLevel(gridWidth, gridHeight, numBlocks, time3, time2);
 }
 
 // Show PAR Moves start banner
