@@ -225,39 +225,72 @@ body {
 .dpad-right { pointer-events: auto; }
 
 .m-btn {
-    width: 54px;
-    height: 54px;
-    min-width: 54px;
-    min-height: 54px;
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
     border-radius: 50%;
-    background: rgba(0, 229, 200, 0.1);
-    border: 2px solid rgba(0, 229, 200, 0.35);
-    color: #fff;
-    font-size: 20px;
+    border: none;
+    outline: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    backdrop-filter: blur(5px);
-    transition: all 0.1s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform 0.05s ease, box-shadow 0.05s ease;
 }
-.m-btn:active { background: rgba(0, 229, 200, 0.3); transform: scale(0.93); }
 
-.attack-btn {
-    width: 66px;
-    height: 66px;
-    min-width: 66px;
-    min-height: 66px;
-    background: rgba(255, 0, 102, 0.15);
-    border: 2px solid rgba(255, 0, 102, 0.5);
-    color: #ff3366;
+/* 3D Cyan/Teal Buttons (Left & Right) */
+#btn-left, #btn-right {
+    background: linear-gradient(135deg, #00ffcc 0%, #00b38f 100%);
+    color: #030a08;
+    font-size: 24px;
+    font-weight: 900;
+    box-shadow: 0 5px 0 #008066, 0 8px 15px rgba(0, 255, 204, 0.4);
+    transform: translateY(-5px);
+}
+#btn-left:active, #btn-left.pressed,
+#btn-right:active, #btn-right.pressed {
+    transform: translateY(0px);
+    box-shadow: 0 1px 0 #008066, 0 2px 5px rgba(0, 255, 204, 0.3);
+}
+
+/* 3D Blue Button (Jump) */
+.jump-btn {
+    background: linear-gradient(135deg, #00d2ff 0%, #0077b6 100%);
+    color: #010813;
     font-family: 'Outfit', sans-serif;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 1px;
-    box-shadow: 0 0 16px rgba(255, 0, 102, 0.2);
+    box-shadow: 0 5px 0 #005f73, 0 8px 15px rgba(0, 210, 255, 0.4);
+    transform: translateY(-5px);
 }
-.attack-btn:active { background: rgba(255, 0, 102, 0.4); transform: scale(0.9); }
+.jump-btn:active, .jump-btn.pressed {
+    transform: translateY(0px);
+    box-shadow: 0 1px 0 #005f73, 0 2px 5px rgba(0, 210, 255, 0.3);
+}
+
+/* 3D Pink/Red Button (Strike) */
+.attack-btn {
+    width: 68px;
+    height: 68px;
+    min-width: 68px;
+    min-height: 68px;
+    background: linear-gradient(135deg, #ff0055 0%, #d90429 100%);
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    box-shadow: 0 6px 0 #8d0801, 0 10px 18px rgba(255, 0, 85, 0.5);
+    transform: translateY(-6px);
+}
+.attack-btn:active, .attack-btn.pressed {
+    transform: translateY(0px);
+    box-shadow: 0 1px 0 #8d0801, 0 2px 6px rgba(255, 0, 85, 0.4);
+}
 
 /* ==================== MENUS & OVERLAYS ==================== */
 .menu-overlay {
@@ -743,4 +776,21 @@ body {
     border-color: #ff00ff;
     color: #ff00ff;
     box-shadow: 0 0 10px rgba(255, 0, 255, 0.25);
+}
+
+/* ==================== PORTRAIT LAYOUT OPTIMIZATION ==================== */
+@media (orientation: portrait) {
+    #gameCanvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 70dvh !important;
+        aspect-ratio: 16 / 10 !important;
+        padding-bottom: 0 !important;
+        margin: auto;
+    }
+    #gameWrapper {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
 }

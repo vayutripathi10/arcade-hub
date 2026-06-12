@@ -445,17 +445,28 @@ window.addEventListener('keyup', e => {
 });
 
 // Mobile Controls
-document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); keys.left = true; }, {passive:false});
-document.getElementById('btn-left').addEventListener('touchend', (e) => { e.preventDefault(); keys.left = false; }, {passive:false});
-document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); keys.right = true; }, {passive:false});
-document.getElementById('btn-right').addEventListener('touchend', (e) => { e.preventDefault(); keys.right = false; }, {passive:false});
-document.getElementById('btn-attack').addEventListener('touchstart', (e) => { e.preventDefault(); attackQueued = true; keys.down = true; }, {passive:false});
-document.getElementById('btn-attack').addEventListener('touchend', (e) => { e.preventDefault(); keys.down = false; }, {passive:false});
-const btnJump = document.getElementById('btn-jump');
-if (btnJump) {
-    btnJump.addEventListener('touchstart', (e) => { e.preventDefault(); keys.up = true; }, {passive:false});
-    btnJump.addEventListener('touchend', (e) => { e.preventDefault(); keys.up = false; }, {passive:false});
-}
+const setupMobileBtn = (id, keyName) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (keyName === 'down') attackQueued = true;
+        keys[keyName] = true;
+        btn.classList.add('pressed');
+    }, {passive:false});
+    
+    const release = (e) => {
+        e.preventDefault();
+        keys[keyName] = false;
+        btn.classList.remove('pressed');
+    };
+    btn.addEventListener('touchend', release, {passive:false});
+    btn.addEventListener('touchcancel', release, {passive:false});
+};
+setupMobileBtn('btn-left', 'left');
+setupMobileBtn('btn-right', 'right');
+setupMobileBtn('btn-attack', 'down');
+setupMobileBtn('btn-jump', 'up');
 
 function resize() {
     const root = document.querySelector('.game-root');
@@ -463,14 +474,19 @@ function resize() {
     const pStrip = document.getElementById('player-health-strip');
     const bStrip = document.getElementById('boss-health-strip');
     
-    // Total available height is root clientHeight
-    const totalH = root.clientHeight;
-    const headerH = header?.offsetHeight || 0;
-    const pStripH = pStrip?.offsetHeight || 0;
-    const bStripH = (bStrip && !bStrip.classList.contains('hidden')) ? bStrip.offsetHeight : 0;
+    let physicalWidth = canvas.clientWidth;
+    let physicalHeight = canvas.clientHeight;
     
-    const physicalWidth = root.clientWidth;
-    const physicalHeight = totalH - headerH - pStripH - bStripH;
+    if (physicalWidth <= 0 || physicalHeight <= 0) {
+        // Fallback calculations if canvas is not yet rendered or has 0 dimensions
+        const totalH = root.clientHeight || window.innerHeight;
+        const headerH = header?.offsetHeight || 0;
+        const pStripH = pStrip?.offsetHeight || 0;
+        const bStripH = (bStrip && !bStrip.classList.contains('hidden')) ? bStrip.offsetHeight : 0;
+        physicalWidth = root.clientWidth || window.innerWidth;
+        physicalHeight = totalH - headerH - pStripH - bStripH;
+        if (physicalWidth <= 0 || physicalHeight <= 0) return;
+    }
     
     // Enforce a minimum logical coordinate space for brawling:
     // Minimum logical width = 800px (to prevent enemies spawning too close and give dodge room)
