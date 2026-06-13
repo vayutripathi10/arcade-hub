@@ -766,7 +766,7 @@ const LEVELS = [
             { x1: 480, y1: 500, x2: 400, y2: 520 }
         ],
         gravityZones: [
-            { x: 100, y: 200, w: 400, h: 120, dx: -0.3, dy: 0 }
+            { x: 100, y: 200, w: 200, h: 120, dx: -0.3, dy: 0 }
         ],
         walls: [
             { x1: 100, y1: 100, x2: 100, y2: 650 },
@@ -1469,7 +1469,7 @@ class PinPullGame {
                 this.gravityZones.forEach(z => {
                     if (b.x >= z.x && b.x <= z.x + z.w && b.y >= z.y && b.y <= z.y + z.h) {
                         zoneGravX = z.dx;
-                        zoneGravY = z.dy;
+                        zoneGravY = (z.dy !== undefined && z.dy !== 0) ? z.dy : this.gravity;
                     }
                 });
 
