@@ -309,8 +309,15 @@
                             iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
                             iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
                             
-                            // Prevent parent scroll and iOS viewport bounces on iframe touchmove
+                            // Prevent parent scroll and iOS viewport bounces on iframe touchmove, but allow scrolling inside scrollable containers
                             iframeDoc.addEventListener('touchmove', (e) => {
+                                let el = e.target;
+                                while (el && el !== iframeDoc.body) {
+                                    if (el.classList.contains('level-grid') || el.classList.contains('game-screen') || el.classList.contains('game-info-overlay')) {
+                                        return; // Allow native scroll
+                                    }
+                                    el = el.parentElement;
+                                }
                                 e.preventDefault();
                             }, { passive: false });
                             

@@ -621,3 +621,79 @@ body {
         padding-bottom: max(36px, calc(20px + env(safe-area-inset-bottom)));
     }
 }
+
+/* Level Grid and Level Buttons inside start/stage select screen */
+.level-selector-title {
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 10px 0 5px 0;
+    opacity: 0.8;
+}
+
+.level-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--secondary) rgba(255, 255, 255, 0.02);
+    touch-action: pan-y;
+}
+
+.level-grid::-webkit-scrollbar {
+    width: 6px;
+}
+.level-grid::-webkit-scrollbar-thumb {
+    background: var(--secondary);
+    border-radius: 3px;
+}
+
+.level-btn {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+}
+
+.level-btn:hover:not(.locked) {
+    border-color: var(--secondary);
+    color: #fff;
+    background: rgba(0, 255, 255, 0.05);
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.15);
+}
+
+.level-btn.completed {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    background: rgba(57, 255, 20, 0.04);
+}
+
+.level-btn.locked {
+    opacity: 0.25;
+    cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Enable touch scrolling on game screen */
+.game-screen {
+    touch-action: pan-y !important;
+}
+

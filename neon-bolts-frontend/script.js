@@ -1156,6 +1156,8 @@ class GameStateCoordinator {
         this.bindEvents();
         this.resizeCanvas();
         this.updateHUD();
+        this.updateHUDHeaderState();
+        this.generateStageGrid();
     }
 
     initLevel(lvlNum) {
@@ -1255,13 +1257,62 @@ class GameStateCoordinator {
             document.getElementById('hud-sound-btn').textContent = muted ? '🔇' : '🔊';
         });
 
+        // Hub Button listener
+        const hudHubBtn = document.getElementById('hud-hub-btn');
+        if (hudHubBtn) {
+            hudHubBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (this.gameState === 'START') {
+                    window.top.location.href = '../index.html';
+                } else {
+                    this.goToStartScreen();
+                }
+            });
+        }
+
         // Fail Buttons
         document.getElementById('fail-retry-btn').addEventListener('click', () => this.resetLevel());
         document.getElementById('fail-hint-btn').addEventListener('click', () => this.showHint());
+        const failHub = document.getElementById('fail-hub-btn');
+        if (failHub) {
+            failHub.addEventListener('click', () => {
+                this.goToStartScreen();
+            });
+        }
 
         // Success Buttons
         document.getElementById('success-next-btn').addEventListener('click', () => this.nextLevel());
         document.getElementById('success-replay-btn').addEventListener('click', () => this.resetLevel());
+        const successHub = document.getElementById('success-hub-btn');
+        if (successHub) {
+            successHub.addEventListener('click', () => {
+                this.goToStartScreen();
+            });
+        }
+
+        // Pause Buttons
+        const pauseResume = document.getElementById('pause-resume-btn');
+        if (pauseResume) {
+            pauseResume.addEventListener('click', () => {
+                document.getElementById('pause-screen').classList.remove('active');
+                this.gameState = 'PLAYING';
+                this.lastTime = performance.now();
+                requestAnimationFrame((t) => this.gameLoop(t));
+            });
+        }
+        const pauseRestart = document.getElementById('pause-restart-btn');
+        if (pauseRestart) {
+            pauseRestart.addEventListener('click', () => {
+                document.getElementById('pause-screen').classList.remove('active');
+                this.resetLevel();
+            });
+        }
+        const pauseHub = document.getElementById('pause-hub-btn');
+        if (pauseHub) {
+            pauseHub.addEventListener('click', () => {
+                this.goToStartScreen();
+            });
+        }
 
         // Share Buttons
         document.getElementById('share-twitter-btn').addEventListener('click', () => this.shareStatus('twitter'));
@@ -1288,18 +1339,93 @@ class GameStateCoordinator {
     }
 
     startGame() {
+        const latestLvl = Math.min(25, this.clearedCount + 1);
+        this.startSpecificLevel(latestLvl);
+    }
+
+    startSpecificLevel(lvlNum) {
         synth.init();
         this.gameState = 'PLAYING';
         this.moves = 0;
-        this.initLevel(1);
+        this.initLevel(lvlNum);
 
         document.getElementById('start-screen').classList.remove('active');
         document.getElementById('success-screen').classList.remove('active');
         document.getElementById('fail-screen').classList.remove('active');
-        document.querySelector('.hud-header').style.display = 'grid';
+        document.getElementById('pause-screen').classList.remove('active');
+        this.updateHUDHeaderState();
 
         this.lastTime = performance.now();
         requestAnimationFrame((t) => this.gameLoop(t));
+    }
+
+    goToStartScreen() {
+        this.gameState = 'START';
+        
+        // Hide active game overlays
+        document.getElementById('success-screen').classList.remove('active');
+        document.getElementById('fail-screen').classList.remove('active');
+        document.getElementById('pause-screen').classList.remove('active');
+        
+        // Show start screen
+        document.getElementById('start-screen').classList.add('active');
+        
+        this.updateHUDHeaderState();
+        this.generateStageGrid();
+        this.updateHUD();
+    }
+
+    updateHUDHeaderState() {
+        const hubBtn = document.getElementById('hud-hub-btn');
+        const resetBtn = document.getElementById('hud-reset-btn');
+        const centerHUD = document.querySelector('.hud-center');
+        const hudHeader = document.querySelector('.hud-header');
+
+        if (this.gameState === 'START') {
+            if (hubBtn) hubBtn.textContent = '🏠 HUB';
+            if (resetBtn) resetBtn.style.display = 'none';
+            if (centerHUD) centerHUD.style.display = 'none';
+            if (hudHeader) hudHeader.style.display = 'grid';
+        } else {
+            if (hubBtn) hubBtn.textContent = '🏠 Back';
+            if (resetBtn) resetBtn.style.display = 'inline-flex';
+            if (centerHUD) centerHUD.style.display = 'flex';
+            if (hudHeader) hudHeader.style.display = 'grid';
+        }
+    }
+
+    generateStageGrid() {
+        const grid = document.getElementById('levelGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        for (let i = 1; i <= 25; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'level-btn';
+            
+            const isUnlocked = i <= (this.clearedCount + 1);
+            const isCompleted = i <= this.clearedCount;
+
+            if (isCompleted) {
+                btn.classList.add('completed');
+                btn.textContent = i;
+            } else if (isUnlocked) {
+                btn.textContent = i;
+            } else {
+                btn.classList.add('locked');
+                btn.disabled = true;
+                btn.textContent = '🔒';
+            }
+
+            btn.addEventListener('click', () => {
+                if (isUnlocked) {
+                    synth.playTickSFX();
+                    this.startSpecificLevel(i);
+                }
+            });
+
+            grid.appendChild(btn);
+        }
     }
 
     resetLevel() {
@@ -1325,11 +1451,7 @@ class GameStateCoordinator {
             requestAnimationFrame((t) => this.gameLoop(t));
         } else {
             // Mainframe fully decrypted!
-            this.level = 1;
-            this.gameState = 'START';
-            document.getElementById('success-screen').classList.remove('active');
-            document.getElementById('start-screen').classList.add('active');
-            document.querySelector('.hud-header').style.display = 'none';
+            this.goToStartScreen();
         }
     }
 
@@ -1521,7 +1643,7 @@ class GameStateCoordinator {
         document.getElementById('success-level-val').textContent = this.level;
         document.getElementById('success-moves-val').textContent = this.moves;
         document.getElementById('success-screen').classList.add('active');
-        document.querySelector('.hud-header').style.display = 'none';
+        this.updateHUDHeaderState();
         this.updateHUD();
     }
 
