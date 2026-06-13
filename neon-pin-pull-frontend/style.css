@@ -106,6 +106,7 @@ body {
 }
 .icon-btn:hover { border-color: var(--accent-cyan); transform: scale(1.05); }
 .icon-btn.hidden { display: none !important; }
+.hidden { display: none !important; }
 
 /* ==================== GAME AREA ==================== */
 .game-wrapper {

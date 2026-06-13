@@ -139,7 +139,9 @@ class AchievementSystem {
         container.appendChild(popup);
 
         // Play level up sound if available
-        if (window.audioFX) window.audioFX.playLevelUp();
+        if (window.audioFX && typeof window.audioFX.playLevelUp === 'function') {
+            window.audioFX.playLevelUp();
+        }
 
         // Animate in
         setTimeout(() => popup.classList.add('active'), 100);

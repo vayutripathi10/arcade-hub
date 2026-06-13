@@ -1071,6 +1071,14 @@ class PinPullGame {
             }
         });
 
+        document.getElementById('btn-quit-success')?.addEventListener('click', () => {
+            if (window.audioFX) window.audioFX.playWhoosh();
+            this.gameState = 'START';
+            document.getElementById('successMenu').classList.add('hidden');
+            document.getElementById('startMenu').classList.remove('hidden');
+            this.initUI();
+        });
+
         document.getElementById('btn-quit').addEventListener('click', () => {
             if (window.audioFX) window.audioFX.playWhoosh();
             this.gameState = 'START';
@@ -1815,6 +1823,14 @@ class PinPullGame {
             if (newlyUnlocked) {
                 this.triggerAchievementUnlocked("FIRST PERFECT SOLVE!");
             }
+        }
+
+        if (this.currentLevelIndex === -1) {
+            document.getElementById('btn-next')?.classList.add('hidden');
+            document.getElementById('btn-quit-success')?.classList.remove('hidden');
+        } else {
+            document.getElementById('btn-next')?.classList.remove('hidden');
+            document.getElementById('btn-quit-success')?.classList.add('hidden');
         }
 
         document.getElementById('starsDisplay').textContent = starsStr;
