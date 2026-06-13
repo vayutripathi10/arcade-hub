@@ -522,3 +522,21 @@ body {
     right: -4px;
     font-size: 0.7rem;
 }
+
+/* Daily Challenge dedicated button styling */
+.btn.daily-btn {
+    background: rgba(255, 215, 0, 0.07);
+    border: 2px solid #ffd700;
+    color: #ffd700;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.2);
+    margin-top: 12px;
+}
+.btn.daily-btn:hover {
+    transform: translateY(-2px);
+    background: #ffd700;
+    color: #000;
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.5);
+}
+.btn.daily-btn:active {
+    transform: translateY(0);
+}

@@ -617,8 +617,8 @@ const LEVELS = [
         par: 3,
         hints: ["pA", "pB", "pMain"],
         bouncers: [
-            { x1: 150, y1: 280, x2: 250, y2: 280 },
-            { x1: 350, y1: 280, x2: 450, y2: 280 }
+            { x1: 150, y1: 260, x2: 250, y2: 300 },
+            { x1: 450, y1: 260, x2: 350, y2: 300 }
         ],
         walls: [
             { x1: 100, y1: 100, x2: 100, y2: 600 },
@@ -1001,16 +1001,14 @@ class PinPullGame {
         const grid = document.getElementById('levelGrid');
         grid.innerHTML = '';
         
-        // Add Daily Challenge level card at start
-        const dailyBtn = document.createElement('button');
-        dailyBtn.className = 'level-btn daily';
-        dailyBtn.innerHTML = '🌞';
-        dailyBtn.title = "Daily Challenge Mainframe";
-        dailyBtn.addEventListener('click', () => {
-            if (window.audioFX) window.audioFX.playWhoosh();
-            this.startDailyChallenge();
-        });
-        grid.appendChild(dailyBtn);
+        // Setup click listener for HTML Daily Challenge button
+        const dBtn = document.getElementById('dailyBtn');
+        if (dBtn) {
+            dBtn.onclick = () => {
+                if (window.audioFX) window.audioFX.playWhoosh();
+                this.startDailyChallenge();
+            };
+        }
 
         for (let i = 1; i <= 26; i++) {
             const btn = document.createElement('button');
