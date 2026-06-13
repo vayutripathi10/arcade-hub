@@ -993,6 +993,10 @@ class PinPullGame {
     }
 
     initUI() {
+        document.getElementById('btn-pause')?.classList.add('hidden');
+        const hubBtn = document.getElementById('hub-btn');
+        if (hubBtn) hubBtn.textContent = '← Hub';
+
         // Level Selector Grid population
         const grid = document.getElementById('levelGrid');
         grid.innerHTML = '';
@@ -1083,7 +1087,17 @@ class PinPullGame {
 
         document.getElementById('hub-btn')?.addEventListener('click', () => {
             if (window.audioFX) window.audioFX.playWhoosh();
-            window.top.location.href = '../index.html';
+            if (this.gameState === 'START') {
+                window.top.location.href = '../index.html';
+            } else {
+                this.gameState = 'START';
+                document.getElementById('pauseMenu').classList.add('hidden');
+                document.getElementById('successMenu').classList.add('hidden');
+                document.getElementById('failMenu').classList.add('hidden');
+                document.getElementById('btn-pause').classList.add('hidden');
+                document.getElementById('startMenu').classList.remove('hidden');
+                this.initUI();
+            }
         });
 
         document.getElementById('btn-pause')?.addEventListener('click', (e) => {
@@ -1171,6 +1185,8 @@ class PinPullGame {
         document.getElementById('successMenu').classList.add('hidden');
         document.getElementById('failMenu').classList.add('hidden');
         document.getElementById('btn-pause').classList.remove('hidden');
+        const hubBtn = document.getElementById('hub-btn');
+        if (hubBtn) hubBtn.textContent = '← Back';
 
         // Show hints indicator
         const hintText = document.getElementById('hint-text');
@@ -1388,6 +1404,10 @@ class PinPullGame {
 
         if (this.gameState === 'PLAYING') {
             this.update(deltaTime);
+        } else {
+            if (window.audioFX && typeof window.audioFX.stopRollRumble === 'function') {
+                window.audioFX.stopRollRumble();
+            }
         }
         this.draw();
         requestAnimationFrame((t) => this.loop(t));
