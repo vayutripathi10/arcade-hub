@@ -812,6 +812,7 @@ class Ball {
         this.bounceTimer = 0;
         this.squashX = 1.0;
         this.squashY = 1.0;
+        this.splitCooldown = 0;
     }
 
     updateBounce() {
@@ -824,6 +825,9 @@ class Ball {
         } else {
             this.squashX = 1.0;
             this.squashY = 1.0;
+        }
+        if (this.splitCooldown > 0) {
+            this.splitCooldown--;
         }
     }
 
@@ -1655,10 +1659,13 @@ class PinPullGame {
                 const dy = b.y - sp.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 
-                if (dist < sp.r + b.r) {
+                if (b.splitCooldown <= 0 && dist < sp.r + b.r) {
                     // Clone ball: split into 2 smaller ones
                     const b1 = new Ball(sp.x - 12, sp.y - 12, b.colorKey);
                     const b2 = new Ball(sp.x + 12, sp.y - 12, b.colorKey);
+                    
+                    b1.splitCooldown = 30;
+                    b2.splitCooldown = 30;
                     
                     b1.r = Math.max(7, b.r * 0.65);
                     b2.r = Math.max(7, b.r * 0.65);
