@@ -50,7 +50,7 @@ class AchievementSystem {
 
     unlock(game, id, title) {
         const achievementKey = `${game}_${id}`;
-        if (this.achievements[achievementKey]) return;
+        if (this.achievements[achievementKey]) return false;
 
         this.achievements[achievementKey] = {
             title,
@@ -58,6 +58,7 @@ class AchievementSystem {
         };
         this.save();
         this.notify(title);
+        return true;
     }
 
     createContainer() {
@@ -206,7 +207,10 @@ class AchievementSystem {
             // Neon Arrows
             { id: 'arrows_tutorial', game: 'arrows', title: 'Sector Rookie', desc: 'Complete Level 1 (Tutorial) in Neon Arrows', icon: '🏹' },
             { id: 'arrows_perfect', game: 'arrows', title: 'Arrow Optimizer', desc: 'Achieve a Perfect Run in Neon Arrows', icon: '✨' },
-            { id: 'arrows_master', game: 'arrows', title: 'Mainframe Master', desc: 'Solve all 14 security sectors in Neon Arrows', icon: '👑' }
+            { id: 'arrows_master', game: 'arrows', title: 'Mainframe Master', desc: 'Solve all 14 security sectors in Neon Arrows', icon: '👑' },
+            // Neon Pin Pull
+            { id: 'neon_pin_pull_perfect_solve', game: 'neon_pin_pull', title: 'Perfect Solve', desc: 'Get a 3-star rating on any level in Neon Pin Pull', icon: '✨' },
+            { id: 'neon_pin_pull_complete_all', game: 'neon_pin_pull', title: 'Cyberspace Master', desc: 'Solve all 26 mainframe sectors in Neon Pin Pull', icon: '👑' }
         ];
     }
 

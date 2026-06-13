@@ -1805,11 +1805,16 @@ class PinPullGame {
 
         // Unlock Trophy checks
         if (this.currentLevelIndex === 25 && window.achievements) {
-            window.achievements.unlock('neon_pin_pull', 'complete_all', 'Cyberspace Master');
-            this.triggerAchievementUnlocked("CYBERSPACE MASTER");
+            const newlyUnlocked = window.achievements.unlock('neon_pin_pull', 'complete_all', 'Cyberspace Master');
+            if (newlyUnlocked) {
+                this.triggerAchievementUnlocked("CYBERSPACE MASTER");
+            }
         }
         if (starsCount === 3 && window.achievements) {
-            this.triggerAchievementUnlocked("FIRST PERFECT SOLVE!");
+            const newlyUnlocked = window.achievements.unlock('neon_pin_pull', 'perfect_solve', 'Perfect Solve');
+            if (newlyUnlocked) {
+                this.triggerAchievementUnlocked("FIRST PERFECT SOLVE!");
+            }
         }
 
         document.getElementById('starsDisplay').textContent = starsStr;
