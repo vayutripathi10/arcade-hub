@@ -280,7 +280,7 @@
 
     <header class="header">
         <div class="nav-left">
-            <a href="../index.html" target="_top" class="home-btn btn-hub">← Arcade Hub</a>
+            <button class="home-btn btn-hub" id="hud-hub-btn">← Arcade Hub</button>
         </div>
         <div class="header-center">
             <h1 class="game-title">Neon Bottle Shooter</h1>
@@ -364,14 +364,7 @@
         };
         window.addEventListener('click', wakeUpAudio, { once: true });
         window.addEventListener('touchstart', wakeUpAudio, { once: true });
-
-        // Navigation
-        document.querySelectorAll('.btn-hub').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                console.log('going to hub');
-                // window.top.location.href = '../index.html';
-            });
-        });
+        // Navigation is handled in script.js
     </script>
     
     <script>
@@ -389,7 +382,6 @@
         window.dispatchEvent(new Event('resize'));
         var overlay = document.getElementById('game-info-overlay');
         if (overlay) overlay.style.display = 'none';
-        if (typeof initGame === 'function') { initGame(); }
     }
     </script>
 

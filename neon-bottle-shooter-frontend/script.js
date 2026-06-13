@@ -44,6 +44,8 @@ const MAX_AMMO = 6;
 let ammo = MAX_AMMO;
 let isReloading = false;
 let reloadTimer = 0;
+let slowTimer = 0;
+let shotgunAmmo = 0;
 
 // Entities
 let bottles = [];
@@ -98,69 +100,164 @@ function drawGun() {
     ctx.rotate(angle);
     ctx.translate(-gunRecoil, 0);
     
-    // Draw neon blaster body
-    ctx.strokeStyle = '#00ffcc';
-    ctx.lineWidth = 4;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#00ffcc';
-    ctx.fillStyle = 'rgba(0, 255, 204, 0.2)';
-    
-    ctx.beginPath();
-    ctx.moveTo(0, -10);
-    ctx.lineTo(80, -6);
-    ctx.lineTo(80, 6);
-    ctx.lineTo(0, 10);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    // Glowing laser core
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = '#fff';
-    ctx.beginPath();
-    ctx.moveTo(10, 0);
-    ctx.lineTo(75, 0);
-    ctx.stroke();
-    
-    // Blaster grip/back
+    // 1. Grip / Handguard
     ctx.strokeStyle = '#ff0055';
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 12;
     ctx.shadowColor = '#ff0055';
-    ctx.fillStyle = 'rgba(255, 0, 85, 0.2)';
+    ctx.fillStyle = '#1a0510';
+    
     ctx.beginPath();
-    ctx.moveTo(-15, -15);
-    ctx.lineTo(0, -12);
-    ctx.lineTo(0, 12);
-    ctx.lineTo(-15, 15);
-    ctx.lineTo(-25, 5);
+    ctx.moveTo(-25, 5);
+    ctx.lineTo(-35, 30);
+    ctx.lineTo(-20, 35);
+    ctx.lineTo(-10, 15);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     
-    // Draw muzzle flash
-    if (muzzleFlashTimer > 0) {
-        ctx.save();
-        ctx.translate(80, 0);
-        ctx.rotate(Math.random() * Math.PI);
-        ctx.strokeStyle = '#ffd700';
-        ctx.fillStyle = '#fff';
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = '#ffd700';
-        ctx.lineWidth = 3;
-        
-        ctx.beginPath();
-        for (let i = 0; i < 8; i++) {
-            const r = i % 2 === 0 ? 30 : 10;
-            const a = (i / 8) * Math.PI * 2;
-            ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-        }
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
+    // Handguard arc
+    ctx.beginPath();
+    ctx.arc(-15, 10, 20, Math.PI, Math.PI * 0.4, true);
+    ctx.stroke();
+    
+    // 2. Large green power cell/battery in the receiver area
+    const cellGrad = ctx.createLinearGradient(0, -12, 0, 12);
+    cellGrad.addColorStop(0, '#00ff66');
+    cellGrad.addColorStop(0.5, '#66ffaa');
+    cellGrad.addColorStop(1, '#009933');
+    
+    ctx.fillStyle = cellGrad;
+    ctx.strokeStyle = '#00ff66';
+    ctx.shadowColor = '#00ff66';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.roundRect(-5, -12, 35, 24, 6);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Cooling vent cover (slanted plates on top of power cell)
+    ctx.fillStyle = '#111';
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.moveTo(5, -15);
+    ctx.lineTo(25, -15);
+    ctx.lineTo(15, 15);
+    ctx.lineTo(-5, 15);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Vent slits (vertical green slots showing through)
+    ctx.fillStyle = '#00ff66';
+    ctx.shadowColor = '#00ff66';
+    ctx.shadowBlur = 8;
+    for (let i = 0; i < 3; i++) {
+        ctx.fillRect(2 + i * 8, -8, 3, 16);
     }
     
+    // 3. Heavy outer casing
+    ctx.strokeStyle = '#00ffcc';
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = '#081c18';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-15, -15);
+    ctx.lineTo(40, -18);
+    ctx.lineTo(55, -12);
+    ctx.lineTo(55, 12);
+    ctx.lineTo(40, 18);
+    ctx.lineTo(-15, 15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // 4. Double Barrels
+    const barrelColor = shotgunAmmo > 0 ? '#ff5500' : '#00ffcc';
+    ctx.strokeStyle = barrelColor;
+    ctx.shadowColor = barrelColor;
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = '#0a0d14';
+    
+    // Top Barrel
+    ctx.beginPath();
+    ctx.rect(55, -11, 50, 7);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Bottom Barrel
+    ctx.beginPath();
+    ctx.rect(55, 4, 50, 7);
+    ctx.fill();
+    ctx.stroke();
+    
+    // 5. Dual glowing cores inside the barrels
+    const coreColor = shotgunAmmo > 0 ? '#ffcc00' : '#ffffff';
+    ctx.strokeStyle = coreColor;
+    ctx.shadowColor = coreColor;
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 2;
+    
+    // Top core
+    ctx.beginPath();
+    ctx.moveTo(60, -7.5);
+    ctx.lineTo(100, -7.5);
+    ctx.stroke();
+    
+    // Bottom core
+    ctx.beginPath();
+    ctx.moveTo(60, 7.5);
+    ctx.lineTo(100, 7.5);
+    ctx.stroke();
+    
+    // 6. Charging muzzle rings near the tip
+    ctx.strokeStyle = barrelColor;
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 12;
+    
+    // Ring 1 (rear)
+    ctx.beginPath();
+    ctx.moveTo(78, -13);
+    ctx.lineTo(78, 13);
+    ctx.stroke();
+    
+    // Ring 2 (front)
+    ctx.beginPath();
+    ctx.moveTo(92, -13);
+    ctx.lineTo(92, 13);
+    ctx.stroke();
+    
+    // 7. Double Muzzle Flash
+    if (muzzleFlashTimer > 0) {
+        const flashColor = shotgunAmmo > 0 ? '#ff3300' : '#ffd700';
+        const innerFlashColor = '#ffffff';
+        
+        drawSingleMuzzleFlash(105, -7.5, flashColor, innerFlashColor);
+        drawSingleMuzzleFlash(105, 7.5, flashColor, innerFlashColor);
+    }
+    
+    ctx.restore();
+}
+
+function drawSingleMuzzleFlash(x, y, color, innerColor) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(Math.random() * Math.PI);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = innerColor;
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = color;
+    ctx.lineWidth = 3;
+    
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+        const r = i % 2 === 0 ? 25 : 8;
+        const a = (i / 8) * Math.PI * 2;
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
 }
 
@@ -369,6 +466,58 @@ class JuicedSynth {
         osc.start(t);
         osc.stop(t + 0.81);
     }
+
+    playShotgun() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const t = this.ctx.currentTime;
+        
+        [180, 260, 340].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = idx === 0 ? 'sawtooth' : 'triangle';
+            osc.frequency.setValueAtTime(freq, t);
+            osc.frequency.exponentialRampToValueAtTime(40, t + 0.35);
+
+            gain.gain.setValueAtTime(0.2 / 3, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(t);
+            osc.stop(t + 0.36);
+        });
+
+        try {
+            const bufferSize = this.ctx.sampleRate * 0.25;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const noiseFilter = this.ctx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 800;
+
+            const noiseGain = this.ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.12, t);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(this.ctx.destination);
+            noise.start(t);
+            noise.stop(t + 0.26);
+        } catch(e) {}
+    }
 }
 
 const synth = new JuicedSynth();
@@ -380,7 +529,10 @@ const colors = {
     gold: '#ffd700',   // Gold
     ice: '#aaddff',    // Pale blue
     bomb: '#ff3300',   // Dark Red/Orange
-    giant: '#ff00ff'   // Magenta
+    giant: '#ff00ff',  // Magenta
+    slow: '#ffaa00',   // Orange
+    shotgun: '#ff5500',// Orange-Red
+    blast: '#ff00cc'   // Neon Pink-Purple
 };
 
 // Canvas Sizing
@@ -475,6 +627,7 @@ function playSound(type) {
             case 'empty': synth.playEmptyClick(); break;
             case 'combo': synth.playCombo(comboMultiplier); break;
             case 'bomb': synth.playBomb(); break;
+            case 'shotgun': synth.playShotgun(); break;
         }
     } catch(e) {
         console.warn("Audio error:", e);
@@ -614,9 +767,12 @@ class Bottle {
     update(deltaTime) {
         if (freezeTimer > 0) return; // Ice effect
         
-        this.x += this.vx * deltaTime;
+        let speedMult = 1.0;
+        if (slowTimer > 0) speedMult = 0.4;
+        
+        this.x += this.vx * speedMult * deltaTime;
         if (this.isZigZag) {
-            this.angle += 0.1 * deltaTime;
+            this.angle += 0.1 * speedMult * deltaTime;
             this.y = this.startY + Math.sin(this.angle) * 50;
         }
 
@@ -663,7 +819,7 @@ class Bottle {
         ctx.closePath();
         ctx.stroke();
 
-        // Inner fill for giant/bomb
+        // Inner fill for giant/bomb/powerups
         if (this.type === 'bomb') {
             ctx.fillStyle = 'rgba(255,0,0,0.3)';
             ctx.fill();
@@ -674,6 +830,34 @@ class Bottle {
         } else if (this.type === 'giant') {
             ctx.fillStyle = `rgba(255,0,255,${this.hp/3 * 0.5})`;
             ctx.fill();
+        } else if (this.type === 'ice') {
+            ctx.fillStyle = 'rgba(170,221,255,0.3)';
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '16px Outfit';
+            ctx.fillText('❄️', this.x + this.w/2, this.y + 7);
+        } else if (this.type === 'slow') {
+            ctx.fillStyle = 'rgba(255,170,0,0.3)';
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '16px Outfit';
+            ctx.fillText('⏳', this.x + this.w/2, this.y + 7);
+        } else if (this.type === 'shotgun') {
+            ctx.fillStyle = 'rgba(255,85,0,0.3)';
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '16px Outfit';
+            ctx.fillText('⚡', this.x + this.w/2, this.y + 7);
+        } else if (this.type === 'blast') {
+            ctx.fillStyle = 'rgba(255,0,204,0.3)';
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.font = '16px Outfit';
+            ctx.fillText('💥', this.x + this.w/2, this.y + 7);
         }
         ctx.restore();
     }
@@ -684,11 +868,23 @@ class Bottle {
 function spawnBottle() {
     let type = 'normal';
     const r = Math.random();
-    if (r < 0.05) type = 'bomb';
-    else if (r < 0.1) type = 'ice';
-    else if (r < 0.15) type = 'gold';
-    else if (r < 0.25) type = 'red';
-    else if (r < 0.3 && currentWave > 2) type = 'giant';
+    if (r < 0.06) {
+        type = 'bomb';
+    } else if (r < 0.10) {
+        type = 'ice';
+    } else if (r < 0.14) {
+        type = 'slow';
+    } else if (r < 0.18) {
+        type = 'shotgun';
+    } else if (r < 0.22) {
+        type = 'blast';
+    } else if (r < 0.28) {
+        type = 'gold';
+    } else if (r < 0.38) {
+        type = 'red';
+    } else if (r < 0.44 && currentWave > 2) {
+        type = 'giant';
+    }
     
     bottles.push(new Bottle(type));
 }
@@ -745,10 +941,108 @@ function resetCombo() {
     uiComboContainer.classList.remove('active');
 }
 
+function checkCollisionAt(tx, ty) {
+    let hit = false;
+    for (let i = bottles.length - 1; i >= 0; i--) {
+        const b = bottles[i];
+        const padx = 15;
+        const pady = 15;
+        if (tx > b.x - padx && tx < b.x + b.w + padx &&
+            ty > b.y - b.h/2 - pady && ty < b.y + b.h/2 + pady) {
+            
+            b.hp--;
+            if (b.hp <= 0) {
+                hitBottle(b, i);
+            } else {
+                b.scaleX = 1.5;
+                b.scaleY = 0.5;
+                b.squashVelocityX = -0.3;
+                b.squashVelocityY = 0.3;
+                createExplosion(tx, ty, '#fff');
+                synth.playShatter(true);
+            }
+            hit = true;
+            break;
+        }
+    }
+    return hit;
+}
+
+function shootShotgun() {
+    shotgunAmmo--;
+    shotsFired++;
+    
+    playSound('shotgun');
+    
+    gunRecoil = 45;
+    muzzleFlashTimer = 8;
+    crosshairScale = 2.0;
+    screenShake = 12;
+    
+    updateHUD();
+    
+    const bx = canvas.width / 2;
+    const by = canvas.height - 20;
+    const dx = crosshair.x - bx;
+    const dy = crosshair.y - by;
+    const angle = Math.atan2(dy, dx);
+    const muzzleX = bx + Math.cos(angle) * 105;
+    const muzzleY = by + Math.sin(angle) * 105;
+    
+    laserTrails.push({
+        x1: muzzleX,
+        y1: muzzleY,
+        x2: crosshair.x,
+        y2: crosshair.y,
+        color: '#ff5500',
+        life: 1.0
+    });
+    laserTrails.push({
+        x1: muzzleX,
+        y1: muzzleY,
+        x2: crosshair.x - 90,
+        y2: crosshair.y,
+        color: '#ffaa00',
+        life: 1.0
+    });
+    laserTrails.push({
+        x1: muzzleX,
+        y1: muzzleY,
+        x2: crosshair.x + 90,
+        y2: crosshair.y,
+        color: '#ffaa00',
+        life: 1.0
+    });
+    
+    [crosshair.x, crosshair.x - 90, crosshair.x + 90].forEach(tx => {
+        for (let s = 0; s < 5; s++) {
+            particles.push(new Particle(tx, crosshair.y, '#ffaa00'));
+        }
+    });
+
+    let hitAny = false;
+    if (checkCollisionAt(crosshair.x, crosshair.y)) hitAny = true;
+    if (checkCollisionAt(crosshair.x - 90, crosshair.y)) hitAny = true;
+    if (checkCollisionAt(crosshair.x + 90, crosshair.y)) hitAny = true;
+    
+    if (!hitAny) {
+        resetCombo();
+        if (gameMode === 'survival') {
+            score -= 50;
+            if (score < 0) score = 0;
+        }
+    }
+}
+
 function shoot() {
     if (gameState !== 'playing') return;
     
     if (isReloading) return;
+
+    if (shotgunAmmo > 0) {
+        shootShotgun();
+        return;
+    }
 
     if (ammo <= 0) {
         synth.playEmptyClick();
@@ -762,7 +1056,6 @@ function shoot() {
     synth.init();
     synth.playLaser();
     
-    // Gun recoil, muzzle flash, crosshair scale, screen shake
     gunRecoil = 30;
     muzzleFlashTimer = 5;
     crosshairScale = 1.6;
@@ -770,14 +1063,13 @@ function shoot() {
     
     updateHUD();
     
-    // Laser Trail from gun muzzle to target (crosshair.x, crosshair.y)
     const bx = canvas.width / 2;
     const by = canvas.height - 20;
     const dx = crosshair.x - bx;
     const dy = crosshair.y - by;
     const angle = Math.atan2(dy, dx);
-    const muzzleX = bx + Math.cos(angle) * 80;
-    const muzzleY = by + Math.sin(angle) * 80;
+    const muzzleX = bx + Math.cos(angle) * 105;
+    const muzzleY = by + Math.sin(angle) * 105;
     
     laserTrails.push({
         x1: muzzleX,
@@ -788,45 +1080,61 @@ function shoot() {
         life: 1.0
     });
     
-    // Sparks at crosshair impact point
     for (let s = 0; s < 6; s++) {
         particles.push(new Particle(crosshair.x, crosshair.y, '#00ffff'));
     }
 
-    let hit = false;
-    // Check collisions in reverse to hit front-most bottles
-    for (let i = bottles.length - 1; i >= 0; i--) {
-        const b = bottles[i];
-        // simple AABB hit box expanded slightly
-        const padx = 10;
-        const pady = 10;
-        if (crosshair.x > b.x - padx && crosshair.x < b.x + b.w + padx &&
-            crosshair.y > b.y - b.h/2 - pady && crosshair.y < b.y + b.h/2 + pady) {
-            
-            b.hp--;
-            if (b.hp <= 0) {
-                hitBottle(b, i);
-            } else {
-                // Not destroyed yet (giant) - squash it!
-                b.scaleX = 1.5;
-                b.scaleY = 0.5;
-                b.squashVelocityX = -0.3;
-                b.squashVelocityY = 0.3;
-                createExplosion(crosshair.x, crosshair.y, '#fff');
-                synth.playShatter(true); // lower pitch hit sound
-            }
-            hit = true;
-            break; // hit one bullet per shot
-        }
-    }
+    let hit = checkCollisionAt(crosshair.x, crosshair.y);
 
     if (!hit) {
         resetCombo();
         if (gameMode === 'survival') {
-            score -= 50; // penalty
+            score -= 50;
             if (score < 0) score = 0;
         }
     }
+}
+
+function triggerMegaBlast(centerX, centerY) {
+    const radius = 220;
+    
+    playSound('bomb');
+    
+    createExplosion(centerX, centerY, colors.blast);
+    for (let angle = 0; angle < Math.PI * 2; angle += 0.3) {
+        const vx = Math.cos(angle) * 12;
+        const vy = Math.sin(angle) * 12;
+        const p = new Particle(centerX, centerY, colors.blast);
+        p.vx = vx;
+        p.vy = vy;
+        particles.push(p);
+    }
+    
+    const targets = [];
+    for (let i = bottles.length - 1; i >= 0; i--) {
+        const b = bottles[i];
+        const bx = b.x + b.w/2;
+        const by = b.y;
+        const dist = Math.hypot(bx - centerX, by - centerY);
+        if (dist <= radius) {
+            targets.push({ bottle: b, index: i });
+        }
+    }
+
+    targets.sort((a, b) => b.index - a.index);
+    targets.forEach(t => {
+        if (bottles[t.index] === t.bottle) {
+            if (t.bottle.type === 'blast') {
+                bottles.splice(t.index, 1);
+                shotsHit++;
+                bottlesDestroyed++;
+                createExplosion(t.bottle.x + t.bottle.w/2, t.bottle.y, t.bottle.color);
+                score += 150 * comboMultiplier;
+            } else {
+                hitBottle(t.bottle, t.index);
+            }
+        }
+    });
 }
 
 function hitBottle(b, index) {
@@ -851,10 +1159,26 @@ function hitBottle(b, index) {
             if(goldDestroyed>=50 && window.achievements) window.achievements.unlock('bottle', 'gold_50', 'Gold Rush');
             break;
         case 'ice': 
-            freezeTimer = 120; // 2 seconds
+            freezeTimer = 300; // 5 seconds freeze
             iceDestroyed++;
             if(iceDestroyed>=25 && window.achievements) window.achievements.unlock('bottle', 'ice_25', 'Ice Breaker');
             floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '❄️ TIME FROZEN! ❄️', colors.ice, 48));
+            break;
+        case 'slow':
+            slowTimer = 480; // 8 seconds slow
+            pts = 50;
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '⏳ SLOW MOTION! ⏳', colors.slow, 48));
+            break;
+        case 'shotgun':
+            shotgunAmmo = 5; // 5 shotgun shells
+            pts = 50;
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '⚡ SHOTGUN SPREAD! ⚡', colors.shotgun, 48));
+            break;
+        case 'blast':
+            pts = 150;
+            screenShake = 25;
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '💥 MEGA BLAST! 💥', colors.blast, 48));
+            triggerMegaBlast(b.x + b.w/2, b.y);
             break;
         case 'giant': 
             pts = 200; screenShake = 15; 
@@ -871,7 +1195,6 @@ function hitBottle(b, index) {
     const finalPts = pts * comboMultiplier;
     score += finalPts;
     
-    // Protect score from going below 0
     if (score < 0) score = 0;
 
     let sign = finalPts > 0 ? '+' : '';
@@ -889,6 +1212,7 @@ function update(deltaTime) {
     }
 
     if (freezeTimer > 0) freezeTimer -= deltaTime;
+    if (slowTimer > 0) slowTimer -= deltaTime;
 
     // Gun recoil, muzzle flash, crosshair scale, laser trails update
     if (gunRecoil > 0) {
@@ -1009,6 +1333,17 @@ function drawShelves() {
     ctx.restore();
 }
 
+function drawVignette(color, intensity) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 25;
+    ctx.globalAlpha = intensity;
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = color;
+    ctx.strokeRect(12.5, 12.5, canvas.width - 25, canvas.height - 25);
+    ctx.restore();
+}
+
 function draw() {
     ctx.save();
     
@@ -1020,14 +1355,23 @@ function draw() {
         ctx.rotate(angle);
         ctx.translate(-canvas.width / 2 + dx, -canvas.height / 2 + dy);
         
-        screenShake -= 0.6; // time-based decay will follow
+        screenShake -= 0.6;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height); 
 
     if (freezeTimer > 0) {
-        ctx.fillStyle = 'rgba(170, 221, 255, 0.1)';
-        ctx.fillRect(0,0, canvas.width, canvas.height);
+        const pulse = 0.5 + Math.sin(Date.now() * 0.005) * 0.15;
+        drawVignette('#00aaff', pulse * Math.min(1.0, freezeTimer / 30));
+        ctx.fillStyle = 'rgba(170, 221, 255, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    if (slowTimer > 0) {
+        const pulse = 0.5 + Math.sin(Date.now() * 0.006) * 0.15;
+        drawVignette('#ffaa00', pulse * Math.min(1.0, slowTimer / 30));
+        ctx.fillStyle = 'rgba(255, 170, 0, 0.03)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     drawShelves();
@@ -1090,6 +1434,8 @@ function initGame(mode) {
     particles = [];
     floatingTexts = [];
     freezeTimer = 0;
+    slowTimer = 0;
+    shotgunAmmo = 0;
 
     uiTime.classList.remove('time-warning');
     if (gameMode === 'classic') {
@@ -1106,6 +1452,7 @@ function initGame(mode) {
     
     canvas.classList.add('playing');
     gameState = 'playing';
+    updateHubButton();
     lastTime = performance.now();
     
     if (!animationFrameId) loop(lastTime);
@@ -1114,7 +1461,13 @@ function initGame(mode) {
 function updateHUD() {
     uiScore.textContent = score;
     uiTime.textContent = timer;
-    uiAmmo.textContent = `🔫 ${ammo} / ${MAX_AMMO}`;
+    if (shotgunAmmo > 0) {
+        uiAmmo.textContent = `⚡ Shotgun: ${shotgunAmmo}`;
+        uiAmmo.classList.add('shotgun-active');
+    } else {
+        uiAmmo.textContent = `🔫 ${ammo} / ${MAX_AMMO}`;
+        uiAmmo.classList.remove('shotgun-active');
+    }
     
     let acc = 100;
     if (shotsFired > 0) acc = Math.round((shotsHit / shotsFired) * 100);
@@ -1128,8 +1481,19 @@ function updateHUD() {
     }
 }
 
+function updateHubButton() {
+    const btn = document.getElementById('hud-hub-btn');
+    if (!btn) return;
+    if (gameState === 'menu') {
+        btn.textContent = '← Arcade Hub';
+    } else {
+        btn.textContent = '← Back';
+    }
+}
+
 function gameOver() {
     gameState = 'gameover';
+    updateHubButton();
     canvas.classList.remove('playing');
     document.getElementById('hud').classList.add('hud-hidden');
     
@@ -1197,13 +1561,39 @@ document.getElementById('btn-menu').addEventListener('click', () => {
     pauseMenu.classList.add('hidden');
     mainMenu.classList.remove('hidden');
     gameState = 'menu';
+    updateHubButton();
 });
 document.getElementById('btn-quit').addEventListener('click', () => {
     pauseMenu.classList.add('hidden');
     mainMenu.classList.remove('hidden');
     document.getElementById('hud').classList.add('hud-hidden');
     gameState = 'menu';
+    updateHubButton();
 });
+
+const hubBtn = document.getElementById('hud-hub-btn');
+if (hubBtn) {
+    hubBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (gameState === 'menu') {
+            window.top.location.href = '../index.html';
+        } else {
+            if (gameState === 'paused') {
+                togglePause();
+            }
+            gameState = 'menu';
+            document.getElementById('hud').classList.add('hud-hidden');
+            gameOverMenu.classList.add('hidden');
+            pauseMenu.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            updateHubButton();
+        }
+    });
+}
+
+// Initial call to set correct button label on load
+updateHubButton();
 
 // Start loop empty for background menu drawing
 animationFrameId = requestAnimationFrame(loop);

@@ -181,6 +181,11 @@ body, html {
     color: var(--warn);
     animation: flash 0.5s infinite;
 }
+.ammo-container.shotgun-active {
+    color: #ff5500;
+    text-shadow: 0 0 15px #ff5500, 0 0 5px #ffaa00;
+    animation: pulse 0.8s infinite alternate;
+}
 
 .action-btn {
     padding: 8px 24px;
