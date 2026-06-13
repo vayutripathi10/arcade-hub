@@ -64,10 +64,10 @@ function collideCircleLine(circle, x1, y1, x2, y2) {
 }
 
 function overlaps(r1, r2) {
-    return r1.x < r2.x + r2.w &&
-           r1.x + r1.w > r2.x &&
-           r1.y < r2.y + r2.h &&
-           r1.y + r1.h > r2.y;
+    return r1.x < r2.x + r2.w - 1 &&
+           r1.x + r1.w > r2.x + 1 &&
+           r1.y < r2.y + r2.h - 1 &&
+           r1.y + r1.h > r2.y + 1;
 }
 
 // --- 26 COHESIVE MAIN FRAME LEVELS CONFIGURATION ---
@@ -1185,7 +1185,7 @@ class PinPullGame {
         this.spawnFloatingText(300, 160, `PAR: ${config.par} PULLS`, '#00ffff');
 
         this.updateHUD();
-        this.lastTime = performance.now();
+        this.lastTime = 0;
     }
 
     updateHUD() {
@@ -1353,7 +1353,7 @@ class PinPullGame {
         } else {
             this.gameState = 'PLAYING';
             document.getElementById('pauseMenu').classList.add('hidden');
-            this.lastTime = performance.now();
+            this.lastTime = 0;
         }
     }
 
@@ -1379,7 +1379,11 @@ class PinPullGame {
     }
 
     loop(timestamp) {
-        const deltaTime = this.lastTime ? Math.min((timestamp - this.lastTime) / 16.67, 1.5) : 1;
+        let dt = 1.0;
+        if (this.lastTime && timestamp > this.lastTime) {
+            dt = Math.min((timestamp - this.lastTime) / 16.67, 1.5);
+        }
+        const deltaTime = dt;
         this.lastTime = timestamp;
 
         if (this.gameState === 'PLAYING') {
@@ -2155,7 +2159,7 @@ class PinPullGame {
             let capX = p.direction === 'right' ? p.x + p.w + p.slideOffset : p.x - p.slideOffset;
             const dist = Math.sqrt((tapX - capX)**2 + (tapY - p.y)**2);
             
-            if (dist <= 28) {
+            if (dist <= 40) {
                 if (this.isPinBlocked(p)) {
                     p.shakeTimer = 20; 
                     this.triggerCameraShake(4, 150);
