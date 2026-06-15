@@ -419,7 +419,7 @@ body {
     aspect-ratio: 1;
 }
 
-/* 3D Premium Block Look & Feel */
+/* Premium Floating Neon Arrow Look & Feel */
 .block {
     position: absolute;
     top: 0;
@@ -428,23 +428,16 @@ body {
     height: 100%;
     aspect-ratio: 1;
     box-sizing: border-box;
-    border-radius: 16px;
-    border: 2px solid var(--border-color);
-    background: linear-gradient(145deg, 
-        var(--bg-color) 0%, 
-        rgba(255,255,255,0.02) 100%);
-    box-shadow: 
-        inset 0 1px 0 rgba(255,255,255,0.2),  /* top highlight */
-        inset 0 -2px 0 rgba(0,0,0,0.3),        /* bottom shadow */
-        0 4px 12px rgba(0,0,0,0.4),            /* outer shadow */
-        0 0 12px var(--glow-color);            /* neon glow */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     user-select: none;
     z-index: 2;
-    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, border-color 0.15s ease;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Sliding State without transitions */
@@ -454,12 +447,8 @@ body {
 
 /* Pressed State */
 .block:active, .block.pressed {
-    transform: scale(0.92) translateY(2px) !important;
-    box-shadow: 
-        inset 0 2px 4px rgba(0,0,0,0.5),
-        0 1px 4px rgba(0,0,0,0.3) !important;
-    border-color: rgba(255,255,255,0.08) !important;
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
+    transform: scale(0.85) !important;
+    transition: transform 0.08s ease;
 }
 
 /* Release Animation */
@@ -469,50 +458,87 @@ body {
 }
 
 /* Block States */
-.block.free {
-    border-color: #00ff88 !important;
-    animation: border-pulse 1.5s infinite alternate ease-in-out;
+.block.free .block-arrow {
+    animation: arrow-free-pulse 1.2s infinite alternate ease-in-out;
 }
 
 .block.blocked::after {
     content: '🔒';
     position: absolute;
-    font-size: 13px;
-    top: 5px;
-    right: 5px;
-    opacity: 0.85;
+    font-size: 11px;
+    top: 6px;
+    right: 6px;
+    opacity: 0.6;
     text-shadow: 0 0 4px rgba(0,0,0,0.8);
     pointer-events: none;
 }
 
 /* Guide Pulse */
-.block.pulse-guide {
-    animation: guide-pulse-anim 1s infinite alternate ease-in-out !important;
+.block.pulse-guide .block-arrow {
+    animation: arrow-guide-pulse 0.8s infinite alternate ease-in-out !important;
 }
 
 /* Hint Highlight */
-.block.hint-highlight {
-    animation: hint-pulse-anim 0.5s infinite alternate ease-in-out !important;
+.block.hint-highlight .block-arrow {
+    animation: arrow-hint-pulse 0.4s infinite alternate ease-in-out !important;
 }
 
 /* Error/Blocked Shake */
 .block.blocked.shake {
     animation: blocked-shake-anim 0.25s ease-in-out !important;
-    background: linear-gradient(145deg, #ff2d4a 0%, rgba(255,0,0,0.2) 100%) !important;
-    border-color: #ff0022 !important;
-    box-shadow: 0 0 20px rgba(255, 0, 34, 0.8) !important;
+}
+.block.blocked.shake .block-arrow {
+    color: #ff2d4a !important;
+    text-shadow: 0 0 15px #ff0022, 0 0 30px #ff0022 !important;
 }
 
 /* Large Glow Arrow */
 .block-arrow {
-    font-size: clamp(24px, 40%, 60px);
+    font-size: clamp(36px, 60%, 75px);
     font-weight: 900;
-    color: #ffffff;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 15px rgba(255, 255, 255, 0.5);
+    color: var(--bg-color); /* Use the dynamic block color */
+    text-shadow: 
+        0 0 8px var(--glow-color),
+        0 0 18px var(--glow-color);
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
+    transition: transform 0.15s ease, text-shadow 0.15s ease, color 0.15s ease;
+}
+
+/* Animations */
+@keyframes arrow-free-pulse {
+    0% {
+        transform: scale(1);
+        text-shadow: 0 0 8px var(--glow-color), 0 0 15px var(--glow-color);
+    }
+    100% {
+        transform: scale(1.1);
+        text-shadow: 0 0 18px var(--glow-color), 0 0 35px var(--glow-color), 0 0 50px var(--glow-color);
+    }
+}
+
+@keyframes arrow-guide-pulse {
+    0% {
+        transform: scale(1.05);
+        text-shadow: 0 0 15px var(--glow-color), 0 0 30px #ffffff;
+    }
+    100% {
+        transform: scale(1.22);
+        text-shadow: 0 0 30px var(--glow-color), 0 0 50px #ffffff, 0 0 70px #ffffff;
+    }
+}
+
+@keyframes arrow-hint-pulse {
+    0% {
+        transform: scale(1.05);
+        text-shadow: 0 0 15px #ffdd00, 0 0 30px #ffffff;
+    }
+    100% {
+        transform: scale(1.25);
+        text-shadow: 0 0 35px #ffdd00, 0 0 55px #ffffff, 0 0 80px #ffffff;
+    }
 }
 
 /* Animations */
@@ -580,4 +606,71 @@ body {
     .mobile-bottom-bar {
         display: flex;
     }
+}
+
+/* Obstacle Walls Styling */
+.cell-empty.cell-wall {
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(255, 0, 234, 0.15),
+        rgba(255, 0, 234, 0.15) 10px,
+        rgba(6, 7, 10, 0.8) 10px,
+        rgba(6, 7, 10, 0.8) 20px
+    ) !important;
+    border: 2px dashed var(--neon-pink) !important;
+    box-shadow: inset 0 0 15px rgba(255, 0, 234, 0.4), 0 0 8px rgba(255, 0, 234, 0.2);
+    position: relative;
+}
+.cell-empty.cell-wall::after {
+    content: '✖';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--neon-pink);
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 8px var(--neon-pink);
+    opacity: 0.8;
+}
+
+/* Sticky Redirect Rotator Styling */
+.cell-empty.cell-rotator {
+    background: rgba(0, 255, 204, 0.05) !important;
+    border: 2px dashed rgba(0, 255, 204, 0.6) !important;
+    box-shadow: inset 0 0 10px rgba(0, 255, 204, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+.cell-empty.cell-rotator .rotator-disk {
+    position: absolute;
+    width: 75%;
+    height: 75%;
+    border-radius: 50%;
+    border: 1px dashed rgba(0, 255, 204, 0.4);
+    animation: rotate-disk 10s linear infinite;
+    pointer-events: none;
+}
+.cell-empty.cell-rotator .rotator-arrow {
+    font-size: clamp(20px, 35%, 45px);
+    font-weight: 900;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan);
+    animation: pulse-rotator-arrow 1.5s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 2;
+}
+
+@keyframes rotate-disk {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse-rotator-arrow {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 12px var(--neon-cyan); }
+    100% { transform: scale(0.9); opacity: 0.7; }
 }

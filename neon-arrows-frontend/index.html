@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=86">
+    <link rel="stylesheet" href="style.css?v=117">
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
     
@@ -189,14 +189,15 @@
             </div>
 
             <h2>Neon Arrows</h2>
-            <p>Neon Arrows is an original spatial logic puzzle game designed to test your sequence planning and geometric reasoning. The grid is packed with glowing neon lines (vectors), each ending in a directional arrowhead. By tapping a line, you slide it forward along its own shape in the direction of the arrow. If the path ahead of the head is clear, the line slides completely off the board. If another line blocks its path, it collides and wiggles. Can you find the perfect sequence of moves to untangle the board and peel away all the glowing paths?</p>
+            <p>Neon Arrows is an original spatial logic puzzle game designed to test your sequence planning and geometric reasoning. The grid is packed with glowing neon arrow blocks. By tapping a block, you slide it forward in the direction of the arrow. If the path is clear, the block slides off the board. Can you find the perfect sequence of moves to untangle the board, navigate obstacle walls, use redirection rotators, and clear all the arrow blocks?</p>
 
             <h3>🎮 How to Play</h3>
-            <p>Your goal is to completely clear the grid. Tap lines to slide them off the screen. If a line is blocked, it won't move, so you must carefully determine the order of operations.</p>
+            <p>Your goal is to completely clear the grid. Tap blocks to slide them off the screen. If a block is blocked, it won't move, so you must carefully determine the order of operations.</p>
             <ul>
-                <li><strong>Tap to Slide:</strong> Click or tap on any glowing line to slide it along its path in the direction of its arrowhead.</li>
-                <li><strong>Clear the Path:</strong> Lines can only slide off the screen if their exit trajectory (extending straight out from the arrow) is completely unobstructed.</li>
-                <li><strong>Collision Indicator:</strong> If you tap a blocked line, it wiggles, showing you which obstacle is in the way.</li>
+                <li><strong>Tap to Slide:</strong> Click or tap on any block to slide it in the direction of its arrow.</li>
+                <li><strong>Obstacle Walls:</strong> Watch out for pink dashed barriers! Blocks cannot slide through obstacle walls.</li>
+                <li><strong>Sticky Rotators:</strong> Slide a block into a cyan dashed rotator tile, and it stops on that cell and changes its direction to match the rotator's arrow!</li>
+                <li><strong>Collision Indicator:</strong> If you tap a blocked block, it wiggles, showing you which obstacle is in the way.</li>
                 <li><strong>Moves Limit:</strong> Try to clear the board in the minimum possible moves to achieve the "Perfect" trophy.</li>
             </ul>
 
@@ -232,7 +233,7 @@
             </div>
             <div class="faq-item">
                 <p class="faq-question">How many levels are there?</p>
-                <p class="faq-answer">There are 14 progressively challenging, hand-crafted security sectors to solve.</p>
+                <p class="faq-answer">There are 20 progressively challenging, hand-crafted security sectors to solve.</p>
             </div>
             <div class="faq-item">
                 <p class="faq-question">Where can I play more games like this?</p>
@@ -314,9 +315,10 @@
             <div class="htp-content">
                 <ul>
                     <li>Tap a colorful block to slide it in the direction of its inner arrow.</li>
-                    <li>Blocks can only slide off the board if their exit path is completely clear of other blocks.</li>
-                    <li>Blocked paths will bounce back and wiggle.</li>
-                    <li>Clear the board as fast as possible to earn a 3-star rating!</li>
+                    <li><strong>Obstacle Walls:</strong> Dashed pink cells block block sliding movement.</li>
+                    <li><strong>Sticky Rotators:</strong> Dashed cyan cells catch blocks, stop them, and update their exit direction.</li>
+                    <li><strong>Clear the Path:</strong> Blocks can only slide off the board if their exit path is completely clear of other blocks and walls.</li>
+                    <li><strong>Stars:</strong> Clear the board under target par moves to earn a 3-star rating!</li>
                 </ul>
             </div>
             <button class="btn-main" id="htp-close">Understood</button>
@@ -374,7 +376,7 @@
     <!-- Audio FX and Achievements Scripts -->
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=86"></script>
+    <script src="script.js?v=117"></script>
     
     <script>
         (function() {

@@ -16,44 +16,279 @@ const BLOCK_COLORS = {
 const BG_INNER = '#06070a';
 
 // Seeded LCG Random Generator
-class SeededRandom {
-    constructor(seed) {
-        this.seed = seed;
-    }
-    next() {
-        this.seed = (this.seed * 1664525 + 1013904223) % 4294967296;
-        return this.seed / 4294967296;
-    }
-    nextInt(min, max) {
-        return Math.floor(this.next() * (max - min)) + min;
-    }
-    choose(arr) {
-        return arr[this.nextInt(0, arr.length)];
-    }
-}
-
-// 20 level configurations
+// 20 hand-crafted level configurations containing walls and sticky rotators for strategic depth
 const LEVEL_CONFIGS = [
-    { gridWidth: 3, gridHeight: 3, numBlocks: 5, seed: 2001, time3: 8, time2: 15 },
-    { gridWidth: 3, gridHeight: 3, numBlocks: 7, seed: 2002, time3: 10, time2: 18 },
-    { gridWidth: 3, gridHeight: 3, numBlocks: 8, seed: 2003, time3: 12, time2: 22 },
-    { gridWidth: 4, gridHeight: 4, numBlocks: 8, seed: 2004, time3: 15, time2: 28 },
-    { gridWidth: 4, gridHeight: 4, numBlocks: 11, seed: 2005, time3: 18, time2: 32 },
-    { gridWidth: 4, gridHeight: 4, numBlocks: 14, seed: 2006, time3: 20, time2: 36 },
-    { gridWidth: 5, gridHeight: 5, numBlocks: 15, seed: 2007, time3: 22, time2: 40 },
-    { gridWidth: 5, gridHeight: 5, numBlocks: 18, seed: 2008, time3: 25, time2: 45 },
-    { gridWidth: 5, gridHeight: 5, numBlocks: 21, seed: 2009, time3: 28, time2: 50 },
-    { gridWidth: 6, gridHeight: 6, numBlocks: 24, seed: 2010, time3: 32, time2: 58 },
-    { gridWidth: 6, gridHeight: 6, numBlocks: 28, seed: 2011, time3: 35, time2: 65 },
-    { gridWidth: 6, gridHeight: 6, numBlocks: 32, seed: 2012, time3: 38, time2: 70 },
-    { gridWidth: 7, gridHeight: 7, numBlocks: 32, seed: 2013, time3: 42, time2: 78 },
-    { gridWidth: 7, gridHeight: 7, numBlocks: 38, seed: 2014, time3: 45, time2: 85 },
-    { gridWidth: 7, gridHeight: 7, numBlocks: 42, seed: 2015, time3: 50, time2: 92 },
-    { gridWidth: 8, gridHeight: 8, numBlocks: 44, seed: 2016, time3: 55, time2: 105 },
-    { gridWidth: 8, gridHeight: 8, numBlocks: 50, seed: 2017, time3: 60, time2: 115 },
-    { gridWidth: 9, gridHeight: 9, numBlocks: 54, seed: 2018, time3: 68, time2: 130 },
-    { gridWidth: 9, gridHeight: 9, numBlocks: 62, seed: 2019, time3: 75, time2: 145 },
-    { gridWidth: 10, gridHeight: 10, numBlocks: 70, seed: 2020, time3: 90, time2: 170 }
+    // Level 1: Intro (3x3)
+    {
+        gridWidth: 3, gridHeight: 3, parMoves: 3,
+        blocks: [
+            { id: 'b1', x: 0, y: 0, color: 'cyan', exitDir: { x: -1, y: 0 } },
+            { id: 'b2', x: 2, y: 2, color: 'pink', exitDir: { x: 1, y: 0 } },
+            { id: 'b3', x: 0, y: 2, color: 'yellow', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [], rotators: []
+    },
+    // Level 2: Intersecting paths (3x3)
+    {
+        gridWidth: 3, gridHeight: 3, parMoves: 4,
+        blocks: [
+            { id: 'b1', x: 1, y: 1, color: 'blue', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 2, y: 1, color: 'red', exitDir: { x: 0, y: -1 } },
+            { id: 'b3', x: 0, y: 0, color: 'green', exitDir: { x: -1, y: 0 } },
+            { id: 'b4', x: 0, y: 2, color: 'purple', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [], rotators: []
+    },
+    // Level 3: Obstacle Wall (3x3)
+    {
+        gridWidth: 3, gridHeight: 3, parMoves: 3,
+        blocks: [
+            { id: 'b1', x: 0, y: 1, color: 'green', exitDir: { x: 0, y: -1 } },
+            { id: 'b2', x: 2, y: 1, color: 'orange', exitDir: { x: 1, y: 0 } },
+            { id: 'b3', x: 1, y: 2, color: 'red', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [{ x: 1, y: 1 }],
+        rotators: []
+    },
+    // Level 4: Simple Rotator (3x3)
+    {
+        gridWidth: 3, gridHeight: 3, parMoves: 4,
+        blocks: [
+            { id: 'b1', x: 1, y: 2, color: 'cyan', exitDir: { x: 0, y: -1 } },
+            { id: 'b2', x: 0, y: 0, color: 'pink', exitDir: { x: -1, y: 0 } }
+        ],
+        walls: [],
+        rotators: [{ x: 1, y: 1, dir: { x: 1, y: 0 } }]
+    },
+    // Level 5: Basic Maze (4x4)
+    {
+        gridWidth: 4, gridHeight: 4, parMoves: 5,
+        blocks: [
+            { id: 'b1', x: 0, y: 1, color: 'yellow', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 2, y: 3, color: 'purple', exitDir: { x: 0, y: -1 } },
+            { id: 'b3', x: 3, y: 0, color: 'blue', exitDir: { x: 1, y: 0 } }
+        ],
+        walls: [{ x: 0, y: 2 }, { x: 3, y: 3 }],
+        rotators: [{ x: 2, y: 1, dir: { x: 0, y: -1 } }]
+    },
+    // Level 6: Rotator Sequencing (4x4)
+    {
+        gridWidth: 4, gridHeight: 4, parMoves: 5,
+        blocks: [
+            { id: 'b1', x: 0, y: 2, color: 'orange', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 2, y: 0, color: 'green', exitDir: { x: 0, y: 1 } },
+            { id: 'b3', x: 3, y: 2, color: 'red', exitDir: { x: 1, y: 0 } }
+        ],
+        walls: [{ x: 1, y: 1 }],
+        rotators: [{ x: 2, y: 2, dir: { x: 0, y: -1 } }]
+    },
+    // Level 7: The Double Turn (4x4)
+    {
+        gridWidth: 4, gridHeight: 4, parMoves: 4,
+        blocks: [
+            { id: 'b1', x: 0, y: 3, color: 'pink', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 1, y: 0, color: 'blue', exitDir: { x: 0, y: -1 } }
+        ],
+        walls: [{ x: 1, y: 2 }],
+        rotators: [
+            { x: 2, y: 3, dir: { x: 0, y: -1 } },
+            { x: 2, y: 1, dir: { x: -1, y: 0 } }
+        ]
+    },
+    // Level 8: Wall Blockade (4x4)
+    {
+        gridWidth: 4, gridHeight: 4, parMoves: 6,
+        blocks: [
+            { id: 'b1', x: 0, y: 1, color: 'red', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 0, y: 2, color: 'blue', exitDir: { x: 1, y: 0 } },
+            { id: 'b3', x: 3, y: 0, color: 'green', exitDir: { x: 0, y: -1 } }
+        ],
+        walls: [{ x: 1, y: 0 }, { x: 1, y: 3 }],
+        rotators: [
+            { x: 2, y: 1, dir: { x: 0, y: -1 } },
+            { x: 2, y: 2, dir: { x: 0, y: 1 } }
+        ]
+    },
+    // Level 9: Central Crossroads (5x5)
+    {
+        gridWidth: 5, gridHeight: 5, parMoves: 5,
+        blocks: [
+            { id: 'b1', x: 2, y: 4, color: 'purple', exitDir: { x: 0, y: -1 } },
+            { id: 'b2', x: 0, y: 2, color: 'cyan', exitDir: { x: 1, y: 0 } },
+            { id: 'b3', x: 4, y: 2, color: 'yellow', exitDir: { x: -1, y: 0 } }
+        ],
+        walls: [{ x: 1, y: 1 }, { x: 3, y: 3 }],
+        rotators: [{ x: 2, y: 2, dir: { x: -1, y: 0 } }]
+    },
+    // Level 10: Labyrinth (5x5)
+    {
+        gridWidth: 5, gridHeight: 5, parMoves: 7,
+        blocks: [
+            { id: 'b1', x: 1, y: 1, color: 'orange', exitDir: { x: 0, y: 1 } },
+            { id: 'b2', x: 3, y: 3, color: 'green', exitDir: { x: -1, y: 0 } },
+            { id: 'b3', x: 4, y: 1, color: 'blue', exitDir: { x: -1, y: 0 } }
+        ],
+        walls: [{ x: 2, y: 2 }, { x: 2, y: 4 }, { x: 3, y: 2 }],
+        rotators: [{ x: 1, y: 3, dir: { x: 0, y: -1 } }]
+    },
+    // Level 11: Bottleneck Grid (5x5)
+    {
+        gridWidth: 5, gridHeight: 5, parMoves: 6,
+        blocks: [
+            { id: 'b1', x: 0, y: 2, color: 'red', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 2, y: 0, color: 'yellow', exitDir: { x: 0, y: 1 } },
+            { id: 'b3', x: 4, y: 2, color: 'purple', exitDir: { x: -1, y: 0 } },
+            { id: 'b4', x: 2, y: 4, color: 'cyan', exitDir: { x: 0, y: -1 } }
+        ],
+        walls: [{ x: 1, y: 1 }, { x: 3, y: 1 }, { x: 1, y: 3 }, { x: 3, y: 3 }],
+        rotators: [{ x: 2, y: 2, dir: { x: 1, y: 0 } }]
+    },
+    // Level 12: Maze Matrix (5x5)
+    {
+        gridWidth: 5, gridHeight: 5, parMoves: 7,
+        blocks: [
+            { id: 'b1', x: 0, y: 0, color: 'blue', exitDir: { x: 0, y: 1 } },
+            { id: 'b2', x: 0, y: 4, color: 'pink', exitDir: { x: 1, y: 0 } },
+            { id: 'b3', x: 4, y: 4, color: 'green', exitDir: { x: 0, y: -1 } }
+        ],
+        walls: [{ x: 1, y: 1 }, { x: 3, y: 3 }],
+        rotators: [
+            { x: 0, y: 2, dir: { x: 1, y: 0 } },
+            { x: 2, y: 4, dir: { x: 0, y: -1 } }
+        ]
+    },
+    // Level 13: Spiral (6x6)
+    {
+        gridWidth: 6, gridHeight: 6, parMoves: 8,
+        blocks: [
+            { id: 'b1', x: 1, y: 1, color: 'orange', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 4, y: 4, color: 'cyan', exitDir: { x: 0, y: -1 } },
+            { id: 'b3', x: 1, y: 4, color: 'red', exitDir: { x: -1, y: 0 } }
+        ],
+        walls: [{ x: 2, y: 2 }, { x: 3, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 3 }],
+        rotators: [
+            { x: 4, y: 1, dir: { x: 0, y: 1 } },
+            { x: 1, y: 4, dir: { x: -1, y: 0 } }
+        ]
+    },
+    // Level 14: Loop Back (6x6)
+    {
+        gridWidth: 6, gridHeight: 6, parMoves: 9,
+        blocks: [
+            { id: 'b1', x: 0, y: 1, color: 'yellow', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 2, y: 2, color: 'purple', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [{ x: 2, y: 0 }, { x: 3, y: 3 }],
+        rotators: [
+            { x: 4, y: 1, dir: { x: 0, y: 1 } },
+            { x: 4, y: 4, dir: { x: -1, y: 0 } },
+            { x: 1, y: 4, dir: { x: 0, y: -1 } }
+        ]
+    },
+    // Level 15: Tight Corridors (6x6)
+    {
+        gridWidth: 6, gridHeight: 6, parMoves: 8,
+        blocks: [
+            { id: 'b1', x: 1, y: 0, color: 'green', exitDir: { x: 0, y: 1 } },
+            { id: 'b2', x: 4, y: 5, color: 'pink', exitDir: { x: 0, y: -1 } },
+            { id: 'b3', x: 0, y: 3, color: 'blue', exitDir: { x: 1, y: 0 } }
+        ],
+        walls: [{ x: 2, y: 2 }, { x: 3, y: 2 }],
+        rotators: [
+            { x: 1, y: 4, dir: { x: 1, y: 0 } },
+            { x: 4, y: 1, dir: { x: -1, y: 0 } }
+        ]
+    },
+    // Level 16: Interceptor (7x7)
+    {
+        gridWidth: 7, gridHeight: 7, parMoves: 10,
+        blocks: [
+            { id: 'b1', x: 3, y: 6, color: 'red', exitDir: { x: 0, y: -1 } },
+            { id: 'b2', x: 0, y: 3, color: 'cyan', exitDir: { x: 1, y: 0 } },
+            { id: 'b3', x: 6, y: 3, color: 'yellow', exitDir: { x: -1, y: 0 } },
+            { id: 'b4', x: 3, y: 0, color: 'orange', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [
+            { x: 1, y: 1 }, { x: 5, y: 1 },
+            { x: 1, y: 5 }, { "x": 5, "y": 5 }
+        ],
+        rotators: [{ x: 3, y: 3, dir: { x: -1, y: 0 } }]
+    },
+    // Level 17: Obstacle Grid (7x7)
+    {
+        gridWidth: 7, gridHeight: 7, parMoves: 9,
+        blocks: [
+            { id: 'b1', x: 1, y: 1, color: 'purple', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 5, y: 5, color: 'green', exitDir: { x: -1, y: 0 } },
+            { id: 'b3', x: 3, y: 3, color: 'blue', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [
+            { x: 3, y: 0 }, { x: 0, y: 3 }, { x: 6, y: 3 }
+        ],
+        rotators: [
+            { x: 5, y: 1, dir: { x: 0, y: 1 } },
+            { x: 1, y: 5, dir: { x: 0, y: -1 } }
+        ]
+    },
+    // Level 18: Four Corners (8x8)
+    {
+        gridWidth: 8, gridHeight: 8, parMoves: 12,
+        blocks: [
+            { id: 'b1', x: 1, y: 2, color: 'cyan', exitDir: { x: 0, y: 1 } },
+            { id: 'b2', x: 5, y: 1, color: 'pink', exitDir: { x: -1, y: 0 } },
+            { id: 'b3', x: 6, y: 5, color: 'yellow', exitDir: { x: 1, y: 0 } },
+            { id: 'b4', x: 2, y: 6, color: 'orange', exitDir: { x: 1, y: 0 } }
+        ],
+        walls: [
+            { x: 3, y: 3 }, { x: 4, y: 3 },
+            { x: 3, y: 4 }, { x: 4, y: 4 }
+        ],
+        rotators: [
+            { x: 1, y: 6, dir: { x: -1, y: 0 } },
+            { x: 6, y: 6, dir: { x: 0, y: -1 } },
+            { x: 6, y: 1, dir: { x: -1, y: 0 } },
+            { x: 1, y: 1, dir: { x: 0, y: 1 } }
+        ]
+    },
+    // Level 19: The Gauntlet (9x9)
+    {
+        gridWidth: 9, gridHeight: 9, parMoves: 10,
+        blocks: [
+            { id: 'b1', x: 0, y: 4, color: 'red', exitDir: { x: 1, y: 0 } },
+            { id: 'b2', x: 8, y: 4, color: 'blue', exitDir: { x: -1, y: 0 } },
+            { id: 'b3', x: 4, y: 0, color: 'green', exitDir: { x: 0, y: 1 } }
+        ],
+        walls: [
+            { x: 2, y: 1 }, { x: 6, y: 2 },
+            { x: 2, y: 6 }, { x: 6, y: 6 }
+        ],
+        rotators: [
+            { x: 4, y: 4, dir: { x: 0, y: -1 } },
+            { x: 4, y: 2, dir: { x: -1, y: 0 } },
+            { x: 4, y: 6, dir: { x: 1, y: 0 } }
+        ]
+    },
+    // Level 20: Mainframe Core (10x10)
+    {
+        gridWidth: 10, gridHeight: 10, parMoves: 14,
+        blocks: [
+            { id: 'b1', x: 1, y: 2, color: 'purple', exitDir: { x: 0, y: 1 } },
+            { id: 'b2', x: 7, y: 1, color: 'cyan', exitDir: { x: -1, y: 0 } },
+            { id: 'b3', x: 8, y: 7, color: 'pink', exitDir: { x: 0, y: -1 } },
+            { id: 'b4', x: 2, y: 8, color: 'yellow', exitDir: { x: 1, y: 0 } }
+        ],
+        walls: [
+            { x: 4, y: 4 }, { x: 5, y: 4 },
+            { x: 4, y: 5 }, { x: 5, y: 5 },
+            { x: 3, y: 3 }, { x: 6, y: 6 }
+        ],
+        rotators: [
+            { x: 8, y: 1, dir: { x: 1, y: 0 } },
+            { x: 8, y: 8, dir: { x: -1, y: 0 } },
+            { x: 1, y: 8, dir: { x: 0, y: -1 } },
+            { x: 1, y: 1, dir: { x: 1, y: 0 } }
+        ]
+    }
 ];
 
 // Web Audio API Synthesizer
@@ -486,7 +721,7 @@ function showParBanner(par) {
 // Trigger Hint
 function triggerHint() {
     if (!gameRunning) return;
-    const freeList = activeBlocks.filter(b => b.state === 'idle' && !isBlockBlocked(b, activeBlocks));
+    const freeList = activeBlocks.filter(b => b.state === 'idle' && !isBlockBlocked(b, activeBlocks).blocked);
     if (freeList.length === 0) return;
     
     freeList.forEach(block => {
@@ -572,18 +807,49 @@ function showLevelSelect() {
 }
 
 // Block Collision and exit paths check
-function isBlockBlocked(block, blocksList) {
-    let cx = block.gridX + block.exitDir.x;
-    let cy = block.gridY + block.exitDir.y;
+// Calculate where a block will end up when launched
+function calculateBlockDestination(block, blocksList, config) {
+    if (!config) return { state: 'exit' };
+    let cx = block.gridX;
+    let cy = block.gridY;
+    let dx = block.exitDir.x;
+    let dy = block.exitDir.y;
     
-    while (cx >= 0 && cx < currentGridWidth && cy >= 0 && cy < currentGridHeight) {
-        // Both idle and sliding blocks block the exit path
-        const other = blocksList.find(b => (b.state === 'idle' || b.state === 'sliding') && b.id !== block.id && b.gridX === cx && b.gridY === cy);
-        if (other) {
-            return { blocked: true, by: other };
+    while (true) {
+        cx += dx;
+        cy += dy;
+        
+        // Out of bounds means it exits cleanly
+        if (cx < 0 || cx >= config.gridWidth || cy < 0 || cy >= config.gridHeight) {
+            return { state: 'exit' };
         }
-        cx += block.exitDir.x;
-        cy += block.exitDir.y;
+        
+        // Hits an obstacle wall
+        const hasWall = config.walls && config.walls.some(w => w.x === cx && w.y === cy);
+        if (hasWall) {
+            return { state: 'blocked', x: cx, y: cy };
+        }
+        
+        // Hits another active block
+        const otherBlock = blocksList.find(b => b.id !== block.id && b.state !== 'completed' && b.gridX === cx && b.gridY === cy);
+        if (otherBlock) {
+            return { state: 'blocked', x: cx, y: cy, by: otherBlock };
+        }
+        
+        // Hits a redirect rotator
+        const rotator = config.rotators && config.rotators.find(r => r.x === cx && r.y === cy);
+        if (rotator) {
+            return { state: 'stopped', x: cx, y: cy, nextDir: rotator.dir };
+        }
+    }
+}
+
+// Block Collision and exit paths check
+function isBlockBlocked(block, blocksList) {
+    const config = LEVEL_CONFIGS[currentLevelIndex];
+    const dest = calculateBlockDestination(block, blocksList, config);
+    if (dest.state === 'blocked') {
+        return { blocked: true, by: dest.by };
     }
     return { blocked: false };
 }
@@ -632,6 +898,7 @@ function renderGridDOM() {
     wrapper.style.setProperty('--cols', currentGridWidth);
     wrapper.style.setProperty('--rows', currentGridHeight);
     
+    const config = LEVEL_CONFIGS[currentLevelIndex];
     // 1. Render cell-empty background placeholders for all slots first (stays at z-index 1)
     for (let y = 0; y < currentGridHeight; y++) {
         for (let x = 0; x < currentGridWidth; x++) {
@@ -640,6 +907,21 @@ function renderGridDOM() {
             empty.id = `cell-${x}-${y}`;
             empty.style.gridColumnStart = x + 1;
             empty.style.gridRowStart = y + 1;
+            
+            const isWall = config && config.walls && config.walls.some(w => w.x === x && w.y === y);
+            const rotator = config && config.rotators && config.rotators.find(r => r.x === x && r.y === y);
+            
+            if (isWall) {
+                empty.classList.add('cell-wall');
+            } else if (rotator) {
+                empty.classList.add('cell-rotator');
+                let arrowChar = '→';
+                if (rotator.dir.x === -1) arrowChar = '←';
+                else if (rotator.dir.y === -1) arrowChar = '↑';
+                else if (rotator.dir.y === 1) arrowChar = '↓';
+                empty.innerHTML = `<div class="rotator-disk"></div><span class="rotator-arrow">${arrowChar}</span>`;
+            }
+            
             gridEl.appendChild(empty);
         }
     }
@@ -688,9 +970,7 @@ function loadLevel(index) {
     currentGridWidth = config.gridWidth;
     currentGridHeight = config.gridHeight;
     
-    const generated = generateLevel(config.gridWidth, config.gridHeight, config.numBlocks, config.seed, config.time3, config.time2, index);
-    
-    activeBlocks = generated.blocks.map(b => ({
+    activeBlocks = config.blocks.map(b => ({
         id: b.id,
         gridX: b.x,
         gridY: b.y,
@@ -715,10 +995,10 @@ function loadLevel(index) {
     document.getElementById('level-value').textContent = currentLevelIndex + 1;
     document.getElementById('moves-value').textContent = '0';
     document.getElementById('timer-value').textContent = '0.0s';
-    document.getElementById('target-value').textContent = config.numBlocks;
+    document.getElementById('target-value').textContent = config.parMoves;
     
     renderGridDOM();
-    showParBanner(config.numBlocks);
+    showParBanner(config.parMoves);
     resizeCanvas();
 }
 
@@ -984,21 +1264,41 @@ function updateBlocksState(deltaTime) {
         if (block.state === 'sliding') {
             block.slideOffset += 12 * deltaTime;
             
-            const rx = block.gridX + block.exitDir.x * block.slideOffset;
-            const ry = block.gridY + block.exitDir.y * block.slideOffset;
+            // Cache destination if not cached
+            if (!block.dest) {
+                const config = LEVEL_CONFIGS[currentLevelIndex];
+                block.dest = calculateBlockDestination(block, activeBlocks, config);
+            }
+            
+            const dest = block.dest;
+            let slideDistance = 999;
+            if (dest.state === 'stopped') {
+                slideDistance = Math.abs(dest.x - block.gridX) + Math.abs(dest.y - block.gridY);
+            }
+            
+            // Limit slideOffset to slideDistance
+            const currentOffset = Math.min(block.slideOffset, slideDistance);
+            
+            const rx = block.gridX + block.exitDir.x * currentOffset;
+            const ry = block.gridY + block.exitDir.y * currentOffset;
             
             // Translate the HTML element
             const el = document.getElementById('block-' + block.id);
             if (el) {
-                const tx = block.exitDir.x * block.slideOffset * cellSize;
-                const ty = block.exitDir.y * block.slideOffset * cellSize;
+                const tx = block.exitDir.x * currentOffset * cellSize;
+                const ty = block.exitDir.y * currentOffset * cellSize;
                 
-                // Vanish effect: scale down and fade out as the block slides
-                if (block.slideOffset > 0.2) {
-                    const progress = Math.min(1, (block.slideOffset - 0.2) / 0.8); // 0 to 1
-                    el.style.opacity = 1 - progress;
-                    el.style.transform = `translate(${tx}px, ${ty}px) scale(${1 - progress * 0.4})`;
+                if (dest.state === 'exit') {
+                    // Vanish effect for exiting blocks
+                    if (currentOffset > 0.2) {
+                        const progress = Math.min(1, (currentOffset - 0.2) / 0.8);
+                        el.style.opacity = 1 - progress;
+                        el.style.transform = `translate(${tx}px, ${ty}px) scale(${1 - progress * 0.4})`;
+                    } else {
+                        el.style.transform = `translate(${tx}px, ${ty}px)`;
+                    }
                 } else {
+                    // Regular translation for stopping blocks
                     el.style.transform = `translate(${tx}px, ${ty}px)`;
                 }
             }
@@ -1007,22 +1307,36 @@ function updateBlocksState(deltaTime) {
                 spawnExhaustSpark(rx, ry, block.exitDir, BLOCK_COLORS[block.color].bg);
             }
             
-            const isOut = rx < -1.1 || rx > currentGridWidth + 0.1 ||
-                          ry < -1.1 || ry > currentGridHeight + 0.1;
-            
-            if (isOut) {
-                block.state = 'completed';
-                if (el) el.remove();
+            if (dest.state === 'stopped' && block.slideOffset >= slideDistance) {
+                // Reached the rotator tile!
+                block.gridX = dest.x;
+                block.gridY = dest.y;
+                block.exitDir = { x: dest.nextDir.x, y: dest.nextDir.y };
+                block.slideOffset = 0;
+                block.state = 'idle';
+                delete block.dest;
                 
-                updateBlockFreeClasses(); // Refresh unblocked list when block vanishes
+                neonArrowAudio.playSlide();
+                renderGridDOM(); // Move block to the new parent cell in DOM
+            } else if (dest.state === 'exit') {
+                const isOut = rx < -1.1 || rx > currentGridWidth + 0.1 ||
+                              ry < -1.1 || ry > currentGridHeight + 0.1;
                 
-                let edgeX = Math.max(-0.5, Math.min(currentGridWidth - 0.5, rx));
-                let edgeY = Math.max(-0.5, Math.min(currentGridHeight - 0.5, ry));
-                spawnRipple(edgeX, edgeY, BLOCK_COLORS[block.color].bg, 2.2);
-                spawnClearParticles(edgeX, edgeY, BLOCK_COLORS[block.color].bg);
-                triggerCameraShake(6, 0.15);
-                
-                checkVictory();
+                if (isOut) {
+                    block.state = 'completed';
+                    if (el) el.remove();
+                    delete block.dest;
+                    
+                    updateBlockFreeClasses(); // Refresh unblocked list when block vanishes
+                    
+                    let edgeX = Math.max(-0.5, Math.min(currentGridWidth - 0.5, rx));
+                    let edgeY = Math.max(-0.5, Math.min(currentGridHeight - 0.5, ry));
+                    spawnRipple(edgeX, edgeY, BLOCK_COLORS[block.color].bg, 2.2);
+                    spawnClearParticles(edgeX, edgeY, BLOCK_COLORS[block.color].bg);
+                    triggerCameraShake(6, 0.15);
+                    
+                    checkVictory();
+                }
             }
         }
     });
@@ -1047,10 +1361,10 @@ function checkVictory() {
         
         // Star count calculation based on Moves Count relative to Par
         let stars = 1;
-        if (movesCount <= config.numBlocks) {
+        if (movesCount <= config.parMoves) {
             stars = 3;
             unlockAchievement('perfect', 'Arrow Master Logic');
-        } else if (movesCount <= config.numBlocks + 2) {
+        } else if (movesCount <= config.parMoves + 2) {
             stars = 2;
         }
         
@@ -1078,7 +1392,7 @@ function checkVictory() {
         else if (stars === 2) commentary = 'SYSTEM BYPASSED';
         
         document.getElementById('summary-time').textContent = elapsedTime.toFixed(1) + 's';
-        document.getElementById('summary-target').textContent = config.numBlocks + ' Moves';
+        document.getElementById('summary-target').textContent = config.parMoves + ' Moves';
         document.getElementById('star-rating-display').innerHTML = starsHTML;
         document.getElementById('star-commentary').textContent = commentary;
         
