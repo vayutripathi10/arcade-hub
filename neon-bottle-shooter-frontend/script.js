@@ -65,26 +65,46 @@ let gunRecoil = 0;
 let muzzleFlashTimer = 0;
 let crosshairScale = 1.0;
 let laserTrails = [];
+let shockwaves = [];
+let hitStopTimer = 0;
+let screenFlashColor = '#ffffff';
+let screenFlashIntensity = 0;
 
 function updateLaserTrails(deltaTime) {
-    laserTrails.forEach(t => t.life -= 0.25 * deltaTime);
+    laserTrails.forEach(t => t.life -= 0.18 * deltaTime); // Fade slightly slower for visibility
     laserTrails = laserTrails.filter(t => t.life > 0);
 }
 
 function drawLaserTrails() {
     laserTrails.forEach(t => {
         ctx.save();
+        // Outer colored glow beam
         ctx.strokeStyle = t.color;
-        ctx.lineWidth = 6 * t.life;
-        ctx.globalAlpha = t.life;
-        ctx.shadowBlur = 15;
+        ctx.lineWidth = 12 * t.life;
+        ctx.globalAlpha = t.life * 0.7;
+        ctx.shadowBlur = 25;
         ctx.shadowColor = t.color;
+        ctx.beginPath();
+        ctx.moveTo(t.x1, t.y1);
+        ctx.lineTo(t.x2, t.y2);
+        ctx.stroke();
+
+        // Inner hot white core beam (extreme visibility)
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4 * t.life;
+        ctx.globalAlpha = t.life;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#ffffff';
         ctx.beginPath();
         ctx.moveTo(t.x1, t.y1);
         ctx.lineTo(t.x2, t.y2);
         ctx.stroke();
         ctx.restore();
     });
+}
+
+function getGunScale() {
+    return Math.max(1.1, canvas.height / 650);
 }
 
 function drawGun() {
@@ -99,7 +119,10 @@ function drawGun() {
     
     ctx.translate(bx, by);
     ctx.rotate(angle);
-    ctx.translate(-gunRecoil, 0);
+    
+    const gunScale = getGunScale();
+    ctx.scale(gunScale, gunScale);
+    ctx.translate(-gunRecoil / gunScale, 0);
     
     // 1. Grip / Handguard
     ctx.strokeStyle = '#ff0055';
@@ -638,11 +661,11 @@ function playSound(type) {
 // --- Classes ---
 
 class Particle {
-    constructor(x, y, color) {
+    constructor(x, y, color, customVx = null, customVy = null) {
         this.x = x;
         this.y = y;
-        this.vx = (Math.random() - 0.5) * 20;
-        this.vy = (Math.random() - 0.5) * 20 - 5; // push up slightly
+        this.vx = customVx !== null ? customVx : (Math.random() - 0.5) * 20;
+        this.vy = customVy !== null ? customVy : (Math.random() - 0.5) * 20 - 5; // push up slightly
         this.size = Math.random() * 8 + 4;
         this.color = color;
         this.life = 1.0;
@@ -727,6 +750,34 @@ class FloatingText {
         ctx.shadowBlur = 12;
         ctx.shadowColor = this.color;
         ctx.fillText(this.text, 0, 0);
+        ctx.restore();
+    }
+}
+
+class Shockwave {
+    constructor(x, y, color, maxRadius = 120) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = 10;
+        this.maxRadius = maxRadius;
+        this.life = 1.0;
+        this.decay = 0.06;
+    }
+    update(deltaTime) {
+        this.radius += (this.maxRadius - this.radius) * 0.2 * deltaTime;
+        this.life -= this.decay * deltaTime;
+    }
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 4 * this.life;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.restore();
     }
 }
@@ -1026,6 +1077,20 @@ function triggerCombo(amount) {
     if (currentCombo === 10 && window.achievements) {
         window.achievements.unlock('bottle', 'combo_10', 'Combo King');
     }
+
+    if (currentCombo > 0 && currentCombo % 5 === 0) {
+        let msg = '';
+        let col = '#00ffff';
+        if (currentCombo === 5) { msg = '🔥 GREAT COMBO! 🔥'; col = '#00ffff'; }
+        else if (currentCombo === 10) { msg = '⚡ UNSTOPPABLE! ⚡'; col = '#ffaa00'; }
+        else if (currentCombo === 15) { msg = '🏆 SUPER SPREE! 🏆'; col = '#ff00ff'; }
+        else if (currentCombo >= 20) { msg = '💥 NEON GOD! 💥'; col = '#ff0055'; }
+        
+        if (msg) {
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2.5, msg, col, 36));
+            screenShake = Math.max(screenShake, 10);
+        }
+    }
 }
 
 function resetCombo() {
@@ -1074,13 +1139,14 @@ function shootShotgun() {
     
     updateHUD();
     
+    const gunScale = getGunScale();
     const bx = canvas.width / 2;
     const by = canvas.height - 20;
     const dx = crosshair.x - bx;
     const dy = crosshair.y - by;
     const angle = Math.atan2(dy, dx);
-    const muzzleX = bx + Math.cos(angle) * 105;
-    const muzzleY = by + Math.sin(angle) * 105;
+    const muzzleX = bx + Math.cos(angle) * 105 * gunScale;
+    const muzzleY = by + Math.sin(angle) * 105 * gunScale;
     
     laserTrails.push({
         x1: muzzleX,
@@ -1106,6 +1172,15 @@ function shootShotgun() {
         color: '#ffaa00',
         life: 1.0
     });
+    
+    // Directional muzzle sparks
+    for (let i = 0; i < 15; i++) {
+        const spreadAngle = angle + (Math.random() - 0.5) * 0.8;
+        const speed = Math.random() * 20 + 12;
+        const vx = Math.cos(spreadAngle) * speed;
+        const vy = Math.sin(spreadAngle) * speed;
+        particles.push(new Particle(muzzleX, muzzleY, '#ffaa00', vx, vy));
+    }
     
     [crosshair.x, crosshair.x - 90, crosshair.x + 90].forEach(tx => {
         for (let s = 0; s < 5; s++) {
@@ -1174,13 +1249,14 @@ function shoot() {
     
     updateHUD();
     
+    const gunScale = getGunScale();
     const bx = canvas.width / 2;
     const by = canvas.height - 20;
     const dx = crosshair.x - bx;
     const dy = crosshair.y - by;
     const angle = Math.atan2(dy, dx);
-    const muzzleX = bx + Math.cos(angle) * 105;
-    const muzzleY = by + Math.sin(angle) * 105;
+    const muzzleX = bx + Math.cos(angle) * 105 * gunScale;
+    const muzzleY = by + Math.sin(angle) * 105 * gunScale;
     
     laserTrails.push({
         x1: muzzleX,
@@ -1190,6 +1266,15 @@ function shoot() {
         color: '#00ffcc',
         life: 1.0
     });
+    
+    // Directional muzzle sparks
+    for (let i = 0; i < 8; i++) {
+        const spreadAngle = angle + (Math.random() - 0.5) * 0.5;
+        const speed = Math.random() * 15 + 10;
+        const vx = Math.cos(spreadAngle) * speed;
+        const vy = Math.sin(spreadAngle) * speed;
+        particles.push(new Particle(muzzleX, muzzleY, '#00ffff', vx, vy));
+    }
     
     for (let s = 0; s < 6; s++) {
         particles.push(new Particle(crosshair.x, crosshair.y, '#00ffff'));
@@ -1267,6 +1352,37 @@ function hitBottle(b, index) {
     shotsHit++;
     bottlesDestroyed++;
     createExplosion(b.x + b.w/2, b.y, b.color);
+    
+    // Shockwave
+    let swRadius = b.type === 'giant' ? 180 : (b.type === 'blast' || b.type === 'bomb' ? 260 : 120);
+    shockwaves.push(new Shockwave(b.x + b.w/2, b.y, b.color, swRadius));
+
+    // Screen Flash & Hit Stop
+    if (b.type === 'bomb') {
+        screenFlashColor = '#ff0033';
+        screenFlashIntensity = 0.65;
+        hitStopTimer = 6;
+    } else if (b.type === 'blast') {
+        screenFlashColor = '#ff6600';
+        screenFlashIntensity = 0.55;
+        hitStopTimer = 5;
+    } else if (b.type === 'gold') {
+        screenFlashColor = '#ffd700';
+        screenFlashIntensity = 0.35;
+        hitStopTimer = 3;
+    } else if (b.type === 'ice') {
+        screenFlashColor = '#00aaff';
+        screenFlashIntensity = 0.45;
+        hitStopTimer = 3;
+    } else if (b.type === 'giant') {
+        screenFlashColor = '#ff00ff';
+        screenFlashIntensity = 0.3;
+        hitStopTimer = 3;
+    } else {
+        screenFlashColor = b.color;
+        screenFlashIntensity = 0.15;
+        hitStopTimer = 1.5;
+    }
     
     synth.playShatter(b.type === 'giant');
     
@@ -1353,31 +1469,60 @@ function update(deltaTime) {
     }
     updateLaserTrails(deltaTime);
 
-    // Bottle generation
-    waveTimer += deltaTime;
-    let spawnRate = Math.max(30, 90 - (currentWave * 10)); 
-    if (gameMode === 'precision') spawnRate = 120; // Slower for precision
-    
-    // We use a separate accumulator for spawning to keep it consistent
-    if (!this._spawnAccum) this._spawnAccum = 0;
-    this._spawnAccum += deltaTime;
-    if (this._spawnAccum >= spawnRate && freezeTimer <= 0) {
-        spawnBottle();
-        this._spawnAccum = 0;
-    }
+    // Update shockwaves
+    shockwaves.forEach(sw => sw.update(deltaTime));
+    shockwaves = shockwaves.filter(sw => sw.life > 0);
 
-    // Wave Progression
-    if (waveTimer > 600) { // Every 10 seconds advance difficulty
-        waveTimer = 0;
-        currentWave++;
-        if (currentWave === 3 && window.achievements) {
-            window.achievements.unlock('bottle', 'boss_1', 'Boss Breaker'); 
+    // Crosshair movement trails
+    if (!this._lastCx) {
+        this._lastCx = crosshair.x;
+        this._lastCy = crosshair.y;
+    }
+    const cxMoved = Math.hypot(crosshair.x - this._lastCx, crosshair.y - this._lastCy);
+    if (cxMoved > 4 && gameState === 'playing') {
+        const pColor = shotgunAmmo > 0 ? '#ff5500' : '#00ffff';
+        const p = new Particle(
+            crosshair.x + (Math.random() - 0.5) * 6,
+            crosshair.y + (Math.random() - 0.5) * 6,
+            pColor,
+            (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 2
+        );
+        p.decay = 0.08;
+        p.size = Math.random() * 4 + 2;
+        particles.push(p);
+    }
+    this._lastCx = crosshair.x;
+    this._lastCy = crosshair.y;
+
+    if (hitStopTimer > 0) {
+        hitStopTimer -= deltaTime;
+    } else {
+        // Bottle generation
+        waveTimer += deltaTime;
+        let spawnRate = Math.max(30, 90 - (currentWave * 10)); 
+        if (gameMode === 'precision') spawnRate = 120; // Slower for precision
+        
+        if (!this._spawnAccum) this._spawnAccum = 0;
+        this._spawnAccum += deltaTime;
+        if (this._spawnAccum >= spawnRate && freezeTimer <= 0) {
+            spawnBottle();
+            this._spawnAccum = 0;
         }
-    }
 
-    // Update Entities
-    bottles.forEach(b => b.update(deltaTime));
-    bottles = bottles.filter(b => b.active);
+        // Wave Progression
+        if (waveTimer > 600) { // Every 10 seconds advance difficulty
+            waveTimer = 0;
+            currentWave++;
+            if (currentWave === 3 && window.achievements) {
+                window.achievements.unlock('bottle', 'boss_1', 'Boss Breaker'); 
+            }
+        }
+
+        // Update Bottles
+        bottles.forEach(b => b.update(deltaTime));
+        bottles = bottles.filter(b => b.active);
+    }
 
     particles.forEach(p => p.update(deltaTime));
     particles = particles.filter(p => p.life > 0);
@@ -1492,8 +1637,16 @@ function draw() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
+    if (shotgunAmmo > 0) {
+        const pulse = 0.5 + Math.sin(Date.now() * 0.008) * 0.15;
+        drawVignette('#ff5500', pulse * 0.45);
+        ctx.fillStyle = 'rgba(255, 85, 0, 0.03)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
     drawShelves();
 
+    shockwaves.forEach(sw => sw.draw());
     bottles.forEach(b => b.draw());
     particles.forEach(p => p.draw());
     floatingTexts.forEach(t => t.draw());
@@ -1502,6 +1655,15 @@ function draw() {
         drawGun();
         drawLaserTrails();
         drawCrosshair();
+    }
+
+    if (screenFlashIntensity > 0) {
+        ctx.save();
+        ctx.fillStyle = screenFlashColor;
+        ctx.globalAlpha = screenFlashIntensity;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        screenFlashIntensity -= 0.08;
     }
 
     ctx.restore();
@@ -1559,6 +1721,9 @@ function initGame(mode) {
     bottles = [];
     particles = [];
     floatingTexts = [];
+    shockwaves = [];
+    hitStopTimer = 0;
+    screenFlashIntensity = 0;
     freezeTimer = 0;
     slowTimer = 0;
     shotgunAmmo = 0;
