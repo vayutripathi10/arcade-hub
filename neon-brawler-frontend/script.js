@@ -1896,8 +1896,20 @@ function gameOver() {
     }
     
     document.getElementById('overlayTitle').textContent = "Knockout!";
-    document.getElementById('overlayMessage').innerHTML = `Final Streak: ${score * 100}<br>You were overwhelmed!`;
-    document.getElementById('shareContainer').classList.remove('hidden');
+    document.getElementById('overlayMessage').innerHTML = "You were overwhelmed by the cyber horde!";
+    
+    // Fill stats values
+    const statScore = document.getElementById('statScore');
+    const statBest = document.getElementById('statBest');
+    const statKills = document.getElementById('statKills');
+    const statWave = document.getElementById('statWave');
+    if (statScore) statScore.textContent = score * 100;
+    if (statBest) statBest.textContent = highScore;
+    if (statKills) statKills.textContent = kills;
+    if (statWave) statWave.textContent = currentWave;
+    
+    document.getElementById('gameOverStats')?.classList.remove('hidden');
+    document.getElementById('shareContainer')?.classList.remove('hidden');
     startBtn.textContent = "Fight Again";
     overlay.classList.remove('hidden');
 }
@@ -3041,6 +3053,7 @@ btnQuit?.addEventListener('click', (e) => {
     document.getElementById('overlayTitle').textContent = "Neon Brawler";
     document.getElementById('overlayMessage').innerHTML = "Enemies approach from both sides.<br>Tap Left/Right or use Arrow Keys to strike!";
     startBtn.textContent = "Start Fighting";
+    document.getElementById('gameOverStats')?.classList.add('hidden');
     document.getElementById('shareContainer')?.classList.add('hidden');
     overlay.classList.remove('hidden');
     pauseBtn?.classList.add('hidden');
@@ -3095,8 +3108,8 @@ function togglePause(forcePause) {
 }
 
 function shareScore(platform) {
-    const text = `I just reached a streak of ${score * 100} in Neon Brawler 🥊 at Arcade Hub! Can you beat me?`;
-    const url = 'https://arcadehubplay.com';
+    const text = `I just reached a streak of ${score * 100} (Wave ${currentWave}, ${kills} kills) in Neon Brawler 🥊 at Arcade Hub! Can you beat me?`;
+    const url = 'https://arcadehubplay.com/play-neon-brawler.html';
     if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
     else if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
 }

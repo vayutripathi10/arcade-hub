@@ -26,7 +26,7 @@
       gtag('config', 'G-B8XQ759LPH');
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=ArcadeHub_Brawler_MobilePortraitFix"><!-- Dark Mode Ad Formatting -->
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_Brawler_GameOverShareFix"><!-- Dark Mode Ad Formatting -->
     <style>
         .ad-container { background-color: transparent !important; }
         .ad-container iframe { background-color: transparent !important; color-scheme: dark !important; }
@@ -400,7 +400,27 @@
             <div class="overlay-content">
                 <h2 id="overlayTitle">Neon Brawler</h2>
                 <p id="overlayMessage">Enemies approach from both sides.<br>Tap Left/Right or use Arrow Keys to strike!</p>
-<div class="share-container hidden" id="shareContainer">
+                
+                <div id="gameOverStats" class="stats-grid hidden">
+                    <div class="stats-box">
+                        <span class="stats-label">Streak</span>
+                        <span id="statScore" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Best Streak</span>
+                        <span id="statBest" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Total Kills</span>
+                        <span id="statKills" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Wave Reached</span>
+                        <span id="statWave" class="stats-value">1</span>
+                    </div>
+                </div>
+
+                <div class="share-container hidden" id="shareContainer">
                     <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
                     <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
                 </div>
@@ -421,7 +441,7 @@
 
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Brawler_MobilePortraitFix"></script>
+    <script src="script.js?v=ArcadeHub_Brawler_GameOverShareFix"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {
