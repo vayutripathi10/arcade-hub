@@ -1895,6 +1895,18 @@ if (hubBtn) {
     });
 }
 
+document.getElementById('tweetBtn')?.addEventListener('click', () => shareScore('twitter'));
+document.getElementById('waBtn')?.addEventListener('click', () => shareScore('whatsapp'));
+
+function shareScore(platform) {
+    let acc = 0;
+    if (shotsFired > 0) acc = Math.round((shotsHit / shotsFired) * 100);
+    const text = `I just scored ${score} (Combo x${maxCombo}, ${bottlesDestroyed} bottles broken, ${acc}% accuracy) in Neon Bottle Shooter 🔫 at Arcade Hub! Can you beat me?`;
+    const url = 'https://arcadehubplay.com/play-neon-bottle-shooter.html';
+    if (platform === 'twitter') window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    else if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+}
+
 // Initial call to set correct button label on load
 updateHubButton();
 
