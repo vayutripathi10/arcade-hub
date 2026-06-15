@@ -160,8 +160,12 @@ class PowerUp {
         ctx.fillRect(this.x, this.y, this.width, this.height);
         
         ctx.fillStyle = '#000';
-        ctx.font = '12px "Press Start 2P"';
-        ctx.fillText(char, this.x + 5, this.y + 18);
+        ctx.font = 'bold 13px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(char, this.x + 12, this.y + 12);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
         
         ctx.shadowBlur = 0;
     }
@@ -652,7 +656,7 @@ function startNextStage() {
     gameState = 'playing';
 }
 
-function gameLoop(timestamp) {
+function gameLoop() {
     if (gameState === 'gameover' || gameState === 'paused' || gameState === 'menu') {
         gameLoopId = null;
         return;
@@ -665,14 +669,15 @@ function gameLoop(timestamp) {
         return;
     }
 
-    if (!lastTime || lastTime === 0) lastTime = timestamp;
-    let dt = timestamp - lastTime;
+    const now = performance.now();
+    if (!lastTime || lastTime === 0) lastTime = now;
+    let dt = now - lastTime;
     
     // Safety check for clock drift, negative steps, or massive frame jumps (e.g. tab backgrounded)
-    if (dt < 0 || dt > 1000) {
+    if (dt < 0 || dt > 1000 || isNaN(dt)) {
         dt = 16.67;
     }
-    lastTime = timestamp;
+    lastTime = now;
     
     const deltaTime = Math.max(0.1, Math.min(dt / 16.67, 3));
 
@@ -755,7 +760,7 @@ function initGame() {
     
     stageOverlayTimer = 2000;
     gameState = 'stage_intro';
-    lastTime = 0;
+    lastTime = performance.now();
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 

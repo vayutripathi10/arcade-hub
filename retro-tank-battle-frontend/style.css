@@ -243,13 +243,58 @@ html, body {
 .menu-overlay.hidden { display: none !important; }
 
 .game-title { 
-    font-size: clamp(28px, 8vw, 44px); 
+    font-size: clamp(32px, 8vw, 48px); 
     color: #ff3344; 
     margin-bottom: 20px; 
     text-shadow: 0 0 20px rgba(255, 51, 68, 0.6), 0 0 5px rgba(255, 51, 68, 0.3); 
     line-height: 1.1; 
     font-weight: 900;
     letter-spacing: 2px;
+}
+.menu-title {
+    font-size: clamp(24px, 6vw, 36px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #ff3344, #ff8833);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+    text-shadow: 0 0 15px rgba(255, 51, 68, 0.2);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.menu-overlay p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.controls-hint {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    line-height: 1.6;
+    text-align: center;
+}
+.end-stats {
+    margin-bottom: 24px;
+}
+.end-stats p {
+    font-size: 1.1rem;
+    color: #fff !important;
+    margin-bottom: 8px !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.end-stats span {
+    color: var(--accent-color);
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
 }
 .menu-actions { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 280px; }
 
@@ -291,12 +336,24 @@ html, body {
 .rules-container {
     text-align: left;
     max-width: 480px;
-    background: #111;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
     padding: 20px;
-    border: 2px solid var(--retro-red);
     margin-bottom: 24px;
-    font-size: 10px;
-    line-height: 1.6;
+}
+.rules-container p {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin-bottom: 12px !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+.rules-container p b {
+    color: #ff3344;
+}
+.rules-container p:last-child {
+    margin-bottom: 0 !important;
 }
 
 /* ==================== MOBILE ADJUSTMENTS ==================== */

@@ -201,51 +201,52 @@
             <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW &#x2794;</button>
         </div>
 
-        <h2>Neon Tank Battle</h2>
-        <p>Neon Tank Battle is a classic top-down tactical tank shooter reimagined with glowing neon visuals. Command your neon battle tank through maze-like arenas, destroying enemy tanks while dodging their cannon fire. Ricochet your shots off walls to destroy hidden enemies, collect power-up crates for rapid fire and shields, and clear every enemy tank to advance to the next stage. Strategic and intense.</p>
+        <h2>Retro Tank Battle</h2>
+        <p>Retro Tank Battle is a classic top-down tactical tank shooter. Command your battle tank through maze-like arenas, destroying enemy tanks while defending your base HQ. Clear every enemy tank in the wave to advance to the next stage. Strategic and intense classic retro tank action!</p>
 
         <h3>&#x1F3AE; How to Play</h3>
-        <p>Drive your tank around the arena and aim your cannon at enemy tanks. Shoot to destroy them. Your bullets ricochet off walls &mdash; use this to hit enemies around corners. Survive and clear the arena to win.</p>
+        <p>Drive your tank around the arena and shoot enemy tanks. Defend the Eagle HQ base at the bottom of the map &mdash; if its health drops to 0, the mission fails. Eliminate all enemies to win.</p>
         <ul>
             <li><strong>Desktop &mdash; Move:</strong> WASD or Arrow Keys</li>
-            <li><strong>Desktop &mdash; Aim/Shoot:</strong> Mouse to aim, click to fire</li>
-            <li><strong>Mobile:</strong> Left virtual joystick to move; right joystick or tap to aim and shoot</li>
-            <li><strong>Ricochet:</strong> Bullets bounce off walls &mdash; use angles to hit hidden enemies</li>
+            <li><strong>Desktop &mdash; Fire:</strong> SPACE key</li>
+            <li><strong>Mobile &mdash; Move:</strong> D-Pad (Up, Down, Left, Right buttons)</li>
+            <li><strong>Mobile &mdash; Fire:</strong> Press the FIRE button</li>
+            <li><strong>Power-Ups:</strong> Destroy brick walls to reveal crates: Shield (S), Freeze Enemies (F), Multi-Shot (M), Strong Bullets (B), and Speed Boost (V)</li>
         </ul>
 
         <div class="info-grid">
             <div class="info-card">
                 <h3>&#x26A1; Game Features</h3>
                 <ul>
-                    <li>Wall-ricochet bullet physics for tactical shots</li>
-                    <li>Multiple enemy tank types with unique AI behaviors</li>
-                    <li>Shield, rapid-fire, and power-shot collectible crates</li>
-                    <li>Destructible wall segments in the arena</li>
+                    <li>Classic Battle City style tactical tank combat</li>
+                    <li>Multiple enemy waves with increasing difficulty</li>
+                    <li>HQ defense core mechanic with health meter</li>
+                    <li>Collectible upgrade crates (Shield, Multi-Shot, Speed)</li>
                 </ul>
             </div>
             <div class="info-card">
                 <h3>&#x1F3C6; Pro Tips</h3>
                 <ul>
-                    <li>Use wall ricochets to attack enemies hiding behind cover</li>
-                    <li>Grab the rapid-fire crate before engaging multiple enemies</li>
-                    <li>Keep moving &mdash; stationary tanks are easy targets for enemy AI</li>
-                    <li>Destroy walls strategically to create new lines of sight</li>
+                    <li>Clear brick walls strategically to create defensive lines of sight</li>
+                    <li>Prioritize grabbing Shield and Multi-Shot power-ups</li>
+                    <li>Keep a close eye on the HQ health bar at the top of the screen</li>
+                    <li>Avoid hitting impenetrable steel tiles with standard bullets</li>
                 </ul>
             </div>
         </div>
 
         <h3>&#x2753; Frequently Asked Questions</h3>
         <div class="faq-item">
-            <p class="faq-question">Is Neon Tank Battle free to play?</p>
+            <p class="faq-question">Is Retro Tank Battle free to play?</p>
             <p class="faq-answer">Yes, completely free in your browser. No download or account required.</p>
         </div>
         <div class="faq-item">
             <p class="faq-question">Does it work on mobile?</p>
-            <p class="faq-answer">Yes! Dual virtual joysticks appear on mobile for movement and aiming.</p>
+            <p class="faq-answer">Yes! A virtual D-Pad and Fire button appear on mobile screens for quick inputs.</p>
         </div>
         <div class="faq-item">
-            <p class="faq-question">Do my bullets really ricochet?</p>
-            <p class="faq-answer">Yes! Bullets bounce off solid walls at realistic angles. Mastering ricochets is key to clearing difficult stages.</p>
+            <p class="faq-question">How do I defend the base HQ?</p>
+            <p class="faq-answer">Protect the Eagle HQ symbol at the bottom center of the arena. Position your tank to intercept enemy shells before they hit the base.</p>
         </div>
         <div class="faq-item">
             <p class="faq-question">Where can I find more free games?</p>
@@ -391,21 +392,7 @@
 
     <script src="audio-fx.js"></script>
     <script src="script.js?v=ArcadeHub_Tank_StandardStyleFix"></script>
-    <script>
-        const wakeUpAudio = () => {
-            if (window.audioFX) {
-                window.audioFX.init();
-                // Safari fix: Resume immediately on touch
-                if (window.audioFX.ctx && window.audioFX.ctx.state === 'suspended') {
-                    window.audioFX.ctx.resume();
-                }
-            }
-        };
-        document.getElementById('btn-start').addEventListener('click', wakeUpAudio);
-        document.getElementById('btn-start').addEventListener('touchstart', wakeUpAudio);
-        document.getElementById('btn-restart').addEventListener('click', wakeUpAudio);
-        document.getElementById('btn-restart').addEventListener('touchstart', wakeUpAudio);
-    </script>
+
     
     <script>
     (function() {
