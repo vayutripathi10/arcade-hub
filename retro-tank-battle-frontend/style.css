@@ -76,17 +76,19 @@ html, body {
 }
 
 .hud-label {
-    font-size: 8px;
-    color: rgba(255, 255, 255, 0.4);
-    font-family: 'Press Start 2P', cursive;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.45);
+    font-family: 'Outfit', sans-serif;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .hud-value {
-    font-size: 13px;
-    font-family: 'Press Start 2P', cursive;
+    font-size: 1.05rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
     color: #fff;
-    text-shadow: 2px 2px 0 #000;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 .hud-value.accent { color: var(--accent-color); }
 
@@ -203,8 +205,9 @@ html, body {
     background: rgba(204, 0, 0, 0.7);
     border: 3px solid rgba(255, 80, 80, 0.6);
     color: #fff;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 11px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
     letter-spacing: 1px;
     box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
     cursor: pointer;
@@ -227,7 +230,7 @@ html, body {
 .menu-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(10, 10, 20, 0.95);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -235,24 +238,55 @@ html, body {
     z-index: 100;
     padding: 24px;
     text-align: center;
+    backdrop-filter: blur(12px);
 }
 .menu-overlay.hidden { display: none !important; }
 
-.game-title { font-size: clamp(24px, 8vw, 40px); color: var(--retro-red); margin-bottom: 20px; text-shadow: 4px 4px 0 #fff; line-height: 1.1; }
+.game-title { 
+    font-size: clamp(28px, 8vw, 44px); 
+    color: #ff3344; 
+    margin-bottom: 20px; 
+    text-shadow: 0 0 20px rgba(255, 51, 68, 0.6), 0 0 5px rgba(255, 51, 68, 0.3); 
+    line-height: 1.1; 
+    font-weight: 900;
+    letter-spacing: 2px;
+}
 .menu-actions { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 280px; }
 
 .btn {
-    padding: 16px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    padding: 14px 20px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
     border: none;
+    border-radius: 10px;
     cursor: pointer;
     text-transform: uppercase;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
+    letter-spacing: 1px;
 }
-.primary-btn { background: var(--retro-red); color: #fff; box-shadow: 4px 4px 0 #fff; }
-.secondary-btn { background: #fff; color: #000; box-shadow: 4px 4px 0 var(--retro-red); }
-.btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #fff; }
+.primary-btn { 
+    background: linear-gradient(135deg, var(--retro-red), #990000); 
+    color: #fff; 
+    box-shadow: 0 0 15px rgba(204, 0, 0, 0.4); 
+}
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(204, 0, 0, 0.6);
+}
+.secondary-btn { 
+    background: rgba(255, 255, 255, 0.05); 
+    color: #fff; 
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.1); 
+    border-color: var(--accent-color);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+}
+.btn:active { transform: translateY(0); }
 
 .rules-container {
     text-align: left;
