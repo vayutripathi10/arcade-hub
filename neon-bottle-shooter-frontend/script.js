@@ -58,6 +58,7 @@ let freezeTimer = 0;
 let bossWave = false;
 let currentWave = 1;
 let waveTimer = 0;
+let strikes = 0;
 
 // Juiced Gun & Laser Effects
 let gunRecoil = 0;
@@ -791,6 +792,15 @@ class Bottle {
         // Conveyor bounce logic (if hits edge, rarely bounce, usually disappear)
         if (this.x > canvas.width + 150 || this.x < -150) {
             this.active = false;
+            if (gameMode === 'survival' && gameState === 'playing' && this.type !== 'bomb') {
+                strikes++;
+                updateHUD();
+                if (strikes >= 3) {
+                    setTimeout(() => {
+                        if (gameState === 'playing') gameOver();
+                    }, 800);
+                }
+            }
         }
     }
 
@@ -978,6 +988,7 @@ function createExplosion(x, y, color) {
 }
 
 function reload() {
+    if (gameMode === 'precision') return;
     if (isReloading || ammo === MAX_AMMO) return;
     isReloading = true;
     reloadTimer = 30; // 0.5 seconds
@@ -1110,9 +1121,23 @@ function shootShotgun() {
     if (!hitAny) {
         resetCombo();
         if (gameMode === 'survival') {
+            strikes++;
+            updateHUD();
+            if (strikes >= 3) {
+                setTimeout(() => {
+                    if (gameState === 'playing') gameOver();
+                }, 800);
+                return;
+            }
             score -= 50;
             if (score < 0) score = 0;
         }
+    }
+
+    if (gameMode === 'precision' && ammo <= 0 && shotgunAmmo <= 0) {
+        setTimeout(() => {
+            if (gameState === 'playing') gameOver();
+        }, 800);
     }
 }
 
@@ -1127,6 +1152,10 @@ function shoot() {
     }
 
     if (ammo <= 0) {
+        if (gameMode === 'precision') {
+            gameOver();
+            return;
+        }
         synth.playEmptyClick();
         reload();
         return;
@@ -1171,9 +1200,23 @@ function shoot() {
     if (!hit) {
         resetCombo();
         if (gameMode === 'survival') {
+            strikes++;
+            updateHUD();
+            if (strikes >= 3) {
+                setTimeout(() => {
+                    if (gameState === 'playing') gameOver();
+                }, 800);
+                return;
+            }
             score -= 50;
             if (score < 0) score = 0;
         }
+    }
+
+    if (gameMode === 'precision' && ammo <= 0 && shotgunAmmo <= 0) {
+        setTimeout(() => {
+            if (gameState === 'playing') gameOver();
+        }, 800);
     }
 }
 
@@ -1352,15 +1395,8 @@ function update(deltaTime) {
             updateHUD();
             if (timer <= 0) gameOver();
         }
-    } else if (gameMode === 'survival') {
-        let missedCount = bottlesDestroyed === 0 ? 0 : shotsFired - shotsHit;
-        if (missedCount > 10) { 
-            gameOver();
-        }
-    } else if (gameMode === 'precision') {
-        if (ammo <= 0 && isReloading === false) {
-             if (shotsFired > 30 && (shotsHit / shotsFired) < 0.5) gameOver();
-        }
+    } else if (gameMode === 'survival' || gameMode === 'precision') {
+        // Handled in shoot()
     }
 }
 
@@ -1508,7 +1544,15 @@ function initGame(mode) {
     perfectReloads = 0;
     noBombsShot = true;
     comboMultiplier = 1;
-    ammo = MAX_AMMO;
+
+    if (gameMode === 'precision') {
+        ammo = 30;
+        if (btnAmmoReload) btnAmmoReload.style.display = 'none';
+    } else {
+        ammo = MAX_AMMO;
+        if (btnAmmoReload) btnAmmoReload.style.display = 'inline-block';
+    }
+
     isReloading = false;
     currentWave = 1;
     waveTimer = 0;
@@ -1518,13 +1562,10 @@ function initGame(mode) {
     freezeTimer = 0;
     slowTimer = 0;
     shotgunAmmo = 0;
+    strikes = 0;
 
     uiTime.classList.remove('time-warning');
-    if (gameMode === 'classic') {
-        uiTime.style.visibility = 'visible';
-    } else {
-        uiTime.style.visibility = 'hidden'; 
-    }
+    uiTime.style.visibility = 'visible';
 
     updateHUD();
     document.getElementById('hud').classList.remove('hud-hidden');
@@ -1542,10 +1583,25 @@ function initGame(mode) {
 
 function updateHUD() {
     uiScore.textContent = score;
-    uiTime.textContent = timer;
+    
+    if (gameMode === 'classic') {
+        uiTime.textContent = timer;
+    } else if (gameMode === 'survival') {
+        let strikeStr = 'STRIKES: ';
+        for (let i = 1; i <= 3; i++) {
+            strikeStr += (i <= strikes) ? '❌' : '⚪';
+        }
+        uiTime.textContent = strikeStr;
+    } else if (gameMode === 'precision') {
+        uiTime.textContent = `BULLETS: ${ammo}`;
+    }
+    
     if (shotgunAmmo > 0) {
         uiAmmo.textContent = `⚡ Shotgun: ${shotgunAmmo}`;
         uiAmmo.classList.add('shotgun-active');
+    } else if (gameMode === 'precision') {
+        uiAmmo.textContent = `🔫 Ammo: ${ammo} / 30`;
+        uiAmmo.classList.remove('shotgun-active');
     } else {
         uiAmmo.textContent = `🔫 ${ammo} / ${MAX_AMMO}`;
         uiAmmo.classList.remove('shotgun-active');
