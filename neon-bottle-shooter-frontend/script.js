@@ -1087,7 +1087,7 @@ function triggerCombo(amount) {
         else if (currentCombo >= 20) { msg = '💥 NEON GOD! 💥'; col = '#ff0055'; }
         
         if (msg) {
-            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2.5, msg, col, 36));
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, msg, col, 28));
             screenShake = Math.max(screenShake, 10);
         }
     }
@@ -1403,22 +1403,22 @@ function hitBottle(b, index) {
             freezeTimer = 300; // 5 seconds freeze
             iceDestroyed++;
             if(iceDestroyed>=25 && window.achievements) window.achievements.unlock('bottle', 'ice_25', 'Ice Breaker');
-            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '❄️ TIME FROZEN! ❄️', colors.ice, 48));
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, '❄️ TIME FROZEN! ❄️', colors.ice, 32));
             break;
         case 'slow':
             slowTimer = 480; // 8 seconds slow
             pts = 50;
-            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '⏳ SLOW MOTION! ⏳', colors.slow, 48));
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, '⏳ SLOW MOTION! ⏳', colors.slow, 32));
             break;
         case 'shotgun':
             shotgunAmmo = 5; // 5 shotgun shells
             pts = 50;
-            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '⚡ SHOTGUN SPREAD! ⚡', colors.shotgun, 48));
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, '⚡ SHOTGUN SPREAD! ⚡', colors.shotgun, 32));
             break;
         case 'blast':
             pts = 150;
             screenShake = 25;
-            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 3, '💥 MEGA BLAST! 💥', colors.blast, 48));
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, '💥 MEGA BLAST! 💥', colors.blast, 32));
             triggerMegaBlast(b.x + b.w/2, b.y);
             break;
         case 'giant': 
