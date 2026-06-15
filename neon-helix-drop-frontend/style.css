@@ -59,15 +59,6 @@ body {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 14px;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s ease;
-}
-
-.hub-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 #score {
@@ -177,40 +168,11 @@ body {
     border-radius: 50px;
     cursor: pointer;
     box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s;
     margin-bottom: 10px;
 }
 
-.primary-btn:hover {
-    transform: scale(1.06);
-    box-shadow: 0 0 32px rgba(0, 243, 255, 0.7);
-}
-
-.primary-btn:active {
-    transform: scale(0.97);
-}
-
-.secondary-btn {
-    text-decoration: none;
-    color: #fff;
-    opacity: 0.6;
-    font-size: 14px;
-    font-weight: 600;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-    transition: opacity 0.2s, transform 0.2s;
-}
-
-.secondary-btn:hover {
-    opacity: 1.0;
-    transform: translateY(-1px);
-}
-
-.secondary-btn:active {
-    transform: translateY(0);
-}
+.secondary-btn { text-decoration: none; color: #fff; opacity: 0.6; font-size: 14px; font-weight: 600; }
 
 .stat-row {
     display: flex;
