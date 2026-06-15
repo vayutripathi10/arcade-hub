@@ -39,6 +39,7 @@ let gameRunning = false;
 let isPaused = false;
 let frameId;
 let lastTime = 0;
+let lastDismissTime = 0;
 const fpsInterval = 1000 / 60;
 
 // Game Entities
@@ -400,6 +401,9 @@ const brawlerAudio = {
 };
 
 function initGame() {
+    if (Date.now() - lastDismissTime < 500) {
+        return;
+    }
     score = 0;
     displayedScore = 0;
     scoreEl.textContent = '0';
@@ -2970,11 +2974,14 @@ function loop(timestamp = 0) {
     if (isPaused) return;
     if (gameRunning) {
         frameId = requestAnimationFrame(loop);
-        if (!lastTime) lastTime = timestamp;
+        if (!lastTime || lastTime === 0) lastTime = timestamp;
         let dt = timestamp - lastTime;
+        if (dt < 0 || dt > 1000) {
+            dt = 16.67;
+        }
         lastTime = timestamp;
         
-        let deltaTime = Math.min(dt / 16.67, 3);
+        let deltaTime = Math.max(0.1, Math.min(dt / 16.67, 3));
         
         // Bullet time slowdown
         if (bulletTimeTimer > 0) {
@@ -3099,11 +3106,21 @@ waBtn.addEventListener('click', () => shareScore('whatsapp'));
 // Dismiss Force Landscape Prompt
 const dismissBtn = document.getElementById('dismissLandscapeBtn');
 const landscapePrompt = document.getElementById('landscapePrompt');
-dismissBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    landscapePrompt?.classList.add('dismissed');
-    window.dispatchEvent(new Event('resize'));
-});
+function dismissLandscapePrompt(e) {
+    if (e) {
+        e.stopPropagation();
+        if (e.type === 'touchend') {
+            e.preventDefault();
+        }
+    }
+    if (landscapePrompt && !landscapePrompt.classList.contains('dismissed')) {
+        landscapePrompt.classList.add('dismissed');
+        lastDismissTime = Date.now();
+        window.dispatchEvent(new Event('resize'));
+    }
+}
+dismissBtn?.addEventListener('click', dismissLandscapePrompt);
+dismissBtn?.addEventListener('touchend', dismissLandscapePrompt);
 
 // Reset dismissed state if screen is rotated back to landscape
 window.addEventListener('resize', () => {

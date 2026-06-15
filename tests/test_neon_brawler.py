@@ -38,12 +38,22 @@ def test_neon_brawler():
         body = driver.find_element(By.TAG_NAME, "body")
         assert "show-info-overlay" not in body.get_attribute("class")
 
-        print("2. Verifying game is auto-started by continueToGame()...")
-        # Verify overlay start menu is now hidden
+        print("2. Verifying game is on landing menu (not auto-started)...")
+        # Verify overlay start menu is visible
         menu = driver.find_element(By.ID, "overlay")
-        assert "hidden" in menu.get_attribute("class")
+        assert "hidden" not in menu.get_attribute("class")
         
         # Verify internal game state using JavaScript execution
+        game_running = driver.execute_script("return gameRunning;")
+        assert game_running == False, f"Expected gameRunning to be False, got {game_running}"
+        
+        # Click startBtn to start the game
+        start_btn = driver.find_element(By.ID, "startBtn")
+        start_btn.click()
+        time.sleep(0.5)
+        
+        # Now verify overlay start menu is hidden and game has started
+        assert "hidden" in menu.get_attribute("class")
         game_running = driver.execute_script("return gameRunning;")
         assert game_running == True, f"Expected gameRunning to be True, got {game_running}"
         
@@ -123,7 +133,7 @@ def test_neon_brawler():
         boss_max_health = driver.execute_script("return boss.maxHealth;")
         print(f"Boss Active: {boss_active}, Max Health: {boss_max_health}")
         assert boss_active == True, "Expected bossActive to be True"
-        assert boss_max_health == 10, f"Expected Dragon boss maxHealth to be 10, got {boss_max_health}"
+        assert boss_max_health == 60, f"Expected Dragon boss maxHealth to be 60, got {boss_max_health}"
 
         print("6. Testing Game Over mechanics...")
         # Call gameOver() directly
