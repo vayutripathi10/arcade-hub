@@ -509,17 +509,27 @@ class PipeGame {
             dPaths = ["M 50 0 L 50 50"];
         }
 
-        let innerHTML = '';
+        let shadows = '';
+        let glassWalls = '';
+        let glowingPaths = '';
+        let flowPulses = '';
+        let shines = '';
+
         dPaths.forEach(d => {
-            innerHTML += `
-                <path class="pipe-bg-shadow" d="${d}" />
-                <path class="pipe-glass-wall" d="${d}" />
-                <path class="pipe-path" d="${d}" />
-                <path class="flow-pulse" d="${d}" />
-                <path class="pipe-glass-shine" d="${d}" />
-            `;
+            shadows += `<path class="pipe-bg-shadow" fill="none" d="${d}" />`;
+            glassWalls += `<path class="pipe-glass-wall" fill="none" d="${d}" />`;
+            glowingPaths += `<path class="pipe-path" fill="none" d="${d}" />`;
+            flowPulses += `<path class="flow-pulse" fill="none" d="${d}" />`;
+            shines += `<path class="pipe-glass-shine" fill="none" d="${d}" />`;
         });
-        return `<svg viewBox="0 0 100 100" class="pipe-svg">${innerHTML}</svg>`;
+
+        return `<svg viewBox="0 0 100 100" class="pipe-svg">
+            ${shadows}
+            ${glassWalls}
+            ${glowingPaths}
+            ${flowPulses}
+            ${shines}
+        </svg>`;
     }
 
     rotatePipe(r, c, element) {
