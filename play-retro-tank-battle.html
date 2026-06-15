@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Retro Tank Battle is a classic top-down tactical shooter. Command your tank through maze-like arenas, ricochet bullets off walls, collect power-ups, and eliminate enemy waves while defending your HQ eagle. Features retro Press Start 2P fonts and synthesized audio effects.">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/play-retro-tank-battle">
+    <title>Retro Tank Battle — Free Play Online | Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    <style>
+        .play-root { background-color: #06070a; color: #cbd5e1; font-family: 'Outfit', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+        .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; }
+        .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
+        .play-console-holder { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 12px; }
+        .play-console { width: 100%; height: 750px; background: #0d0e12; border: 3px solid #ff0055; box-shadow: 0 0 20px rgba(255, 0, 85, 0.2); border-radius: 16px; overflow: hidden; position: relative; }
+        .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
+        .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .play-iframe { width: 100%; height: 100%; border: none; display: block; }
+        .console-actions { display: flex; justify-content: flex-end; }
+        .fullscreen-btn {
+            background: rgba(13, 14, 18, 0.7);
+            border: 1px solid #ff0055;
+            color: #ff0055;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
+            transition: all 0.25s ease;
+        }
+        .fullscreen-btn:hover {
+            background: #ff0055;
+            color: #fff;
+            box-shadow: 0 0 15px #ff0055;
+        }
+        .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-sizing: border-box; }
+        .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
+        .play-info-section h3 { color: #ff0055; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+        .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
+        .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
+        .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
+        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .faq-accordion { margin-top: 20px; }
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0; }
+        .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
+        .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+        @media (max-width: 768px) {
+            .play-main-container { padding: 10px 0; gap: 16px; }
+            .play-console { height: 85dvh; border-left: none; border-right: none; border-radius: 0; }
+            .play-info-section { padding: 20px; margin: 0 10px; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        /* Mobile Zoom and Accidental Text Selection Locks */
+        body, .play-root, .play-console-wrapper, .play-console-holder, .play-console, .play-iframe, .fullscreen-btn, .menu-toggle-btn, .sidebar-nav {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .play-info-section, .play-info-section * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        /* iOS/iPhone Fullscreen Fallback */
+        .play-console.css-fullscreen-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06070a !important;
+        }
+        body.css-fullscreen-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+        }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="blog" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
+        </div>
+    </nav>
+
+    <div class="play-root">
+        <div class="play-main-container">
+            <div class="play-console-wrapper">
+                <div class="play-console-holder">
+                    <div class="play-console" id="playConsoleContainer">
+                        <iframe class="play-iframe" id="gameIframe" src="retro-tank-battle-frontend/index.html" title="Retro Tank Battle"></iframe>
+                    </div>
+                    <div class="console-actions">
+                        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
+                    </div>
+                </div>
+            </div>
+            
+            <section class="play-info-section">
+                <h2>🚜 Play Retro Tank Battle Online</h2>
+                <p>Retro Tank Battle is a tactical top-down shooter. Move your armored vehicle through a grid maze, destroy enemy tanks using wall-ricochet physics, collect combat crates (rapid fire, shields, power shells), and defend your HQ eagle at all costs.</p>
+                
+                <div class="play-grid-2">
+                    <div>
+                        <h3>🕹️ Visible Gameplay & Controls Guide</h3>
+                        <p>Use WASD or Arrow keys to steer your tank. Aim your gun turret using the mouse crosshair, and left-click to fire. Press SPACE to fire forward directly if playing classic keyboard. On mobile, use joysticks or d-pad buttons on screen.</p>
+                    </div>
+                    <div>
+                        <h3>💡 Expert Tips & Pro Strategies</h3>
+                        <p>Bullets bounce off solid brick walls. Calculate your entry and deflection angles to shoot enemy tanks around corners without exposing your own chassis to counterfire.</p>
+                    </div>
+                </div>
+                
+                <h3>⚡ Cybernetic Specifications</h3>
+                <ul>
+                    <li><strong>Rendering Core:</strong> HTML5 Canvas / GPU Accelerated WebGL context structures.</li>
+                    <li><strong>Framerate Limits:</strong> Fluid 60 FPS up to 120 FPS high-refresh rate displays.</li>
+                    <li><strong>Audio Synthesizer:</strong> Programmatic synthesized combat explosions and engine hums rendered live using Web Audio API nodes.</li>
+                    <li><strong>Offline Capabilities:</strong> Full PWA offline caching via registered Service Workers &mdash; 100% playable without internet!</li>
+                </ul>
+                
+                <h3>❓ Frequently Asked Questions</h3>
+                <div class="faq-accordion">
+                    
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: How do I win stages?</strong>
+                        <p class="faq-answer">A: Stage clear is achieved by eliminating all enemy tanks spawned in waves. Protect your bottom HQ base - if it gets destroyed by stray bullets or enemies, you fail immediately.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: Do power-ups stack?</strong>
+                        <p class="faq-answer">A: Collecting shield and rapid-fire crates activates timed enhancements that help you take down faster heavy enemy tanks.</p>
+                    </div>
+                    <div class="faq-item">
+                        <strong class="faq-question">Q: Can I play offline?</strong>
+                        <p class="faq-answer">A: Yes! The game assets, canvas engine, and synthesized sounds are completely cached locally on your device for offline play.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy">Privacy Policy</a> | <a href="tos">Terms of Service</a> | <a href="contact">Contact Us</a> | <a href="updates">News</a> | <a href="blog">Blog &amp; Guides</a></p>
+    </footer>
+
+    <script src="shared/achievements.js"></script>
+    <script>
+        function toggleFullscreen() {
+            const container = document.getElementById('playConsoleContainer');
+            
+            const hasRequestFullscreen = !!(container.requestFullscreen || 
+                                            container.webkitRequestFullscreen || 
+                                            container.mozRequestFullScreen || 
+                                            container.msRequestFullscreen);
+            
+            if (hasRequestFullscreen) {
+                const requestFS = container.requestFullscreen || 
+                                  container.webkitRequestFullscreen || 
+                                  container.mozRequestFullScreen || 
+                                  container.msRequestFullscreen;
+                
+                const exitFS = document.exitFullscreen || 
+                               document.webkitExitFullscreen || 
+                               document.mozCancelFullScreen || 
+                               document.msExitFullscreen;
+                
+                const fsElement = document.fullscreenElement || 
+                                  document.webkitFullscreenElement || 
+                                  document.mozFullScreenElement || 
+                                  document.msFullscreenElement;
+                
+                if (!fsElement) {
+                    requestFS.call(container).catch(err => {
+                        console.warn(`Fullscreen API failed, falling back to CSS fullscreen: ${err.message}`);
+                        toggleCssFullscreen(container);
+                    });
+                } else {
+                    exitFS.call(document);
+                }
+            } else {
+                toggleCssFullscreen(container);
+            }
+        }
+
+        function toggleCssFullscreen(container) {
+            container.classList.toggle('css-fullscreen-active');
+            document.body.classList.toggle('css-fullscreen-open');
+            
+            let exitBtn = document.getElementById('css-fullscreen-exit-btn');
+            if (container.classList.contains('css-fullscreen-active')) {
+                if (!exitBtn) {
+                    exitBtn = document.createElement('button');
+                    exitBtn.id = 'css-fullscreen-exit-btn';
+                    exitBtn.innerHTML = '✕ Exit Fullscreen';
+                    exitBtn.style.position = 'fixed';
+                    exitBtn.style.top = '16px';
+                    exitBtn.style.right = '16px';
+                    exitBtn.style.zIndex = '9999999';
+                    exitBtn.style.background = 'rgba(13, 14, 18, 0.85)';
+                    exitBtn.style.border = '2px solid #ff0055';
+                    exitBtn.style.color = '#ff0055';
+                    exitBtn.style.padding = '8px 16px';
+                    exitBtn.style.fontFamily = "'Outfit', sans-serif";
+                    exitBtn.style.fontWeight = '700';
+                    exitBtn.style.fontSize = '0.85rem';
+                    exitBtn.style.textTransform = 'uppercase';
+                    exitBtn.style.borderRadius = '8px';
+                    exitBtn.style.cursor = 'pointer';
+                    exitBtn.style.boxShadow = '0 0 15px rgba(255, 0, 85, 0.2)';
+                    
+                    exitBtn.addEventListener('click', () => {
+                        toggleCssFullscreen(container);
+                    });
+                    
+                    document.body.appendChild(exitBtn);
+                } else {
+                    exitBtn.style.display = 'block';
+                }
+            } else {
+                if (exitBtn) {
+                    exitBtn.style.display = 'none';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+
+            // Lock parent-level touch-scrolling on mobile devices when playing inside the iframe
+            const iframe = document.getElementById('gameIframe');
+            
+            const lockScroll = () => {
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+            };
+            
+            const unlockScroll = () => {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            };
+
+            if (iframe) {
+                let locksBound = false;
+                const attachLocks = () => {
+                    if (locksBound) return;
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (iframeDoc && iframeDoc.body) {
+                            iframeDoc.addEventListener('touchstart', lockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
+                            iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
+                            
+                            // Prevent parent scroll and iOS viewport bounces on iframe touchmove
+                            iframeDoc.addEventListener('touchmove', (e) => {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            // Prevent mouse wheel and trackpad scroll from bubbling up on laptops/desktops
+                            iframeDoc.addEventListener('wheel', (e) => {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            locksBound = true;
+                            console.log("Iframe touch/wheel locks bound successfully.");
+                        }
+                    } catch (err) {
+                        console.warn("Could not bind iframe touch/wheel locks:", err);
+                    }
+                };
+
+                attachLocks();
+                iframe.addEventListener('load', attachLocks);
+            }
+
+            const container = document.getElementById('playConsoleContainer');
+            if (container) {
+                container.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+            }
+
+            document.body.addEventListener('touchmove', (e) => {
+                if (document.body.style.overflow === 'hidden') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        });
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>
