@@ -1,7 +1,7 @@
 {
   "name": "Arcade Hub",
   "short_name": "Arcade Hub",
-  "description": "Play 25+ free arcade games instantly in your browser - no download, no login, no signup.",
+  "description": "Play 24+ free arcade games instantly in your browser - no download, no login, no signup.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#111111",
