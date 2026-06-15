@@ -553,6 +553,7 @@ function collectPowerUp(type) {
 }
 
 function draw() {
+    if (!player || !map || map.length === 0) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Tiles
@@ -664,11 +665,16 @@ function gameLoop(timestamp) {
         return;
     }
 
-    if (!lastTime) lastTime = timestamp;
+    if (!lastTime || lastTime === 0) lastTime = timestamp;
     let dt = timestamp - lastTime;
+    
+    // Safety check for clock drift, negative steps, or massive frame jumps (e.g. tab backgrounded)
+    if (dt < 0 || dt > 1000) {
+        dt = 16.67;
+    }
     lastTime = timestamp;
     
-    const deltaTime = Math.min(dt / 16.67, 3);
+    const deltaTime = Math.max(0.1, Math.min(dt / 16.67, 3));
 
     if (gameState === 'stage_intro' || gameState === 'stage_clear') {
         stageOverlayTimer -= deltaTime * 16.67;
@@ -898,6 +904,16 @@ document.addEventListener('touchmove', (e) => {
 
 // Ensure Canvas is visible on Safari
 window.addEventListener('load', () => {
-    lastTime = performance.now();
-    requestAnimationFrame(gameLoop);
+    if (gameState !== 'menu' && !gameLoopId) {
+        lastTime = performance.now();
+        gameLoopId = requestAnimationFrame(gameLoop);
+    } else {
+        try {
+            if (assetsLoaded === totalAssets) {
+                initMap();
+                player = new Tank((MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2, (MAP_ROWS - 5) * TILE_SIZE, 'player');
+                draw();
+            }
+        } catch (e) {}
+    }
 });

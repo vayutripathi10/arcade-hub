@@ -390,7 +390,7 @@
     </div>
 
     <script src="audio-fx.js"></script>
-    <script src="script.js?v=ArcadeHub_Tank_Safari_Fix"></script>
+    <script src="script.js?v=ArcadeHub_Tank_MobileStageFix"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX) {
@@ -422,7 +422,6 @@
         window.dispatchEvent(new Event('resize'));
         var overlay = document.getElementById('game-info-overlay');
         if (overlay) overlay.style.display = 'none';
-        if (typeof initGame === 'function') { initGame(); }
     }
     </script>
 
