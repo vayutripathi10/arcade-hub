@@ -699,7 +699,11 @@ function updateHubBtn() {
 document.getElementById('hub-btn').addEventListener('click', () => {
     soundManager.play('click');
     if (gameState === 'START') {
-        window.location.href = '../index.html';
+        if (window.top !== window.self) {
+            window.top.location.href = '../index.html';
+        } else {
+            window.location.href = '../index.html';
+        }
     } else {
         gameState = 'START';
         document.getElementById('start-screen').classList.remove('hidden');

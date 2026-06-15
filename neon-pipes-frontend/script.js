@@ -54,7 +54,11 @@ class PipeGame {
 
         const exitToHub = () => {
             this.playTone(600, 'sine', 0.06, 0.05);
-            window.location.href = '../index.html';
+            if (window.top !== window.self) {
+                window.top.location.href = '../index.html';
+            } else {
+                window.location.href = '../index.html';
+            }
         };
         document.getElementById('mode-back-btn').addEventListener('click', exitToHub);
         document.getElementById('pause-exit-btn').addEventListener('click', exitToHub);
