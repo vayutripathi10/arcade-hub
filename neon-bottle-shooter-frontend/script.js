@@ -734,8 +734,8 @@ class Bottle {
     constructor(type) {
         this.type = type;
         this.color = colors[type] || colors.normal;
-        this.w = type === 'giant' ? 60 : 30;
-        this.h = type === 'giant' ? 120 : 60;
+        this.w = type === 'giant' ? 80 : 48;
+        this.h = type === 'giant' ? 160 : 96;
         
         // Starting pos and movement logic
         const side = Math.random() > 0.5 ? 1 : -1;
@@ -803,62 +803,144 @@ class Bottle {
         ctx.scale(this.scaleX, this.scaleY);
         ctx.translate(-(this.x + this.w / 2), -this.y);
 
+        const top = this.y - this.h / 2;
+        const bottom = this.y + this.h / 2;
+        const left = this.x;
+        const right = this.x + this.w;
+        const w = this.w;
+        const h = this.h;
+        
         ctx.strokeStyle = this.color;
-        ctx.lineWidth = 3;
-        ctx.shadowBlur = 15;
+        ctx.lineWidth = 3.5;
+        ctx.shadowBlur = 18;
         ctx.shadowColor = this.color;
         
-        // Draw bottle shape
+        // Subtle gradient fill for glass depth
+        const bodyGrad = ctx.createLinearGradient(left, 0, right, 0);
+        bodyGrad.addColorStop(0, this.color + '22');
+        bodyGrad.addColorStop(0.3, this.color + '0a');
+        bodyGrad.addColorStop(0.7, this.color + '0a');
+        bodyGrad.addColorStop(1, this.color + '22');
+        ctx.fillStyle = bodyGrad;
+        
+        // Outline path with rounded neck, shoulders, and bottom
         ctx.beginPath();
-        ctx.moveTo(this.x, this.y - this.h/2); // top lip
-        ctx.lineTo(this.x + this.w, this.y - this.h/2);
-        ctx.lineTo(this.x + this.w*0.8, this.y - this.h/4); // neck down
-        ctx.lineTo(this.x + this.w, this.y + this.h/2); // body top to bottom
-        ctx.lineTo(this.x, this.y + this.h/2); // bottom left
-        ctx.lineTo(this.x + this.w*0.2, this.y - this.h/4); // left body up to neck
+        ctx.moveTo(left + w * 0.35, top);
+        ctx.lineTo(left + w * 0.65, top);
+        ctx.quadraticCurveTo(left + w * 0.68, top, left + w * 0.68, top + h * 0.05);
+        ctx.lineTo(left + w * 0.65, top + h * 0.06);
+        ctx.lineTo(left + w * 0.65, top + h * 0.28);
+        ctx.bezierCurveTo(
+            left + w * 0.65, top + h * 0.35,
+            right, top + h * 0.38,
+            right, top + h * 0.45
+        );
+        ctx.lineTo(right, bottom - h * 0.08);
+        ctx.quadraticCurveTo(right, bottom, right - w * 0.15, bottom);
+        ctx.lineTo(left + w * 0.15, bottom);
+        ctx.quadraticCurveTo(left, bottom, left, bottom - h * 0.08);
+        ctx.lineTo(left, top + h * 0.45);
+        ctx.bezierCurveTo(
+            left, top + h * 0.38,
+            left + w * 0.35, top + h * 0.35,
+            left + w * 0.35, top + h * 0.28
+        );
+        ctx.lineTo(left + w * 0.35, top + h * 0.06);
+        ctx.quadraticCurveTo(left + w * 0.32, top + h * 0.05, left + w * 0.32, top);
         ctx.closePath();
+        ctx.fill();
         ctx.stroke();
 
-        // Inner fill for giant/bomb/powerups
+        // 1. Draw sloshing liquid shader inside the bottle bounds
+        ctx.save();
+        // Create clipping path from the outer bottle shape
+        ctx.beginPath();
+        ctx.moveTo(left + w * 0.35, top);
+        ctx.lineTo(left + w * 0.65, top);
+        ctx.quadraticCurveTo(left + w * 0.68, top, left + w * 0.68, top + h * 0.05);
+        ctx.lineTo(left + w * 0.65, top + h * 0.06);
+        ctx.lineTo(left + w * 0.65, top + h * 0.28);
+        ctx.bezierCurveTo(left + w * 0.65, top + h * 0.35, right, top + h * 0.38, right, top + h * 0.45);
+        ctx.lineTo(right, bottom - h * 0.08);
+        ctx.quadraticCurveTo(right, bottom, right - w * 0.15, bottom);
+        ctx.lineTo(left + w * 0.15, bottom);
+        ctx.quadraticCurveTo(left, bottom, left, bottom - h * 0.08);
+        ctx.lineTo(left, top + h * 0.45);
+        ctx.bezierCurveTo(left, top + h * 0.38, left + w * 0.35, top + h * 0.35, left + w * 0.35, top + h * 0.28);
+        ctx.lineTo(left + w * 0.35, top + h * 0.06);
+        ctx.quadraticCurveTo(left + w * 0.32, top + h * 0.05, left + w * 0.32, top);
+        ctx.closePath();
+        ctx.clip();
+        
+        // Define fluid color gradients based on type
+        const liquidGrad = ctx.createLinearGradient(0, bottom - h * 0.5, 0, bottom);
+        liquidGrad.addColorStop(0, this.color + 'cc');
+        liquidGrad.addColorStop(1, this.color + '44');
+        ctx.fillStyle = liquidGrad;
+        
+        // Draw the sloshing waves
+        const liquidLevel = bottom - h * 0.45;
+        const sloshAngle = (Date.now() * 0.004) + (this.x * 0.01);
+        const sloshHeight = Math.sin(sloshAngle) * 4;
+        
+        ctx.beginPath();
+        ctx.moveTo(left - 20, bottom + 20);
+        ctx.lineTo(left - 20, liquidLevel + sloshHeight);
+        ctx.quadraticCurveTo(
+            left + w * 0.5, liquidLevel - sloshHeight,
+            right + 20, liquidLevel + sloshHeight
+        );
+        ctx.lineTo(right + 20, bottom + 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // 2. Draw glossy light reflection highlights
+        ctx.save();
+        ctx.strokeStyle = '#ffffff';
+        ctx.globalAlpha = 0.55;
+        ctx.lineWidth = 2.0;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#ffffff';
+        
+        // Left edge shine
+        ctx.beginPath();
+        ctx.moveTo(left + w * 0.08, top + h * 0.48);
+        ctx.lineTo(left + w * 0.08, bottom - h * 0.1);
+        ctx.stroke();
+        
+        // Neck reflection
+        ctx.beginPath();
+        ctx.moveTo(left + w * 0.38, top + h * 0.1);
+        ctx.lineTo(left + w * 0.38, top + h * 0.22);
+        ctx.stroke();
+        ctx.restore();
+
+        // 3. Draw inner icons centered
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        
         if (this.type === 'bomb') {
-            ctx.fillStyle = 'rgba(255,0,0,0.3)';
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '20px Outfit';
-            ctx.fillText('💣', this.x + this.w/2, this.y + 10);
+            ctx.font = 'bold 24px Outfit';
+            ctx.fillText('💣', left + w/2, top + h * 0.72);
         } else if (this.type === 'giant') {
-            ctx.fillStyle = `rgba(255,0,255,${this.hp/3 * 0.5})`;
-            ctx.fill();
+            // Give giant bottles a darker filled look
+            ctx.fillStyle = `rgba(255,0,255,${this.hp/3 * 0.35})`;
+            ctx.fillRect(left + 2, top + h * 0.45, w - 4, h * 0.45);
         } else if (this.type === 'ice') {
-            ctx.fillStyle = 'rgba(170,221,255,0.3)';
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '16px Outfit';
-            ctx.fillText('❄️', this.x + this.w/2, this.y + 7);
+            ctx.font = 'bold 20px Outfit';
+            ctx.fillText('❄️', left + w/2, top + h * 0.72);
         } else if (this.type === 'slow') {
-            ctx.fillStyle = 'rgba(255,170,0,0.3)';
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '16px Outfit';
-            ctx.fillText('⏳', this.x + this.w/2, this.y + 7);
+            ctx.font = 'bold 20px Outfit';
+            ctx.fillText('⏳', left + w/2, top + h * 0.72);
         } else if (this.type === 'shotgun') {
-            ctx.fillStyle = 'rgba(255,85,0,0.3)';
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '16px Outfit';
-            ctx.fillText('⚡', this.x + this.w/2, this.y + 7);
+            ctx.font = 'bold 20px Outfit';
+            ctx.fillText('⚡', left + w/2, top + h * 0.72);
         } else if (this.type === 'blast') {
-            ctx.fillStyle = 'rgba(255,0,204,0.3)';
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.font = '16px Outfit';
-            ctx.fillText('💥', this.x + this.w/2, this.y + 7);
+            ctx.font = 'bold 20px Outfit';
+            ctx.fillText('💥', left + w/2, top + h * 0.72);
         }
+        
         ctx.restore();
     }
 }
