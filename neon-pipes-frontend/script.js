@@ -51,6 +51,14 @@ class PipeGame {
         document.getElementById('pause-btn').addEventListener('click', () => this.togglePause());
         document.getElementById('mute-btn').addEventListener('click', () => this.toggleMute());
         document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
+
+        const exitToHub = () => {
+            this.playTone(600, 'sine', 0.06, 0.05);
+            window.location.href = '../index.html';
+        };
+        document.getElementById('mode-back-btn').addEventListener('click', exitToHub);
+        document.getElementById('pause-exit-btn').addEventListener('click', exitToHub);
+        document.getElementById('over-exit-btn').addEventListener('click', exitToHub);
         
         // HTP Modal
         document.getElementById('htp-btn').addEventListener('click', () => {
@@ -80,22 +88,55 @@ class PipeGame {
         window.addEventListener('touchstart', unlock, { once: true });
     }
 
-    playTone(freq, type, duration, vol = 0.1) {
+    playTone(freq, type, duration, vol = 0.1, time = null) {
         if (!this.soundEnabled || !this.audioCtx) return;
+        const playTime = time || this.audioCtx.currentTime;
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
         osc.type = type;
-        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
-        gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
+        osc.frequency.setValueAtTime(freq, playTime);
+        gain.gain.setValueAtTime(vol, playTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, playTime + duration);
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
-        osc.start();
-        osc.stop(this.audioCtx.currentTime + duration);
+        osc.start(playTime);
+        osc.stop(playTime + duration);
     }
 
     sfx = {
-        rotate: () => this.playTone(400, 'sine', 0.1, 0.05),
+        rotate: () => {
+            if (!this.soundEnabled || !this.audioCtx) return;
+            const now = this.audioCtx.currentTime;
+            const carrier = this.audioCtx.createOscillator();
+            const modulator = this.audioCtx.createOscillator();
+            const modGain = this.audioCtx.createGain();
+            const mainGain = this.audioCtx.createGain();
+            
+            carrier.type = 'sine';
+            modulator.type = 'triangle';
+            
+            carrier.frequency.setValueAtTime(380, now);
+            carrier.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+            
+            modulator.frequency.setValueAtTime(120, now);
+            modulator.frequency.linearRampToValueAtTime(50, now + 0.08);
+            
+            modGain.gain.setValueAtTime(90, now);
+            modGain.gain.exponentialRampToValueAtTime(1, now + 0.08);
+            
+            mainGain.gain.setValueAtTime(0.06, now);
+            mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            
+            modulator.connect(modGain);
+            modGain.connect(carrier.frequency);
+            carrier.connect(mainGain);
+            mainGain.connect(this.audioCtx.destination);
+            
+            modulator.start(now);
+            carrier.start(now);
+            modulator.stop(now + 0.08);
+            carrier.stop(now + 0.08);
+        },
         win: () => {
             this.playTone(523, 'sine', 0.2, 0.1);
             setTimeout(() => this.playTone(659, 'sine', 0.2, 0.1), 100);
@@ -104,6 +145,47 @@ class PipeGame {
         fail: () => this.playTone(150, 'sawtooth', 0.4, 0.1),
         whoosh: () => this.playTone(200, 'triangle', 0.5, 0.1)
     };
+
+    playChime(count) {
+        if (!this.soundEnabled || !this.audioCtx) return;
+        const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+        const notesToPlay = Math.min(count, 6);
+        const now = this.audioCtx.currentTime;
+        for (let i = 0; i < notesToPlay; i++) {
+            const freq = scale[i % scale.length];
+            this.playTone(freq, 'sine', 0.28, 0.04, now + i * 0.06);
+        }
+    }
+
+    spawnSparks(element, color) {
+        const rect = element.getBoundingClientRect();
+        const container = document.querySelector('.game-container');
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
+        
+        const startX = rect.left - containerRect.left + rect.width / 2;
+        const startY = rect.top - containerRect.top + rect.height / 2;
+        
+        for (let i = 0; i < 8; i++) {
+            const spark = document.createElement('div');
+            spark.className = 'spark';
+            spark.style.backgroundColor = color;
+            spark.style.color = color;
+            spark.style.left = `${startX}px`;
+            spark.style.top = `${startY}px`;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 50 + 30;
+            const tx = Math.cos(angle) * speed;
+            const ty = Math.sin(angle) * speed;
+            
+            spark.style.setProperty('--tx', `${tx}px`);
+            spark.style.setProperty('--ty', `${ty}px`);
+            
+            container.appendChild(spark);
+            setTimeout(() => spark.remove(), 600);
+        }
+    }
 
     resize() {
         const container = document.querySelector('.game-container');
@@ -217,10 +299,12 @@ class PipeGame {
             for (let c = 0; c < this.gridSize; c++) {
                 const conn = connections[r][c];
                 const { type, baseRotation } = this.determinePipeType(conn);
+                const rotation = Math.floor(Math.random() * 4);
                 this.grid[r][c] = {
                     type,
                     targetRotation: baseRotation,
-                    rotation: Math.floor(Math.random() * 4),
+                    rotation: rotation,
+                    visualRotation: rotation,
                     connected: false,
                     r, c
                 };
@@ -402,7 +486,7 @@ class PipeGame {
                 cell.dataset.r = r;
                 cell.dataset.c = c;
                 cell.innerHTML = this.getPipeSVG(this.grid[r][c]);
-                cell.style.transform = `rotate(${this.grid[r][c].rotation * 90}deg)`;
+                cell.style.transform = `rotate(${this.grid[r][c].visualRotation * 90}deg)`;
                 
                 cell.addEventListener('click', () => this.rotatePipe(r, c, cell));
                 this.gridElement.appendChild(cell);
@@ -412,30 +496,37 @@ class PipeGame {
     }
 
     getPipeSVG(pipe) {
-        let paths = '';
+        let dPaths = [];
         if (pipe.type === 'straight') {
-            paths = `<path class="pipe-path" d="M 50 0 L 50 100" />
-                     <path class="flow-pulse" d="M 50 0 L 50 100" />`;
+            dPaths = ["M 50 0 L 50 100"];
         } else if (pipe.type === 'l') {
-            paths = `<path class="pipe-path" d="M 50 0 Q 50 50 100 50" />
-                     <path class="flow-pulse" d="M 50 0 Q 50 50 100 50" />`;
+            dPaths = ["M 50 0 Q 50 50 100 50"];
         } else if (pipe.type === 't') {
-            paths = `<path class="pipe-path" d="M 50 0 L 50 100 M 50 50 L 100 50" />
-                     <path class="flow-pulse" d="M 50 0 L 50 100 M 50 50 L 100 50" />`;
+            dPaths = ["M 50 0 L 50 100", "M 50 50 L 100 50"];
         } else if (pipe.type === 'cross') {
-            paths = `<path class="pipe-path" d="M 50 0 L 50 100 M 0 50 L 100 50" />
-                     <path class="flow-pulse" d="M 50 0 L 50 100 M 0 50 L 100 50" />`;
+            dPaths = ["M 50 0 L 50 100", "M 0 50 L 100 50"];
         } else if (pipe.type === 'cap') {
-            paths = `<path class="pipe-path" d="M 50 0 L 50 50" />
-                     <path class="flow-pulse" d="M 50 0 L 50 50" />`;
+            dPaths = ["M 50 0 L 50 50"];
         }
-        return `<svg viewBox="0 0 100 100" class="pipe-svg">${paths}</svg>`;
+
+        let innerHTML = '';
+        dPaths.forEach(d => {
+            innerHTML += `
+                <path class="pipe-bg-shadow" d="${d}" />
+                <path class="pipe-glass-wall" d="${d}" />
+                <path class="pipe-path" d="${d}" />
+                <path class="flow-pulse" d="${d}" />
+                <path class="pipe-glass-shine" d="${d}" />
+            `;
+        });
+        return `<svg viewBox="0 0 100 100" class="pipe-svg">${innerHTML}</svg>`;
     }
 
     rotatePipe(r, c, element) {
         if (!this.gameRunning || this.isPaused || this.isHinting) return;
         this.grid[r][c].rotation = (this.grid[r][c].rotation + 1) % 4;
-        element.style.transform = `rotate(${this.grid[r][c].rotation * 90}deg)`;
+        this.grid[r][c].visualRotation += 1;
+        element.style.transform = `rotate(${this.grid[r][c].visualRotation * 90}deg)`;
         this.sfx.rotate();
         this.checkConnections();
     }
@@ -458,6 +549,8 @@ class PipeGame {
     }
 
     checkConnections() {
+        const prevConnected = this.grid.map(row => row.map(p => p.connected));
+
         for (let r = 0; r < this.gridSize; r++) {
             for (let c = 0; c < this.gridSize; c++) {
                 this.grid[r][c].connected = false;
@@ -494,14 +587,35 @@ class PipeGame {
             }
         }
 
-        // Update visuals
+        let newConnectionsCount = 0;
+
+        // Update visuals and spawn sparks
         const cells = document.querySelectorAll('.pipe-cell');
         cells.forEach(cell => {
             const r = parseInt(cell.dataset.r);
             const c = parseInt(cell.dataset.c);
-            if (this.grid[r][c].connected) cell.classList.add('connected');
-            else cell.classList.remove('connected');
+            const isNowConnected = this.grid[r][c].connected;
+            const wasConnected = prevConnected[r][c];
+
+            if (isNowConnected) {
+                cell.classList.add('connected');
+                if (!wasConnected) {
+                    newConnectionsCount++;
+                    if (this.gameRunning) {
+                        this.spawnSparks(cell, 'var(--neon-cyan)');
+                    }
+                }
+            } else {
+                cell.classList.remove('connected');
+                if (wasConnected && this.gameRunning) {
+                    this.spawnSparks(cell, 'var(--neon-pink)');
+                }
+            }
         });
+
+        if (newConnectionsCount > 0 && this.gameRunning) {
+            this.playChime(newConnectionsCount);
+        }
 
         // Check if destination is reached
         const endPipe = this.grid[this.gridSize - 1][this.gridSize - 1];
@@ -620,7 +734,8 @@ class PipeGame {
                     const r = parseInt(cell.dataset.r);
                     const c = parseInt(cell.dataset.c);
                     this.grid[r][c].rotation = originalRotations[r][c];
-                    cell.style.transform = `rotate(${this.grid[r][c].rotation * 90}deg)`;
+                    this.grid[r][c].visualRotation = originalRotations[r][c];
+                    cell.style.transform = `rotate(${this.grid[r][c].visualRotation * 90}deg)`;
                 });
                 this.isHinting = false;
                 this.checkConnections();

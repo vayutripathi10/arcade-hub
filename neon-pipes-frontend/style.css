@@ -105,17 +105,28 @@ body {
 .pipe-cell {
     width: var(--cell-size);
     height: var(--cell-size);
-    background: var(--bg-color);
-    border-radius: 4px;
+    background: rgba(10, 10, 15, 0.6);
+    border: 1px solid rgba(0, 255, 255, 0.05);
+    border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.15s ease;
+    transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.25s, box-shadow 0.25s;
     position: relative;
 }
 
-.pipe-cell:active { transform: scale(0.95); }
+.pipe-cell:hover {
+    border-color: rgba(0, 255, 255, 0.25);
+    background: rgba(15, 15, 25, 0.8);
+}
+
+.pipe-cell:active { transform: scale(0.93); }
+
+.pipe-cell.connected {
+    border-color: rgba(0, 255, 255, 0.35);
+    box-shadow: inset 0 0 12px rgba(0, 255, 255, 0.1), 0 0 8px rgba(0, 255, 255, 0.05);
+}
 
 /* Source & Destination Nodes */
 .node {
@@ -146,48 +157,111 @@ body {
     height: 100%;
 }
 
-.pipe-path {
+/* realistic 3D glass SVG layers styling */
+.pipe-bg-shadow {
     fill: none;
-    stroke: #1a6b6b; /* Dim unconnected color */
-    stroke-width: 24; /* Approx 30% of 80px cell */
+    stroke: #040407;
+    stroke-width: 28;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: all 0.3s;
+}
+
+.pipe-glass-wall {
+    fill: none;
+    stroke: rgba(0, 255, 255, 0.12);
+    stroke-width: 22;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.3s;
+}
+
+.pipe-cell.connected .pipe-glass-wall {
+    stroke: rgba(0, 255, 255, 0.25);
+}
+
+.pipe-glass-shine {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.45);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+.pipe-path {
+    fill: none;
+    stroke: #16363f; /* Dim unconnected color */
+    stroke-width: 14; 
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.3s, filter 0.3s;
 }
 
 .pipe-cell.connected .pipe-path {
     stroke: var(--neon-cyan);
-    filter: drop-shadow(0 0 8px var(--neon-cyan));
+    filter: drop-shadow(0 0 6px var(--neon-cyan));
 }
 
 /* Flow Animation */
 .flow-pulse {
     fill: none;
-    stroke: var(--neon-pink);
-    stroke-width: 18; /* Slightly thinner than pipe */
+    stroke: var(--neon-cyan);
+    stroke-width: 12;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-dasharray: 20, 1000;
+    stroke-dasharray: 24, 120;
     stroke-dashoffset: 0;
     display: none;
 }
 
-.flowing .flow-pulse {
+.pipe-cell.connected .flow-pulse {
     display: block;
-    animation: flowAnim 1.5s linear infinite;
+    animation: flowPulseAnim 2.2s linear infinite;
 }
 
-@keyframes flowAnim {
-    from { stroke-dashoffset: 100; }
-    to { stroke-dashoffset: -100; }
+.flowing .pipe-cell.connected .flow-pulse {
+    stroke: var(--neon-green);
+    filter: drop-shadow(0 0 10px var(--neon-green));
+    animation: flowPulseAnim 0.7s linear infinite;
+}
+
+@keyframes flowPulseAnim {
+    from { stroke-dashoffset: 144; }
+    to { stroke-dashoffset: 0; }
+}
+
+/* Joint Sparks */
+.spark {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 150;
+    box-shadow: 0 0 8px currentColor;
+    animation: sparkAnim 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes sparkAnim {
+    0% {
+        transform: translate(0, 0) scale(1.5);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0.1);
+        opacity: 0;
+    }
 }
 
 /* Screen Overlays */
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
+    background: radial-gradient(circle at center, rgba(10, 10, 20, 0.78) 0%, rgba(5, 5, 10, 0.96) 100%), url('theme.png');
+    background-size: cover;
+    background-position: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -197,20 +271,22 @@ body {
     z-index: 200;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
 }
 
 .overlay.active { opacity: 1; visibility: visible; }
 
 .modal {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: rgba(10, 10, 20, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     padding: 40px;
     border-radius: 24px;
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     text-align: center;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(255, 255, 255, 0.02);
     margin: auto;
 }
 
@@ -361,12 +437,14 @@ body {
 
 .mode-card {
     flex: 1;
-    background: #0d1b2a;
-    border: 2px solid var(--glass-border);
+    background: rgba(13, 27, 42, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 25px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;

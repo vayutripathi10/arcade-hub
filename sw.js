@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v117';
+const CACHE_NAME = 'arcade-hub-cache-v119';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -76,6 +76,7 @@ const CORE_ASSETS = [
     'sky-jumper-frontend/thumbnail.jpg',
     'neon-swing-frontend/thumbnail.jpg',
     'neon-pipes-frontend/thumbnail.jpg',
+    'neon-pipes-frontend/theme.png',
     'neon-helix-drop-frontend/thumbnail.jpg',
     'cyber-survivor-frontend/thumbnail.jpg',
     'neon-brawler-frontend/thumbnail.jpg',
