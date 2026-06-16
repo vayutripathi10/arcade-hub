@@ -97,6 +97,13 @@ function updateMobileControlsVisibility() {
 function setGameState(state) {
     gameState = state;
     updateMobileControlsVisibility();
+    if (state !== 'playing') {
+        if (window.audioFX && typeof window.audioFX.stopEngine === 'function') {
+            try {
+                window.audioFX.stopEngine();
+            } catch (e) {}
+        }
+    }
 }
 
 function resize() {
@@ -274,7 +281,7 @@ class Tank {
     draw() {
         if (!this.visible) return; // Skip if exploding
         const img = this.type === 'player' ? assets.playerTank : assets.enemyTank;
-        if (!img) return;
+        if (!img || !img.complete || img.naturalWidth === 0) return;
 
         // Draw Shield (Power-up or Startup/Respawn)
         if (this.type === 'player' && (this.shield > 0 || this.invincibilityTimer > 0)) {
@@ -654,12 +661,14 @@ function draw() {
             if (map[r][c] === 3) img = assets.tileGrass;
             if (map[r][c] === 4) img = assets.tileWater;
 
-            if (img) ctx.drawImage(img, c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            if (img && img.complete && img.naturalWidth > 0) {
+                ctx.drawImage(img, c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
         }
     }
 
     // HQ
-    if (assets.baseHQ) {
+    if (assets.baseHQ && assets.baseHQ.complete && assets.baseHQ.naturalWidth > 0) {
         const hqX = (MAP_COLS / 2) * TILE_SIZE - TILE_SIZE;
         const hqY = (MAP_ROWS - 2) * TILE_SIZE;
         ctx.drawImage(assets.baseHQ, hqX, hqY, TILE_SIZE * 2, TILE_SIZE * 2);
@@ -767,7 +776,7 @@ function gameLoop() {
     const deltaTime = Math.max(0.1, Math.min(dt / 16.67, 3));
 
     if (gameState === 'stage_intro' || gameState === 'stage_clear') {
-        stageOverlayTimer -= deltaTime * 16.67;
+        stageOverlayTimer -= dt; // Use real elapsed time in milliseconds
         if (stageOverlayTimer <= 0) {
             if (gameState === 'stage_intro') {
                 setGameState('playing');
@@ -776,10 +785,22 @@ function gameLoop() {
                 startNextStage();
             }
         }
-        draw(); 
+        try {
+            draw();
+        } catch (drawErr) {
+            console.error("GameLoop: draw failed in stage_intro:", drawErr);
+        }
     } else {
-        update(deltaTime); 
-        draw();
+        try {
+            update(deltaTime);
+        } catch (updateErr) {
+            console.error("GameLoop: update failed in playing:", updateErr);
+        }
+        try {
+            draw();
+        } catch (drawErr) {
+            console.error("GameLoop: draw failed in playing:", drawErr);
+        }
     }
     
     gameLoopId = requestAnimationFrame(gameLoop);
@@ -790,6 +811,11 @@ function initGame() {
     if (gameLoopId) {
         cancelAnimationFrame(gameLoopId);
         gameLoopId = null;
+    }
+
+    // Reset all stuck keys on deployment
+    for (let k in keys) {
+        keys[k] = false;
     }
 
     if (window.audioFX) {
@@ -952,6 +978,10 @@ const bindBtn = (id, key) => {
         if(key==='Space' && player) player.shoot();
     }, {passive: false});
     btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        keys[key] = false;
+    }, {passive: false});
+    btn.addEventListener('touchcancel', (e) => {
         e.preventDefault();
         keys[key] = false;
     }, {passive: false});

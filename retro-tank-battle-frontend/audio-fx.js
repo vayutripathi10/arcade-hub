@@ -77,307 +77,380 @@ class AudioFX {
     }
 
     injectMuteButton() {
-        // Only inject if no mute button exists
-        if (document.getElementById('global-mute-btn') || document.getElementById('btn-mute')) return;
-        
-        const btn = document.createElement('button');
-        btn.id = 'global-mute-btn';
-        btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
-        btn.style.cssText = `
-            position: absolute;
-            top: 75px; /* Default Offset vertically below the pause button */
-            right: 20px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(12, 14, 20, 0.85);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            font-size: 1.2rem;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        `;
-        
-        // Dynamically adjust for specific games with conflicting top-HUDs
-        if (window.location.href.includes('bottle-shooter')) {
-            btn.style.top = 'auto';
-            btn.style.bottom = '90px';
-        }
-
-        btn.onmouseover = () => {
-            btn.style.background = 'rgba(12, 14, 20, 1)';
-            btn.style.borderColor = '#8a2be2';
-            btn.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.3)';
-            btn.style.transform = 'scale(1.1)';
-        };
-        btn.onmouseout = () => {
-            btn.style.background = 'rgba(12, 14, 20, 0.85)';
-            btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-            btn.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-            btn.style.transform = 'scale(1)';
-        };
-        
-        // Prevent focus so hitting Space to jump doesn't actuate mute button
-        btn.onfocus = () => btn.blur();
-        btn.onclick = (e) => {
-            e.preventDefault();
-            this.toggleMute();
-            // Start audio context if suspended
-            this.init();
-        };
-        
-        // Append to the wrapper if exists, otherwise body
-        const wrapper = document.querySelector('.game-wrapper');
-        if (wrapper) {
-            btn.style.position = 'absolute';
-            wrapper.appendChild(btn);
-        } else {
-            btn.style.position = 'fixed';
-            if (!window.location.href.includes('bottle-shooter')) {
-                btn.style.right = '20px';
-            }
-            if (document.body) document.body.appendChild(btn);
-        }
-        
-        // Fix for mobile landscape mode overlaying correctly and UI visual bugs
-        const style = document.createElement('style');
-        style.textContent = `
-            /* Fix invisible Quit to Menu button backgrounds for older games using share-btn */
-            #btn-quit.share-btn {
-                background: rgba(255, 255, 255, 0.15) !important;
-                color: #ffffff !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            }
-            #btn-quit.share-btn:hover {
-                background: rgba(255, 255, 255, 0.25) !important;
+        try {
+            // Only inject if no mute button exists
+            if (document.getElementById('global-mute-btn') || document.getElementById('btn-mute')) return;
+            
+            const btn = document.createElement('button');
+            btn.id = 'global-mute-btn';
+            btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+            btn.style.cssText = `
+                position: absolute;
+                top: 75px; /* Default Offset vertically below the pause button */
+                right: 20px;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: rgba(12, 14, 20, 0.85);
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 1000;
+                backdrop-filter: blur(8px);
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                font-size: 1.2rem;
+                padding: 0;
+                user-select: none;
+                -webkit-user-select: none;
+            `;
+            
+            // Dynamically adjust for specific games with conflicting top-HUDs
+            if (window.location.href.includes('bottle-shooter')) {
+                btn.style.top = 'auto';
+                btn.style.bottom = '90px';
             }
 
-            @media (max-width: 600px) {
-                #global-mute-btn {
-                    width: 40px !important;
-                    height: 40px !important;
-                    font-size: 1.1rem !important;
+            btn.onmouseover = () => {
+                btn.style.background = 'rgba(12, 14, 20, 1)';
+                btn.style.borderColor = '#8a2be2';
+                btn.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.3)';
+                btn.style.transform = 'scale(1.1)';
+            };
+            btn.onmouseout = () => {
+                btn.style.background = 'rgba(12, 14, 20, 0.85)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                btn.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
+                btn.style.transform = 'scale(1)';
+            };
+            
+            // Prevent focus so hitting Space to jump doesn't actuate mute button
+            btn.onfocus = () => btn.blur();
+            btn.onclick = (e) => {
+                e.preventDefault();
+                this.toggleMute();
+                // Start audio context if suspended
+                this.init();
+            };
+            
+            // Append to the wrapper if exists, otherwise body
+            const wrapper = document.querySelector('.game-wrapper');
+            if (wrapper) {
+                btn.style.position = 'absolute';
+                wrapper.appendChild(btn);
+            } else {
+                btn.style.position = 'fixed';
+                if (!window.location.href.includes('bottle-shooter')) {
+                    btn.style.right = '20px';
                 }
+                if (document.body) document.body.appendChild(btn);
             }
-            @media (max-height: 600px) and (orientation: landscape) {
-                #global-mute-btn {
-                    position: fixed !important;
-                    z-index: 9999 !important;
+            
+            // Fix for mobile landscape mode overlaying correctly and UI visual bugs
+            const style = document.createElement('style');
+            style.textContent = `
+                /* Fix invisible Quit to Menu button backgrounds for older games using share-btn */
+                #btn-quit.share-btn {
+                    background: rgba(255, 255, 255, 0.15) !important;
+                    color: #ffffff !important;
+                    border: 1px solid rgba(255, 255, 255, 0.2) !important;
                 }
-            }
-        `;
-        document.head.appendChild(style);
+                #btn-quit.share-btn:hover {
+                    background: rgba(255, 255, 255, 0.25) !important;
+                }
+
+                @media (max-width: 600px) {
+                    #global-mute-btn {
+                        width: 40px !important;
+                        height: 40px !important;
+                        font-size: 1.1rem !important;
+                    }
+                }
+                @media (max-height: 600px) and (orientation: landscape) {
+                    #global-mute-btn {
+                        position: fixed !important;
+                        z-index: 9999 !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        } catch (e) {
+            console.warn("AudioFX: injectMuteButton failed:", e);
+        }
     }
 
     toggleMute() {
-        this.isMuted = !this.isMuted;
         try {
-            localStorage.setItem('arcadeHubMuted', this.isMuted);
-        } catch (e) {}
-        
-        const btn = document.getElementById('global-mute-btn');
-        if (btn) btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
-        
-        const retroBtn = document.getElementById('btn-mute');
-        if (retroBtn) retroBtn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+            this.isMuted = !this.isMuted;
+            try {
+                localStorage.setItem('arcadeHubMuted', this.isMuted);
+            } catch (e) {}
+            
+            const btn = document.getElementById('global-mute-btn');
+            if (btn) btn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
+            
+            const retroBtn = document.getElementById('btn-mute');
+            if (retroBtn) retroBtn.innerHTML = this.isMuted ? '\u{1F507}' : '\u{1F50A}';
 
-        // Update master volume if initialized
-        if (this.masterGain && this.ctx) {
-            if (this.isMuted) {
-                this.masterGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
-            } else {
-                this.masterGain.gain.setTargetAtTime(1.5, this.ctx.currentTime, 0.05);
+            // Update master volume if initialized
+            if (this.masterGain && this.ctx && this.ctx.state !== 'closed') {
+                if (this.isMuted) {
+                    this.masterGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+                } else {
+                    this.masterGain.gain.setTargetAtTime(1.5, this.ctx.currentTime, 0.05);
+                }
             }
+        } catch (e) {
+            console.warn("AudioFX: toggleMute failed:", e);
         }
     }
 
     createOscillator(freq, type = 'square') {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-        
-        osc.connect(gain);
-        // Connect to compressor instead of destination
-        gain.connect(this.compressor);
-        return { osc, gain };
+        try {
+            if (!this.ctx || this.ctx.state === 'closed') return null;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            
+            osc.connect(gain);
+            // Connect to compressor instead of destination
+            if (this.compressor) {
+                gain.connect(this.compressor);
+            } else {
+                gain.connect(this.ctx.destination);
+            }
+            return { osc, gain };
+        } catch (e) {
+            console.warn('AudioFX: Failed to create oscillator:', e);
+            return null;
+        }
     }
 
     playJump() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        
-        console.log('AudioFX: Playing Jump sound');
-        const { osc, gain } = this.createOscillator(150, 'triangle');
-        const now = this.ctx.currentTime;
-        
-        gain.gain.setValueAtTime(0.5, now); // Increased level
-        gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2); // Slower decay
-        
-        osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
-        
-        osc.start(now);
-        osc.stop(now + 0.25);
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            
+            console.log('AudioFX: Playing Jump sound');
+            const res = this.createOscillator(150, 'triangle');
+            if (!res) return;
+            const { osc, gain } = res;
+            const now = this.ctx.currentTime;
+            
+            gain.gain.setValueAtTime(0.5, now); // Increased level
+            gain.gain.exponentialRampToValueAtTime(0.1, now + 0.2); // Slower decay
+            
+            osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
+            
+            osc.start(now);
+            osc.stop(now + 0.25);
+        } catch (e) {
+            console.warn('AudioFX: playJump failed:', e);
+        }
     }
 
     playEat() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        
-        console.log('AudioFX: Playing Eat sound');
-        const { osc, gain } = this.createOscillator(523.25, 'square'); // C5
-        const now = this.ctx.currentTime;
-        
-        gain.gain.setValueAtTime(0.4, now); // Increased level
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2); // Slower decay
-        
-        osc.start(now);
-        osc.stop(now + 0.2);
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            
+            console.log('AudioFX: Playing Eat sound');
+            const res = this.createOscillator(523.25, 'square'); // C5
+            if (!res) return;
+            const { osc, gain } = res;
+            const now = this.ctx.currentTime;
+            
+            gain.gain.setValueAtTime(0.4, now); // Increased level
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2); // Slower decay
+            
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } catch (e) {
+            console.warn('AudioFX: playEat failed:', e);
+        }
     }
 
     playGameOver() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        
-        console.log('AudioFX: Playing Game Over sound');
-        const { osc, gain } = this.createOscillator(300, 'sawtooth');
-        const now = this.ctx.currentTime;
-        
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.6);
-        
-        osc.frequency.linearRampToValueAtTime(50, now + 0.6);
-        
-        osc.start(now);
-        osc.stop(now + 0.6);
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            
+            console.log('AudioFX: Playing Game Over sound');
+            const res = this.createOscillator(300, 'sawtooth');
+            if (!res) return;
+            const { osc, gain } = res;
+            const now = this.ctx.currentTime;
+            
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.6);
+            
+            osc.frequency.linearRampToValueAtTime(50, now + 0.6);
+            
+            osc.start(now);
+            osc.stop(now + 0.6);
+        } catch (e) {
+            console.warn('AudioFX: playGameOver failed:', e);
+        }
     }
 
     playLevelUp() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        
-        console.log('AudioFX: Playing Level Up sound');
-        const now = this.ctx.currentTime;
-        const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
-        notes.forEach((freq, i) => {
-            const { osc, gain } = this.createOscillator(freq, 'sine');
-            gain.gain.setValueAtTime(0.3, now + i * 0.1); // Increased level
-            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4); // Slower decay
-            osc.start(now + i * 0.1);
-            osc.stop(now + i * 0.1 + 0.4);
-        });
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            
+            console.log('AudioFX: Playing Level Up sound');
+            const now = this.ctx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+            notes.forEach((freq, i) => {
+                const res = this.createOscillator(freq, 'sine');
+                if (!res) return;
+                const { osc, gain } = res;
+                gain.gain.setValueAtTime(0.3, now + i * 0.1); // Increased level
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4); // Slower decay
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.4);
+            });
+        } catch (e) {
+            console.warn('AudioFX: playLevelUp failed:', e);
+        }
     }
 
     playExplosion() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        
-        console.log('AudioFX: Playing Explosion sound');
-        const bufferSize = this.ctx.sampleRate * 2; // 2 seconds of noise
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            
+            console.log('AudioFX: Playing Explosion sound');
+            const bufferSize = this.ctx.sampleRate * 2; // 2 seconds of noise
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            // Highpass filter to make it crunchy
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 1);
+
+            const gain = this.ctx.createGain();
+            const now = this.ctx.currentTime;
+            gain.gain.setValueAtTime(0.8, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            if (this.compressor) {
+                gain.connect(this.compressor);
+            } else {
+                gain.connect(this.ctx.destination);
+            }
+
+            noise.start(now);
+            noise.stop(now + 1);
+        } catch (e) {
+            console.warn('AudioFX: playExplosion failed:', e);
         }
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-
-        // Highpass filter to make it crunchy
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 1);
-
-        const gain = this.ctx.createGain();
-        const now = this.ctx.currentTime;
-        gain.gain.setValueAtTime(0.8, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.compressor);
-
-        noise.start(now);
-        noise.stop(now + 1);
     }
     
     startEngine() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        if (this.engineOsc) return;
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            if (this.engineOsc) return;
 
-        // Use a triangle wave for an audible buzzy engine hum that works on mobile speakers
-        const { osc, gain } = this.createOscillator(80, 'triangle');
-        this.engineOsc = osc;
-        this.engineGain = gain;
-        
-        gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-        this.engineOsc.start(this.ctx.currentTime);
+            // Use a triangle wave for an audible buzzy engine hum that works on mobile speakers
+            const res = this.createOscillator(80, 'triangle');
+            if (!res) return;
+            const { osc, gain } = res;
+            this.engineOsc = osc;
+            this.engineGain = gain;
+            
+            gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+            this.engineOsc.start(this.ctx.currentTime);
+        } catch (e) {
+            console.warn('AudioFX: startEngine failed:', e);
+        }
     }
     
     updateEngine(speed) {
-        if (!this.engineOsc || !this.ctx) return;
-        // Pitch mapping from audible idle rumble (80Hz) to high whining speed
-        const pitch = 80 + (speed * 0.8);
-        this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.05);
+        try {
+            if (!this.engineOsc || !this.ctx || this.ctx.state === 'closed') return;
+            // Pitch mapping from audible idle rumble (80Hz) to high whining speed
+            const pitch = 80 + (speed * 0.8);
+            this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.05);
+        } catch (e) {
+            console.warn('AudioFX: updateEngine failed:', e);
+        }
     }
     
     stopEngine() {
-        if (this.engineOsc && this.ctx) {
-            const now = this.ctx.currentTime;
-            this.engineGain.gain.setTargetAtTime(0, now, 0.05);
-            const oscToStop = this.engineOsc;
+        try {
+            if (this.engineOsc && this.ctx && this.ctx.state !== 'closed') {
+                const now = this.ctx.currentTime;
+                if (this.engineGain) {
+                    this.engineGain.gain.setTargetAtTime(0, now, 0.05);
+                }
+                this.engineOsc.stop(now + 0.05);
+            }
+        } catch (e) {
+            console.warn('AudioFX: stopEngine failed:', e);
+        } finally {
             this.engineOsc = null;
             this.engineGain = null;
-            setTimeout(() => {
-                try {
-                    oscToStop.stop();
-                } catch(e){}
-            }, 100);
         }
     }
     
     playVictory() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        
-        console.log('AudioFX: Playing Victory sound');
-        const now = this.ctx.currentTime;
-        // Jingle: C E G C
-        const notes = [261.63, 329.63, 392.00, 523.25];
-        notes.forEach((freq, i) => {
-            const { osc, gain } = this.createOscillator(freq, 'square');
-            gain.gain.setValueAtTime(0.3, now + i * 0.15);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
-            osc.start(now + i * 0.15);
-            osc.stop(now + i * 0.15 + 0.3);
-        });
+        try {
+            if (!this.enabled) return;
+            this.init();
+            if (!this.ctx || this.ctx.state === 'closed') return;
+            
+            console.log('AudioFX: Playing Victory sound');
+            const now = this.ctx.currentTime;
+            // Jingle: C E G C
+            const notes = [261.63, 329.63, 392.00, 523.25];
+            notes.forEach((freq, i) => {
+                const res = this.createOscillator(freq, 'square');
+                if (!res) return;
+                const { osc, gain } = res;
+                gain.gain.setValueAtTime(0.3, now + i * 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
+                osc.start(now + i * 0.15);
+                osc.stop(now + i * 0.15 + 0.3);
+            });
+        } catch (e) {
+            console.warn('AudioFX: playVictory failed:', e);
+        }
     }
 
     playTest() {
-        console.log('AudioFX: Running manual test...');
-        this.init();
-        setTimeout(() => {
-            this.playLevelUp();
-            console.log('AudioFX: Test sound triggered. Current State:', this.ctx ? this.ctx.state : 'null');
-        }, 100);
+        try {
+            console.log('AudioFX: Running manual test...');
+            this.init();
+            setTimeout(() => {
+                this.playLevelUp();
+                console.log('AudioFX: Test sound triggered. Current State:', this.ctx ? this.ctx.state : 'null');
+            }, 100);
+        } catch (e) {
+            console.warn('AudioFX: playTest failed:', e);
+        }
     }
 }
 

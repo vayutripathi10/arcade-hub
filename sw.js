@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v133';
+const CACHE_NAME = 'arcade-hub-cache-v135';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -91,6 +91,18 @@ const CORE_ASSETS = [
     'tictactoe-frontend/thumbnail.jpg',
     'retro-racer-frontend/thumbnail.png',
     'retro-tank-battle-frontend/thumbnail.png',
+    'retro-tank-battle-frontend/index.html',
+    'retro-tank-battle-frontend/style.css',
+    'retro-tank-battle-frontend/script.js',
+    'retro-tank-battle-frontend/audio-fx.js',
+    'retro-tank-battle-frontend/assets/player_tank.png',
+    'retro-tank-battle-frontend/assets/enemy_tank.png',
+    'retro-tank-battle-frontend/assets/base_hq.png',
+    'retro-tank-battle-frontend/assets/tile_brick.png',
+    'retro-tank-battle-frontend/assets/tile_steel.png',
+    'retro-tank-battle-frontend/assets/tile_grass.png',
+    'retro-tank-battle-frontend/assets/tile_water.png',
+    'retro-tank-battle-frontend/assets/tiles_sheet.png',
     'neon-zombie-shooter-frontend/index.html',
     'neon-zombie-shooter-frontend/style.css',
     'neon-zombie-shooter-frontend/script.js',
