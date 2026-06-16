@@ -501,38 +501,134 @@ class PipeGame {
 
     getPipeSVG(pipe) {
         let dPaths = [];
+        let collars = [];
+        let hasCap = false;
+
         if (pipe.type === 'straight') {
             dPaths = ["M 50 0 L 50 100"];
+            collars = ['top', 'bottom'];
         } else if (pipe.type === 'l') {
             dPaths = ["M 50 0 Q 50 50 100 50"];
+            collars = ['top', 'right'];
         } else if (pipe.type === 't') {
             dPaths = ["M 50 0 L 50 100", "M 50 50 L 100 50"];
+            collars = ['top', 'bottom', 'right'];
         } else if (pipe.type === 'cross') {
             dPaths = ["M 50 0 L 50 100", "M 0 50 L 100 50"];
+            collars = ['top', 'bottom', 'left', 'right'];
         } else if (pipe.type === 'cap') {
             dPaths = ["M 50 0 L 50 50"];
+            collars = ['top'];
+            hasCap = true;
         }
 
+        // Layer 1: shadows
         let shadows = '';
-        let glassWalls = '';
-        let glowingPaths = '';
-        let flowPulses = '';
-        let shines = '';
-
         dPaths.forEach(d => {
-            shadows += `<path class="pipe-bg-shadow" fill="none" d="${d}" />`;
-            glassWalls += `<path class="pipe-glass-wall" fill="none" d="${d}" />`;
-            glowingPaths += `<path class="pipe-path" fill="none" d="${d}" />`;
-            flowPulses += `<path class="flow-pulse" fill="none" d="${d}" />`;
-            shines += `<path class="pipe-glass-shine" fill="none" d="${d}" />`;
+            shadows += `<path class="pipe-bg-shadow" stroke-width="32" fill="none" d="${d}" />`;
         });
+        collars.forEach(col => {
+            let cd = "";
+            if (col === 'top') cd = "M 32 5 L 68 5";
+            else if (col === 'bottom') cd = "M 32 95 L 68 95";
+            else if (col === 'left') cd = "M 5 32 L 5 68";
+            else if (col === 'right') cd = "M 95 32 L 95 68";
+            shadows += `<path class="pipe-bg-shadow" stroke-width="38" stroke-linecap="butt" fill="none" d="${cd}" />`;
+        });
+        if (hasCap) {
+            shadows += `<circle cx="50" cy="50" r="16" class="pipe-bg-shadow" />`;
+        }
+
+        // Layer 2: pipe and collar bodies
+        let bodies = '';
+        dPaths.forEach(d => {
+            bodies += `<path class="pipe-body" stroke-width="26" fill="none" d="${d}" />`;
+        });
+        collars.forEach(col => {
+            let cd = "";
+            if (col === 'top') cd = "M 32 5 L 68 5";
+            else if (col === 'bottom') cd = "M 32 95 L 68 95";
+            else if (col === 'left') cd = "M 5 32 L 5 68";
+            else if (col === 'right') cd = "M 95 32 L 95 68";
+            bodies += `<path class="pipe-body" stroke-width="32" stroke-linecap="butt" fill="none" d="${cd}" />`;
+        });
+        if (hasCap) {
+            bodies += `<circle cx="50" cy="50" r="13" class="pipe-body" />`;
+        }
+
+        // Layer 3: highlights (give the 3D rounded shine to body)
+        let highlights = '';
+        dPaths.forEach(d => {
+            highlights += `<path class="pipe-body-highlight" stroke-width="18" fill="none" d="${d}" />`;
+        });
+        collars.forEach(col => {
+            let cd = "";
+            if (col === 'top') cd = "M 32 5 L 68 5";
+            else if (col === 'bottom') cd = "M 32 95 L 68 95";
+            else if (col === 'left') cd = "M 5 32 L 5 68";
+            else if (col === 'right') cd = "M 95 32 L 95 68";
+            highlights += `<path class="pipe-body-highlight" stroke-width="24" stroke-linecap="butt" fill="none" d="${cd}" />`;
+        });
+        if (hasCap) {
+            highlights += `<circle cx="50" cy="50" r="9" class="pipe-body-highlight" />`;
+        }
+
+        // Layer 4: collar ridges (grooves in collars)
+        let ridges = '';
+        collars.forEach(col => {
+            let cd = "";
+            if (col === 'top') cd = "M 32 5 L 68 5";
+            else if (col === 'bottom') cd = "M 32 95 L 68 95";
+            else if (col === 'left') cd = "M 5 32 L 5 68";
+            else if (col === 'right') cd = "M 95 32 L 95 68";
+            ridges += `<path class="pipe-collar-ridge" stroke-width="3" stroke-linecap="butt" fill="none" d="${cd}" />`;
+        });
+
+        // Layer 5: inner shadow/border of core
+        let innerShadows = '';
+        dPaths.forEach(d => {
+            innerShadows += `<path class="pipe-inner-shadow" stroke-width="14" fill="none" d="${d}" />`;
+        });
+        if (hasCap) {
+            innerShadows += `<circle cx="50" cy="50" r="7" class="pipe-inner-shadow" />`;
+        }
+
+        // Layer 6: core channel (fluid)
+        let cores = '';
+        dPaths.forEach(d => {
+            cores += `<path class="pipe-core" stroke-width="10" fill="none" d="${d}" />`;
+        });
+        if (hasCap) {
+            cores += `<circle cx="50" cy="50" r="5" class="pipe-core" />`;
+        }
+
+        // Layer 7: flow pulse (animated dash)
+        let flows = '';
+        dPaths.forEach(d => {
+            flows += `<path class="flow-pulse" stroke-width="8" fill="none" d="${d}" />`;
+        });
+        if (hasCap) {
+            flows += `<circle cx="50" cy="50" r="4" class="flow-pulse" />`;
+        }
+
+        // Layer 8: glint reflection
+        let glints = '';
+        dPaths.forEach(d => {
+            glints += `<path class="pipe-glint" stroke-width="2" fill="none" d="${d}" />`;
+        });
+        if (hasCap) {
+            glints += `<circle cx="50" cy="50" r="1" class="pipe-glint" />`;
+        }
 
         return `<svg viewBox="0 0 100 100" class="pipe-svg">
             ${shadows}
-            ${glassWalls}
-            ${glowingPaths}
-            ${flowPulses}
-            ${shines}
+            ${bodies}
+            ${highlights}
+            ${ridges}
+            ${innerShadows}
+            ${cores}
+            ${flows}
+            ${glints}
         </svg>`;
     }
 

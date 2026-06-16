@@ -157,59 +157,72 @@ body {
     height: 100%;
 }
 
-/* realistic 3D glass SVG layers styling */
+/* realistic 3D industrial metal SVG layers styling */
 .pipe-bg-shadow {
     fill: none;
-    stroke: #040407;
-    stroke-width: 28;
+    stroke: #09090d;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
 
-.pipe-glass-wall {
+.pipe-body {
     fill: none;
-    stroke: rgba(0, 255, 255, 0.12);
-    stroke-width: 22;
+    stroke: #b0b0b8;
     stroke-linecap: round;
     stroke-linejoin: round;
     transition: stroke 0.3s;
 }
 
-.pipe-cell.connected .pipe-glass-wall {
-    stroke: rgba(0, 255, 255, 0.25);
+.pipe-cell.connected .pipe-body {
+    stroke: #d8d8e0; /* slightly brighter when carrying fluid */
 }
 
-.pipe-glass-shine {
+.pipe-body-highlight {
     fill: none;
-    stroke: rgba(255, 255, 255, 0.45);
-    stroke-width: 2.5;
+    stroke: #ffffff;
     stroke-linecap: round;
     stroke-linejoin: round;
-    pointer-events: none;
 }
 
-.pipe-path {
+.pipe-collar-ridge {
     fill: none;
-    stroke: #16363f; /* Dim unconnected color */
-    stroke-width: 14; 
+    stroke: #3a3a42;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: stroke 0.3s, filter 0.3s;
 }
 
-.pipe-cell.connected .pipe-path {
+.pipe-inner-shadow {
+    fill: none;
+    stroke: #2e2e34;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pipe-core {
+    fill: none;
+    stroke: #e2e2e8; /* empty, inactive light-gray core */
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.35s ease, filter 0.35s ease;
+}
+
+.pipe-cell.connected .pipe-core {
     stroke: var(--neon-cyan);
-    filter: drop-shadow(0 0 6px var(--neon-cyan));
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.8));
+}
+
+.flowing .pipe-cell.connected .pipe-core {
+    stroke: var(--neon-green);
+    filter: drop-shadow(0 0 10px rgba(57, 255, 20, 0.9));
 }
 
 /* Flow Animation */
 .flow-pulse {
     fill: none;
-    stroke: var(--neon-cyan);
-    stroke-width: 12;
+    stroke: rgba(255, 255, 255, 0.6);
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-dasharray: 24, 120;
+    stroke-dasharray: 20, 100;
     stroke-dashoffset: 0;
     display: none;
 }
@@ -220,9 +233,15 @@ body {
 }
 
 .flowing .pipe-cell.connected .flow-pulse {
-    stroke: var(--neon-green);
-    filter: drop-shadow(0 0 10px var(--neon-green));
+    stroke: rgba(255, 255, 255, 0.85);
     animation: flowPulseAnim 0.7s linear infinite;
+}
+
+.pipe-glint {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.65);
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 @keyframes flowPulseAnim {
