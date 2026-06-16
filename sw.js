@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v124';
+const CACHE_NAME = 'arcade-hub-cache-v125';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -50,6 +50,7 @@ const CORE_ASSETS = [
     'play-neon-pin-pull.html',
     'play-neon-arrows.html',
     'play-neon-snake.html',
+    'play-neon-zombie-shooter.html',
     'play-neon-pipes.html',
     'play-neon-helix-drop.html',
     'play-sky-jumper.html',
@@ -87,7 +88,12 @@ const CORE_ASSETS = [
     'neon-runner-frontend/thumbnail.jpg',
     'tictactoe-frontend/thumbnail.jpg',
     'retro-racer-frontend/thumbnail.png',
-    'retro-tank-battle-frontend/thumbnail.png'
+    'retro-tank-battle-frontend/thumbnail.png',
+    'neon-zombie-shooter-frontend/index.html',
+    'neon-zombie-shooter-frontend/style.css',
+    'neon-zombie-shooter-frontend/script.js',
+    'neon-zombie-shooter-frontend/map.js',
+    'neon-zombie-shooter-frontend/thumbnail.jpg'
 ];
 
 const DB_NAME = 'offline-analytics';

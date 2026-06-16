@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Zombie Shooter - 3D Cyber Survival | Arcade Hub</title>
+    <meta name="description" content="Shoot oncoming cyber-zombies in a glowing 3D neon grid-maze! Master key pathfinders, manage ammo, and reach the exit portal. Play free on Arcade Hub.">
+    
+    <!-- Social Sharing -->
+    <meta property="og:title" content="Neon Zombie Shooter - 3D Cyber Survival | Arcade Hub">
+    <meta property="og:description" content="Shoot cyber-zombies, gather powerups, and escape the neon grid. Premium 3D WebGL graphics, 0 downloads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-zombie-shooter-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- AdSense Compliance & Pre-game Overlay Styles -->
+    <style id="adsense-compliance-styles">
+        body.show-info-overlay {
+            overflow: hidden !important;
+            height: 100dvh !important;
+        }
+        body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+            display: none !important;
+        }
+        .game-info-overlay {
+            display: none;
+            background: #0a0b0d;
+            width: 100%;
+            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.7;
+            padding: 40px 24px;
+            box-sizing: border-box;
+        }
+        body.show-info-overlay .game-info-overlay {
+            display: block !important;
+        }
+        .game-info-container { max-width: 780px; margin: 0 auto; }
+        .brand-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,255,204,0.15);
+        }
+        .brand-header .brand-title {
+            color: #00ffcc;
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(0,255,204,0.4);
+            margin: 0 0 6px 0;
+        }
+        .brand-header .brand-sub {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .continue-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 36px;
+            position: sticky;
+            top: 16px;
+            z-index: 1000000;
+        }
+        .continue-game-btn {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 16px 52px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 28px rgba(0,255,204,0.55);
+            transition: all 0.25s ease;
+            letter-spacing: 1.5px;
+        }
+        .continue-game-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 40px rgba(255,255,255,0.65);
+            transform: scale(1.04);
+        }
+        .continue-game-btn:active { transform: scale(0.97); }
+        .game-info-container h2 {
+            color: #fff;
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .game-info-container h3 {
+            color: #00ffcc;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 10px;
+        }
+        .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
+        .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
+        .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+        .info-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .faq-item {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
+        .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
+        .page-footer-note {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+            margin-bottom: 20px;
+        }
+        .page-footer-note a { color: #00ffcc; text-decoration: none; }
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .continue-game-btn { width: 100%; padding: 15px 24px; }
+            .game-info-container h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="show-info-overlay">
+
+    <!-- PRE-GAME INFO OVERLAY -->
+    <div class="game-info-overlay" id="game-info-overlay">
+        <div class="game-info-container">
+            <div class="brand-header">
+                <p class="brand-title">🎮 Arcade Hub</p>
+                <p class="brand-sub">Free Browser Games — No Download Required</p>
+            </div>
+
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
+            </div>
+
+            <h2>Neon Zombie Shooter</h2>
+            <p>Welcome to Neon Zombie Shooter, a fast-paced top-down 3D survival game. Locked inside a high-tech neon security grid, you must hold off hordes of viral cybernetic zombies, manage your ammunition caches, and navigate through obstacles to reach the glowing destination extraction portal.</p>
+
+            <h3>🎮 How to Play</h3>
+            <p>Move around the grid and aim at incoming zombies. When you clear the path, locate the glowing exit portal and step on it to advance levels.</p>
+            <ul>
+                <li><strong>WASD / Arrow Keys:</strong> Move character</li>
+                <li><strong>Mouse Move:</strong> Aim weapon</li>
+                <li><strong>Left-Click / Space:</strong> Shoot weapon</li>
+                <li><strong>Shift / Right-Click:</strong> Cyber Dash (fast dodge with cooldown)</li>
+                <li><strong>Mobile Controls:</strong> Use the left virtual joystick to move, and touch/drag the right joystick to aim and shoot automatically!</li>
+            </ul>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚡ Survival Upgrades</h3>
+                    <ul>
+                        <li>Collect glowing Blue Ammo boxes to reload.</li>
+                        <li>Pick up Green Nano-Medkits to restore your health.</li>
+                        <li>Build high scores and survival streaks across levels.</li>
+                        <li>Use your dash strategically to escape corner traps.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>🏆 Pro Tips</h3>
+                    <ul>
+                        <li>Don't stand still! Keep moving to kite the zombie horde.</li>
+                        <li>Zombies spawn from vents. Clear the area around spawners first.</li>
+                        <li>Dashing makes you invulnerable for a split second. Use it to phase through enemy bodies.</li>
+                        <li>Watch the minimap arrow in the top right to locate the exit.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="faq-item">
+                <p class="faq-question">Does this game require high-end graphics cards?</p>
+                <p class="faq-answer">No. It uses low-poly optimized geometries and custom shaders running on Three.js, ensuring native 60 FPS performance on even mid-range mobile browsers.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">Is Neon Zombie Shooter fully free?</p>
+                <p class="faq-answer">Yes, 100% free with no registration or installations. It works fully offline once cached.</p>
+            </div>
+
+            <div class="page-footer-note">
+                Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> — Free Browser Arcade Games
+            </div>
+        </div>
+    </div>
+    <!-- END PRE-GAME INFO OVERLAY -->
+
+    <!-- Main Game Container -->
+    <div id="game-container">
+        <!-- HUD Header -->
+        <header id="hud">
+            <div class="hud-left">
+                <a href="../index.html" target="_top" class="hub-btn">🏠 HUB</a>
+            </div>
+            <div class="hud-center">
+                <div id="score-container">
+                    <span id="score">000000</span>
+                    <div id="level-display">LEVEL <span id="level-num">1</span>: <span id="level-name">Cyber Alleys</span></div>
+                </div>
+            </div>
+            <div class="hud-right">
+                <button id="mute-btn" class="hud-icon-btn">🔊</button>
+                <button id="pause-btn" class="hud-icon-btn">⏸</button>
+            </div>
+        </header>
+
+        <!-- Vital Bars -->
+        <div id="vitals-overlay">
+            <div class="vital-row">
+                <span class="vital-label">HP</span>
+                <div class="vital-bar-track">
+                    <div id="hp-bar" class="vital-fill hp"></div>
+                </div>
+            </div>
+            <div class="vital-row">
+                <span class="vital-label">AMMO</span>
+                <div class="vital-bar-track">
+                    <div id="ammo-bar" class="vital-fill ammo"></div>
+                </div>
+                <span id="ammo-counter">30/30</span>
+            </div>
+            <div class="vital-row" id="dash-row">
+                <span class="vital-label">DASH</span>
+                <div class="vital-bar-track">
+                    <div id="dash-bar" class="vital-fill dash"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Canvas -->
+        <div id="canvas-wrapper"></div>
+
+        <!-- Mobile Touch Controls (Joysticks) -->
+        <div id="joystick-left" class="touch-joystick">
+            <div class="joystick-handle"></div>
+        </div>
+        <div id="joystick-right" class="touch-joystick">
+            <div class="joystick-handle"></div>
+        </div>
+
+        <!-- Overlays/Modals -->
+        <div id="pause-screen" class="overlay hidden">
+            <div class="modal">
+                <h2>SYSTEM PAUSED</h2>
+                <p>Horde status: FROZEN</p>
+                <button id="resume-btn" class="btn-main">Resume Mission</button>
+                <button id="pause-exit-btn" class="btn-outline">Abandon Mission</button>
+            </div>
+        </div>
+
+        <div id="over-screen" class="overlay hidden">
+            <div class="modal">
+                <h2 style="color: var(--neon-pink);">MISSION FAILED</h2>
+                <p>Critical biological containment breach detected.</p>
+                <div class="score-summary">
+                    <div>FINAL SCORE</div>
+                    <div id="over-score" class="score-value">0</div>
+                </div>
+                <button id="retry-btn" class="btn-main">Retry Level</button>
+                <button id="over-exit-btn" class="btn-outline">Back to Hub</button>
+                <div class="social-sharing">
+                    <button class="share-btn wa" id="over-share-wa">WhatsApp</button>
+                    <button class="share-btn x" id="over-share-x">X / Twitter</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="complete-screen" class="overlay hidden">
+            <div class="modal">
+                <h2 style="color: var(--neon-green);">LEVEL CLEARED</h2>
+                <p>Extraction zone reached. Security grid updated.</p>
+                <div class="score-summary">
+                    <div>LEVEL SCORE</div>
+                    <div id="level-score" class="score-value">1000</div>
+                    <div>HEALTH BONUS</div>
+                    <div id="hp-bonus" class="score-value">+200</div>
+                </div>
+                <button id="next-btn" class="btn-main">Next Sector ➔</button>
+            </div>
+        </div>
+
+        <!-- In-game Hint/Directions -->
+        <div id="direction-arrow-hud" class="direction-hud hidden">
+            <span class="arrow">▲</span>
+            <span class="text">EXIT PORTAL ACTIVE</span>
+        </div>
+    </div>
+
+    <!-- Scripts Loading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="map.js"></script>
+    <script src="script.js?v=125"></script>
+
+    <script>
+        (function() {
+            var gameId = 'neon-zombie-shooter';
+            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+                continueToGame(true);
+            }
+        })();
+        
+        function continueToGame(isReturning) {
+            var gameId = 'neon-zombie-shooter';
+            localStorage.setItem('arcade_seen_' + gameId, '1');
+            document.body.classList.remove('show-info-overlay');
+            window.dispatchEvent(new Event('resize'));
+            var overlay = document.getElementById('game-info-overlay');
+            if (overlay) overlay.style.display = 'none';
+            if (typeof initGame === 'function') { initGame(); }
+        }
+    </script>
+</body>
+</html>
