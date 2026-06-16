@@ -261,8 +261,8 @@ class ZombieGame {
         this.dirLight.shadow.camera.bottom = -d;
         this.scene.add(this.dirLight);
 
-        // Grid floor helper for visual look
-        const gridHelper = new THREE.GridHelper(100, 50, '#00ffff', '#0a0d14');
+        // Grid floor helper for visual look - make the grid lines bright neon teal for clear navigation visibility
+        const gridHelper = new THREE.GridHelper(100, 50, '#00ffff', '#004444');
         gridHelper.position.y = -0.01;
         this.scene.add(gridHelper);
     }
@@ -492,32 +492,91 @@ class ZombieGame {
             this.scene.remove(this.player);
         }
 
-        const bodyGeometry = new THREE.CylinderGeometry(0.4, 0.4, 1.6, 16);
-        const bodyMaterial = new THREE.MeshPhongMaterial({
-            color: '#040d18',
-            emissive: '#00ffff',
-            emissiveIntensity: 0.6,
-            shininess: 30
-        });
-        
-        this.player = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        this.player.position.set(x, 0.8, z);
-        this.player.castShadow = true;
+        // Create player Group to assemble humanoid voxel cyborg
+        this.player = new THREE.Group();
+        this.player.position.set(x, 0.0, z); // base on ground
         this.scene.add(this.player);
 
-        // Add neon wire outline to player for guaranteed visibility
-        const edges = new THREE.EdgesGeometry(bodyGeometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#00ffff' }));
-        this.player.add(line);
+        const outlineMaterial = new THREE.LineBasicMaterial({ color: '#00ffff' });
 
-        // Add cyber visor (head direction indicator)
-        const visorGeometry = new THREE.BoxGeometry(0.32, 0.14, 0.4);
+        // 1. Torso
+        const torsoGeom = new THREE.BoxGeometry(0.5, 0.7, 0.3);
+        const torsoMat = new THREE.MeshPhongMaterial({
+            color: '#05111f',
+            emissive: '#00ffff',
+            emissiveIntensity: 0.15,
+            shininess: 30
+        });
+        const torso = new THREE.Mesh(torsoGeom, torsoMat);
+        torso.position.y = 0.85; // centered vertically
+        torso.castShadow = true;
+        this.player.add(torso);
+        torso.add(new THREE.LineSegments(new THREE.EdgesGeometry(torsoGeom), outlineMaterial));
+
+        // 2. Head
+        const headGeom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+        const headMat = new THREE.MeshPhongMaterial({
+            color: '#030810',
+            emissive: '#00ffff',
+            emissiveIntensity: 0.1,
+            shininess: 30
+        });
+        const head = new THREE.Mesh(headGeom, headMat);
+        head.position.y = 1.35;
+        head.castShadow = true;
+        this.player.add(head);
+        head.add(new THREE.LineSegments(new THREE.EdgesGeometry(headGeom), outlineMaterial));
+
+        // Visor glow
+        const visorGeometry = new THREE.BoxGeometry(0.24, 0.08, 0.32);
         const visorMaterial = new THREE.MeshBasicMaterial({ color: '#00ffff' });
         const visor = new THREE.Mesh(visorGeometry, visorMaterial);
-        visor.position.set(0, 0.5, 0.25);
-        this.player.add(visor);
+        visor.position.set(0, 0.04, 0.12);
+        head.add(visor);
 
-        // Add Gun Cylinder
+        // 3. Legs
+        const legGeom = new THREE.BoxGeometry(0.18, 0.5, 0.18);
+        const legMat = new THREE.MeshPhongMaterial({
+            color: '#02050a',
+            emissive: '#00ffff',
+            emissiveIntensity: 0.08,
+            shininess: 20
+        });
+        
+        const leftLeg = new THREE.Mesh(legGeom, legMat);
+        leftLeg.position.set(-0.15, 0.25, 0);
+        leftLeg.castShadow = true;
+        this.player.add(leftLeg);
+        leftLeg.add(new THREE.LineSegments(new THREE.EdgesGeometry(legGeom), outlineMaterial));
+
+        const rightLeg = new THREE.Mesh(legGeom, legMat);
+        rightLeg.position.set(0.15, 0.25, 0);
+        rightLeg.castShadow = true;
+        this.player.add(rightLeg);
+        rightLeg.add(new THREE.LineSegments(new THREE.EdgesGeometry(legGeom), outlineMaterial));
+
+        // 4. Arms
+        const armGeom = new THREE.BoxGeometry(0.15, 0.6, 0.15);
+        const armMat = new THREE.MeshPhongMaterial({
+            color: '#02050a',
+            emissive: '#00ffff',
+            emissiveIntensity: 0.08,
+            shininess: 20
+        });
+
+        const leftArm = new THREE.Mesh(armGeom, armMat);
+        leftArm.position.set(-0.35, 0.85, 0);
+        leftArm.castShadow = true;
+        this.player.add(leftArm);
+        leftArm.add(new THREE.LineSegments(new THREE.EdgesGeometry(armGeom), outlineMaterial));
+
+        const rightArm = new THREE.Mesh(armGeom, armMat);
+        rightArm.position.set(0.35, 0.85, 0);
+        rightArm.castShadow = true;
+        this.player.add(rightArm);
+        rightArm.add(new THREE.LineSegments(new THREE.EdgesGeometry(armGeom), outlineMaterial));
+
+        // 5. Blaster Gun Cylinder (mounted forward on player torso level)
         const gunGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.7, 8);
         gunGeometry.rotateX(Math.PI / 2);
         const gunMaterial = new THREE.MeshPhongMaterial({
@@ -527,19 +586,14 @@ class ZombieGame {
             shininess: 20
         });
         this.gun = new THREE.Mesh(gunGeometry, gunMaterial);
-        this.gun.position.set(0.24, 0, 0.4);
+        this.gun.position.set(0.24, 0.85, 0.4);
         this.player.add(this.gun);
-
-        // Add neon outline to gun
-        const gunEdges = new THREE.EdgesGeometry(gunGeometry);
-        const gunLine = new THREE.LineSegments(gunEdges, new THREE.LineBasicMaterial({ color: '#00ffff' }));
-        this.gun.add(gunLine);
+        this.gun.add(new THREE.LineSegments(new THREE.EdgesGeometry(gunGeometry), outlineMaterial));
 
         // Add player headlight/glow point light that casts cyan light on surrounding walls/zombies
         this.playerLight = new THREE.PointLight('#00ffff', 1.8, 8.0);
         this.playerLight.position.set(0, 1.0, 0);
         this.player.add(this.playerLight);
-    }
 
     spawnPortal(x, z) {
         if (this.exitPortal) {
@@ -571,30 +625,96 @@ class ZombieGame {
         if (this.spawners.length === 0) return;
         const spawner = this.spawners[Math.floor(Math.random() * this.spawners.length)];
 
-        const bodyGeometry = new THREE.CylinderGeometry(0.38, 0.38, 1.5, 12);
-        const bodyMaterial = new THREE.MeshPhongMaterial({
-            color: '#040f08',
+        // Create zombie Group to assemble humanoid voxel zombie
+        const mesh = new THREE.Group();
+        mesh.position.set(spawner.x, 0.0, spawner.z); // base on ground
+        this.scene.add(mesh);
+
+        const outlineMaterial = new THREE.LineBasicMaterial({ color: '#39ff14' });
+
+        // 1. Torso
+        const torsoGeom = new THREE.BoxGeometry(0.46, 0.66, 0.28);
+        const torsoMat = new THREE.MeshPhongMaterial({
+            color: '#051208',
             emissive: '#39ff14',
-            emissiveIntensity: 0.6,
+            emissiveIntensity: 0.15,
+            shininess: 10
+        });
+        const torso = new THREE.Mesh(torsoGeom, torsoMat);
+        torso.name = 'torso';
+        torso.position.y = 0.8;
+        torso.castShadow = true;
+        mesh.add(torso);
+        torso.add(new THREE.LineSegments(new THREE.EdgesGeometry(torsoGeom), outlineMaterial));
+
+        // 2. Head
+        const headGeom = new THREE.BoxGeometry(0.28, 0.28, 0.28);
+        const headMat = new THREE.MeshPhongMaterial({
+            color: '#040804',
+            emissive: '#39ff14',
+            emissiveIntensity: 0.1,
+            shininess: 10
+        });
+        const head = new THREE.Mesh(headGeom, headMat);
+        head.name = 'head';
+        head.position.y = 1.27;
+        head.castShadow = true;
+        mesh.add(head);
+        head.add(new THREE.LineSegments(new THREE.EdgesGeometry(headGeom), outlineMaterial));
+
+        // Visor/Eye glow
+        const eyeGeom = new THREE.BoxGeometry(0.24, 0.08, 0.3);
+        const eyeMat = new THREE.MeshBasicMaterial({ color: '#39ff14' });
+        const eye = new THREE.Mesh(eyeGeom, eyeMat);
+        eye.name = 'eye';
+        eye.position.set(0, 0.04, 0.1);
+        head.add(eye);
+
+        // 3. Legs
+        const legGeom = new THREE.BoxGeometry(0.16, 0.46, 0.16);
+        const legMat = new THREE.MeshPhongMaterial({
+            color: '#020603',
+            emissive: '#39ff14',
+            emissiveIntensity: 0.08,
             shininess: 10
         });
 
-        const mesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        mesh.position.set(spawner.x, 0.75, spawner.z);
-        mesh.castShadow = true;
-        this.scene.add(mesh);
+        const leftLeg = new THREE.Mesh(legGeom, legMat);
+        leftLeg.name = 'leftLeg';
+        leftLeg.position.set(-0.14, 0.23, 0);
+        leftLeg.castShadow = true;
+        mesh.add(leftLeg);
+        leftLeg.add(new THREE.LineSegments(new THREE.EdgesGeometry(legGeom), outlineMaterial));
 
-        // Add neon wire outline to zombie for guaranteed visibility
-        const edges = new THREE.EdgesGeometry(bodyGeometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#39ff14' }));
-        mesh.add(line);
+        const rightLeg = new THREE.Mesh(legGeom, legMat);
+        rightLeg.name = 'rightLeg';
+        rightLeg.position.set(0.14, 0.23, 0);
+        rightLeg.castShadow = true;
+        mesh.add(rightLeg);
+        rightLeg.add(new THREE.LineSegments(new THREE.EdgesGeometry(legGeom), outlineMaterial));
 
-        // Visor glow
-        const eyeGeom = new THREE.BoxGeometry(0.3, 0.1, 0.35);
-        const eyeMat = new THREE.MeshBasicMaterial({ color: '#39ff14' });
-        const eye = new THREE.Mesh(eyeGeom, eyeMat);
-        eye.position.set(0, 0.4, 0.2);
-        mesh.add(eye);
+        // 4. Zombie arms reaching forward!
+        const armGeom = new THREE.BoxGeometry(0.14, 0.14, 0.5);
+        const armMat = new THREE.MeshPhongMaterial({
+            color: '#030804',
+            emissive: '#39ff14',
+            emissiveIntensity: 0.08,
+            shininess: 10
+        });
+
+        const leftArm = new THREE.Mesh(armGeom, armMat);
+        leftArm.name = 'leftArm';
+        leftArm.position.set(-0.3, 0.9, 0.2);
+        leftArm.castShadow = true;
+        mesh.add(leftArm);
+        leftArm.add(new THREE.LineSegments(new THREE.EdgesGeometry(armGeom), outlineMaterial));
+
+        const rightArm = new THREE.Mesh(armGeom, armMat);
+        rightArm.name = 'rightArm';
+        rightArm.position.set(0.3, 0.9, 0.2);
+        rightArm.castShadow = true;
+        mesh.add(rightArm);
+        rightArm.add(new THREE.LineSegments(new THREE.EdgesGeometry(armGeom), outlineMaterial));
 
         // Add neon green glow point light to zombie
         const zombieLight = new THREE.PointLight('#39ff14', 1.2, 5.0);
@@ -1042,13 +1162,21 @@ class ZombieGame {
                     this.spawnSparks(bullet.mesh.position.x, bullet.mesh.position.y, bullet.mesh.position.z, '#39ff14', 5);
                     this.sfx.play('hit');
 
-                    // Hit flash effect
-                    zombie.mesh.material.emissive.set('#ffffff');
-                    zombie.mesh.material.emissiveIntensity = 0.9;
+                    // Hit flash effect - traverse group meshes to flash all voxel parts
+                    zombie.mesh.traverse(child => {
+                        if (child.isMesh && child.material && child.material.emissive) {
+                            child.material.emissive.set('#ffffff');
+                            child.material.emissiveIntensity = 0.9;
+                        }
+                    });
                     setTimeout(() => {
                         if (zombie.mesh) {
-                            zombie.mesh.material.emissive.set('#39ff14');
-                            zombie.mesh.material.emissiveIntensity = 0.12;
+                            zombie.mesh.traverse(child => {
+                                if (child.isMesh && child.material && child.material.emissive) {
+                                    child.material.emissive.set('#39ff14');
+                                    child.material.emissiveIntensity = (child.name === 'eye') ? 1.0 : 0.5;
+                                }
+                            });
                         }
                     }, 80);
 
