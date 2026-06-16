@@ -594,6 +594,7 @@ class ZombieGame {
         this.playerLight = new THREE.PointLight('#00ffff', 1.8, 8.0);
         this.playerLight.position.set(0, 1.0, 0);
         this.player.add(this.playerLight);
+    }
 
     spawnPortal(x, z) {
         if (this.exitPortal) {

@@ -308,6 +308,23 @@
             </div>
         </div>
 
+        <!-- Start Landing Screen -->
+        <div id="start-screen" class="overlay hidden">
+            <div class="modal start-modal">
+                <h1 class="start-title">NEON ZOMBIE<br><span style="color: var(--neon-pink);">SHOOTER</span></h1>
+                <p class="start-subtitle">Grid-Containment Survival Arena</p>
+                <div class="start-controls">
+                    <h3>🕹️ MISSION CONTROLS</h3>
+                    <p style="margin-bottom: 8px;"><strong>WASD / Arrows:</strong> Move character around the grid</p>
+                    <p style="margin-bottom: 8px;"><strong>Mouse Move:</strong> Aim blaster weapon</p>
+                    <p style="margin-bottom: 8px;"><strong>Left-Click / Space:</strong> Shoot laser fire</p>
+                    <p style="margin-bottom: 8px;"><strong>Shift / Right-Click:</strong> Cyber Dash (quick dodge)</p>
+                    <p><strong>Mobile:</strong> Left joystick to run, right joystick to aim & auto-shoot</p>
+                </div>
+                <button id="start-mission-btn" class="btn-main">DEPLOY MISSION</button>
+            </div>
+        </div>
+
         <!-- In-game Hint/Directions -->
         <div id="direction-arrow-hud" class="direction-hud hidden">
             <span class="arrow">▲</span>
@@ -318,7 +335,7 @@
     <!-- Scripts Loading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="map.js"></script>
-    <script src="script.js?v=128"></script>
+    <script src="script.js?v=129"></script>
 
     <script>
         (function() {
@@ -335,8 +352,23 @@
             window.dispatchEvent(new Event('resize'));
             var overlay = document.getElementById('game-info-overlay');
             if (overlay) overlay.style.display = 'none';
-            if (typeof initGame === 'function') { initGame(); }
+            
+            // Show the start landing screen menu
+            var startScreen = document.getElementById('start-screen');
+            if (startScreen) startScreen.classList.remove('hidden');
         }
+
+        // Initialize game only when the user explicitly clicks the start button
+        document.addEventListener('DOMContentLoaded', () => {
+            var startBtn = document.getElementById('start-mission-btn');
+            if (startBtn) {
+                startBtn.onclick = () => {
+                    var startScreen = document.getElementById('start-screen');
+                    if (startScreen) startScreen.classList.add('hidden');
+                    if (typeof initGame === 'function') { initGame(); }
+                };
+            }
+        });
     </script>
 </body>
 </html>
