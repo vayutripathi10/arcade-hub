@@ -427,12 +427,11 @@ class ZombieGame {
 
         // Create player and map elements
         const wallGeometry = new THREE.BoxGeometry(1, 2, 1);
-        const wallMaterial = new THREE.MeshStandardMaterial({
-            color: '#1a1a2e',
-            roughness: 0.2,
-            metalness: 0.8,
+        const wallMaterial = new THREE.MeshPhongMaterial({
+            color: '#080812',
             emissive: '#00ffff',
-            emissiveIntensity: 0.05
+            emissiveIntensity: 0.05,
+            shininess: 15
         });
 
         // Custom glow overlay for neon aesthetic edges
@@ -494,18 +493,22 @@ class ZombieGame {
         }
 
         const bodyGeometry = new THREE.CylinderGeometry(0.4, 0.4, 1.6, 16);
-        const bodyMaterial = new THREE.MeshStandardMaterial({
-            color: '#0e0e15',
-            roughness: 0.1,
-            metalness: 0.9,
+        const bodyMaterial = new THREE.MeshPhongMaterial({
+            color: '#040d18',
             emissive: '#00ffff',
-            emissiveIntensity: 0.08
+            emissiveIntensity: 0.6,
+            shininess: 30
         });
         
         this.player = new THREE.Mesh(bodyGeometry, bodyMaterial);
         this.player.position.set(x, 0.8, z);
         this.player.castShadow = true;
         this.scene.add(this.player);
+
+        // Add neon wire outline to player for guaranteed visibility
+        const edges = new THREE.EdgesGeometry(bodyGeometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#00ffff' }));
+        this.player.add(line);
 
         // Add cyber visor (head direction indicator)
         const visorGeometry = new THREE.BoxGeometry(0.32, 0.14, 0.4);
@@ -517,10 +520,25 @@ class ZombieGame {
         // Add Gun Cylinder
         const gunGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.7, 8);
         gunGeometry.rotateX(Math.PI / 2);
-        const gunMaterial = new THREE.MeshStandardMaterial({ color: '#1e1e24', metalness: 0.8 });
+        const gunMaterial = new THREE.MeshPhongMaterial({
+            color: '#08080f',
+            emissive: '#00ffff',
+            emissiveIntensity: 0.3,
+            shininess: 20
+        });
         this.gun = new THREE.Mesh(gunGeometry, gunMaterial);
         this.gun.position.set(0.24, 0, 0.4);
         this.player.add(this.gun);
+
+        // Add neon outline to gun
+        const gunEdges = new THREE.EdgesGeometry(gunGeometry);
+        const gunLine = new THREE.LineSegments(gunEdges, new THREE.LineBasicMaterial({ color: '#00ffff' }));
+        this.gun.add(gunLine);
+
+        // Add player headlight/glow point light that casts cyan light on surrounding walls/zombies
+        this.playerLight = new THREE.PointLight('#00ffff', 1.8, 8.0);
+        this.playerLight.position.set(0, 1.0, 0);
+        this.player.add(this.playerLight);
     }
 
     spawnPortal(x, z) {
@@ -554,12 +572,11 @@ class ZombieGame {
         const spawner = this.spawners[Math.floor(Math.random() * this.spawners.length)];
 
         const bodyGeometry = new THREE.CylinderGeometry(0.38, 0.38, 1.5, 12);
-        const bodyMaterial = new THREE.MeshStandardMaterial({
-            color: '#0a140f',
-            roughness: 0.4,
-            metalness: 0.5,
+        const bodyMaterial = new THREE.MeshPhongMaterial({
+            color: '#040f08',
             emissive: '#39ff14',
-            emissiveIntensity: 0.12
+            emissiveIntensity: 0.6,
+            shininess: 10
         });
 
         const mesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
@@ -567,12 +584,22 @@ class ZombieGame {
         mesh.castShadow = true;
         this.scene.add(mesh);
 
+        // Add neon wire outline to zombie for guaranteed visibility
+        const edges = new THREE.EdgesGeometry(bodyGeometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: '#39ff14' }));
+        mesh.add(line);
+
         // Visor glow
         const eyeGeom = new THREE.BoxGeometry(0.3, 0.1, 0.35);
         const eyeMat = new THREE.MeshBasicMaterial({ color: '#39ff14' });
         const eye = new THREE.Mesh(eyeGeom, eyeMat);
         eye.position.set(0, 0.4, 0.2);
         mesh.add(eye);
+
+        // Add neon green glow point light to zombie
+        const zombieLight = new THREE.PointLight('#39ff14', 1.2, 5.0);
+        zombieLight.position.set(0, 0.8, 0);
+        mesh.add(zombieLight);
 
         // Health scale factor (zombies get slightly tougher each level)
         const maxHp = 1 + this.level;
@@ -615,8 +642,8 @@ class ZombieGame {
         const angle = Math.atan2(targetDir.x, targetDir.z);
         this.player.rotation.y = angle;
 
-        // Bullet projectile mesh setup
-        const bulletGeom = new THREE.CylinderGeometry(0.06, 0.06, 0.4, 6);
+        // Bullet projectile mesh setup - double the size for high visibility on mobile screens
+        const bulletGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.8, 8);
         bulletGeom.rotateX(Math.PI / 2);
         const bulletMat = new THREE.MeshBasicMaterial({ color: '#00ffff' });
         const bulletMesh = new THREE.Mesh(bulletGeom, bulletMat);
@@ -631,6 +658,20 @@ class ZombieGame {
             mesh: bulletMesh,
             dir: targetDir.clone(),
             speed: 16
+        });
+
+        // Add physical muzzle flash mesh for direct visual impact
+        const flashGeom = new THREE.SphereGeometry(0.25, 8, 8);
+        const flashMat = new THREE.MeshBasicMaterial({ color: '#00ffff' });
+        const flashMesh = new THREE.Mesh(flashGeom, flashMat);
+        flashMesh.position.copy(bulletPos);
+        this.scene.add(flashMesh);
+        
+        // Add particle with short life to animate decay in loop
+        this.particles.push({
+            mesh: flashMesh,
+            vel: new THREE.Vector3(0, 0, 0),
+            life: 0.08 // 80ms flash duration
         });
 
         // Trigger flash point light
@@ -668,7 +709,8 @@ class ZombieGame {
     }
 
     spawnSparks(x, y, z, color, count = 6) {
-        const geom = new THREE.BoxGeometry(0.08, 0.08, 0.08);
+        // Larger spark size for high visibility on mobile screens
+        const geom = new THREE.BoxGeometry(0.18, 0.18, 0.18);
         const mat = new THREE.MeshBasicMaterial({ color });
 
         for (let i = 0; i < count; i++) {
@@ -696,14 +738,18 @@ class ZombieGame {
         const color = type === 'ammo' ? '#00ffff' : '#39ff14';
 
         const geom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-        const mat = new THREE.MeshStandardMaterial({
+        const mat = new THREE.MeshPhongMaterial({
             color,
-            roughness: 0.2,
-            metalness: 0.8,
             emissive: color,
-            emissiveIntensity: 0.2
+            emissiveIntensity: 0.6,
+            shininess: 30
         });
         const mesh = new THREE.Mesh(geom, mat);
+
+        // Add outline to pickups for neon gem look
+        const edges = new THREE.EdgesGeometry(geom);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color }));
+        mesh.add(line);
         mesh.position.set(x, 0.3, z);
         this.scene.add(mesh);
 
