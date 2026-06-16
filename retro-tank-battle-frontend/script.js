@@ -612,10 +612,21 @@ function update(deltaTime) {
     if (hqHP <= 0) endGame('HQ DESTROYED');
 
     // Engine Sound Logic
-    if (window.audioFX && typeof window.audioFX.updateEngine === 'function') {
+    if (window.audioFX) {
         const isTankMoving = keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] || 
-                             keys['w'] || keys['s'] || keys['a'] || keys['d'];
-        window.audioFX.updateEngine(isTankMoving ? 150 : 20); // Pitch shift on move
+                             keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'];
+        if (isTankMoving) {
+            if (typeof window.audioFX.startEngine === 'function') {
+                window.audioFX.startEngine();
+            }
+            if (typeof window.audioFX.updateEngine === 'function') {
+                window.audioFX.updateEngine(150);
+            }
+        } else {
+            if (typeof window.audioFX.stopEngine === 'function') {
+                window.audioFX.stopEngine();
+            }
+        }
     }
 }
 
@@ -827,11 +838,7 @@ function initGame() {
     pauseMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
     
-    if (window.audioFX) {
-        if (typeof window.audioFX.startEngine === 'function') {
-            window.audioFX.startEngine();
-        }
-    }
+
 
     showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
     

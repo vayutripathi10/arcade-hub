@@ -341,12 +341,15 @@ class AudioFX {
     stopEngine() {
         if (this.engineOsc && this.ctx) {
             const now = this.ctx.currentTime;
-            this.engineGain.gain.setTargetAtTime(0, now, 0.1);
+            this.engineGain.gain.setTargetAtTime(0, now, 0.05);
+            const oscToStop = this.engineOsc;
+            this.engineOsc = null;
+            this.engineGain = null;
             setTimeout(() => {
-                if(this.engineOsc) this.engineOsc.stop();
-                this.engineOsc = null;
-                this.engineGain = null;
-            }, 200);
+                try {
+                    oscToStop.stop();
+                } catch(e){}
+            }, 100);
         }
     }
     
