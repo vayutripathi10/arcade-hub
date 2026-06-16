@@ -99,7 +99,46 @@ function setGameState(state) {
     updateMobileControlsVisibility();
 }
 
-window.addEventListener('resize', updateMobileControlsVisibility);
+function resize() {
+    const wrapper = document.getElementById('gameWrapper');
+    if (!wrapper) return;
+    const rect = wrapper.getBoundingClientRect();
+    
+    // Internal logical resolution (Fixed)
+    canvas.width = 800;
+    canvas.height = 576;
+    
+    const gameRatio = canvas.width / canvas.height;
+    const containerRatio = rect.width / rect.height;
+    
+    if (containerRatio > gameRatio) {
+        // Container is wider than game
+        canvas.style.height = rect.height + "px";
+        canvas.style.width = (rect.height * gameRatio) + "px";
+    } else {
+        // Container is taller than game
+        canvas.style.width = rect.width + "px";
+        canvas.style.height = (rect.width / gameRatio) + "px";
+    }
+}
+
+window.addEventListener('resize', () => {
+    updateMobileControlsVisibility();
+    resize();
+});
+
+// Monitor wrapper size changes
+try {
+    const resizeObserver = new ResizeObserver(() => {
+        resize();
+    });
+    const wrapperElement = document.getElementById('gameWrapper');
+    if (wrapperElement) {
+        resizeObserver.observe(wrapperElement);
+    }
+} catch (e) {
+    console.warn("ResizeObserver not supported:", e);
+}
 let score = 0;
 let kills = 0;
 let hqHP = 100;
@@ -757,8 +796,7 @@ function initGame() {
         if (muteBtn) muteBtn.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
     }
     
-    canvas.width = 800;
-    canvas.height = 576;
+    resize();
     currentStage = 1;
     totalEnemiesInStage = 5;
     score = 0;
@@ -946,6 +984,7 @@ document.addEventListener('touchmove', (e) => {
 
 // Ensure Canvas is visible on Safari
 window.addEventListener('load', () => {
+    resize();
     if (gameState !== 'menu' && !gameLoopId) {
         lastTime = performance.now();
         gameLoopId = requestAnimationFrame(gameLoop);

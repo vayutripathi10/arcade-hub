@@ -12,6 +12,81 @@
     <meta property="og:description" content="Defend your HQ and eliminate enemy tanks in this high-quality pixel-art tactical shooter.">
     <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
     
+    <script>
+    (function() {
+        var debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-console';
+        debugDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:120px;background:rgba(5,5,15,0.95);color:#39ff14;font-family:monospace;font-size:9px;overflow-y:auto;z-index:999999;border-top:1px solid rgba(255,51,68,0.3);padding:6px;pointer-events:auto;display:none;';
+        
+        var toggleBtn = document.createElement('button');
+        toggleBtn.innerHTML = 'LOGS';
+        toggleBtn.style.cssText = 'position:fixed;top:8px;left:8px;z-index:999999;background:rgba(0,0,0,0.6);color:#ff3344;border:1px solid rgba(255,255,255,0.15);padding:4px 8px;font-family:\'Outfit\',sans-serif;font-size:9px;border-radius:4px;cursor:pointer;display:none;';
+        
+        toggleBtn.onclick = function() {
+            debugDiv.style.display = debugDiv.style.display === 'none' ? 'block' : 'none';
+        };
+
+        function logToOverlay(msg, type) {
+            if (type === 'error' || type === 'rejection') {
+                toggleBtn.style.display = 'block';
+                debugDiv.style.display = 'block';
+            }
+            var p = document.createElement('p');
+            p.style.margin = '2px 0';
+            p.style.color = type === 'error' ? '#ff3344' : (type === 'warn' ? '#ffaa00' : '#39ff14');
+            p.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+            debugDiv.appendChild(p);
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        window.onerror = function(message, source, lineno, colno, error) {
+            var srcFile = source ? source.split('/').pop() : 'inline';
+            logToOverlay('ERR: ' + message + ' (' + srcFile + ':' + lineno + ')', 'error');
+            return false;
+        };
+
+        window.onunhandledrejection = function(event) {
+            logToOverlay('REJ: ' + event.reason, 'error');
+        };
+
+        var _log = console.log;
+        var _warn = console.warn;
+        var _error = console.error;
+
+        console.log = function() {
+            _log.apply(console, arguments);
+            logToOverlay(Array.prototype.slice.call(arguments).join(' '), 'info');
+        };
+        console.warn = function() {
+            _warn.apply(console, arguments);
+            logToOverlay(Array.prototype.slice.call(arguments).join(' '), 'warn');
+        };
+        console.error = function() {
+            _error.apply(console, arguments);
+            logToOverlay(Array.prototype.slice.call(arguments).join(' '), 'error');
+        };
+
+        window.addEventListener('DOMContentLoaded', function() {
+            document.body.appendChild(debugDiv);
+            document.body.appendChild(toggleBtn);
+            
+            var tapCount = 0;
+            document.addEventListener('touchstart', function(e) {
+                var touch = e.touches[0];
+                if (touch.clientX < 50 && touch.clientY < 50) {
+                    tapCount++;
+                    if (tapCount >= 3) {
+                        toggleBtn.style.display = 'block';
+                        debugDiv.style.display = 'block';
+                        tapCount = 0;
+                    }
+                    setTimeout(function() { tapCount = 0; }, 1000);
+                }
+            });
+        });
+    })();
+    </script>
+    
     <!-- Styles -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=ArcadeHub_Tank_StandardStyleFix">

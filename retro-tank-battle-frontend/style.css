@@ -150,9 +150,7 @@ html, body {
     box-shadow: 0 0 40px rgba(0,0,0,0.8);
     image-rendering: pixelated;
     display: block;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    margin: 0 auto;
 }
 
 /* ==================== 3. MOBILE CONTROLS ==================== */
@@ -369,14 +367,6 @@ html, body {
     .hud-value { font-size: 10px; }
     
     .game-wrapper { align-items: center; }
-    
-    /* Responsive Canvas Sizing */
-    #gameCanvas {
-        width: 100% !important;
-        height: auto !important;
-        max-height: calc(100dvh - var(--hud-h-mobile) - 60px) !important;
-        aspect-ratio: 800 / 576;
-    }
     
     .hidden-mobile { display: none !important; }
 }
