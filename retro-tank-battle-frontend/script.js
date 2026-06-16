@@ -47,11 +47,28 @@ function loadAssets() {
             if (assetsLoaded === totalAssets) {
                 clearTimeout(timeout);
                 console.log("All assets loaded.");
+                if (gameState === 'menu' && !player) {
+                    try {
+                        initMap();
+                        player = new Tank((MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2, (MAP_ROWS - 5) * TILE_SIZE, 'player');
+                        draw();
+                    } catch (e) {}
+                }
             }
         };
         img.onerror = () => {
             console.error("Failed to load asset:", assetFiles[key]);
             assetsLoaded++; // Skip but don't hang
+            if (assetsLoaded === totalAssets) {
+                clearTimeout(timeout);
+                if (gameState === 'menu' && !player) {
+                    try {
+                        initMap();
+                        player = new Tank((MAP_COLS / 2) * TILE_SIZE - TILE_SIZE / 2, (MAP_ROWS - 5) * TILE_SIZE, 'player');
+                        draw();
+                    } catch (e) {}
+                }
+            }
         };
     }
 }
@@ -65,6 +82,24 @@ const TANK_SIZE = 48;
 
 // Game State
 let gameState = 'menu';
+
+function updateMobileControlsVisibility() {
+    const mobileControls = document.getElementById('mobile-controls');
+    if (!mobileControls) return;
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 1024;
+    if (isTouchDevice && gameState === 'playing') {
+        mobileControls.classList.remove('hidden');
+    } else {
+        mobileControls.classList.add('hidden');
+    }
+}
+
+function setGameState(state) {
+    gameState = state;
+    updateMobileControlsVisibility();
+}
+
+window.addEventListener('resize', updateMobileControlsVisibility);
 let score = 0;
 let kills = 0;
 let hqHP = 100;
@@ -421,7 +456,7 @@ window.addEventListener('keydown', e => {
         e.preventDefault();
     }
     
-    if (e.code === 'Space') player.shoot(); 
+    if (e.code === 'Space' && player) player.shoot(); 
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -624,7 +659,7 @@ function checkStageClear() {
         showStageOverlay(`STAGE ${currentStage}`, "GET READY!");
         
         stageOverlayTimer = 2000; 
-        gameState = 'stage_clear';
+        setGameState('stage_clear');
     }
 }
 
@@ -653,7 +688,7 @@ function startNextStage() {
     
     updateHUD();
     stageOverlay.classList.add('hidden');
-    gameState = 'playing';
+    setGameState('playing');
 }
 
 function gameLoop() {
@@ -685,7 +720,7 @@ function gameLoop() {
         stageOverlayTimer -= deltaTime * 16.67;
         if (stageOverlayTimer <= 0) {
             if (gameState === 'stage_intro') {
-                gameState = 'playing';
+                setGameState('playing');
                 stageOverlay.classList.add('hidden');
             } else {
                 startNextStage();
@@ -708,10 +743,14 @@ function initGame() {
     }
 
     if (window.audioFX) {
-        window.audioFX.init();
-        // FORCE RESUME for Safari
-        if (window.audioFX.ctx && window.audioFX.ctx.state === 'suspended') {
-            window.audioFX.ctx.resume();
+        try {
+            window.audioFX.init();
+            // FORCE RESUME for Safari
+            if (window.audioFX.ctx && window.audioFX.ctx.state === 'suspended') {
+                window.audioFX.ctx.resume().catch(err => console.warn("AudioFX: resume failed:", err));
+            }
+        } catch (audioErr) {
+            console.warn("AudioFX: init failed in initGame:", audioErr);
         }
         
         const muteBtn = document.getElementById('btn-mute');
@@ -759,7 +798,7 @@ function initGame() {
     showStageOverlay(`STAGE 1`, "PROTECT THE HQ");
     
     stageOverlayTimer = 2000;
-    gameState = 'stage_intro';
+    setGameState('stage_intro');
     lastTime = performance.now();
     gameLoopId = requestAnimationFrame(gameLoop);
 }
@@ -785,7 +824,7 @@ function handleTankCollision(e, idx) {
         enemies.splice(idx, 1);
         
         // Massive explosion sequence
-        gameState = 'death_sequence';
+        setGameState('death_sequence');
         deathSequenceStartTime = Date.now();
         deathAnimationTimer = 1200; 
         
@@ -809,7 +848,7 @@ function handleTankCollision(e, idx) {
 
 function endGame(title) {
     console.log('--- RECOVERY STARTED: endGame triggered with state:', title);
-    gameState = 'gameover';
+    setGameState('gameover');
     document.getElementById('end-title').textContent = title;
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-kills').textContent = kills;
@@ -823,21 +862,19 @@ function endGame(title) {
 }
 
 // Auto-detect touch support with screen width fallback
-if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 1024) {
-    document.getElementById('mobile-controls').classList.remove('hidden');
-}
+updateMobileControlsVisibility();
 
 // Button Events
 document.getElementById('btn-start').addEventListener('click', initGame);
 document.getElementById('btn-restart').addEventListener('click', initGame);
 document.getElementById('btn-pause').addEventListener('click', () => {
     if (gameState === 'playing') {
-        gameState = 'paused';
+        setGameState('paused');
         pauseMenu.classList.remove('hidden');
     }
 });
 document.getElementById('btn-resume').addEventListener('click', () => {
-    gameState = 'playing';
+    setGameState('playing');
     pauseMenu.classList.add('hidden');
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
@@ -867,7 +904,7 @@ const bindBtn = (id, key) => {
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         keys[key] = true;
-        if(key==='Space') player.shoot();
+        if(key==='Space' && player) player.shoot();
     }, {passive: false});
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();

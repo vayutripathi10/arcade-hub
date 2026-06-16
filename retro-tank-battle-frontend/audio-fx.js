@@ -28,44 +28,51 @@ class AudioFX {
     }
 
     init() {
-        if (!this.ctx) {
-            console.log('AudioFX: Initializing AudioContext...');
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) {
-                this.ctx = new AudioCtx();
-                
-                // Create master chain: Compressor -> Master Gain -> Destination
-                this.compressor = this.ctx.createDynamicsCompressor();
-                this.masterGain = this.ctx.createGain();
-                
-                // Typical "loudness" compression settings
-                this.compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
-                this.compressor.knee.setValueAtTime(30, this.ctx.currentTime);
-                this.compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
-                this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
-                this.compressor.release.setValueAtTime(0.25, this.ctx.currentTime);
-                
-                if (this.isMuted) {
-                    this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+        try {
+            if (!this.ctx) {
+                console.log('AudioFX: Initializing AudioContext...');
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) {
+                    this.ctx = new AudioCtx();
+                    
+                    // Create master chain: Compressor -> Master Gain -> Destination
+                    this.compressor = this.ctx.createDynamicsCompressor();
+                    this.masterGain = this.ctx.createGain();
+                    
+                    // Typical "loudness" compression settings
+                    this.compressor.threshold.setValueAtTime(-24, this.ctx.currentTime);
+                    this.compressor.knee.setValueAtTime(30, this.ctx.currentTime);
+                    this.compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
+                    this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
+                    this.compressor.release.setValueAtTime(0.25, this.ctx.currentTime);
+                    
+                    if (this.isMuted) {
+                        this.masterGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                    } else {
+                        this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime); // Boost overall volume
+                    }
+                    
+                    this.compressor.connect(this.masterGain);
+                    this.masterGain.connect(this.ctx.destination);
+                    
+                    console.log('AudioFX: Context and master chain created. State:', this.ctx.state);
                 } else {
-                    this.masterGain.gain.setValueAtTime(1.5, this.ctx.currentTime); // Boost overall volume
+                    console.warn('AudioFX: Web Audio API not supported');
+                    this.enabled = false;
+                    return;
                 }
-                
-                this.compressor.connect(this.masterGain);
-                this.masterGain.connect(this.ctx.destination);
-                
-                console.log('AudioFX: Context and master chain created. State:', this.ctx.state);
-            } else {
-                console.warn('AudioFX: Web Audio API not supported');
-                this.enabled = false;
-                return;
             }
-        }
-        if (this.ctx && this.ctx.state === 'suspended') {
-            console.log('AudioFX: Resuming suspended context...');
-            this.ctx.resume().then(() => {
-                console.log('AudioFX: Context resumed. State:', this.ctx.state);
-            });
+            if (this.ctx && this.ctx.state === 'suspended') {
+                console.log('AudioFX: Resuming suspended context...');
+                this.ctx.resume().then(() => {
+                    console.log('AudioFX: Context resumed. State:', this.ctx.state);
+                }).catch(e => {
+                    console.warn('AudioFX: Context resume failed:', e);
+                });
+            }
+        } catch (error) {
+            console.error('AudioFX: Failed to initialize Web Audio:', error);
+            this.enabled = false;
         }
     }
 
