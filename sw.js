@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v125';
+const CACHE_NAME = 'arcade-hub-cache-v126';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -13,6 +13,8 @@ const CORE_ASSETS = [
     'icon-192.png',
     'icon-512.png',
     'shared/achievements.js',
+    'shared/audio-fx.js',
+    'shared/pwa-setup.js',
     'neon-cypher-frontend/index.html',
     'neon-cypher-frontend/style.css',
     'neon-cypher-frontend/script.js',
