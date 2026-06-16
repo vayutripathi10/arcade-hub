@@ -432,3 +432,8 @@ body, html {
         display: none; /* Save viewport space */
     }
 }
+
+.hidden {
+    display: none !important;
+}
+
