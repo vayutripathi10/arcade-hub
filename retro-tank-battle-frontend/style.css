@@ -373,7 +373,6 @@ html, body {
     height: 100%;
     background: #ff3344;
     box-shadow: 0 0 10px #ff3344;
-    transition: width 0.05s linear;
 }
 
 /* ==================== MOBILE ADJUSTMENTS ==================== */
