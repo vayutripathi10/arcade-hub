@@ -40,7 +40,6 @@ function loadAssets() {
 
     for (let key in assetFiles) {
         const img = new Image();
-        img.src = assetFiles[key];
         img.onload = () => {
             assets[key] = img;
             assetsLoaded++;
@@ -70,6 +69,7 @@ function loadAssets() {
                 }
             }
         };
+        img.src = assetFiles[key];
     }
 }
 loadAssets();
