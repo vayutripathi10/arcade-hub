@@ -2,6 +2,15 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const gameWrapper = document.getElementById('gameWrapper');
 
+const getNow = () => {
+    try {
+        if (window.performance && typeof window.performance.now === 'function') {
+            return window.performance.now();
+        }
+    } catch (e) {}
+    return Date.now();
+};
+
 // HUD/UI
 const uiScore = document.getElementById('ui-score');
 const hqHpBar = document.getElementById('hq-hp-bar');
@@ -763,7 +772,7 @@ function gameLoop() {
         return;
     }
 
-    const now = performance.now();
+    const now = getNow();
     if (!lastTime || lastTime === 0) lastTime = now;
     let dt = now - lastTime;
     
@@ -870,7 +879,7 @@ function initGame() {
     
     stageOverlayTimer = 2000;
     setGameState('stage_intro');
-    lastTime = performance.now();
+    lastTime = getNow();
     gameLoopId = requestAnimationFrame(gameLoop);
 }
 
@@ -947,7 +956,7 @@ document.getElementById('btn-pause').addEventListener('click', () => {
 document.getElementById('btn-resume').addEventListener('click', () => {
     setGameState('playing');
     pauseMenu.classList.add('hidden');
-    lastTime = performance.now();
+    lastTime = getNow();
     requestAnimationFrame(gameLoop);
 });
 document.getElementById('btn-howtoplay').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
@@ -1023,7 +1032,7 @@ document.addEventListener('touchmove', (e) => {
 window.addEventListener('load', () => {
     resize();
     if (gameState !== 'menu' && !gameLoopId) {
-        lastTime = performance.now();
+        lastTime = getNow();
         gameLoopId = requestAnimationFrame(gameLoop);
     } else {
         try {

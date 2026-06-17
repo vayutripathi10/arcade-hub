@@ -8,5 +8,11 @@
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 
+/**/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /shared/*.js
   Cache-Control: public, max-age=31536000

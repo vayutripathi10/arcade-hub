@@ -157,6 +157,10 @@ html, body {
 .controls-container {
     display: contents;
 }
+.controls-container.hidden .dpad-container,
+.controls-container.hidden .action-container {
+    display: none !important;
+}
 .controls-container * { pointer-events: auto; }
 
 .dpad-container {
