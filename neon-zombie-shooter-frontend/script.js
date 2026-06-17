@@ -159,6 +159,45 @@ class SoundSynth {
     }
 }
 
+const LEVEL_THEMES = [
+    // Level 1 Theme: Cyan/Pink (Cyber Alleys)
+    {
+        wallBase: '#080812',
+        wallGlow: '#00ffff',
+        zombieBase: '#051208',
+        zombieGlow: '#39ff14',
+        playerBase: '#12050e',
+        playerGlow: '#ff007c',
+        gridPrimary: '#00ffff',
+        gridSecondary: '#004444',
+        dirLight: '#ff0055'
+    },
+    // Level 2 Theme: Orange/Purple/Cyan (Neon Labs)
+    {
+        wallBase: '#140505',
+        wallGlow: '#ff3c00',
+        zombieBase: '#0d0514',
+        zombieGlow: '#b800ff',
+        playerBase: '#051212',
+        playerGlow: '#00ffff',
+        gridPrimary: '#ff3c00',
+        gridSecondary: '#441100',
+        dirLight: '#ffaa00'
+    },
+    // Level 3 Theme: Green/Cyan/Yellow (Mainframe Core)
+    {
+        wallBase: '#051205',
+        wallGlow: '#39ff14',
+        zombieBase: '#051212',
+        zombieGlow: '#00ffff',
+        playerBase: '#141405',
+        playerGlow: '#ffe600',
+        gridPrimary: '#39ff14',
+        gridSecondary: '#004400',
+        dirLight: '#00aaff'
+    }
+];
+
 class ZombieGame {
     constructor() {
         this.gameMode = 'classic';
@@ -262,9 +301,9 @@ class ZombieGame {
         this.scene.add(this.dirLight);
 
         // Grid floor helper for visual look - make the grid lines bright neon teal for clear navigation visibility
-        const gridHelper = new THREE.GridHelper(100, 50, '#00ffff', '#004444');
-        gridHelper.position.y = -0.01;
-        this.scene.add(gridHelper);
+        this.gridHelper = new THREE.GridHelper(100, 50, '#00ffff', '#004444');
+        this.gridHelper.position.y = -0.01;
+        this.scene.add(this.gridHelper);
     }
 
     setupInput() {
@@ -426,16 +465,31 @@ class ZombieGame {
         this.updateHUD();
 
         // Create player and map elements
+        const theme = LEVEL_THEMES[this.level];
+
+        // Recreate floor grid helper with theme colors
+        if (this.gridHelper) {
+            this.scene.remove(this.gridHelper);
+        }
+        this.gridHelper = new THREE.GridHelper(100, 50, theme.gridPrimary, theme.gridSecondary);
+        this.gridHelper.position.y = -0.01;
+        this.scene.add(this.gridHelper);
+
+        // Update lighting colors
+        if (this.dirLight) {
+            this.dirLight.color.set(theme.dirLight);
+        }
+
         const wallGeometry = new THREE.BoxGeometry(1, 2, 1);
         const wallMaterial = new THREE.MeshPhongMaterial({
-            color: '#080812',
-            emissive: '#00ffff',
+            color: theme.wallBase,
+            emissive: theme.wallGlow,
             emissiveIntensity: 0.05,
             shininess: 15
         });
 
         // Custom glow overlay for neon aesthetic edges
-        const glowMaterial = new THREE.LineBasicMaterial({ color: '#00ffff' });
+        const glowMaterial = new THREE.LineBasicMaterial({ color: theme.wallGlow });
 
         for (let r = 0; r < this.gridSize; r++) {
             for (let c = 0; c < this.gridSize; c++) {
@@ -482,8 +536,10 @@ class ZombieGame {
 
         // Muzzle Flash pointlight setup (mounted to gun tip)
         if (!this.muzzleFlash) {
-            this.muzzleFlash = new THREE.PointLight('#00ffff', 0, 5);
+            this.muzzleFlash = new THREE.PointLight(theme.playerGlow, 0, 5);
             this.scene.add(this.muzzleFlash);
+        } else {
+            this.muzzleFlash.color.set(theme.playerGlow);
         }
     }
 
@@ -492,18 +548,20 @@ class ZombieGame {
             this.scene.remove(this.player);
         }
 
+        const theme = LEVEL_THEMES[this.level];
+
         // Create player Group to assemble humanoid voxel cyborg
         this.player = new THREE.Group();
         this.player.position.set(x, 0.0, z); // base on ground
         this.scene.add(this.player);
 
-        const outlineMaterial = new THREE.LineBasicMaterial({ color: '#00ffff' });
+        const outlineMaterial = new THREE.LineBasicMaterial({ color: theme.playerGlow });
 
         // 1. Torso
         const torsoGeom = new THREE.BoxGeometry(0.5, 0.7, 0.3);
         const torsoMat = new THREE.MeshPhongMaterial({
-            color: '#05111f',
-            emissive: '#00ffff',
+            color: theme.playerBase,
+            emissive: theme.playerGlow,
             emissiveIntensity: 0.15,
             shininess: 30
         });
@@ -516,8 +574,8 @@ class ZombieGame {
         // 2. Head
         const headGeom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
         const headMat = new THREE.MeshPhongMaterial({
-            color: '#030810',
-            emissive: '#00ffff',
+            color: theme.playerBase,
+            emissive: theme.playerGlow,
             emissiveIntensity: 0.1,
             shininess: 30
         });
@@ -529,7 +587,7 @@ class ZombieGame {
 
         // Visor glow
         const visorGeometry = new THREE.BoxGeometry(0.24, 0.08, 0.32);
-        const visorMaterial = new THREE.MeshBasicMaterial({ color: '#00ffff' });
+        const visorMaterial = new THREE.MeshBasicMaterial({ color: theme.playerGlow });
         const visor = new THREE.Mesh(visorGeometry, visorMaterial);
         visor.position.set(0, 0.04, 0.12);
         head.add(visor);
@@ -537,8 +595,8 @@ class ZombieGame {
         // 3. Legs
         const legGeom = new THREE.BoxGeometry(0.18, 0.5, 0.18);
         const legMat = new THREE.MeshPhongMaterial({
-            color: '#02050a',
-            emissive: '#00ffff',
+            color: theme.playerBase,
+            emissive: theme.playerGlow,
             emissiveIntensity: 0.08,
             shininess: 20
         });
@@ -558,8 +616,8 @@ class ZombieGame {
         // 4. Arms
         const armGeom = new THREE.BoxGeometry(0.15, 0.6, 0.15);
         const armMat = new THREE.MeshPhongMaterial({
-            color: '#02050a',
-            emissive: '#00ffff',
+            color: theme.playerBase,
+            emissive: theme.playerGlow,
             emissiveIntensity: 0.08,
             shininess: 20
         });
@@ -580,8 +638,8 @@ class ZombieGame {
         const gunGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.7, 8);
         gunGeometry.rotateX(Math.PI / 2);
         const gunMaterial = new THREE.MeshPhongMaterial({
-            color: '#08080f',
-            emissive: '#00ffff',
+            color: theme.playerBase,
+            emissive: theme.playerGlow,
             emissiveIntensity: 0.3,
             shininess: 20
         });
@@ -590,8 +648,8 @@ class ZombieGame {
         this.player.add(this.gun);
         this.gun.add(new THREE.LineSegments(new THREE.EdgesGeometry(gunGeometry), outlineMaterial));
 
-        // Add player headlight/glow point light that casts cyan light on surrounding walls/zombies
-        this.playerLight = new THREE.PointLight('#00ffff', 1.8, 8.0);
+        // Add player headlight/glow point light that casts colored light on surrounding walls/zombies
+        this.playerLight = new THREE.PointLight(theme.playerGlow, 1.8, 8.0);
         this.playerLight.position.set(0, 1.0, 0);
         this.player.add(this.playerLight);
     }
@@ -626,18 +684,20 @@ class ZombieGame {
         if (this.spawners.length === 0) return;
         const spawner = this.spawners[Math.floor(Math.random() * this.spawners.length)];
 
+        const theme = LEVEL_THEMES[this.level];
+
         // Create zombie Group to assemble humanoid voxel zombie
         const mesh = new THREE.Group();
         mesh.position.set(spawner.x, 0.0, spawner.z); // base on ground
         this.scene.add(mesh);
 
-        const outlineMaterial = new THREE.LineBasicMaterial({ color: '#39ff14' });
+        const outlineMaterial = new THREE.LineBasicMaterial({ color: theme.zombieGlow });
 
         // 1. Torso
         const torsoGeom = new THREE.BoxGeometry(0.46, 0.66, 0.28);
         const torsoMat = new THREE.MeshPhongMaterial({
-            color: '#051208',
-            emissive: '#39ff14',
+            color: theme.zombieBase,
+            emissive: theme.zombieGlow,
             emissiveIntensity: 0.15,
             shininess: 10
         });
@@ -651,8 +711,8 @@ class ZombieGame {
         // 2. Head
         const headGeom = new THREE.BoxGeometry(0.28, 0.28, 0.28);
         const headMat = new THREE.MeshPhongMaterial({
-            color: '#040804',
-            emissive: '#39ff14',
+            color: theme.zombieBase,
+            emissive: theme.zombieGlow,
             emissiveIntensity: 0.1,
             shininess: 10
         });
@@ -665,7 +725,7 @@ class ZombieGame {
 
         // Visor/Eye glow
         const eyeGeom = new THREE.BoxGeometry(0.24, 0.08, 0.3);
-        const eyeMat = new THREE.MeshBasicMaterial({ color: '#39ff14' });
+        const eyeMat = new THREE.MeshBasicMaterial({ color: theme.zombieGlow });
         const eye = new THREE.Mesh(eyeGeom, eyeMat);
         eye.name = 'eye';
         eye.position.set(0, 0.04, 0.1);
@@ -674,8 +734,8 @@ class ZombieGame {
         // 3. Legs
         const legGeom = new THREE.BoxGeometry(0.16, 0.46, 0.16);
         const legMat = new THREE.MeshPhongMaterial({
-            color: '#020603',
-            emissive: '#39ff14',
+            color: theme.zombieBase,
+            emissive: theme.zombieGlow,
             emissiveIntensity: 0.08,
             shininess: 10
         });
@@ -697,8 +757,8 @@ class ZombieGame {
         // 4. Zombie arms reaching forward!
         const armGeom = new THREE.BoxGeometry(0.14, 0.14, 0.5);
         const armMat = new THREE.MeshPhongMaterial({
-            color: '#030804',
-            emissive: '#39ff14',
+            color: theme.zombieBase,
+            emissive: theme.zombieGlow,
             emissiveIntensity: 0.08,
             shininess: 10
         });
@@ -717,8 +777,8 @@ class ZombieGame {
         mesh.add(rightArm);
         rightArm.add(new THREE.LineSegments(new THREE.EdgesGeometry(armGeom), outlineMaterial));
 
-        // Add neon green glow point light to zombie
-        const zombieLight = new THREE.PointLight('#39ff14', 1.2, 5.0);
+        // Add theme-colored glow point light to zombie
+        const zombieLight = new THREE.PointLight(theme.zombieGlow, 1.2, 5.0);
         zombieLight.position.set(0, 0.8, 0);
         mesh.add(zombieLight);
 
@@ -763,10 +823,12 @@ class ZombieGame {
         const angle = Math.atan2(targetDir.x, targetDir.z);
         this.player.rotation.y = angle;
 
+        const theme = LEVEL_THEMES[this.level];
+
         // Bullet projectile mesh setup - double the size for high visibility on mobile screens
         const bulletGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.8, 8);
         bulletGeom.rotateX(Math.PI / 2);
-        const bulletMat = new THREE.MeshBasicMaterial({ color: '#00ffff' });
+        const bulletMat = new THREE.MeshBasicMaterial({ color: theme.playerGlow });
         const bulletMesh = new THREE.Mesh(bulletGeom, bulletMat);
         
         // Spawn slightly forward from the gun tip coordinate
@@ -783,7 +845,7 @@ class ZombieGame {
 
         // Add physical muzzle flash mesh for direct visual impact
         const flashGeom = new THREE.SphereGeometry(0.25, 8, 8);
-        const flashMat = new THREE.MeshBasicMaterial({ color: '#00ffff' });
+        const flashMat = new THREE.MeshBasicMaterial({ color: theme.playerGlow });
         const flashMesh = new THREE.Mesh(flashGeom, flashMat);
         flashMesh.position.copy(bulletPos);
         this.scene.add(flashMesh);
@@ -797,7 +859,7 @@ class ZombieGame {
 
         // Trigger flash point light
         this.muzzleFlashIntensity = 3.5;
-        this.muzzleFlash.color.set('#00ffff');
+        this.muzzleFlash.color.set(theme.playerGlow);
         this.muzzleFlash.position.copy(bulletPos);
 
         this.sfx.play('laser');
@@ -855,8 +917,9 @@ class ZombieGame {
         // 25% chance to drop Ammo (Blue) or Health (Green)
         if (Math.random() > 0.28) return;
 
+        const theme = LEVEL_THEMES[this.level];
         const type = Math.random() > 0.4 ? 'ammo' : 'health';
-        const color = type === 'ammo' ? '#00ffff' : '#39ff14';
+        const color = type === 'ammo' ? theme.playerGlow : theme.zombieGlow;
 
         const geom = new THREE.BoxGeometry(0.3, 0.3, 0.3);
         const mat = new THREE.MeshPhongMaterial({
@@ -973,7 +1036,7 @@ class ZombieGame {
         let finalZ = Math.max(-limit, Math.min(limit, nextZ));
 
         // Slide wall collision detection (AABB vs bounding circle)
-        const playerRadius = 0.45;
+        const playerRadius = 0.30;
         for (let i = 0; i < this.walls.length; i += 2) { // iterate by 2 because of outline segments
             const wall = this.walls[i];
             const wx = wall.position.x;
@@ -1046,8 +1109,9 @@ class ZombieGame {
 
         // Activate portal when required kills achieved
         if (this.zombiesKilled >= this.zombiesRequired && this.exitPortal && !this.exitPortal.active) {
+            const theme = LEVEL_THEMES[this.level];
             this.exitPortal.active = true;
-            this.exitPortal.mesh.material.color.set('#39ff14'); // Glow green when active
+            this.exitPortal.mesh.material.color.set(theme.playerGlow); // Glow player color when active
             document.getElementById('direction-arrow-hud').classList.remove('hidden');
             this.sfx.play('levelClear');
         }
@@ -1087,7 +1151,7 @@ class ZombieGame {
                 // Wall bounds checks for zombie
                 let allowedX = nextX;
                 let allowedZ = nextZ;
-                const zRadius = 0.38;
+                const zRadius = 0.28;
 
                 for (let j = 0; j < this.walls.length; j += 2) {
                     const wall = this.walls[j];
@@ -1141,7 +1205,8 @@ class ZombieGame {
                 const dz = Math.abs(bullet.mesh.position.z - wall.position.z);
 
                 if (dx < 0.5 && dz < 0.5) {
-                    this.spawnSparks(bullet.mesh.position.x, bullet.mesh.position.y, bullet.mesh.position.z, '#00ffff', 4);
+                    const theme = LEVEL_THEMES[this.level];
+                    this.spawnSparks(bullet.mesh.position.x, bullet.mesh.position.y, bullet.mesh.position.z, theme.wallGlow, 4);
                     this.sfx.play('hit');
                     this.scene.remove(bullet.mesh);
                     this.bullets.splice(i, 1);
@@ -1158,9 +1223,10 @@ class ZombieGame {
                 const dist = bullet.mesh.position.distanceTo(zombie.mesh.position);
 
                 if (dist < 0.65) {
+                    const theme = LEVEL_THEMES[this.level];
                     // Reduce zombie health
                     zombie.hp--;
-                    this.spawnSparks(bullet.mesh.position.x, bullet.mesh.position.y, bullet.mesh.position.z, '#39ff14', 5);
+                    this.spawnSparks(bullet.mesh.position.x, bullet.mesh.position.y, bullet.mesh.position.z, theme.zombieGlow, 5);
                     this.sfx.play('hit');
 
                     // Hit flash effect - traverse group meshes to flash all voxel parts
@@ -1174,7 +1240,7 @@ class ZombieGame {
                         if (zombie.mesh) {
                             zombie.mesh.traverse(child => {
                                 if (child.isMesh && child.material && child.material.emissive) {
-                                    child.material.emissive.set('#39ff14');
+                                    child.material.emissive.set(theme.zombieGlow);
                                     child.material.emissiveIntensity = (child.name === 'eye') ? 1.0 : 0.5;
                                 }
                             });
@@ -1192,7 +1258,7 @@ class ZombieGame {
                         this.zombiesKilled++;
                         this.updateHUD();
                         this.sfx.play('explosion');
-                        this.spawnSparks(zombie.mesh.position.x, zombie.mesh.position.y, zombie.mesh.position.z, '#39ff14', 16);
+                        this.spawnSparks(zombie.mesh.position.x, zombie.mesh.position.y, zombie.mesh.position.z, theme.zombieGlow, 16);
                         
                         // Drop pickup ammo/medkits
                         this.spawnPickup(zombie.mesh.position.x, zombie.mesh.position.z);
