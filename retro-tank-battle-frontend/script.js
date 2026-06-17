@@ -59,20 +59,36 @@ const assetFiles = {
 let assetsLoaded = 0;
 const totalAssets = Object.keys(assetFiles).length;
 
+function updateLoadingProgress() {
+    const btnStart = document.getElementById('btn-start');
+    if (!btnStart) return;
+    if (assetsLoaded < totalAssets) {
+        btnStart.disabled = true;
+        btnStart.textContent = `LOADING (${assetsLoaded}/${totalAssets})`;
+    } else {
+        btnStart.disabled = false;
+        btnStart.textContent = 'DEPLOY';
+    }
+}
+
 function loadAssets() {
     let loadedCount = 0;
     const timeout = setTimeout(() => {
         if (assetsLoaded < totalAssets) {
             console.warn("AudioFX: Asset loading timed out. Starting anyway...");
             assetsLoaded = totalAssets; // Fallback
+            updateLoadingProgress();
         }
     }, 5000);
+
+    updateLoadingProgress();
 
     for (let key in assetFiles) {
         const img = new Image();
         img.onload = () => {
             assets[key] = img;
             assetsLoaded++;
+            updateLoadingProgress();
             if (assetsLoaded === totalAssets) {
                 clearTimeout(timeout);
                 console.log("All assets loaded.");
@@ -88,6 +104,7 @@ function loadAssets() {
         img.onerror = () => {
             console.error("Failed to load asset:", assetFiles[key]);
             assetsLoaded++; // Skip but don't hang
+            updateLoadingProgress();
             if (assetsLoaded === totalAssets) {
                 clearTimeout(timeout);
                 if (gameState === 'menu' && !player) {
