@@ -1137,6 +1137,12 @@ class ZombieGame {
         this.autoFireCooldown -= delta;
         if (this.autoFireCooldown > 0) return;
 
+        // Early exit: no zombies alive at all — don't fire, wait longer before next check
+        if (!this.zombies || this.zombies.length === 0) {
+            this.autoFireCooldown = 0.5;
+            return;
+        }
+
         // Player's forward direction vector
         const forward = new THREE.Vector3(
             Math.sin(this.player.rotation.y),
@@ -1144,35 +1150,37 @@ class ZombieGame {
             Math.cos(this.player.rotation.y)
         );
 
-        // Find nearest zombie within 5.5 units in a 240° cone ahead
+        // Find nearest ALIVE zombie (hp > 0) within 5.5 units in a forward 180° arc
         let closestZombie = null;
         let closestDist = Infinity;
 
         for (const z of this.zombies) {
             if (!z.mesh) continue;
+            if (!z.hp || z.hp <= 0) continue; // CRITICAL: skip dead zombies not yet spliced out
+
             const toZ = new THREE.Vector3().subVectors(z.mesh.position, this.player.position);
             toZ.y = 0;
             const dist = toZ.length();
             if (dist > 5.5) continue;
 
             const dotProduct = toZ.clone().normalize().dot(forward);
-            // dotProduct > -0.25 means zombie is within ~105° on each side (240° total cone)
-            if (dotProduct > -0.25 && dist < closestDist) {
+            // dotProduct > 0 means zombie is in the forward 180° half — proper cone, not near-360°
+            if (dotProduct > 0 && dist < closestDist) {
                 closestDist = dist;
                 closestZombie = z;
             }
         }
 
         if (closestZombie) {
-            // Rotate player smoothly toward target before shooting
+            // Rotate player toward target then shoot
             const toTarget = new THREE.Vector3().subVectors(closestZombie.mesh.position, this.player.position);
             toTarget.y = 0;
             this.player.rotation.y = Math.atan2(toTarget.x, toTarget.z);
             this.shootBullet();
             this.autoFireCooldown = 0.38; // ~2.6 shots/sec — balanced for EASY
         } else {
-            // No target; check again quickly
-            this.autoFireCooldown = 0.1;
+            // No valid target in forward arc; wait before rechecking (do NOT fire)
+            this.autoFireCooldown = 0.3;
         }
     }
 

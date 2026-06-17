@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v145';
+const CACHE_NAME = 'arcade-hub-cache-v146';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',
@@ -103,7 +103,7 @@ const CORE_ASSETS = [
     'retro-tank-battle-frontend/assets/tile_grass.png',
     'retro-tank-battle-frontend/assets/tile_water.png',
     'retro-tank-battle-frontend/assets/tiles_sheet.png',
-    'neon-zombie-shooter-frontend/index.html',
+    'neon-zombie-shooter-frontend/index.html?v=146',
     'neon-zombie-shooter-frontend/style.css',
     'neon-zombie-shooter-frontend/script.js',
     'neon-zombie-shooter-frontend/map.js',
