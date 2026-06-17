@@ -132,7 +132,7 @@
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
                     <div class="play-console" id="playConsoleContainer">
-                        <iframe class="play-iframe" id="gameIframe" src="retro-tank-battle-frontend/index.html?v=ArcadeHub_Tank_V138" title="Retro Tank Battle"></iframe>
+                        <iframe class="play-iframe" id="gameIframe" src="retro-tank-battle-frontend/index.html?v=ArcadeHub_Tank_V139" title="Retro Tank Battle"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
@@ -288,14 +288,20 @@
             // Lock parent-level touch-scrolling on mobile devices when playing inside the iframe
             const iframe = document.getElementById('gameIframe');
             
+            const preventScroll = (e) => {
+                e.preventDefault();
+            };
+
             const lockScroll = () => {
                 document.body.style.overflow = 'hidden';
                 document.documentElement.style.overflow = 'hidden';
+                document.addEventListener('touchmove', preventScroll, { passive: false });
             };
             
             const unlockScroll = () => {
                 document.body.style.overflow = '';
                 document.documentElement.style.overflow = '';
+                document.removeEventListener('touchmove', preventScroll);
             };
 
             if (iframe) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v138';
+const CACHE_NAME = 'arcade-hub-cache-v139';
 const CORE_ASSETS = [
     'index.html',
     'retro-hub.html',

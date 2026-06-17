@@ -16,6 +16,22 @@ telemetry.id = 'game-telemetry';
 telemetry.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.85);color:#0f0;font-family:monospace;font-size:10px;padding:6px;z-index:999999;border:1px solid #0f0;pointer-events:none;display:none;';
 document.body.appendChild(telemetry);
 
+const requestFrame = (callback) => {
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) || 
+                     /iPad|iPhone|iPod/.test(navigator.platform) ||
+                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+    if (isSafari) {
+        return setTimeout(callback, 16.67);
+    }
+    return requestAnimationFrame(callback);
+};
+
+const cancelFrame = (id) => {
+    if (!id) return;
+    clearTimeout(id);
+    cancelAnimationFrame(id);
+};
+
 // HUD/UI
 const uiScore = document.getElementById('ui-score');
 const hqHpBar = document.getElementById('hq-hp-bar');
@@ -828,13 +844,13 @@ function gameLoop() {
         }
     }
     
-    gameLoopId = requestAnimationFrame(gameLoop);
+    gameLoopId = requestFrame(gameLoop);
 }
 
 function initGame() {
     // Stop any existing loops
     if (gameLoopId) {
-        cancelAnimationFrame(gameLoopId);
+        cancelFrame(gameLoopId);
         gameLoopId = null;
     }
 
@@ -901,7 +917,7 @@ function initGame() {
     stageOverlayTimer = 2000;
     setGameState('stage_intro');
     lastTime = getNow();
-    gameLoopId = requestAnimationFrame(gameLoop);
+    gameLoopId = requestFrame(gameLoop);
 }
 
 function handleTankCollision(e, idx) {
@@ -978,7 +994,7 @@ document.getElementById('btn-resume').addEventListener('click', () => {
     setGameState('playing');
     pauseMenu.classList.add('hidden');
     lastTime = getNow();
-    requestAnimationFrame(gameLoop);
+    gameLoopId = requestFrame(gameLoop);
 });
 document.getElementById('btn-howtoplay').addEventListener('click', () => howToPlayModal.classList.remove('hidden'));
 document.querySelector('.close-btn').addEventListener('click', () => howToPlayModal.classList.add('hidden'));
@@ -1054,7 +1070,7 @@ window.addEventListener('load', () => {
     resize();
     if (gameState !== 'menu' && !gameLoopId) {
         lastTime = getNow();
-        gameLoopId = requestAnimationFrame(gameLoop);
+        gameLoopId = requestFrame(gameLoop);
     } else {
         try {
             if (assetsLoaded === totalAssets) {
