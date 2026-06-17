@@ -11,10 +11,7 @@ const getNow = () => {
     return Date.now();
 };
 
-const telemetry = document.createElement('div');
-telemetry.id = 'game-telemetry';
-telemetry.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.85);color:#0f0;font-family:monospace;font-size:10px;padding:6px;z-index:999999;border:1px solid #0f0;pointer-events:none;display:none;';
-document.body.appendChild(telemetry);
+
 
 const requestFrame = (callback) => {
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent) || 
@@ -820,16 +817,7 @@ function gameLoop() {
     }
     lastTime = now;
     
-    const telemetryEl = document.getElementById('game-telemetry');
-    if (telemetryEl) {
-        telemetryEl.innerHTML = `
-            STATE: ${gameState}<br>
-            TIMER: ${Math.round(stageOverlayTimer)}ms<br>
-            DT: ${dt.toFixed(2)}ms<br>
-            LOOP: ${gameLoopId}<br>
-            ASSETS: ${assetsLoaded}/${totalAssets}
-        `;
-    }
+
     
     const deltaTime = Math.max(0.1, Math.min(dt / 16.67, 3));
 
@@ -876,10 +864,7 @@ function initGame() {
         keys[k] = false;
     }
 
-    const telemetryEl = document.getElementById('game-telemetry');
-    if (telemetryEl) {
-        telemetryEl.style.display = 'block';
-    }
+
 
     if (window.audioFX) {
         try {
