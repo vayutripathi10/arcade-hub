@@ -246,10 +246,13 @@ class ZombieGame {
         this.rightJoystickVector = new THREE.Vector2();
         this.isMobile = false;
 
+        this.gameMode = 'hard'; // 'easy' | 'hard'
+        this.autoFireCooldown = 0; // used in easy mode
         this.sfx = new SoundSynth();
     }
 
-    async init() {
+    async init(mode) {
+        this.gameMode = mode || 'hard';
         this.sfx.init();
         this.isMobile = window.innerWidth <= 768;
         
@@ -257,6 +260,23 @@ class ZombieGame {
         this.setupInput();
         this.setupUI();
         
+        // Update HUD mode badge
+        const badge = document.getElementById('mode-badge');
+        if (badge) {
+            badge.textContent = this.gameMode === 'easy' ? 'EASY' : 'HARD';
+            badge.className = this.gameMode === 'easy' ? 'easy' : 'hard';
+        }
+
+        // Show fire button on mobile in hard mode only
+        const fireBtn = document.getElementById('fire-btn');
+        if (fireBtn) {
+            if (this.isMobile && this.gameMode === 'hard') {
+                fireBtn.style.display = 'flex';
+            } else {
+                fireBtn.style.display = 'none';
+            }
+        }
+
         await this.loadLevel(0);
         
         this.gameRunning = true;
@@ -326,7 +346,7 @@ class ZombieGame {
             this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         });
 
-        // Shooting inputs
+        // Desktop shooting (both modes allow manual click)
         window.addEventListener('mousedown', (e) => {
             if (!this.gameRunning || this.isPaused) return;
             if (e.button === 0) {
@@ -336,10 +356,26 @@ class ZombieGame {
             }
         });
 
-        // Touch Joysticks
+        // Touch Joysticks — right joystick ONLY aims (no auto-fire here)
         if (this.isMobile) {
             this.bindJoystick('joystick-left', this.leftJoystickVector);
             this.bindJoystick('joystick-right', this.rightJoystickVector);
+
+            // Fire button: fires on touchstart (immediate response)
+            const fireBtn = document.getElementById('fire-btn');
+            if (fireBtn) {
+                fireBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (!this.gameRunning || this.isPaused) return;
+                    this.shootBullet();
+                }, { passive: false });
+                // Also support mouse clicks on the button (desktop testing)
+                fireBtn.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    if (!this.gameRunning || this.isPaused) return;
+                    this.shootBullet();
+                });
+            }
         }
     }
 
@@ -415,16 +451,16 @@ class ZombieGame {
             document.getElementById('mute-btn').textContent = this.sfx.muted ? '🔇' : '🔊';
         };
 
-        const exitToHub = () => {
+        // Pause > Abandon returns to mode select
+        const goToModeSelect = () => {
             this.sfx.play('collect');
-            if (window.top !== window.self) {
-                window.top.location.href = '../index.html';
-            } else {
-                window.location.href = '../index.html';
+            this.gameRunning = false;
+            if (typeof returnToModeSelect === 'function') {
+                returnToModeSelect();
             }
         };
-        document.getElementById('pause-exit-btn').onclick = exitToHub;
-        document.getElementById('over-exit-btn').onclick = exitToHub;
+        document.getElementById('pause-exit-btn').onclick = goToModeSelect;
+        document.getElementById('over-exit-btn').onclick = goToModeSelect;
 
         document.getElementById('retry-btn').onclick = () => this.resetLevel();
         document.getElementById('next-btn').onclick = () => this.nextLevel();
@@ -955,7 +991,8 @@ class ZombieGame {
         const delta = Math.min(0.1, (timestamp - this.lastTime) / 1000) || 0.016;
         this.lastTime = timestamp;
 
-        this.updatePlayer(delta);
+        this.updatePlayer(delta, timestamp);
+        this.updateAutoFire(delta);  // EASY mode auto-targeting
         this.updateZombies(delta, timestamp);
         this.updateProjectiles(delta);
         this.updateFX(delta);
@@ -999,17 +1036,11 @@ class ZombieGame {
                 moveDir.normalize().multiplyScalar(4.2); // Base speed
             }
 
-            // Aim look rotation (Auto-firing mapping for mobile)
+            // Aim look rotation — right joystick only rotates player, does NOT fire
             if (this.isMobile) {
                 if (this.rightJoystickVector.length() > 0.2) {
                     const aimAngle = Math.atan2(this.rightJoystickVector.x, -this.rightJoystickVector.y);
                     this.player.rotation.y = aimAngle;
-                    
-                    // Periodic auto shoot
-                    if (!this.lastAutoShoot || timestamp - this.lastAutoShoot > 220) {
-                        this.shootBullet();
-                        this.lastAutoShoot = timestamp;
-                    }
                 } else if (moveDir.length() > 0) {
                     // Face movement direction if not actively aiming
                     this.player.rotation.y = Math.atan2(moveDir.x, moveDir.z);
@@ -1094,6 +1125,54 @@ class ZombieGame {
             if (dist < 0.9) {
                 this.handleWin();
             }
+        }
+    }
+
+    // EASY MODE: auto-target and fire at nearest zombie in player's forward arc
+    updateAutoFire(delta) {
+        if (this.gameMode !== 'easy') return;
+        if (!this.gameRunning || this.isPaused) return;
+        if (!this.player) return;
+
+        this.autoFireCooldown -= delta;
+        if (this.autoFireCooldown > 0) return;
+
+        // Player's forward direction vector
+        const forward = new THREE.Vector3(
+            Math.sin(this.player.rotation.y),
+            0,
+            Math.cos(this.player.rotation.y)
+        );
+
+        // Find nearest zombie within 5.5 units in a 240° cone ahead
+        let closestZombie = null;
+        let closestDist = Infinity;
+
+        for (const z of this.zombies) {
+            if (!z.mesh) continue;
+            const toZ = new THREE.Vector3().subVectors(z.mesh.position, this.player.position);
+            toZ.y = 0;
+            const dist = toZ.length();
+            if (dist > 5.5) continue;
+
+            const dotProduct = toZ.clone().normalize().dot(forward);
+            // dotProduct > -0.25 means zombie is within ~105° on each side (240° total cone)
+            if (dotProduct > -0.25 && dist < closestDist) {
+                closestDist = dist;
+                closestZombie = z;
+            }
+        }
+
+        if (closestZombie) {
+            // Rotate player smoothly toward target before shooting
+            const toTarget = new THREE.Vector3().subVectors(closestZombie.mesh.position, this.player.position);
+            toTarget.y = 0;
+            this.player.rotation.y = Math.atan2(toTarget.x, toTarget.z);
+            this.shootBullet();
+            this.autoFireCooldown = 0.38; // ~2.6 shots/sec — balanced for EASY
+        } else {
+            // No target; check again quickly
+            this.autoFireCooldown = 0.1;
         }
     }
 
@@ -1432,10 +1511,14 @@ class ZombieGame {
 
 // Global script bindings
 let gameInstance = null;
-function initGame() {
-    if (gameInstance) return;
+function initGame(mode) {
+    if (gameInstance) {
+        // Allow re-init when mode changes (user came back from mode screen)
+        gameInstance.gameRunning = false;
+        gameInstance = null;
+    }
     gameInstance = new ZombieGame();
-    gameInstance.init();
+    gameInstance.init(mode || 'hard');
 }
 
 window.addEventListener('resize', () => {

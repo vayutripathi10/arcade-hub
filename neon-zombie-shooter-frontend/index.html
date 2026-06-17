@@ -214,17 +214,46 @@
     </div>
     <!-- END PRE-GAME INFO OVERLAY -->
 
+    <!-- MODE SELECTION SCREEN -->
+    <div id="mode-select-screen">
+        <div class="mode-brand">
+            <div class="mode-brand-title">NEON ZOMBIE<br><span>SHOOTER</span></div>
+            <div class="mode-brand-sub">Grid-Containment Survival Arena</div>
+        </div>
+
+        <div class="mode-label">— Select Difficulty —</div>
+
+        <div class="mode-btn-group">
+            <button class="mode-btn easy" id="select-easy-btn" onclick="selectMode('easy')">
+                <span class="mode-btn-icon">🤖</span>
+                <span class="mode-btn-name">Easy Mode</span>
+                <span class="mode-btn-desc">Move to survive — gun auto-aims & fires at zombies</span>
+            </button>
+            <button class="mode-btn hard" id="select-hard-btn" onclick="selectMode('hard')">
+                <span class="mode-btn-icon">🎯</span>
+                <span class="mode-btn-name">Hard Mode</span>
+                <span class="mode-btn-desc">Manual aim with joystick — tap FIRE to shoot</span>
+            </button>
+        </div>
+
+        <a class="mode-hub-link" href="../index.html" target="_top">🏠 Back to Arcade Hub</a>
+    </div>
+
     <!-- Main Game Container -->
     <div id="game-container">
+        <!-- FIRE BUTTON (visible in HARD mode on mobile) -->
+        <button id="fire-btn" aria-label="Fire">🔥</button>
+
         <!-- HUD Header -->
         <header id="hud">
             <div class="hud-left">
-                <a href="../index.html" target="_top" class="hub-btn">🏠 HUB</a>
+                <button class="hub-btn" id="hub-home-btn" onclick="returnToModeSelect()">🏠 HUB</button>
             </div>
             <div class="hud-center">
                 <div id="score-container">
                     <span id="score">000000</span>
                     <div id="level-display">LEVEL <span id="level-num">1</span>: <span id="level-name">Cyber Alleys</span></div>
+                    <span id="mode-badge" class="hard">HARD</span>
                 </div>
             </div>
             <div class="hud-right">
@@ -335,16 +364,13 @@
     <!-- Scripts Loading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="map.js"></script>
-    <script src="script.js?v=144"></script>
+    <script src="script.js?v=145"></script>
 
     <script>
-        (function() {
-            var gameId = 'neon-zombie-shooter';
-            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
-                continueToGame(true);
-            }
-        })();
-        
+        // ---- Game flow globals ----
+        var _selectedMode = 'hard';
+
+        // Called from the pre-game info overlay "PLAY NOW" button
         function continueToGame(isReturning) {
             var gameId = 'neon-zombie-shooter';
             localStorage.setItem('arcade_seen_' + gameId, '1');
@@ -352,20 +378,56 @@
             window.dispatchEvent(new Event('resize'));
             var overlay = document.getElementById('game-info-overlay');
             if (overlay) overlay.style.display = 'none';
-            
-            // Show the start landing screen menu
+
+            // Show the mode selection screen
+            var modeScreen = document.getElementById('mode-select-screen');
+            if (modeScreen) modeScreen.style.display = 'flex';
+        }
+
+        // Called when user clicks EASY or HARD
+        function selectMode(mode) {
+            _selectedMode = mode;
+            var modeScreen = document.getElementById('mode-select-screen');
+            if (modeScreen) modeScreen.style.display = 'none';
+
+            // Show the start screen (controls reminder)
             var startScreen = document.getElementById('start-screen');
             if (startScreen) startScreen.classList.remove('hidden');
         }
 
-        // Initialize game only when the user explicitly clicks the start button
-        document.addEventListener('DOMContentLoaded', () => {
+        // Called from HUD HOME button during gameplay
+        function returnToModeSelect() {
+            // Stop running game if any
+            if (typeof gameInstance !== 'undefined' && gameInstance) {
+                gameInstance.gameRunning = false;
+            }
+            // Hide all overlays
+            ['start-screen','pause-screen','over-screen','complete-screen','direction-arrow-hud']
+                .forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+            // Show mode select screen
+            var modeScreen = document.getElementById('mode-select-screen');
+            if (modeScreen) modeScreen.style.display = 'flex';
+        }
+
+        // Initialize game only when user clicks DEPLOY MISSION
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-skip info overlay for returning players
+            var gameId = 'neon-zombie-shooter';
+            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+                continueToGame(true);
+            }
+
             var startBtn = document.getElementById('start-mission-btn');
             if (startBtn) {
-                startBtn.onclick = () => {
+                startBtn.onclick = function() {
                     var startScreen = document.getElementById('start-screen');
                     if (startScreen) startScreen.classList.add('hidden');
-                    if (typeof initGame === 'function') { initGame(); }
+                    if (typeof initGame === 'function') {
+                        initGame(_selectedMode);
+                    }
                 };
             }
         });

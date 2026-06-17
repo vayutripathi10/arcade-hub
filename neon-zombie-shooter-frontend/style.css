@@ -467,3 +467,217 @@ body, html {
     padding-bottom: 4px;
 }
 
+/* ======= MODE SELECT SCREEN ======= */
+#mode-select-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: radial-gradient(ellipse at 50% 30%, #0a0020 0%, #030306 70%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 28px;
+}
+
+#mode-select-screen .mode-brand {
+    text-align: center;
+}
+
+#mode-select-screen .mode-brand-title {
+    font-size: 2.4rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    line-height: 1.1;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
+#mode-select-screen .mode-brand-title span {
+    color: var(--neon-pink);
+    text-shadow: 0 0 20px rgba(255, 45, 120, 0.7);
+}
+
+#mode-select-screen .mode-brand-sub {
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 8px;
+}
+
+#mode-select-screen .mode-label {
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+    font-weight: 700;
+}
+
+.mode-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 340px;
+}
+
+.mode-btn {
+    width: 100%;
+    padding: 20px 24px;
+    border: 2px solid transparent;
+    border-radius: 18px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.mode-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+
+.mode-btn:active { transform: scale(0.97); }
+
+.mode-btn.easy {
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.12) 0%, rgba(0, 255, 255, 0.08) 100%);
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.2), inset 0 1px 0 rgba(57, 255, 20, 0.1);
+}
+
+.mode-btn.easy:hover {
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.25) 0%, rgba(0, 255, 255, 0.15) 100%);
+    box-shadow: 0 0 40px rgba(57, 255, 20, 0.5), 0 8px 24px rgba(0,0,0,0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.mode-btn.hard {
+    background: linear-gradient(135deg, rgba(255, 45, 120, 0.12) 0%, rgba(255, 60, 0, 0.08) 100%);
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+    box-shadow: 0 0 20px rgba(255, 45, 120, 0.2), inset 0 1px 0 rgba(255, 45, 120, 0.1);
+}
+
+.mode-btn.hard:hover {
+    background: linear-gradient(135deg, rgba(255, 45, 120, 0.25) 0%, rgba(255, 60, 0, 0.15) 100%);
+    box-shadow: 0 0 40px rgba(255, 45, 120, 0.5), 0 8px 24px rgba(0,0,0,0.4);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.mode-btn .mode-btn-icon {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.mode-btn .mode-btn-name {
+    font-size: 1.25rem;
+    font-weight: 900;
+}
+
+.mode-btn .mode-btn-desc {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    opacity: 0.75;
+    text-transform: none;
+}
+
+.mode-hub-link {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.35);
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.mode-hub-link:hover {
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ======= FIRE BUTTON (HARD mode mobile) ======= */
+#fire-btn {
+    position: absolute;
+    bottom: 185px;
+    right: 40px;
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, rgba(255, 45, 120, 0.35), rgba(255, 45, 120, 0.1));
+    border: 2.5px solid var(--neon-pink);
+    box-shadow: 0 0 22px rgba(255, 45, 120, 0.45), inset 0 0 14px rgba(255, 45, 120, 0.1);
+    color: var(--neon-pink);
+    font-size: 1.8rem;
+    display: none; /* shown by JS */
+    align-items: center;
+    justify-content: center;
+    z-index: 120;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    animation: firePulse 1.8s ease-in-out infinite;
+}
+
+#fire-btn:active {
+    transform: scale(0.9);
+    box-shadow: 0 0 35px rgba(255, 45, 120, 0.8);
+    animation: none;
+}
+
+@keyframes firePulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(255, 45, 120, 0.45), inset 0 0 14px rgba(255, 45, 120, 0.1); }
+    50% { box-shadow: 0 0 35px rgba(255, 45, 120, 0.7), inset 0 0 20px rgba(255, 45, 120, 0.15); }
+}
+
+/* Mode badge in HUD */
+#mode-badge {
+    font-size: 0.65rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+#mode-badge.easy {
+    background: rgba(57, 255, 20, 0.15);
+    color: var(--neon-green);
+    border: 1px solid rgba(57, 255, 20, 0.4);
+}
+
+#mode-badge.hard {
+    background: rgba(255, 45, 120, 0.15);
+    color: var(--neon-pink);
+    border: 1px solid rgba(255, 45, 120, 0.4);
+}
+
+@media (max-width: 768px) {
+    #mode-select-screen .mode-brand-title { font-size: 1.9rem; }
+    .mode-btn { padding: 16px 20px; }
+    #fire-btn { display: none; } /* shown by JS when mode=hard */
+}
