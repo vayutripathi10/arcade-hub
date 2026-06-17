@@ -358,6 +358,24 @@ html, body {
     margin-bottom: 0 !important;
 }
 
+/* Stage Progress Bar Styles */
+.stage-progress-container {
+    width: 200px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+.stage-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: #ff3344;
+    box-shadow: 0 0 10px #ff3344;
+    transition: width 0.05s linear;
+}
+
 /* ==================== MOBILE ADJUSTMENTS ==================== */
 @media (max-width: 800px) {
     .header { height: var(--hud-h-mobile); padding: 0 10px; }

@@ -753,6 +753,8 @@ function showStageOverlay(title, sub) {
     stageOverlay.classList.remove('hidden');
     document.getElementById('stage-title').textContent = title;
     document.getElementById('stage-subtitle').textContent = sub;
+    const progressFill = document.getElementById('stage-progress-bar');
+    if (progressFill) progressFill.style.width = '0%';
 }
 
 function checkStageClear() {
@@ -823,6 +825,14 @@ function gameLoop() {
 
     if (gameState === 'stage_intro' || gameState === 'stage_clear') {
         stageOverlayTimer -= dt; // Use real elapsed time in milliseconds
+        
+        // Update stage transition progress bar
+        const progressFill = document.getElementById('stage-progress-bar');
+        if (progressFill) {
+            const pct = Math.max(0, Math.min(100, ((2000 - stageOverlayTimer) / 2000) * 100));
+            progressFill.style.width = `${pct}%`;
+        }
+        
         if (stageOverlayTimer <= 0) {
             if (gameState === 'stage_intro') {
                 setGameState('playing');
