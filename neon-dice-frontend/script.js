@@ -339,6 +339,7 @@ class DiceViewport {
         this.dice = [];
         this.particles = [];
         this.isAnimating = false;
+        this.cameraShake = 0;
         
         // Target orientations to face numbers up
         // material indices: 0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z
@@ -461,7 +462,10 @@ class DiceViewport {
                 wz: 0,
                 bounceCount: 0,
                 targetVal: 1,
-                state: 'idle'
+                state: 'idle',
+                targetX: 0,
+                targetZ: 0,
+                targetSpinY: 0
             });
         }
 
@@ -574,20 +578,20 @@ class DiceViewport {
             d.state = 'rolling';
             d.bounceCount = 0;
             
-            // Random start position near top-back
-            d.x = idx === 0 ? -1.8 : 1.8;
-            d.y = 4.2;
-            d.z = -2.5;
+            // Start position: bottom-front (close to camera, thrown onto the table)
+            d.x = idx === 0 ? -1.2 : 1.2;
+            d.y = 0.6;
+            d.z = 3.5;
 
-            // Roll vectors
-            d.vx = idx === 0 ? (2.8 + Math.random() * 2) : (-2.8 - Math.random() * 2);
-            d.vy = 1.0 + Math.random() * 1.5;
-            d.vz = 3.5 + Math.random() * 2;
+            // Thrown forward and upward
+            d.vx = idx === 0 ? (2.0 + Math.random() * 1.5) : (-2.0 - Math.random() * 1.5);
+            d.vy = 6.8 + Math.random() * 2.0;
+            d.vz = -6.5 - Math.random() * 2.0;
 
-            // Rotation vectors
-            d.wx = (12 + Math.random() * 12) * (Math.random() < 0.5 ? 1 : -1);
-            d.wy = (12 + Math.random() * 12) * (Math.random() < 0.5 ? 1 : -1);
-            d.wz = (12 + Math.random() * 12) * (Math.random() < 0.5 ? 1 : -1);
+            // Rotation vectors (fast spin!)
+            d.wx = (15 + Math.random() * 15) * (Math.random() < 0.5 ? 1 : -1);
+            d.wy = (15 + Math.random() * 15) * (Math.random() < 0.5 ? 1 : -1);
+            d.wz = (15 + Math.random() * 15) * (Math.random() < 0.5 ? 1 : -1);
 
             d.group.position.set(d.x, d.y, d.z);
             
@@ -596,7 +600,7 @@ class DiceViewport {
             d.mesh.rotation.set(rot.x, 0, rot.z);
         });
 
-        // Slow camera tracking effect
+        // Slow camera tracking effect: follow the roll!
         this.camera.position.set(0, 8.5, 7.0);
     }
 
@@ -631,7 +635,13 @@ class DiceViewport {
     animate(currentTime) {
         if (!this.isAnimating) return;
 
-        let dt = (currentTime - this.lastTime) / 1000;
+        let timeScale = 1.0;
+        // If dice are settling, slow down time step to 0.42 for dramatic suspense
+        if (gameState.rolling && this.dice.some(d => d.state === 'settling')) {
+            timeScale = 0.42;
+        }
+
+        let dt = ((currentTime - this.lastTime) / 1000) * timeScale;
         this.lastTime = currentTime;
 
         // Cap dt to prevent frame gaps
@@ -643,6 +653,13 @@ class DiceViewport {
         
         this.updateParticles(dt);
 
+        // Camera shake decay on thud impacts
+        if (this.cameraShake > 0.01) {
+            this.camera.position.x += (Math.random() - 0.5) * this.cameraShake;
+            this.camera.position.y += (Math.random() - 0.5) * this.cameraShake;
+            this.cameraShake *= 0.82;
+        }
+
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }
@@ -652,7 +669,7 @@ class DiceViewport {
 
     updatePhysics(dt) {
         const gravity = -17.5;
-        const bounceLoss = 0.4;
+        const bounceLoss = 0.45;
         const friction = 0.92;
         const sizeRadius = 0.55; // Settle limits
         
@@ -680,23 +697,31 @@ class DiceViewport {
                     d.y = sizeRadius;
                     d.vy = -d.vy * bounceLoss;
                     
-                    // friction
-                    d.vx *= 0.65;
-                    d.vz *= 0.65;
-                    d.wx *= 0.5;
-                    d.wy *= 0.5;
-                    d.wz *= 0.5;
+                    // Friction traction bounce redirects
+                    d.vx = (d.vx * 0.6) + (Math.random() - 0.5) * 1.5;
+                    d.vz = (d.vz * 0.6) + (Math.random() - 0.5) * 1.5;
+                    
+                    // Randomize spin axis on impact to simulate corners catching floor
+                    d.wx = (d.wx * -0.4) + (Math.random() - 0.5) * 8;
+                    d.wy = (d.wy * 0.4) + (Math.random() - 0.5) * 8;
+                    d.wz = (d.wz * -0.4) + (Math.random() - 0.5) * 8;
 
                     d.bounceCount++;
                     sfx.playThud();
                     this.spawnThudParticles(d.x, d.z);
 
+                    // Camera shake on heavy first bounce
+                    if (d.bounceCount === 1) {
+                        this.cameraShake = 0.22;
+                    }
+
                     // Stop condition
                     if (d.bounceCount >= 3 || (Math.abs(d.vy) < 0.6 && Math.abs(d.vx) < 0.6)) {
                         d.state = 'settling';
                         d.targetY = sizeRadius;
-                        // Choose a random horizontal rotation spin
-                        d.targetSpinY = Math.random() * Math.PI * 2;
+                        d.targetX = THREE.MathUtils.clamp(d.x, -2.2, 2.2); // Settle bounds
+                        d.targetZ = THREE.MathUtils.clamp(d.z, -1.8, 1.8);
+                        d.targetSpinY = d.group.rotation.y;
                     }
                 }
 
@@ -709,18 +734,15 @@ class DiceViewport {
             } else if (d.state === 'settling') {
                 allDone = false;
                 
-                // Slow motion settling effect: interpolate group rotations to 0 on X and Z
-                // while letting Y settle on the targetSpinY
-                d.group.rotation.x = THREE.MathUtils.lerp(d.group.rotation.x, 0, 0.16);
-                d.group.rotation.z = THREE.MathUtils.lerp(d.group.rotation.z, 0, 0.16);
-                
-                // Wrap rotation.y logic
-                d.group.rotation.y = THREE.MathUtils.lerp(d.group.rotation.y, d.targetSpinY, 0.16);
+                // Settle rotations to flat 0 on X and Z while keeping spin on Y
+                d.group.rotation.x = THREE.MathUtils.lerp(d.group.rotation.x, 0, 0.12);
+                d.group.rotation.z = THREE.MathUtils.lerp(d.group.rotation.z, 0, 0.12);
+                d.group.rotation.y = THREE.MathUtils.lerp(d.group.rotation.y, d.targetSpinY, 0.12);
 
-                // Position lerp
-                d.x = THREE.MathUtils.lerp(d.x, d.x > 0 ? 0.95 : -0.95, 0.14);
-                d.z = THREE.MathUtils.lerp(d.z, 0, 0.14);
-                d.y = THREE.MathUtils.lerp(d.y, d.targetY, 0.14);
+                // Position lerp: settle in place where they landed
+                d.x = THREE.MathUtils.lerp(d.x, d.targetX, 0.12);
+                d.z = THREE.MathUtils.lerp(d.z, d.targetZ, 0.12);
+                d.y = THREE.MathUtils.lerp(d.y, d.targetY, 0.12);
 
                 d.group.position.set(d.x, d.y, d.z);
 
@@ -731,7 +753,7 @@ class DiceViewport {
                     d.group.rotation.x = 0;
                     d.group.rotation.z = 0;
                     d.group.rotation.y = d.targetSpinY;
-                    d.group.position.set(d.x > 0 ? 0.95 : -0.95, d.targetY, 0);
+                    d.group.position.set(d.targetX, d.targetY, d.targetZ);
                     d.state = 'done';
                 }
             }
