@@ -1128,7 +1128,65 @@ class ZombieGame {
         }
     }
 
-    // EASY MODE: auto-target and fire at nearest zombie in player's forward arc
+    /**
+     * 2D segment vs axis-aligned square intersection test.
+     * Returns true if the segment (ax,az)→(bx,bz) passes through the
+     * 1×1 wall square centred at (wx,wz).
+     * Uses the separating-axis / slab method on the XZ plane.
+     */
+    _segmentBlockedByWall(ax, az, bx, bz, wx, wz) {
+        // Half-size of a wall tile (1×1) plus small epsilon for thick collision
+        const hs = 0.52;
+        // AABB bounds of the wall
+        const minX = wx - hs, maxX = wx + hs;
+        const minZ = wz - hs, maxZ = wz + hs;
+
+        const dx = bx - ax;
+        const dz = bz - az;
+
+        // Parametric slab test on X axis
+        let tMin = 0, tMax = 1;
+
+        if (Math.abs(dx) < 1e-8) {
+            if (ax < minX || ax > maxX) return false; // parallel & outside
+        } else {
+            const t1 = (minX - ax) / dx;
+            const t2 = (maxX - ax) / dx;
+            tMin = Math.max(tMin, Math.min(t1, t2));
+            tMax = Math.min(tMax, Math.max(t1, t2));
+            if (tMin > tMax) return false;
+        }
+
+        // Parametric slab test on Z axis
+        if (Math.abs(dz) < 1e-8) {
+            if (az < minZ || az > maxZ) return false; // parallel & outside
+        } else {
+            const t1 = (minZ - az) / dz;
+            const t2 = (maxZ - az) / dz;
+            tMin = Math.max(tMin, Math.min(t1, t2));
+            tMax = Math.min(tMax, Math.max(t1, t2));
+            if (tMin > tMax) return false;
+        }
+
+        return tMin <= tMax; // segment intersects the AABB
+    }
+
+    /** Returns true if any wall tile blocks the line between player and zombie (XZ plane). */
+    _hasLineOfSight(playerPos, zombiePos) {
+        const ax = playerPos.x, az = playerPos.z;
+        const bx = zombiePos.x, bz = zombiePos.z;
+
+        // Walls are stored in pairs (mesh, outline) — step by 2
+        for (let i = 0; i < this.walls.length; i += 2) {
+            const w = this.walls[i];
+            if (this._segmentBlockedByWall(ax, az, bx, bz, w.position.x, w.position.z)) {
+                return false; // wall in the way
+            }
+        }
+        return true; // clear path
+    }
+
+    // EASY MODE: auto-target and fire at nearest zombie in player's forward arc WITH line-of-sight
     updateAutoFire(delta) {
         if (this.gameMode !== 'easy') return;
         if (!this.gameRunning || this.isPaused) return;
@@ -1137,7 +1195,7 @@ class ZombieGame {
         this.autoFireCooldown -= delta;
         if (this.autoFireCooldown > 0) return;
 
-        // Early exit: no zombies alive at all — don't fire, wait longer before next check
+        // Early exit: no zombies alive at all — don't fire
         if (!this.zombies || this.zombies.length === 0) {
             this.autoFireCooldown = 0.5;
             return;
@@ -1150,22 +1208,27 @@ class ZombieGame {
             Math.cos(this.player.rotation.y)
         );
 
-        // Find nearest ALIVE zombie (hp > 0) within 5.5 units in a forward 180° arc
+        // Find nearest ALIVE zombie (hp > 0) in forward 180° arc WITH clear line-of-sight
         let closestZombie = null;
         let closestDist = Infinity;
 
         for (const z of this.zombies) {
             if (!z.mesh) continue;
-            if (!z.hp || z.hp <= 0) continue; // CRITICAL: skip dead zombies not yet spliced out
+            if (!z.hp || z.hp <= 0) continue; // skip dead zombies not yet spliced out
 
             const toZ = new THREE.Vector3().subVectors(z.mesh.position, this.player.position);
             toZ.y = 0;
             const dist = toZ.length();
             if (dist > 5.5) continue;
 
+            // Must be in forward 180° arc
             const dotProduct = toZ.clone().normalize().dot(forward);
-            // dotProduct > 0 means zombie is in the forward 180° half — proper cone, not near-360°
-            if (dotProduct > 0 && dist < closestDist) {
+            if (dotProduct <= 0) continue;
+
+            // LINE-OF-SIGHT CHECK: skip zombie if a wall blocks the path
+            if (!this._hasLineOfSight(this.player.position, z.mesh.position)) continue;
+
+            if (dist < closestDist) {
                 closestDist = dist;
                 closestZombie = z;
             }
@@ -1179,7 +1242,7 @@ class ZombieGame {
             this.shootBullet();
             this.autoFireCooldown = 0.38; // ~2.6 shots/sec — balanced for EASY
         } else {
-            // No valid target in forward arc; wait before rechecking (do NOT fire)
+            // No valid visible target — do NOT fire
             this.autoFireCooldown = 0.3;
         }
     }
