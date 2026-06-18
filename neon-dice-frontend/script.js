@@ -1022,8 +1022,13 @@ function lockTarget() {
         document.getElementById('game-hud').classList.remove('hidden');
         showScreen('screen-game');
         
-        // Reset 3D dice positions
-        threeScene.resetDice();
+        // Ensure screen transitions are completed before resizing
+        setTimeout(() => {
+            if (threeScene) {
+                threeScene.onResize();
+                threeScene.resetDice();
+            }
+        }, 50);
     }, 900);
 }
 
@@ -1440,9 +1445,13 @@ function restartGameWithSameTarget() {
     document.getElementById('game-hud').classList.remove('hidden');
     showScreen('screen-game');
     
-    if (threeScene) {
-        threeScene.resetDice();
-    }
+    // Ensure screen transitions are completed before resizing
+    setTimeout(() => {
+        if (threeScene) {
+            threeScene.onResize();
+            threeScene.resetDice();
+        }
+    }, 50);
 }
 
 // --- Notification Toast ---
