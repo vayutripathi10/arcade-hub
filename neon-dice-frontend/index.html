@@ -95,8 +95,28 @@
     <!-- MAIN GAME VIEWPORT & SCREENS CONTAINER -->
     <main class="main-container">
 
+        <!-- SCREEN 0: MAIN MENU -->
+        <section class="screen active" id="screen-main-menu">
+            <div class="brand-logo">
+                <h1 class="glow-title">NEON DICE<br><span class="highlight">DESTINY</span></h1>
+                <p class="subtitle">Set your target. Roll your fate.</p>
+            </div>
+
+            <div class="menu-card">
+                <p class="menu-intro-text">Choose your path of chance:</p>
+                <div class="menu-buttons-group">
+                    <button class="btn-main pulse" id="btn-menu-destiny">1. Test your Destiny Today</button>
+                    <button class="btn-main btn-pink" id="btn-menu-coin">2. Toss the Coin</button>
+                </div>
+            </div>
+            
+            <div class="menu-footer-hint">
+                <p>Proximity Dice Rolling or a Cosmic 3D Coin Flip</p>
+            </div>
+        </section>
+
         <!-- SCREEN 1: TARGET SELECTION -->
-        <section class="screen active" id="screen-target-select">
+        <section class="screen" id="screen-target-select">
             <div class="brand-logo">
                 <h1 class="glow-title">NEON DICE<br><span class="highlight">DESTINY</span></h1>
                 <p class="subtitle">Set your target. Roll your fate.</p>
@@ -134,7 +154,54 @@
                 🏆 PERSONAL BEST: <span id="best-score-val">No record</span>
             </div>
 
-            <button class="btn-outline" id="btn-show-leaderboard">📊 Statistics</button>
+            <div class="target-nav-buttons">
+                <button class="btn-outline" id="btn-show-leaderboard">📊 Statistics</button>
+                <button class="btn-outline" id="btn-target-back">✕ BACK TO MENU</button>
+            </div>
+        </section>
+
+        <!-- SCREEN 1B: COIN TOSS -->
+        <section class="screen" id="screen-coin-toss">
+            <div class="brand-logo compact-logo">
+                <h2 class="glow-title-small">COIN TOSS<br><span class="highlight-pink">DESTINY</span></h2>
+            </div>
+
+            <!-- Prediction selection -->
+            <div class="prediction-card">
+                <span class="prediction-label">YOUR PREDICTION:</span>
+                <div class="prediction-options">
+                    <button class="pred-btn active" id="pred-heads" data-choice="heads">HEADS</button>
+                    <button class="pred-btn" id="pred-tails" data-choice="tails">TAILS</button>
+                </div>
+            </div>
+
+            <!-- Big rotating CSS 3D coin -->
+            <div class="coin-stage">
+                <div class="coin-container" id="coin-container">
+                    <div class="coin" id="coin-element">
+                        <div class="side heads">
+                            <div class="coin-symbol">H</div>
+                            <div class="coin-label">HEADS</div>
+                        </div>
+                        <div class="side tails">
+                            <div class="coin-symbol">T</div>
+                            <div class="coin-label">TAILS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flip button -->
+            <div class="coin-action-wrapper">
+                <button class="btn-main btn-pink pulse" id="btn-flip-coin">FLIP COIN</button>
+            </div>
+
+            <!-- Result display banner -->
+            <div class="coin-result-banner" id="coin-result-banner">
+                Choose Heads or Tails & Flip!
+            </div>
+
+            <button class="btn-outline" id="btn-coin-back">✕ BACK TO MENU</button>
         </section>
 
         <!-- SCREEN 2: GAMEPLAY (3D VIEWPORT & ROLLS) -->
@@ -301,7 +368,7 @@
 
     <!-- Scripts Loading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js?v=149"></script>
+    <script src="script.js?v=150"></script>
     <script>
         (function() {
             const gameId = 'neon-dice-destiny';

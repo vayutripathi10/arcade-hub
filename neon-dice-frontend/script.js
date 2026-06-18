@@ -14,7 +14,9 @@ let gameState = {
     personalBest: null,
     muted: localStorage.getItem('arcadeHubMuted') === 'true',
     history: [],
-    currentQuote: ''
+    currentQuote: '',
+    coinPrediction: 'heads',
+    coinTossing: false
 };
 
 // --- Web Audio API Synthesizer ---
@@ -325,6 +327,99 @@ class SoundSynth {
 
         osc.start(t);
         osc.stop(t + 0.85);
+    }
+
+    playCoinFlip() {
+        if (gameState.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        if (this.rattleInterval) {
+            clearInterval(this.rattleInterval);
+        }
+
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(120, t);
+        osc.frequency.exponentialRampToValueAtTime(1200, t + 1.2);
+
+        gain.gain.setValueAtTime(0.08, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+
+        osc.start(t);
+        osc.stop(t + 1.4);
+
+        let count = 0;
+        const totalClicks = 12;
+        const intervalTime = 1400 / totalClicks;
+        
+        this.rattleInterval = setInterval(() => {
+            if (count >= totalClicks) {
+                clearInterval(this.rattleInterval);
+                return;
+            }
+            if (gameState.muted) return;
+            
+            const clickT = this.ctx.currentTime;
+            const clickOsc = this.ctx.createOscillator();
+            const clickGain = this.ctx.createGain();
+            clickOsc.connect(clickGain);
+            clickGain.connect(this.ctx.destination);
+            
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(600 + count * 60, clickT);
+            clickGain.gain.setValueAtTime(0.04, clickT);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, clickT + 0.04);
+            
+            clickOsc.start(clickT);
+            clickOsc.stop(clickT + 0.05);
+            
+            count++;
+        }, intervalTime);
+    }
+
+    playCoinClink() {
+        if (gameState.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const t = this.ctx.currentTime;
+        const f1 = 1800;
+        const f2 = 2400;
+
+        [f1, f2].forEach(f => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, t);
+            gain.gain.setValueAtTime(0.06, t);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+
+            osc.start(t);
+            osc.stop(t + 0.85);
+        });
+
+        const thudOsc = this.ctx.createOscillator();
+        const thudGain = this.ctx.createGain();
+        thudOsc.connect(thudGain);
+        thudGain.connect(this.ctx.destination);
+
+        thudOsc.type = 'triangle';
+        thudOsc.frequency.setValueAtTime(140, t);
+        thudOsc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+        thudGain.gain.setValueAtTime(0.12, t);
+        thudGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+        thudOsc.start(t);
+        thudOsc.stop(t + 0.16);
     }
 }
 
@@ -1040,6 +1135,54 @@ function bindActions() {
     document.getElementById('share-wa').addEventListener('click', () => shareWhatsApp());
     document.getElementById('share-x').addEventListener('click', () => shareX());
     document.getElementById('share-social').addEventListener('click', () => shareSocialGeneric());
+
+    // Main Menu Screen bindings
+    document.getElementById('btn-menu-destiny').addEventListener('click', () => {
+        sfx.playClick();
+        showScreen('screen-target-select');
+    });
+
+    document.getElementById('btn-menu-coin').addEventListener('click', () => {
+        sfx.playClick();
+        showScreen('screen-coin-toss');
+        resetCoinTossScreen();
+    });
+
+    // Back buttons
+    document.getElementById('btn-target-back').addEventListener('click', () => {
+        sfx.playClick();
+        showScreen('screen-main-menu');
+    });
+
+    document.getElementById('btn-coin-back').addEventListener('click', () => {
+        sfx.playClick();
+        showScreen('screen-main-menu');
+    });
+
+    // Coin Toss Predictions
+    const predHeads = document.getElementById('pred-heads');
+    const predTails = document.getElementById('pred-tails');
+
+    predHeads.addEventListener('click', () => {
+        if (gameState.coinTossing) return;
+        sfx.playClick();
+        predHeads.classList.add('active');
+        predTails.classList.remove('active');
+        gameState.coinPrediction = 'heads';
+    });
+
+    predTails.addEventListener('click', () => {
+        if (gameState.coinTossing) return;
+        sfx.playClick();
+        predTails.classList.add('active');
+        predHeads.classList.remove('active');
+        gameState.coinPrediction = 'tails';
+    });
+
+    // Flip Coin Action
+    document.getElementById('btn-flip-coin').addEventListener('click', () => {
+        triggerCoinFlip();
+    });
 }
 
 function lockTarget() {
@@ -1561,6 +1704,91 @@ function shareSocialGeneric() {
             .then(() => showToast("Copied share text to clipboard!"))
             .catch(() => showToast("Failed to copy link"));
     }
+}
+
+/* ==========================================
+   COIN TOSS CONTROLLER FUNCTIONS
+   ========================================== */
+let coinCurrentY = 0;
+
+function resetCoinTossScreen() {
+    gameState.coinTossing = false;
+    gameState.coinPrediction = 'heads';
+    
+    // Reset buttons active states
+    document.getElementById('pred-heads').classList.add('active');
+    document.getElementById('pred-tails').classList.remove('active');
+    
+    // Reset result banner
+    const banner = document.getElementById('coin-result');
+    banner.textContent = 'AWAITING TOSS...';
+    banner.className = 'coin-result-banner';
+    
+    // Reset coin element transform
+    const coin = document.getElementById('coin-3d');
+    coin.style.transform = 'rotateY(0deg)';
+    coinCurrentY = 0;
+    
+    const container = document.getElementById('coin-container-3d');
+    container.classList.remove('tossing');
+}
+
+function triggerCoinFlip() {
+    if (gameState.coinTossing) return;
+    gameState.coinTossing = true;
+    
+    const banner = document.getElementById('coin-result');
+    banner.textContent = 'TOSSING...';
+    banner.className = 'coin-result-banner';
+    
+    // Play whoosh sound
+    sfx.playCoinFlip();
+    
+    // Choose outcome (heads or tails)
+    const result = Math.random() < 0.5 ? 'heads' : 'tails';
+    
+    // Animate CSS toss container
+    const container = document.getElementById('coin-container-3d');
+    container.classList.add('tossing');
+    
+    // Calculate final spin rotation
+    // Add 6 complete spins (2160 degrees) and adjust end side
+    let finalY = coinCurrentY + 2160;
+    if (result === 'heads') {
+        if ((finalY % 360) !== 0) finalY += 180;
+    } else {
+        if ((finalY % 360) === 0) finalY += 180;
+    }
+    
+    coinCurrentY = finalY;
+    
+    // Apply 3D rotation transform to coin
+    const coin = document.getElementById('coin-3d');
+    coin.style.transform = `rotateY(${finalY}deg)`;
+    
+    // Wait for the animation to end (1.8 seconds)
+    setTimeout(() => {
+        if (!gameState.coinTossing) return; // in case they navigated away
+        
+        // Play metal impact ring sound
+        sfx.playCoinClink();
+        
+        container.classList.remove('tossing');
+        
+        // Show result details
+        const isWin = (result === gameState.coinPrediction);
+        if (isWin) {
+            banner.textContent = `Result: ${result.toUpperCase()} - YOU WIN! 🏆`;
+            banner.className = 'coin-result-banner win';
+            sfx.playFanfare();
+        } else {
+            banner.textContent = `Result: ${result.toUpperCase()} - TRY AGAIN! ❌`;
+            banner.className = 'coin-result-banner loss';
+            sfx.playWahWah();
+        }
+        
+        gameState.coinTossing = false;
+    }, 1800);
 }
 
 // Start trigger on page load
