@@ -13,7 +13,8 @@ let gameState = {
     score: 0,
     personalBest: null,
     muted: localStorage.getItem('arcadeHubMuted') === 'true',
-    history: []
+    history: [],
+    currentQuote: ''
 };
 
 // --- Web Audio API Synthesizer ---
@@ -571,12 +572,28 @@ class DiceViewport {
         gameState.rolling = true;
         sfx.startRattle();
 
+        // Reset individual dice result badges in HUD
+        const b1 = document.getElementById('die1-result-badge');
+        const b2 = document.getElementById('die2-result-badge');
+        const v1 = document.getElementById('die1-val-display');
+        const v2 = document.getElementById('die2-val-display');
+        if (b1 && b2 && v1 && v2) {
+            b1.classList.remove('active');
+            b2.classList.remove('active-die2');
+            v1.textContent = '-';
+            v2.textContent = '-';
+        }
+
         this.dice[0].targetVal = val1;
         this.dice[1].targetVal = val2;
 
         this.dice.forEach((d, idx) => {
             d.state = 'rolling';
             d.bounceCount = 0;
+            d.rollTime = 0;
+            // Die 1 rolls for at least 0.9s, Die 2 rolls for at least 1.9s to stop one by one
+            d.rollMinTime = idx === 0 ? 0.9 : 1.9;
+            d.revealed = false;
             
             // Start position: bottom-front (close to camera, thrown onto the table)
             d.x = idx === 0 ? -1.2 : 1.2;
@@ -675,9 +692,12 @@ class DiceViewport {
         
         let allDone = true;
 
-        this.dice.forEach((d) => {
+        this.dice.forEach((d, idx) => {
             if (d.state === 'rolling') {
                 allDone = false;
+                
+                // Track roll time
+                d.rollTime += dt;
                 
                 // 1. Move position
                 d.vy += gravity * dt;
@@ -715,8 +735,9 @@ class DiceViewport {
                         this.cameraShake = 0.22;
                     }
 
-                    // Stop condition
-                    if (d.bounceCount >= 3 || (Math.abs(d.vy) < 0.6 && Math.abs(d.vx) < 0.6)) {
+                    // Stop condition - must exceed minimum roll time to stagger landing one-by-one!
+                    const canSettle = d.rollTime >= d.rollMinTime;
+                    if (canSettle && (d.bounceCount >= 3 || (Math.abs(d.vy) < 0.6 && Math.abs(d.vx) < 0.6))) {
                         d.state = 'settling';
                         d.targetY = sizeRadius;
                         d.targetX = THREE.MathUtils.clamp(d.x, -2.2, 2.2); // Settle bounds
@@ -755,7 +776,30 @@ class DiceViewport {
                     d.group.rotation.y = d.targetSpinY;
                     d.group.position.set(d.targetX, d.targetY, d.targetZ);
                     d.state = 'done';
+
+                    // Trigger reveal chime and update UI badge
+                    if (!d.revealed) {
+                        d.revealed = true;
+                        sfx.playPipReveal();
+                        if (idx === 0) {
+                            const b1 = document.getElementById('die1-result-badge');
+                            const v1 = document.getElementById('die1-val-display');
+                            if (b1 && v1) {
+                                v1.textContent = d.targetVal;
+                                b1.classList.add('active');
+                            }
+                        } else {
+                            const b2 = document.getElementById('die2-result-badge');
+                            const v2 = document.getElementById('die2-val-display');
+                            if (b2 && v2) {
+                                v2.textContent = d.targetVal;
+                                b2.classList.add('active-die2');
+                            }
+                        }
+                    }
                 }
+            } else if (d.state === 'done') {
+                d.group.position.set(d.targetX, d.targetY, d.targetZ);
             }
         });
 
@@ -1110,7 +1154,7 @@ function onRollSettled() {
     
     // Visual indicators
     const flyout = document.getElementById('roll-flyout');
-    flyout.textContent = `+${currentRoll.sum}`;
+    flyout.textContent = `${currentRoll.sum}`;
     flyout.classList.add('animate');
     setTimeout(() => flyout.classList.remove('animate'), 1200);
 
@@ -1143,7 +1187,7 @@ function onRollSettled() {
     } else if (gap === 0) {
         gapEl.textContent = `TARGET MET!`;
     } else {
-        gapEl.textContent = `OVERFLOW: +${Math.abs(gap)}`;
+        gapEl.textContent = `OVERFLOW: ${Math.abs(gap)} OVER`;
     }
 
     // Probability & motivational updates
@@ -1290,6 +1334,7 @@ function revealStarsAndQuotation(score, diff) {
     // Quotation reveal
     const quotes = QUOTE_DATABASE[score];
     const finalQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    gameState.currentQuote = finalQuote;
     
     const quoteEl = document.getElementById('reveal-quote');
     quoteEl.textContent = '';
@@ -1488,17 +1533,20 @@ function showToast(msg) {
 
 // --- Social Share Creators ---
 function shareWhatsApp() {
-    const text = `I rolled a proximity score of ${gameState.score}/10 in Neon Dice Destiny! My target was ${gameState.target} and I rolled a total of ${gameState.total}. Can you beat my alignment? 🎲 Play now at: https://arcadehubplay.com/play-neon-dice-destiny`;
+    const quote = gameState.currentQuote ? `"${gameState.currentQuote}"\n\n` : '';
+    const text = `${quote}I scored ${gameState.score}/10 in Neon Dice Destiny! (Target: ${gameState.target}, Total: ${gameState.total}). Beat my alignment: https://arcadehubplay.com/play-neon-dice-destiny`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function shareX() {
-    const text = `I rolled a proximity score of ${gameState.score}/10 in Neon Dice Destiny! Target: ${gameState.target} | Total: ${gameState.total}. Can you match the dice gods? 🎲 @ArcadeHub https://arcadehubplay.com/play-neon-dice-destiny`;
+    const quote = gameState.currentQuote ? `"${gameState.currentQuote}"\n\n` : '';
+    const text = `${quote}I scored ${gameState.score}/10 in Neon Dice Destiny! (Target: ${gameState.target}, Total: ${gameState.total}). @ArcadeHub https://arcadehubplay.com/play-neon-dice-destiny`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 function shareSocialGeneric() {
-    const text = `I rolled a proximity score of ${gameState.score}/10 in Neon Dice Destiny! Target: ${gameState.target} | Total: ${gameState.total}. Can you match the dice gods? 🎲`;
+    const quote = gameState.currentQuote ? `"${gameState.currentQuote}"\n\n` : '';
+    const text = `${quote}I scored ${gameState.score}/10 in Neon Dice Destiny! (Target: ${gameState.target}, Total: ${gameState.total})`;
     const url = 'https://arcadehubplay.com/play-neon-dice-destiny';
     
     if (navigator.share) {
@@ -1509,7 +1557,7 @@ function shareSocialGeneric() {
         }).catch(() => {});
     } else {
         // Clipboard fallback
-        navigator.clipboard.writeText(`${text} Play now: ${url}`)
+        navigator.clipboard.writeText(`${text}\nPlay now: ${url}`)
             .then(() => showToast("Copied share text to clipboard!"))
             .catch(() => showToast("Failed to copy link"));
     }

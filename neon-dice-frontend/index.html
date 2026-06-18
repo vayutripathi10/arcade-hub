@@ -143,8 +143,20 @@
             <div class="viewport-wrapper" id="viewport-wrapper">
                 <div id="three-canvas-container"></div>
                 
-                <!-- Flying Roll Result Overlay (+8) -->
-                <div class="roll-result-flyout" id="roll-flyout">+0</div>
+                <!-- Flying Roll Result Overlay (8) -->
+                <div class="roll-result-flyout" id="roll-flyout"></div>
+                
+                <!-- Individual Dice HUD overlay -->
+                <div class="dice-individual-results" id="dice-individual-results">
+                    <div class="die-result-badge" id="die1-result-badge">
+                        <span class="die-label">DIE 1</span>
+                        <strong class="die-val" id="die1-val-display">-</strong>
+                    </div>
+                    <div class="die-result-badge" id="die2-result-badge">
+                        <span class="die-label">DIE 2</span>
+                        <strong class="die-val" id="die2-val-display">-</strong>
+                    </div>
+                </div>
                 
                 <!-- Countdown Overlay before roll 5 -->
                 <div class="countdown-overlay" id="countdown-overlay">3</div>
@@ -289,7 +301,7 @@
 
     <!-- Scripts Loading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=149"></script>
     <script>
         (function() {
             const gameId = 'neon-dice-destiny';
