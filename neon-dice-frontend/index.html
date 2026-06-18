@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Dice Destiny | Arcade Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body class="show-info-overlay">
+
+    <!-- PRE-GAME INFO OVERLAY (AdSense Thin Content Compliance) -->
+    <div class="game-info-overlay" id="game-info-overlay">
+        <div class="game-info-container">
+            <div class="brand-header">
+                <p class="brand-title">🎮 Arcade Hub</p>
+                <p class="brand-sub">Free Browser Games — No Download Required</p>
+            </div>
+
+            <div class="continue-btn-wrapper">
+                <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW ➔</button>
+            </div>
+
+            <h2>Neon Dice Destiny</h2>
+            <p>Welcome to Neon Dice Destiny, a premium 3D dice-rolling game of luck, numbers, and probability. Choose a target number, roll the high-fidelity 3D dice across 5 rounds, and see how close you can get to your locked target. A perfect score requires precision, planning, and a favor from the dice gods!</p>
+
+            <h3>🎮 How to Play</h3>
+            <p>Choose a target from 2 to 60, lock it in, and roll the dice. Your score depends on how close your cumulative total is to your target after 5 rounds.</p>
+            <ul>
+                <li><strong>Target Picker:</strong> Use the slider or the plus/minus buttons to choose a target number. Press LOCK IN TARGET to begin.</li>
+                <li><strong>Roll the Dice:</strong> Tap the big ROLL DICE button to tumble the 3D dice. They will bounce, tumble, and settle.</li>
+                <li><strong>Total Accumulation:</strong> Your roll values will be added to your cumulative total. Keep an eye on the progress bar!</li>
+                <li><strong>Proximity Score:</strong> After round 5, you'll receive a score out of 10 based on the absolute difference between your total and target.</li>
+            </ul>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>⚡ Technical Details</h3>
+                    <ul>
+                        <li>Procedural 3D WebGL renderer via Three.js (r128).</li>
+                        <li>High-quality programmatic SFX via the Web Audio API (rattles, thuds, clicks, fanfares).</li>
+                        <li>Responsive layouts with support for touch devices and viewports.</li>
+                        <li>100% Progressive Web App (PWA) support for offline play.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>💡 Pro Tips</h3>
+                    <ul>
+                        <li>A target of 30-40 has the highest statistical probability of being reached over 5 rounds (average roll is 7).</li>
+                        <li>Targets below 10 or above 55 are extremely difficult and constitute "Legendary Challenges"!</li>
+                        <li>Watch the green, yellow, and red probability lights on each roll to see if you are on track.</li>
+                        <li>Share your high scores and funny quotes with your friends on WhatsApp and X!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="faq-item">
+                <p class="faq-question">Is Neon Dice Destiny free to play?</p>
+                <p class="faq-answer">Yes, 100% free with no registrations, sign-ups, or installations required.</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-question">How does it work offline?</p>
+                <p class="faq-answer">Once loaded, the Service Worker caches all assets, allowing you to play offline on planes, trains, or subways.</p>
+            </div>
+
+            <div class="page-footer-note">
+                Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> — Free Browser Arcade Games
+            </div>
+        </div>
+    </div>
+    <!-- END PRE-GAME INFO OVERLAY -->
+
+    <!-- GAME MAIN HUD (Standard 3-Column Grid) -->
+    <header class="hud-header hidden" id="game-hud">
+        <div class="hud-left">
+            <button class="hud-btn" id="hud-home-btn" title="Return to Selection">🏠 HUB</button>
+        </div>
+        <div class="hud-center">
+            <div class="hud-stats-group">
+                <span class="hud-stat-pill">TARGET: <strong id="hud-target-val">--</strong></span>
+                <span class="hud-stat-pill">TOTAL: <strong id="hud-total-val">0</strong></span>
+                <span class="hud-stat-pill" id="hud-round-pill">ROUND 1/5</span>
+            </div>
+        </div>
+        <div class="hud-right">
+            <button class="hud-btn" id="hud-mute-btn" title="Toggle Sound">🔊</button>
+        </div>
+    </header>
+
+    <!-- MAIN GAME VIEWPORT & SCREENS CONTAINER -->
+    <main class="main-container">
+
+        <!-- SCREEN 1: TARGET SELECTION -->
+        <section class="screen active" id="screen-target-select">
+            <div class="brand-logo">
+                <h1 class="glow-title">NEON DICE<br><span class="highlight">DESTINY</span></h1>
+                <p class="subtitle">Set your target. Roll your fate.</p>
+            </div>
+
+            <div class="target-picker-card">
+                <div class="picker-controls">
+                    <button class="picker-btn" id="picker-minus" aria-label="Decrease Target">−</button>
+                    <div class="target-display-wrapper">
+                        <span class="target-digits" id="target-digits-val">30</span>
+                        <div class="padlock-icon" id="target-padlock">🔒</div>
+                    </div>
+                    <button class="picker-btn" id="picker-plus" aria-label="Increase Target">+</button>
+                </div>
+
+                <div class="slider-wrapper">
+                    <input type="range" min="2" max="60" value="30" class="neon-slider" id="target-slider">
+                </div>
+
+                <div class="probability-hint" id="prob-hint">
+                    Probability: <span id="prob-text" class="moderate">Moderate 🟢</span>
+                </div>
+            </div>
+
+            <div class="action-wrapper">
+                <button class="btn-main pulse" id="btn-lock-target">LOCK IN TARGET</button>
+            </div>
+
+            <div class="how-to-play-hint">
+                <h3>💡 How to Play</h3>
+                <p>Set a target between 2 and 60. Lock it in, then roll two 3D dice across 5 rounds. Try to match your target total exactly!</p>
+            </div>
+
+            <div class="best-score-display" id="best-score-container">
+                🏆 PERSONAL BEST: <span id="best-score-val">No record</span>
+            </div>
+
+            <button class="btn-outline" id="btn-show-leaderboard">📊 Statistics</button>
+        </section>
+
+        <!-- SCREEN 2: GAMEPLAY (3D VIEWPORT & ROLLS) -->
+        <section class="screen" id="screen-game">
+            <!-- 3D Viewport container -->
+            <div class="viewport-wrapper" id="viewport-wrapper">
+                <div id="three-canvas-container"></div>
+                
+                <!-- Flying Roll Result Overlay (+8) -->
+                <div class="roll-result-flyout" id="roll-flyout">+0</div>
+                
+                <!-- Countdown Overlay before roll 5 -->
+                <div class="countdown-overlay" id="countdown-overlay">3</div>
+            </div>
+
+            <!-- Running Total Progress Bar -->
+            <div class="progress-bar-container">
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
+                    <div class="target-marker" id="target-marker"></div>
+                </div>
+                <div class="progress-labels">
+                    <span>0</span>
+                    <span id="progress-target-label">Target: 30</span>
+                    <span>60</span>
+                </div>
+            </div>
+
+            <!-- Stats Panel below dice -->
+            <div class="stats-panel">
+                <div class="stat-box">
+                    <span class="label">GAP REMAINING</span>
+                    <strong class="value" id="stat-gap">NEED 30 MORE</strong>
+                </div>
+                <div class="stat-box">
+                    <span class="label">MOTIVATION</span>
+                    <strong class="value text-highlight" id="stat-commentary">Ready for Roll 1</strong>
+                </div>
+                <div class="stat-box">
+                    <span class="label">STATUS</span>
+                    <strong class="value" id="stat-status"><span class="indicator-dot green"></span>On track 🟢</strong>
+                </div>
+            </div>
+
+            <div class="game-action-wrapper">
+                <button class="btn-main roll-btn" id="btn-roll-dice">ROLL DICE</button>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: SCORE REVEAL -->
+        <section class="screen" id="screen-score">
+            <h2 class="score-title">DESTINY REVEALED</h2>
+            
+            <div class="comparison-card">
+                <div class="digits-box">
+                    <div class="digit-col left-col" id="col-target">
+                        <span class="title">TARGET</span>
+                        <strong class="val" id="reveal-target">30</strong>
+                    </div>
+                    <div class="spark-middle" id="spark-node">💥</div>
+                    <div class="digit-col right-col" id="col-total">
+                        <span class="title">TOTAL</span>
+                        <strong class="val" id="reveal-total">32</strong>
+                    </div>
+                </div>
+                
+                <div class="diff-display">
+                    Difference: <strong id="reveal-diff">0</strong>
+                </div>
+            </div>
+
+            <div class="score-reveal-box">
+                <div class="score-out-of-ten">
+                    Score: <span class="score-val" id="reveal-score">0</span>/10
+                </div>
+                
+                <div class="star-rating" id="reveal-stars">
+                    <span class="star">⭐</span>
+                    <span class="star">⭐</span>
+                    <span class="star">⭐</span>
+                </div>
+
+                <div class="quotation-card">
+                    <p class="quote-text" id="reveal-quote"></p>
+                </div>
+            </div>
+
+            <div class="score-actions">
+                <button class="btn-main" id="btn-play-again">PLAY AGAIN</button>
+                <button class="btn-outline" id="btn-change-target">CHANGE TARGET</button>
+            </div>
+
+            <div class="share-section">
+                <span class="share-title">SHARE YOUR DESTINY</span>
+                <div class="share-buttons">
+                    <button class="share-btn wa" id="share-wa" aria-label="Share on WhatsApp">
+                        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 .01 5.403.007 12.04c0 2.123.543 4.196 1.571 6.03L0 24l6.102-1.6c1.777.969 3.778 1.479 5.811 1.479h.005c6.632 0 12.038-5.404 12.04-12.04.002-3.217-1.252-6.242-3.528-8.517z"/></svg>
+                        WhatsApp
+                    </button>
+                    <button class="share-btn x" id="share-x" aria-label="Share on X">
+                        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        X / Twitter
+                    </button>
+                    <button class="share-btn general" id="share-social" aria-label="Share via Menu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        Share
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: STATS / LEADERBOARD (Modal style) -->
+        <section class="screen" id="screen-leaderboard">
+            <h2>DESTINY LEDGER</h2>
+            
+            <div class="leaderboard-card">
+                <div class="ledger-row">
+                    <span class="ledger-label">High Score</span>
+                    <strong class="ledger-val" id="lead-best-score">--</strong>
+                </div>
+                <div class="ledger-row">
+                    <span class="ledger-label">Best Target Played</span>
+                    <strong class="ledger-val" id="lead-best-target">--</strong>
+                </div>
+                <div class="ledger-row">
+                    <span class="ledger-label">Rolls Made Total</span>
+                    <strong class="ledger-val" id="lead-total-rolls">--</strong>
+                </div>
+                
+                <div class="quote-ledger-box">
+                    <span class="ledger-label block-label">Last Achieved Quote:</span>
+                    <p class="ledger-quote-text" id="lead-best-quote">"No destiny locked yet. Play a game to record your path!"</p>
+                </div>
+            </div>
+
+            <button class="btn-main" id="btn-close-leaderboard">BACK TO TARGETS</button>
+        </section>
+
+    </main>
+
+    <!-- PERFECT CELEBRATION OVERLAY -->
+    <div class="perfect-overlay" id="perfect-celebration">
+        <div class="trophy-container">
+            <span class="trophy-icon">🏆</span>
+            <h2>PERFECT 10/10 MATCH!</h2>
+            <p>The dice gods have chosen you. Complete alignment achieved.</p>
+        </div>
+    </div>
+
+    <!-- MUTE FLOATING NOTIFICATION -->
+    <div class="toast-notification" id="sound-toast">Sound Enabled</div>
+
+    <!-- Scripts Loading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        (function() {
+            const gameId = 'neon-dice-destiny';
+            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+                continueToGame(true);
+            }
+        })();
+
+        function continueToGame(isReturning) {
+            const gameId = 'neon-dice-destiny';
+            localStorage.setItem('arcade_seen_' + gameId, '1');
+            document.body.classList.remove('show-info-overlay');
+            const overlay = document.getElementById('game-info-overlay');
+            if (overlay) overlay.style.display = 'none';
+            
+            // Trigger UI resize in ThreeJS
+            window.dispatchEvent(new Event('resize'));
+            
+            // Start Target select screen
+            if (typeof initGame === 'function') {
+                initGame();
+            }
+        }
+    </script>
+</body>
+</html>

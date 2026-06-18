@@ -1,6 +1,11 @@
-const CACHE_NAME = 'arcade-hub-cache-v147';
+const CACHE_NAME = 'arcade-hub-cache-v148';
 const CORE_ASSETS = [
     'index.html',
+    'play-neon-dice-destiny.html',
+    'neon-dice-frontend/index.html',
+    'neon-dice-frontend/style.css',
+    'neon-dice-frontend/script.js',
+    'neon-dice-frontend/thumbnail.jpg',
     'retro-hub.html',
     'achievements.html',
     'about.html',
