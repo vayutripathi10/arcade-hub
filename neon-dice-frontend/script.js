@@ -514,8 +514,8 @@ class DiceViewport {
         for (let i = 1; i <= 6; i++) {
             diceMaterials.push(new THREE.MeshStandardMaterial({
                 map: this.createDiceFaceTexture(i),
-                roughness: 0.25,
-                metalness: 0.75
+                roughness: 0.15,
+                metalness: 0.08
             }));
         }
 
@@ -583,27 +583,18 @@ class DiceViewport {
         canvas.height = 128;
         const ctx = canvas.getContext('2d');
 
-        // Dark slate base
-        ctx.fillStyle = '#0c0d14';
+        // Premium white base with radial gradient to simulate 3D rounded edges/lighting
+        const c = 64;
+        const grad = ctx.createRadialGradient(c, c, 5, c, c, 80);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.8, '#f5f5f7');
+        grad.addColorStop(1, '#d8d8dd'); // soft darker edge light falloff
+        ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 128, 128);
 
-        // Cyber glows
-        ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 6;
-        ctx.strokeRect(3, 3, 122, 122);
-        
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.0;
-        ctx.strokeRect(6, 6, 116, 116);
-
-        // Draw pips
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = '#00ffcc';
-        ctx.shadowBlur = 10;
-
+        // Draw pips with 3D indented look (white offset reflection highlight + deep charcoal radial gradient)
         const pips = [];
         const r = 8.5;
-        const c = 64;
         const l = 32;
         const h = 96;
 
@@ -622,6 +613,18 @@ class DiceViewport {
         }
 
         for (const [px, py] of pips) {
+            // 1. Draw light highlight at bottom-right (simulates light catching bevel edge of indent)
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(px + 1.2, py + 1.2, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Draw actual indented pip using a radial gradient (dark charcoal to pitch black)
+            const pipGrad = ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
+            pipGrad.addColorStop(0, '#0c0c0e'); // deep pit shadow
+            pipGrad.addColorStop(1, '#2c2c35'); // slightly lighter charcoal edge
+            
+            ctx.fillStyle = pipGrad;
             ctx.beginPath();
             ctx.arc(px, py, r, 0, Math.PI * 2);
             ctx.fill();
@@ -639,7 +642,7 @@ class DiceViewport {
         this.renderer.setSize(w, h);
     }
 
-    resetDice() {
+    resetDice(preserveRotation = false) {
         this.dice.forEach((d, idx) => {
             d.x = idx === 0 ? -1.2 : 1.2;
             d.y = 0.5;
@@ -655,7 +658,10 @@ class DiceViewport {
             
             d.group.position.set(d.x, d.y, d.z);
             d.group.rotation.set(0, idx === 0 ? 0.3 : -0.3, 0);
-            d.mesh.rotation.set(0, 0, 0);
+            
+            if (!preserveRotation) {
+                d.mesh.rotation.set(0, 0, 0);
+            }
         });
         
         // Reset camera position
@@ -1188,6 +1194,19 @@ function bindActions() {
     });
 }
 
+function clearHUDDiceBadges() {
+    const b1 = document.getElementById('die1-result-badge');
+    const b2 = document.getElementById('die2-result-badge');
+    const v1 = document.getElementById('die1-val-display');
+    const v2 = document.getElementById('die2-val-display');
+    if (b1 && b2 && v1 && v2) {
+        b1.classList.remove('active');
+        b2.classList.remove('active-die2');
+        v1.textContent = '-';
+        v2.textContent = '-';
+    }
+}
+
 function lockTarget() {
     sfx.playClunk();
     
@@ -1216,6 +1235,7 @@ function lockTarget() {
         document.getElementById('hud-target-val').textContent = gameState.target;
         document.getElementById('hud-total-val').textContent = "0";
         document.getElementById('hud-round-pill').textContent = "ROUND 1/5";
+        clearHUDDiceBadges();
         
         // Update Game screen stats
         document.getElementById('stat-gap').textContent = `NEED ${gameState.target} MORE`;
@@ -1238,7 +1258,7 @@ function lockTarget() {
         setTimeout(() => {
             if (threeScene) {
                 threeScene.onResize();
-                threeScene.resetDice();
+                threeScene.resetDice(true);
             }
         }, 50);
     }, 900);
@@ -1628,7 +1648,7 @@ function resetToTargetSelect() {
     showScreen('screen-target-select');
     
     if (threeScene) {
-        threeScene.resetDice();
+        threeScene.resetDice(true);
     }
 }
 
@@ -1646,6 +1666,7 @@ function restartGameWithSameTarget() {
     // Reset HUD
     document.getElementById('hud-total-val').textContent = "0";
     document.getElementById('hud-round-pill').textContent = "ROUND 1/5";
+    clearHUDDiceBadges();
     
     // Reset Game Stats
     document.getElementById('stat-gap').textContent = `NEED ${gameState.target} MORE`;
@@ -1662,7 +1683,7 @@ function restartGameWithSameTarget() {
     setTimeout(() => {
         if (threeScene) {
             threeScene.onResize();
-            threeScene.resetDice();
+            threeScene.resetDice(true);
         }
     }, 50);
 }
