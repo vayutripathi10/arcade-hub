@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v154';
+const CACHE_NAME = 'arcade-hub-cache-v155';
 const CORE_ASSETS = [
     'index.html',
     'play-neon-dice-destiny.html',
