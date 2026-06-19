@@ -690,15 +690,18 @@ class DiceViewport {
             d.rollMinTime = idx === 0 ? 0.9 : 1.9;
             d.revealed = false;
             
-            // Start position: bottom-front (close to camera, thrown onto the table)
-            d.x = idx === 0 ? -1.2 : 1.2;
-            d.y = 0.6;
-            d.z = 3.5;
+            // Start position: keep current position, ensure it is at least 0.6 high
+            d.y = Math.max(d.y, 0.6);
 
-            // Thrown forward and upward
-            d.vx = idx === 0 ? (2.0 + Math.random() * 1.5) : (-2.0 - Math.random() * 1.5);
-            d.vy = 6.8 + Math.random() * 2.0;
-            d.vz = -6.5 - Math.random() * 2.0;
+            // Calculate angle to throw towards the center (0, 0) with some random variation
+            const toCenterAngle = Math.atan2(-d.z, -d.x);
+            const angle = toCenterAngle + (Math.random() - 0.5) * 0.6;
+            const speed = 4.2 + Math.random() * 2.5;
+
+            // Thrown towards center and upward
+            d.vx = Math.cos(angle) * speed;
+            d.vy = 7.2 + Math.random() * 2.5;
+            d.vz = Math.sin(angle) * speed;
 
             // Rotation vectors (fast spin!)
             d.wx = (15 + Math.random() * 15) * (Math.random() < 0.5 ? 1 : -1);
@@ -1341,7 +1344,7 @@ function onRollSettled() {
         gameState.round++;
         setTimeout(() => {
             document.getElementById('hud-round-pill').textContent = `ROUND ${gameState.round}/5`;
-            threeScene.resetDice();
+            // Keep the dice constant on the table - do not reset to the top!
         }, 1500);
     } else {
         // Round 5 finished - Go to Score reveal
