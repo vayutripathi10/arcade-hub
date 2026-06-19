@@ -130,7 +130,7 @@
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
                     <div class="play-console" id="playConsoleContainer">
-                        <iframe class="play-iframe" id="gameIframe" src="neon-dice-frontend/index.html?v=150" title="Neon Dice Destiny"></iframe>
+                        <iframe class="play-iframe" id="gameIframe" src="neon-dice-frontend/index.html?v=151" title="Neon Dice Destiny"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
@@ -297,17 +297,39 @@
                     if (locksBound) return;
                     try {
                         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                        if (iframeDoc && iframeDoc.body) {
+                        const iframeWin = iframe.contentWindow;
+                        if (iframeDoc && iframeDoc.body && iframeWin) {
                             iframeDoc.addEventListener('touchstart', lockScroll, { passive: true });
                             iframeDoc.addEventListener('touchend', unlockScroll, { passive: true });
                             iframeDoc.addEventListener('touchcancel', unlockScroll, { passive: true });
                             
+                            const isElementScrollable = (el) => {
+                                let target = el;
+                                while (target && target !== iframeDoc.body && target !== iframeDoc.documentElement) {
+                                    if (target.nodeType === 1) {
+                                        const style = iframeWin.getComputedStyle(target);
+                                        const overflowY = style.getPropertyValue('overflow-y');
+                                        const isScrollableStyle = overflowY === 'auto' || overflowY === 'scroll';
+                                        const canScroll = target.scrollHeight > target.clientHeight;
+                                        if (isScrollableStyle && canScroll) {
+                                            return true;
+                                        }
+                                    }
+                                    target = target.parentNode;
+                                }
+                                return false;
+                            };
+
                             iframeDoc.addEventListener('touchmove', (e) => {
-                                e.preventDefault();
+                                if (!isElementScrollable(e.target)) {
+                                    e.preventDefault();
+                                }
                             }, { passive: false });
                             
                             iframeDoc.addEventListener('wheel', (e) => {
-                                e.preventDefault();
+                                if (!isElementScrollable(e.target)) {
+                                    e.preventDefault();
+                                }
                             }, { passive: false });
                             
                             locksBound = true;

@@ -1720,16 +1720,16 @@ function resetCoinTossScreen() {
     document.getElementById('pred-tails').classList.remove('active');
     
     // Reset result banner
-    const banner = document.getElementById('coin-result');
+    const banner = document.getElementById('coin-result-banner');
     banner.textContent = 'AWAITING TOSS...';
     banner.className = 'coin-result-banner';
     
     // Reset coin element transform
-    const coin = document.getElementById('coin-3d');
+    const coin = document.getElementById('coin-element');
     coin.style.transform = 'rotateY(0deg)';
     coinCurrentY = 0;
     
-    const container = document.getElementById('coin-container-3d');
+    const container = document.getElementById('coin-container');
     container.classList.remove('tossing');
 }
 
@@ -1737,7 +1737,7 @@ function triggerCoinFlip() {
     if (gameState.coinTossing) return;
     gameState.coinTossing = true;
     
-    const banner = document.getElementById('coin-result');
+    const banner = document.getElementById('coin-result-banner');
     banner.textContent = 'TOSSING...';
     banner.className = 'coin-result-banner';
     
@@ -1748,7 +1748,7 @@ function triggerCoinFlip() {
     const result = Math.random() < 0.5 ? 'heads' : 'tails';
     
     // Animate CSS toss container
-    const container = document.getElementById('coin-container-3d');
+    const container = document.getElementById('coin-container');
     container.classList.add('tossing');
     
     // Calculate final spin rotation
@@ -1763,7 +1763,7 @@ function triggerCoinFlip() {
     coinCurrentY = finalY;
     
     // Apply 3D rotation transform to coin
-    const coin = document.getElementById('coin-3d');
+    const coin = document.getElementById('coin-element');
     coin.style.transform = `rotateY(${finalY}deg)`;
     
     // Wait for the animation to end (1.8 seconds)
