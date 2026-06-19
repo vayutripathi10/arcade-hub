@@ -699,12 +699,13 @@ class DiceViewport {
             // Start position: keep current position, ensure it is at least 0.6 high
             d.y = Math.max(d.y, 0.6);
 
-            // Calculate angle to throw towards the center (0, 0) with some random variation
-            const toCenterAngle = Math.atan2(-d.z, -d.x);
+            // Calculate angle to throw towards the center of its own half (with some random variation)
+            const targetX = idx === 0 ? -0.8 : 0.8;
+            const toCenterAngle = Math.atan2(-d.z, targetX - d.x);
             const angle = toCenterAngle + (Math.random() - 0.5) * 0.6;
             const speed = 4.2 + Math.random() * 2.5;
 
-            // Thrown towards center and upward
+            // Thrown towards target and upward
             d.vx = Math.cos(angle) * speed;
             d.vy = 7.2 + Math.random() * 2.5;
             d.vz = Math.sin(angle) * speed;
@@ -844,15 +845,19 @@ class DiceViewport {
                     if (canSettle && (d.bounceCount >= 3 || (Math.abs(d.vy) < 0.6 && Math.abs(d.vx) < 0.6))) {
                         d.state = 'settling';
                         d.targetY = sizeRadius;
-                        d.targetX = THREE.MathUtils.clamp(d.x, -2.2, 2.2); // Settle bounds
+                        const minSettleX = idx === 0 ? -2.2 : 0.2;
+                        const maxSettleX = idx === 0 ? -0.2 : 2.2;
+                        d.targetX = THREE.MathUtils.clamp(d.x, minSettleX, maxSettleX); // Settle bounds
                         d.targetZ = THREE.MathUtils.clamp(d.z, -1.8, 1.8);
                         d.targetSpinY = d.group.rotation.y;
                     }
                 }
 
-                // 4. Bound limits
-                if (d.x < -3.2) { d.x = -3.2; d.vx = -d.vx * 0.5; }
-                if (d.x > 3.2) { d.x = 3.2; d.vx = -d.vx * 0.5; }
+                // 4. Bound limits (prevent crossing the center divider at x=0)
+                const minBoundX = idx === 0 ? -3.2 : 0.12;
+                const maxBoundX = idx === 0 ? -0.12 : 3.2;
+                if (d.x < minBoundX) { d.x = minBoundX; d.vx = -d.vx * 0.5; }
+                if (d.x > maxBoundX) { d.x = maxBoundX; d.vx = -d.vx * 0.5; }
                 if (d.z < -3.2) { d.z = -3.2; d.vz = -d.vz * 0.5; }
                 if (d.z > 3.2) { d.z = 3.2; d.vz = -d.vz * 0.5; }
 
