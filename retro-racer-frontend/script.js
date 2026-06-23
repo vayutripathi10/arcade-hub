@@ -170,6 +170,12 @@ let particles = [];
 let floatingTexts = [];
 let roadOffset = 0;
 
+// Game Juice Globals
+let screenShake = 0;
+let flashColor = null;
+let flashDuration = 0;
+let speedLines = [];
+
 // Assets
 const images = {
     player: new Image(),
@@ -371,6 +377,7 @@ function initGame() {
     }
     score = 0; lives = 3; timer = 30; timeAccumulator = 0; speed = 60; runDistance = 0;
     obstacles = []; particles = []; floatingTexts = []; roadOffset = 0;
+    screenShake = 0; flashColor = null; flashDuration = 0; speedLines = [];
     currentStage = 1; stageDistanceTarget = 2800; finishLineY = -1; finishedStage = false;
     
     player.x = canvas.width / 2;
@@ -476,6 +483,10 @@ function togglePause() {
 }
 
 function update(deltaTime) {
+    // Decay screen shake and flash duration globally
+    if (screenShake > 0) screenShake -= deltaTime * 0.5;
+    if (flashDuration > 0) flashDuration -= deltaTime;
+    
     if (gameState !== 'playing') return;
     
     // dt was in ms, deltaTime is normalized (1.0 = 16.67ms)
@@ -535,14 +546,108 @@ function update(deltaTime) {
                     if (window.audioFX && window.audioFX.playExplosion) window.audioFX.playExplosion();
                     createExplosion(player.x, player.y - player.h/2);
                     obs.active = false;
+                    
+                    // Trigger camera shake and red flash
+                    screenShake = 12;
+                    flashColor = 'rgba(255, 0, 85, 0.45)';
+                    flashDuration = 10;
+                    
                     if (lives <= 0) { gameOver(); return; }
                 } else if (obs.type === 'petrol') {
                     timer += 10; obs.active = false; 
                     if (window.audioFX && window.audioFX.playEat) window.audioFX.playEat();
                     spawnFloatingText(player.x, player.y - 40, "+10 SEC!", "#00ff00");
+                    
+                    // Trigger green/cyan flash on petrol collection
+                    flashColor = 'rgba(0, 255, 204, 0.25)';
+                    flashDuration = 6;
+                    
                     if (window.achievements) window.achievements.unlock('racer', 'fuel_up', 'Gas Guzzler');
                 }
             }
+        }
+    }
+    
+    // Update existing speed lines
+    for (let i = speedLines.length - 1; i >= 0; i--) {
+        let line = speedLines[i];
+        line.y += line.speed * deltaTime;
+        if (line.y > canvas.height + 100) speedLines.splice(i, 1);
+    }
+
+    // Spawn speed lines at high speed
+    if (speed > 120 && Math.random() < 0.15 * deltaTime) {
+        const isLeft = Math.random() > 0.5;
+        const minX = isLeft ? 5 : canvas.width - grassWidth + 5;
+        const maxX = isLeft ? grassWidth - 5 : canvas.width - 5;
+        const x = minX + Math.random() * (maxX - minX);
+        speedLines.push({
+            x: x,
+            y: -150,
+            length: 40 + Math.random() * 60,
+            speed: speed * 0.15 + Math.random() * 5
+        });
+    }
+
+    // Spawn exhaust flame and smoke particles
+    if (Math.random() < 0.3 * deltaTime) {
+        const lx = player.x - 12;
+        const rx = player.x + 12;
+        const ly = player.y + player.h / 2;
+        // Left exhaust
+        particles.push({
+            x: lx, y: ly,
+            vx: (Math.random() - 0.5) * 1,
+            vy: 2 + Math.random() * 2,
+            life: 0.6 + Math.random() * 0.4,
+            color: Math.random() > 0.4 ? '#ff3300' : '#ffaa00',
+            size: Math.random() * 3 + 2
+        });
+        // Right exhaust
+        particles.push({
+            x: rx, y: ly,
+            vx: (Math.random() - 0.5) * 1,
+            vy: 2 + Math.random() * 2,
+            life: 0.6 + Math.random() * 0.4,
+            color: Math.random() > 0.4 ? '#ff3300' : '#ffaa00',
+            size: Math.random() * 3 + 2
+        });
+    }
+
+    // Occasional exhaust grey smoke
+    if (Math.random() < 0.15 * deltaTime) {
+        const lx = player.x + (Math.random() > 0.5 ? 12 : -12);
+        const ly = player.y + player.h / 2;
+        particles.push({
+            x: lx, y: ly,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: 1 + Math.random() * 1.5,
+            life: 0.8 + Math.random() * 0.4,
+            color: 'rgba(150, 150, 150, 0.4)',
+            size: Math.random() * 4 + 3
+        });
+    }
+
+    // Steer skid marks
+    if (keys.ArrowLeft || keys.ArrowRight) {
+        if (Math.random() < 0.4 * deltaTime) {
+            const side = keys.ArrowLeft ? 1 : -1;
+            particles.push({
+                x: player.x - 14, y: player.y + player.h / 2 - 10,
+                vx: side * (1 + Math.random() * 2),
+                vy: 0.5 + Math.random() * 1.5,
+                life: 0.5 + Math.random() * 0.3,
+                color: 'rgba(255, 255, 255, 0.5)',
+                size: Math.random() * 5 + 3
+            });
+            particles.push({
+                x: player.x + 14, y: player.y + player.h / 2 - 10,
+                vx: side * (1 + Math.random() * 2),
+                vy: 0.5 + Math.random() * 1.5,
+                life: 0.5 + Math.random() * 0.3,
+                color: 'rgba(255, 255, 255, 0.5)',
+                size: Math.random() * 5 + 3
+            });
         }
     }
     
@@ -575,6 +680,15 @@ function spawnFloatingText(x, y, text, color) {
 }
 
 function draw() {
+    ctx.save();
+    
+    // Apply camera shake translation
+    if (screenShake > 0) {
+        const dx = (Math.random() - 0.5) * screenShake;
+        const dy = (Math.random() - 0.5) * screenShake;
+        ctx.translate(dx, dy);
+    }
+    
     ctx.fillStyle = '#00a800'; 
     ctx.fillRect(0, 0, grassWidth, canvas.height);
     ctx.fillRect(canvas.width - grassWidth, 0, grassWidth, canvas.height);
@@ -609,6 +723,18 @@ function draw() {
     
     if (finalImages.player) ctx.drawImage(finalImages.player, player.x - player.w/2, player.y - player.h/2, player.w, player.h);
     
+    // Draw speed lines (warp effect)
+    if (speed > 120) {
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.35)'; // Cyan neon speed lines
+        ctx.lineWidth = 1.5;
+        for (const line of speedLines) {
+            ctx.beginPath();
+            ctx.moveTo(line.x, line.y);
+            ctx.lineTo(line.x, line.y + line.length);
+            ctx.stroke();
+        }
+    }
+    
     for (const p of particles) {
         ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fillRect(p.x, p.y, p.size, p.size);
     }
@@ -626,6 +752,14 @@ function draw() {
         ctx.fillStyle = '#ffd700'; ctx.font = '20px "Press Start 2P"';
         let msg = gameState === 'stage_clear' ? `STAGE ${currentStage} CLEAR!` : `STAGE ${currentStage} STARTING...`;
         ctx.fillText(msg, canvas.width/2, canvas.height/2);
+    }
+    
+    ctx.restore();
+    
+    // Full screen hit/petrol flash overlay
+    if (flashDuration > 0 && flashColor) {
+        ctx.fillStyle = flashColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 }
 
