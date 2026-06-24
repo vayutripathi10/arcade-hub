@@ -503,12 +503,16 @@ function update(deltaTime) {
     if (player.x > canvas.width - grassWidth - player.w/2) player.x = canvas.width - grassWidth - player.w/2;
     
     const scrollAmount = speed * (deltaTime / 6.0); // Adjust to maintain original feel
-    roadOffset = (roadOffset + scrollAmount) % 100;
+    roadOffset += scrollAmount;
     runDistance += speed * dtSeconds;
     
-    if (runDistance >= stageDistanceTarget && !finishedStage) {
-        if (finishLineY === -1) finishLineY = -200;
-        finishLineY += scrollAmount * 5;
+    // Spawn finish line 80 units of distance early so it rolls down naturally at 1:1 speed with the road
+    if (runDistance >= stageDistanceTarget - 80 && !finishedStage) {
+        if (finishLineY === -1) {
+            finishLineY = player.y - 800; // Start off-screen top (approx -250px)
+        }
+        finishLineY += scrollAmount;
+        
         if (finishLineY > player.y && !finishedStage) {
             finishedStage = true;
             gameState = 'stage_clear';
@@ -696,8 +700,23 @@ function draw() {
     ctx.fillStyle = '#444444';
     ctx.fillRect(grassWidth, 0, roadWidth, canvas.height);
     
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.setLineDash([40, 40]);
-    ctx.lineDashOffset = -roadOffset;
+    // Adaptive motion-blur road lines: stretch dashes at high speeds to prevent stroboscopic optical illusions and eye strain
+    let dashLen = 40;
+    let gapLen = 40;
+    if (speed > 120 && speed <= 180) {
+        dashLen = 80;
+        gapLen = 80;
+    } else if (speed > 180) {
+        dashLen = 160;
+        gapLen = 100;
+    }
+    const period = dashLen + gapLen;
+    
+    ctx.strokeStyle = '#ffffff'; 
+    ctx.lineWidth = 4; 
+    ctx.setLineDash([dashLen, gapLen]);
+    ctx.lineDashOffset = -(roadOffset % period);
+    
     const lanes = 3; const laneWidth = roadWidth / lanes;
     for (let i = 1; i < lanes; i++) {
         ctx.beginPath(); ctx.moveTo(grassWidth + i * laneWidth, 0); ctx.lineTo(grassWidth + i * laneWidth, canvas.height); ctx.stroke();
