@@ -504,7 +504,7 @@ function update(deltaTime) {
     
     const scrollAmount = speed * (deltaTime / 6.0); // Adjust to maintain original feel
     roadOffset += scrollAmount;
-    runDistance += speed * dtSeconds;
+    runDistance += 100 * dtSeconds; // Constant stage progress rate (100 units/second), independent of speed
     
     // Spawn finish line 80 units of distance early so it rolls down naturally at 1:1 speed with the road
     if (runDistance >= stageDistanceTarget - 80 && !finishedStage) {
@@ -759,7 +759,7 @@ function draw() {
     }
     ctx.globalAlpha = 1.0;
     
-    ctx.font = 'bold 20px "Press Start 2P", Courier'; ctx.textAlign = 'center';
+    ctx.font = 'bold 20px "Outfit", sans-serif'; ctx.textAlign = 'center';
     for (const t of floatingTexts) {
         ctx.fillStyle = t.color; ctx.globalAlpha = t.life; ctx.shadowBlur = 5; ctx.shadowColor = '#000';
         ctx.fillText(t.text, t.x, t.y); ctx.shadowBlur = 0;
@@ -768,7 +768,7 @@ function draw() {
     
     if (gameState === 'stage_clear' || gameState === 'stage_starting') {
         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ffd700'; ctx.font = '20px "Press Start 2P"';
+        ctx.fillStyle = '#ffd700'; ctx.font = 'bold 22px "Outfit", sans-serif';
         let msg = gameState === 'stage_clear' ? `STAGE ${currentStage} CLEAR!` : `STAGE ${currentStage} STARTING...`;
         ctx.fillText(msg, canvas.width/2, canvas.height/2);
     }
