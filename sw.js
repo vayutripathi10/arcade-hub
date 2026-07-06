@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v158';
+const CACHE_NAME = 'arcade-hub-cache-v159';
 const CORE_ASSETS = [
     'index.html',
     'play-neon-dice-destiny.html',
@@ -51,6 +51,10 @@ const CORE_ASSETS = [
     'blog/web-audio-api-retro-synthesis.html',
     'blog/game-physics-hitbox-collision.html',
     'blog/top-free-retro-arcade-games.html',
+    'blog/math-of-luck-3d-webgl-physics.html',
+    'blog/beyond-audio-tag-retro-synthesis.html',
+    'blog/glowing-gradients-cyberpunk-web-design.html',
+    'blog/grid-mainframes-spatial-puzzle-design.html',
     'play-neon-cypher.html',
     'play-neon-swing.html',
     'play-neon-bolts.html',

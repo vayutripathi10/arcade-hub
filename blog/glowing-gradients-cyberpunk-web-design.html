@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn how to write optimized vanilla CSS for glowing boxes, backdrop blur effects, neon borders, and smooth cyberpunk micro-animations.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/blog/glowing-gradients-cyberpunk-web-design">
+    <title>Glowing Gradients: Cyberpunk Aesthetics in Web Design — Arcade Hub Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../hub-style.css">
+    <style>
+        .article-container { max-width: 800px; margin: 0 auto; padding: 40px 16px; font-family: 'Outfit', sans-serif; color: #cbd5e1; line-height: 1.8; }
+        .article-header { border-bottom: 1px solid rgba(0, 255, 204, 0.15); padding-bottom: 24px; margin-bottom: 30px; }
+        .article-meta { color: #00ffcc; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 8px; }
+        .article-title { font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1.3; }
+        .article-date { font-size: 0.9rem; color: #64748b; margin-top: 10px; }
+        .article-body h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 36px; margin-bottom: 16px; }
+        .article-body p { margin-bottom: 20px; font-size: 1.05rem; }
+        .article-body ul { padding-left: 20px; margin-bottom: 20px; }
+        .article-body li { margin-bottom: 8px; font-size: 1.02rem; }
+        .article-quote { border-left: 4px solid #00ffcc; padding-left: 20px; font-style: italic; color: #94a3b8; background: rgba(0,255,204,0.02); padding: 15px 20px; border-radius: 0 12px 12px 0; margin: 24px 0; }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="../retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="../achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="../blog" class="sidebar-link active-hub">📝 Blog & Guides</a>
+            <a href="../about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="../contact" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
+    <div class="article-container">
+        <div class="article-header">
+            <div class="article-meta">CSS & Cyberpunk Design</div>
+            <h1 class="article-title">Glowing Gradients: The Rise of Cyberpunk Aesthetics in Web Design</h1>
+            <div class="article-date">Published on July 6, 2026 by Arcade Hub Design Studio</div>
+        </div>
+        
+        <div class="article-body">
+            <p>Web design aesthetics have evolved from the stark grids of early Web 1.0 to the flat, minimalist schemes of the 2010s. Today, a new, vibrant visual language is dominating interfaces: <strong>Cyberpunk Futurism</strong>. Characterized by high-contrast dark modes, glowing neon borders, mesh gradients, and glassmorphic panels, this style makes web interfaces feel alive, interactive, and premium.</p>
+            
+            <p>At Arcade Hub, we lean heavily into these cyberpunk design systems. In this guide, we break down the core vanilla CSS techniques to implement high-performance, eye-catching neon aesthetics without resorting to heavy framework dependencies or large asset loads.</p>
+            
+            <div class="article-quote">
+                "Cyberpunk design is the art of balancing high-energy neon highlights against deep, structured dark voids. When done right, it creates an immersive digital atmosphere."
+            </div>
+
+            <h2>1. Curating the Dark Void: The Background</h2>
+            <p>A neon glow is only as good as the darkness it illuminates. Pure black (<code>#000000</code>) can feel overly harsh and exhausting for the eyes. Instead, build your depth using dark navy, charcoal, or deep obsidian gradients:</p>
+            <p style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px;">
+                background: radial-gradient(circle at center, #0f111a 0%, #07080c 100%);
+            </p>
+            <p>This creates a subtle vignetting effect that draws the user's focus toward the center of the viewport, serving as the perfect canvas for bright elements.</p>
+
+            <h2>2. Creating the Neon Text Glow</h2>
+            <p>To simulate neon signs, we overlay multiple text shadows. The secret is combining a sharp white core with wider, softer colored layers to mimic light dispersion:</p>
+            <p style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px;">
+                color: #ffffff;<br>
+                text-shadow:<br>
+                &nbsp;&nbsp;0 0 4px #fff,<br>
+                &nbsp;&nbsp;0 0 10px #00ffcc,<br>
+                &nbsp;&nbsp;0 0 20px #00ffcc,<br>
+                &nbsp;&nbsp;0 0 40px rgba(0, 255, 204, 0.5);
+            </p>
+            <p>This multi-layered approach creates a realistic glowing filament effect that makes headings jump off the screen.</p>
+
+            <h2>3. Glassmorphic UI Containers</h2>
+            <p>For cards, overlays, and modals, we use <strong>Glassmorphism</strong> to mimic frosted glass. This lets the dark background colors peek through while maintaining text legibility. We achieve this using CSS backdrop filters and semi-transparent borders:</p>
+            <ul>
+                <li><strong>Background:</strong> A dark HSL value with low opacity (e.g., <code>rgba(22, 25, 34, 0.6)</code>).</li>
+                <li><strong>Backdrop Filter:</strong> <code>backdrop-filter: blur(12px);</code> to blur anything behind the container.</li>
+                <li><strong>Borders:</strong> A thin, translucent white or neon border (<code>border: 1px solid rgba(0, 255, 204, 0.15);</code>) to define container edges.</li>
+            </ul>
+
+            <h2>4. Hardware-Accelerated Micro-Animations</h2>
+            <p>A cyberpunk UI must feel reactive. Static glows can feel stale. Adding dynamic pulsing or hover-driven transitions makes the interface feel alive. When animating glows, make sure to animate property layers that are cheap for browser rendering engines, such as transforms, opacities, and filter values:</p>
+            <p style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px;">
+                @keyframes neonPulse {<br>
+                &nbsp;&nbsp;0%, 100% { filter: drop-shadow(0 0 2px rgba(0, 255, 204, 0.4)); }<br>
+                &nbsp;&nbsp;50% { filter: drop-shadow(0 0 8px rgba(0, 255, 204, 0.8)); }<br>
+                }
+            </p>
+            <p>By animating <code>filter: drop-shadow()</code> or using basic <code>transform: scale()</code> operations, you keep animations fluid at 60 FPS, even on mobile devices, ensuring the user experience remains responsive and premium.</p>
+            
+            <p style="margin-top: 40px;"><a href="../blog" style="color: #00ffcc; text-decoration: none; font-weight: 700;">← Back to Blog & Guides</a></p>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy">Privacy Policy</a> | <a href="../tos">Terms of Service</a> | <a href="../contact">Contact Us</a> | <a href="../updates">News</a> | <a href="../blog">Blog &amp; Guides</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+    <script src="../shared/pwa-setup.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover how Three.js, Cannon.js, rigid body physics, friction, and angular velocity simulate realistic dice rolling and card flips in HTML5 web games.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/blog/math-of-luck-3d-webgl-physics">
+    <title>The Math of Luck: 3D WebGL Physics in Browser Games — Arcade Hub Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../hub-style.css">
+    <style>
+        .article-container { max-width: 800px; margin: 0 auto; padding: 40px 16px; font-family: 'Outfit', sans-serif; color: #cbd5e1; line-height: 1.8; }
+        .article-header { border-bottom: 1px solid rgba(0, 255, 204, 0.15); padding-bottom: 24px; margin-bottom: 30px; }
+        .article-meta { color: #00ffcc; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 8px; }
+        .article-title { font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1.3; }
+        .article-date { font-size: 0.9rem; color: #64748b; margin-top: 10px; }
+        .article-body h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 36px; margin-bottom: 16px; }
+        .article-body p { margin-bottom: 20px; font-size: 1.05rem; }
+        .article-body ul { padding-left: 20px; margin-bottom: 20px; }
+        .article-body li { margin-bottom: 8px; font-size: 1.02rem; }
+        .article-quote { border-left: 4px solid #00ffcc; padding-left: 20px; font-style: italic; color: #94a3b8; background: rgba(0,255,204,0.02); padding: 15px 20px; border-radius: 0 12px 12px 0; margin: 24px 0; }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="../retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="../achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="../blog" class="sidebar-link active-hub">📝 Blog & Guides</a>
+            <a href="../about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="../contact" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
+    <div class="article-container">
+        <div class="article-header">
+            <div class="article-meta">3D WebGL & Physics</div>
+            <h1 class="article-title">The Math of Luck: How 3D WebGL Physics Engines Drive Modern Browser Games</h1>
+            <div class="article-date">Published on July 6, 2026 by Arcade Hub Engineering</div>
+        </div>
+        
+        <div class="article-body">
+            <p>For decades, digital dice rolls and card shuffles in video games were governed by simple Pseudo-Random Number Generators (PRNGs). A player clicked a button, the CPU generated a random float between 0 and 1, and the screen flashed a pre-rendered result. While functional, this method lacked tactile feedback. The roll didn't feel real because it wasn't physical.</p>
+            
+            <p>Modern browser gaming has shifted this paradigm. With the performance leap in WebGL and hardware-accelerated JavaScript, we can now simulate high-fidelity 3D physics directly in the browser. In games like <em>Neon Dice Destiny</em>, luck is not just a variable—it is a physical simulation driven by rigid-body mechanics, friction, and angular velocity.</p>
+            
+            <div class="article-quote">
+                "When a player rolls 3D dice, they watch the physical collision against the walls, the chaotic tumbling, and the gradual loss of momentum. This tactile suspense transforms basic RNG into high-stakes gameplay."
+            </div>
+
+            <h2>1. Modeling Rigid-Body Dynamics in JavaScript</h2>
+            <p>To simulate physical dice, we require two distinct engines working in tandem:</p>
+            <ul>
+                <li><strong>The Visual Engine (Three.js):</strong> Renders the 3D meshes, textures, lighting, and camera perspectives on an HTML5 canvas.</li>
+                <li><strong>The Physics Engine (Cannon.js or custom physics):</strong> Simulates the mathematical properties of the objects in a virtual coordinate system, calculating velocity, collision vectors, mass, and drag.</li>
+            </ul>
+            <p>Every frame, the physics engine updates the coordinates of the dice. The visual engine then copies those coordinates and applies them to the rendered 3D models. The dice are modeled as bounding boxes (cubes) with defined mass (e.g., 100g), coefficient of restitution (bounciness), and friction coefficients.</p>
+
+            <h2>2. The Equations of Motion</h2>
+            <p>When the player clicks to roll, we apply an initial linear force vector and an angular impulse (torque) to the dice. Once thrown, gravity accelerates the dice downward:</p>
+            <p style="font-family: monospace; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px;">
+                F_gravity = mass * gravity_vector<br>
+                v(t + dt) = v(t) + (F_net / mass) * dt<br>
+                x(t + dt) = x(t) + v(t + dt) * dt
+            </p>
+            <p>Meanwhile, the angular velocity causes the dice to rotate around their axes. Without torque, the dice would slide rather than roll. The rotation is computed using quaternions to prevent gimbal lock, ensuring smooth 3D rotations on all axes.</p>
+
+            <h2>3. Managing Chaotic Collisions</h2>
+            <p>The true magic happens when the dice strike the boundaries of the container or each other. We use narrow-phase collision detection to identify exactly when the corners of a die intersect the flat planes of the floor or walls.</p>
+            <p>Upon collision, we calculate the normal reaction force and the friction. The coefficient of restitution determines how much energy is conserved. To simulate a premium resin dice feel, we keep the restitution moderately low (around 0.3) so the dice bounce satisfyingly but settle quickly, rather than bouncing endlessly like rubber balls.</p>
+
+            <h2>4. Solving the Sorting and Result Pipeline</h2>
+            <p>One of the hardest parts of using physical simulations for gameplay is determining which face is pointing upward once the dice settle. We solve this by finding the world space normal vectors of all six faces of each die. By calculating the dot product of each face normal against the global up-vector (0, 1, 0), the face with a dot product closest to 1.0 is declared the top face.</p>
+            <p>To prevent value swapping bugs when results are displayed, we run a sorting algorithm. Once the physics engine marks the dice as "sleeping" (velocity near zero), we sort the results based on their final horizontal positions (X-coordinates) from left to right. This ensures that the HUD badges align perfectly with the physical dice on screen.</p>
+
+            <h2>5. Performance Tuning for Mobile</h2>
+            <p>Running a continuous 3D physics loop along with 3D rendering can quickly drain mobile batteries. To keep the game running at 60 FPS, we implement several optimizations:</p>
+            <ul>
+                <li><strong>Physics Sleep:</strong> Once a die's linear velocity drops below 0.1 and angular velocity below 0.1 for more than 500ms, we put it to "sleep"—deactivating physics calculations for that body until the next roll.</li>
+                <li><strong>Simplified Colliders:</strong> Instead of calculating complex mesh-to-mesh collisions, we treat the game board walls as simple infinite planes, reducing collision math to basic linear algebra.</li>
+            </ul>
+            
+            <p style="margin-top: 40px;"><a href="../blog" style="color: #00ffcc; text-decoration: none; font-weight: 700;">← Back to Blog & Guides</a></p>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy">Privacy Policy</a> | <a href="../tos">Terms of Service</a> | <a href="../contact">Contact Us</a> | <a href="../updates">News</a> | <a href="../blog">Blog &amp; Guides</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+    <script src="../shared/pwa-setup.js"></script>
+</body>
+</html>
