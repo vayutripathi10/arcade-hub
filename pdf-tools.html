@@ -2099,6 +2099,94 @@
             document.getElementById('editor-stage-container').style.display = 'none';
         };
 
+        function groupTextItemsIntoLines(items, scale, pageHeight) {
+            if (items.length === 0) return [];
+            
+            let mapped = items.map(item => {
+                const tx = item.transform[4];
+                const ty = item.transform[5];
+                const fontSize = item.transform[3];
+                return {
+                    str: item.str || '',
+                    fontSize: fontSize,
+                    pdfX: tx,
+                    pdfY: ty,
+                    pdfW: item.width,
+                    pdfH: item.height
+                };
+            });
+            
+            mapped.sort((a, b) => {
+                if (Math.abs(a.pdfY - b.pdfY) > 5) {
+                    return b.pdfY - a.pdfY;
+                }
+                return a.pdfX - b.pdfX;
+            });
+            
+            let lines = [];
+            if (mapped.length > 0) {
+                let currentLine = [mapped[0]];
+                for (let i = 1; i < mapped.length; i++) {
+                    let last = currentLine[currentLine.length - 1];
+                    let curr = mapped[i];
+                    
+                    const sameBaseline = Math.abs(curr.pdfY - last.pdfY) <= 5;
+                    const adjacentX = (curr.pdfX - (last.pdfX + last.pdfW)) <= 35;
+                    
+                    if (sameBaseline && adjacentX) {
+                        currentLine.push(curr);
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = [curr];
+                    }
+                }
+                lines.push(currentLine);
+            }
+            
+            return lines.map(group => {
+                let mergedStr = '';
+                group.forEach((item, idx) => {
+                    if (idx === 0) {
+                        mergedStr = item.str;
+                    } else {
+                        const last = group[idx - 1];
+                        const spaceBetween = item.pdfX - (last.pdfX + last.pdfW);
+                        if (spaceBetween > 2 && !mergedStr.endsWith(' ') && !item.str.startsWith(' ')) {
+                            mergedStr += ' ';
+                        }
+                        mergedStr += item.str;
+                    }
+                });
+                
+                const first = group[0];
+                const last = group[group.length - 1];
+                
+                const tx = first.pdfX;
+                const ty = first.pdfY;
+                const totalPdfW = (last.pdfX + last.pdfW) - first.pdfX;
+                const maxPdfH = Math.max(...group.map(item => item.pdfH));
+                const maxFontSize = Math.max(...group.map(item => item.fontSize));
+                
+                const cx = tx * scale;
+                const cy = pageHeight - (ty * scale);
+                const cw = totalPdfW * scale;
+                const ch = maxPdfH * scale;
+                
+                return {
+                    str: mergedStr,
+                    fontSize: maxFontSize,
+                    x: cx,
+                    y: cy,
+                    w: cw,
+                    h: ch,
+                    pdfX: tx,
+                    pdfY: ty,
+                    pdfW: totalPdfW,
+                    pdfH: maxPdfH
+                };
+            });
+        }
+
         async function renderEditorPage() {
             if (!editorPdf) return;
 
@@ -2125,31 +2213,9 @@
 
                 editorPageSizes[editorCurrentPage] = { w: canvas.width, h: canvas.height };
 
-                // Fetch page text structure for inline editing
+                // Fetch page text structure and group into collinear lines for full-line editing
                 const textContent = await page.getTextContent();
-                editorTextItems = textContent.items.map(item => {
-                    const tx = item.transform[4];
-                    const ty = item.transform[5];
-                    const fontSize = item.transform[3];
-                    
-                    const cx = tx * scale;
-                    const cy = scaledViewport.height - (ty * scale);
-                    const cw = item.width * scale;
-                    const ch = item.height * scale;
-                    
-                    return {
-                        str: item.str,
-                        fontSize: fontSize,
-                        x: cx,
-                        y: cy,
-                        w: cw,
-                        h: ch,
-                        pdfX: tx,
-                        pdfY: ty,
-                        pdfW: item.width,
-                        pdfH: item.height
-                    };
-                });
+                editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height);
                 
                 document.getElementById('editor-page-indicator').textContent = `PAGE ${editorCurrentPage} OF ${editorTotalPages}`;
                 drawOverlayAnnotations();
@@ -2284,47 +2350,18 @@
                     annot.type === 'replace-text' &&
                     coords.x >= annot.x && coords.x <= annot.x + annot.w && coords.y >= annot.y && coords.y <= annot.y + annot.h
                 );
-                
-                if (existingAnnot) {
-                    const newText = prompt(`Edit text value:`, existingAnnot.text);
-                    if (newText !== null) {
-                        existingAnnot.text = newText;
-                        drawOverlayAnnotations();
-                        playBeep(900, 0.05, 'sine');
-                    }
-                    return;
-                }
 
-                // Check if user clicked on an existing original text item
-                let clickedItem = null;
-                for (let item of editorTextItems) {
-                    if (coords.x >= item.x && coords.x <= item.x + item.w && coords.y >= item.y - item.h && coords.y <= item.y) {
-                        clickedItem = item;
+                // Check if user clicked on an existing original text line
+                let clickedLine = null;
+                for (let line of editorTextItems) {
+                    if (coords.x >= line.x && coords.x <= line.x + line.w && coords.y >= line.y - line.h && coords.y <= line.y) {
+                        clickedLine = line;
                         break;
                     }
                 }
                 
-                if (clickedItem) {
-                    const newText = prompt(`Edit text value:`, clickedItem.str);
-                    if (newText !== null) {
-                        addAnnotation({
-                            type: 'replace-text',
-                            x: clickedItem.x,
-                            y: clickedItem.y - clickedItem.h,
-                            w: clickedItem.w,
-                            h: clickedItem.h,
-                            text: newText,
-                            size: clickedItem.fontSize,
-                            pdfX: clickedItem.pdfX,
-                            pdfY: clickedItem.pdfY,
-                            pdfW: clickedItem.pdfW,
-                            pdfH: clickedItem.pdfH,
-                            color: 'black'
-                        });
-                        drawOverlayAnnotations();
-                        playBeep(900, 0.05, 'sine');
-                    }
-                    return;
+                if (existingAnnot || clickedLine) {
+                    return; // Ignore single-clicks on text structures, let double-click trigger prompt
                 }
 
                 const textVal = document.getElementById('editor-text-input').value.trim() || 'Text';
@@ -2364,7 +2401,7 @@
                         ctx.setLineDash([4, 4]);
                         ctx.strokeRect(found.x, found.y - found.h, found.w, found.h);
                         ctx.setLineDash([]);
-                        overlay.title = `Click to edit: "${found.str}"`;
+                        overlay.title = `Double click to edit line: "${found.str}"`;
                     } else {
                         overlay.style.cursor = 'crosshair';
                         overlay.title = '';
@@ -2436,6 +2473,63 @@
             if (editorIsDrawing) {
                 editorIsDrawing = false;
                 drawOverlayAnnotations();
+            }
+        });
+
+        // Double Click to Edit Text Lines
+        overlay.addEventListener('dblclick', (e) => {
+            if (editorActiveTool !== 'text') return;
+            const coords = getMouseCoords(e);
+            
+            // 1. Check if user clicked on an already edited replace-text annotation
+            const existingAnnot = (editorAnnotations[editorCurrentPage] || []).find(annot =>
+                annot.type === 'replace-text' &&
+                coords.x >= annot.x && coords.x <= annot.x + annot.w && coords.y >= annot.y && coords.y <= annot.y + annot.h
+            );
+            
+            if (existingAnnot) {
+                e.preventDefault();
+                e.stopPropagation();
+                const newText = prompt(`Edit text value:`, existingAnnot.text);
+                if (newText !== null) {
+                    existingAnnot.text = newText;
+                    drawOverlayAnnotations();
+                    playBeep(900, 0.05, 'sine');
+                }
+                return;
+            }
+
+            // 2. Check if user clicked on an original text line
+            let clickedLine = null;
+            for (let line of editorTextItems) {
+                if (coords.x >= line.x && coords.x <= line.x + line.w && coords.y >= line.y - line.h && coords.y <= line.y) {
+                    clickedLine = line;
+                    break;
+                }
+            }
+            
+            if (clickedLine) {
+                e.preventDefault();
+                e.stopPropagation();
+                const newText = prompt(`Edit line text:`, clickedLine.str);
+                if (newText !== null) {
+                    addAnnotation({
+                        type: 'replace-text',
+                        x: clickedLine.x,
+                        y: clickedLine.y - clickedLine.h,
+                        w: clickedLine.w,
+                        h: clickedLine.h,
+                        text: newText,
+                        size: clickedLine.fontSize,
+                        pdfX: clickedLine.pdfX,
+                        pdfY: clickedLine.pdfY,
+                        pdfW: clickedLine.pdfW,
+                        pdfH: clickedLine.pdfH,
+                        color: 'black'
+                    });
+                    drawOverlayAnnotations();
+                    playBeep(900, 0.05, 'sine');
+                }
             }
         });
 
