@@ -60,18 +60,12 @@
 
         .deck-wrapper {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 1fr;
             gap: 24px;
             width: 100%;
-            max-width: 1200px;
-            margin-top: 2rem;
+            max-width: 900px;
+            margin: 2rem auto 0 auto;
             align-items: start;
-        }
-
-        @media (max-width: 992px) {
-            .deck-wrapper {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Glassmorphism Cyber Card */
@@ -557,25 +551,8 @@
     <main class="container" style="max-width: 1200px;">
         <div class="deck-wrapper">
             
-            <!-- Left: Terminal console log -->
+            <!-- Tabbed deck engine -->
             <div class="cyber-card">
-                <div class="terminal-panel">
-                    <div class="terminal-header">
-                        <span>📟 System logs</span>
-                        <span id="deck-status" style="color: var(--neon-cyan);">ready</span>
-                    </div>
-                    <div class="terminal-logs" id="terminalLogs">
-                        <div class="terminal-log-entry system">[SYSTEM] Deck boot sequence activated.</div>
-                        <div class="terminal-log-entry system">[SYSTEM] Memory buffers allocation: 100% OK.</div>
-                        <div class="terminal-log-entry system">[SYSTEM] Local encryption models: LOADED.</div>
-                        <div class="terminal-log-entry system">[SYSTEM] Audio synthesis oscillators: ARMED.</div>
-                        <div class="terminal-log-entry">[ONLINE] Zero server uploads configuration: SAFE.</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Tabbed deck engine -->
-            <div class="cyber-card" style="grid-column: span 1;">
                 <div class="engine-panel">
                     
                     <!-- Tabs -->
@@ -1006,17 +983,11 @@
             playBeep(150, 0.35, 'sawtooth');
         }
 
-        // 2. Logging utility
-        const terminalLogs = document.getElementById('terminalLogs');
-        const deckStatus = document.getElementById('deck-status');
+        // 2. Logging utility (Redirected to console now that UI terminal has been removed)
+        const deckStatus = { textContent: '' };
 
         function appendLog(message, type = 'default') {
-            const entry = document.createElement('div');
-            entry.className = `terminal-log-entry ${type}`;
-            const time = new Date().toLocaleTimeString().split(' ')[0];
-            entry.textContent = `[${time}] ${message}`;
-            terminalLogs.appendChild(entry);
-            terminalLogs.scrollTop = terminalLogs.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
         }
 
         // 3. Global states
