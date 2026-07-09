@@ -514,6 +514,31 @@
             transition: width 0.1s ease;
             box-shadow: 0 0 10px var(--neon-cyan);
         }
+
+        .replace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 600px) {
+            .replace-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .replace-grid button {
+                width: 100%;
+            }
+            .editor-nav-container {
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center !important;
+            }
+            .editor-nav-container button {
+                font-size: 0.85rem !important;
+                padding: 4px 10px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -876,7 +901,7 @@
                             </div>
 
                             <!-- Global Find & Replace -->
-                            <div class="options-grid" style="grid-template-columns: 1fr 1fr auto; gap: 12px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; align-items: end;">
+                            <div class="replace-grid" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
                                 <div class="option-field" style="margin-bottom: 0;">
                                     <label for="editor-find-text">FIND TEXT</label>
                                     <input type="text" id="editor-find-text" class="cyber-input" placeholder="Text to find..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
@@ -889,10 +914,10 @@
                             </div>
 
                             <!-- Page Navigation -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
-                                <button class="file-btn" id="btn-editor-prev" style="font-size: 1.1rem; padding: 4px 12px;">▲ PREV PAGE</button>
-                                <span id="editor-page-indicator" style="font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; color: var(--neon-pink);">PAGE 1 OF 1</span>
-                                <button class="file-btn" id="btn-editor-next" style="font-size: 1.1rem; padding: 4px 12px;">▼ NEXT PAGE</button>
+                            <div class="editor-nav-container" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                <button class="file-btn" id="btn-editor-prev" style="font-size: 0.95rem; padding: 4px 12px;">◄ PREV</button>
+                                <span id="editor-page-indicator" style="font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--neon-pink);">PAGE 1 OF 1</span>
+                                <button class="file-btn" id="btn-editor-next" style="font-size: 0.95rem; padding: 4px 12px;">NEXT ►</button>
                             </div>
 
                             <!-- Workspace Canvas Area -->
