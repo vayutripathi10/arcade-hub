@@ -2184,8 +2184,12 @@
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
                     ctx.strokeRect(annot.x, annot.y, annot.w, annot.h);
                 } else if (annot.type === 'replace-text') {
+                    const scaleX = annot.pdfW ? (annot.w / annot.pdfW) : 1;
+                    const scaleY = annot.pdfH ? (annot.h / annot.pdfH) : 1;
+                    const padX = 2 * scaleX;
+                    const padY = 3 * scaleY;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
+                    ctx.fillRect(annot.x - padX, annot.y - padY, annot.w + (2 * padX), annot.h + (2 * padY));
                     ctx.fillStyle = '#000000';
                     ctx.font = `${annot.size * 0.95}px sans-serif`;
                     ctx.fillText(annot.text, annot.x, annot.y + annot.h);
@@ -2492,11 +2496,13 @@
                                 color: fillRgb,
                             });
                         } else if (annot.type === 'replace-text') {
+                            const paddingX = 2; // PDF points horizontal padding
+                            const paddingY = 3; // PDF points vertical padding
                             page.drawRectangle({
-                                x: annot.pdfX,
-                                y: annot.pdfY,
-                                width: annot.pdfW,
-                                height: annot.pdfH,
+                                x: annot.pdfX - paddingX,
+                                y: annot.pdfY - paddingY,
+                                width: annot.pdfW + (2 * paddingX),
+                                height: annot.pdfH + (2 * paddingY),
                                 color: PDFLib.rgb(1, 1, 1),
                             });
 
