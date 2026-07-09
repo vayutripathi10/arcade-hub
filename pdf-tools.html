@@ -2279,7 +2279,23 @@
                 dragStartX = coords.x;
                 dragStartY = coords.y;
             } else if (editorActiveTool === 'text') {
-                // Check if user clicked on an existing text item
+                // First check if user clicked on an already edited replace-text annotation
+                const existingAnnot = (editorAnnotations[editorCurrentPage] || []).find(annot =>
+                    annot.type === 'replace-text' &&
+                    coords.x >= annot.x && coords.x <= annot.x + annot.w && coords.y >= annot.y && coords.y <= annot.y + annot.h
+                );
+                
+                if (existingAnnot) {
+                    const newText = prompt(`Edit text value:`, existingAnnot.text);
+                    if (newText !== null) {
+                        existingAnnot.text = newText;
+                        drawOverlayAnnotations();
+                        playBeep(900, 0.05, 'sine');
+                    }
+                    return;
+                }
+
+                // Check if user clicked on an existing original text item
                 let clickedItem = null;
                 for (let item of editorTextItems) {
                     if (coords.x >= item.x && coords.x <= item.x + item.w && coords.y >= item.y - item.h && coords.y <= item.y) {
@@ -2578,6 +2594,22 @@
             appendLog(`Searching document for: "${findText}"...`);
 
             try {
+                // Step 1: Scan and replace inside already-created replace-text annotations
+                const pageKeys = Object.keys(editorAnnotations);
+                pageKeys.forEach(pKey => {
+                    const pageNum = parseInt(pKey);
+                    const list = editorAnnotations[pageNum] || [];
+                    list.forEach(annot => {
+                        if (annot.type === 'replace-text') {
+                            if (annot.text && annot.text.toLowerCase().includes(findText.toLowerCase())) {
+                                annot.text = annot.text.replace(new RegExp(escapeRegExp(findText), 'gi'), replaceText);
+                                matchCount++;
+                            }
+                        }
+                    });
+                });
+
+                // Step 2: Scan original PDF text content
                 for (let pageNum = 1; pageNum <= editorTotalPages; pageNum++) {
                     const page = await editorPdf.getPage(pageNum);
                     const textContent = await page.getTextContent();
@@ -2587,6 +2619,14 @@
                             const tx = item.transform[4];
                             const ty = item.transform[5];
                             const fontSize = item.transform[3];
+
+                            // Skip if an active replace-text annotation already exists for this exact text baseline
+                            const alreadyEdited = (editorAnnotations[pageNum] || []).some(annot =>
+                                annot.type === 'replace-text' &&
+                                Math.abs(annot.pdfX - tx) < 0.1 &&
+                                Math.abs(annot.pdfY - ty) < 0.1
+                            );
+                            if (alreadyEdited) return;
 
                             const canvasSize = editorPageSizes[pageNum] || { w: 550, h: 700 };
                             const pageScale = canvasSize.w / page.getViewport({ scale: 1.0 }).width;
