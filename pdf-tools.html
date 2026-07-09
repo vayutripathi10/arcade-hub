@@ -150,7 +150,7 @@
         /* Cyber Tabs styling */
         .deck-tabs {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 12px;
         }
 
@@ -170,7 +170,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 4px;
+            min-height: 65px;
         }
 
         .deck-tab .tab-mod {
@@ -184,21 +186,24 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .deck-tab.active[data-tab="merge"] {
+        .deck-tab.active[data-tab="merge"],
+        .deck-tab.active[data-tab="split"] {
             border-color: var(--neon-cyan);
             color: var(--neon-cyan);
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
             background: rgba(0, 255, 204, 0.03);
         }
 
-        .deck-tab.active[data-tab="image-compiler"] {
+        .deck-tab.active[data-tab="image-compiler"],
+        .deck-tab.active[data-tab="rotate"] {
             border-color: var(--neon-purple);
             color: var(--neon-purple);
             box-shadow: 0 0 10px rgba(138, 43, 226, 0.15);
             background: rgba(138, 43, 226, 0.03);
         }
 
-        .deck-tab.active[data-tab="text-extractor"] {
+        .deck-tab.active[data-tab="text-extractor"],
+        .deck-tab.active[data-tab="watermark"] {
             border-color: var(--neon-pink);
             color: var(--neon-pink);
             box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
@@ -559,6 +564,18 @@
                             <span class="tab-mod">MODULE_03</span>
                             <span>Extract Text</span>
                         </div>
+                        <div class="deck-tab" data-tab="split">
+                            <span class="tab-mod">MODULE_04</span>
+                            <span>Split PDF</span>
+                        </div>
+                        <div class="deck-tab" data-tab="rotate">
+                            <span class="tab-mod">MODULE_05</span>
+                            <span>Rotate PDF</span>
+                        </div>
+                        <div class="deck-tab" data-tab="watermark">
+                            <span class="tab-mod">MODULE_06</span>
+                            <span>Watermark</span>
+                        </div>
                     </div>
 
                     <!-- Progress Indicator -->
@@ -651,6 +668,155 @@
                         </div>
                     </div>
 
+                    <!-- TAB 4: SPLIT PDF -->
+                    <div class="tab-content" id="panel-split">
+                        <div class="drop-zone" id="drop-zone-split">
+                            <div class="drop-icon">✂️</div>
+                            <div class="drop-text">Drag & drop a PDF file to split or <span style="color: var(--neon-cyan); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-split" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-split">
+                            <!-- Single PDF details will appear here -->
+                        </div>
+
+                        <div class="options-grid">
+                            <div class="option-field" style="grid-column: span 2;">
+                                <label for="split-range">PAGE RANGE TO EXTRACT</label>
+                                <input type="text" id="split-range" class="cyber-input" placeholder="e.g. 1, 3, 5-8" style="width: 100%;">
+                                <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Enter page numbers separated by commas, or ranges using dashes.</span>
+                            </div>
+                        </div>
+
+                        <button class="neon-action-btn" id="btn-split" disabled>
+                            ⚡ SPLIT & DOWNLOAD PDF
+                        </button>
+                    </div>
+
+                    <!-- TAB 5: ROTATE PDF -->
+                    <div class="tab-content" id="panel-rotate">
+                        <div class="drop-zone purple-hover" id="drop-zone-rotate">
+                            <div class="drop-icon" style="color: var(--neon-purple);">🔄</div>
+                            <div class="drop-text">Drag & drop a PDF file to rotate or <span style="color: var(--neon-purple); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-rotate" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-rotate">
+                            <!-- Single PDF details will appear here -->
+                        </div>
+
+                        <div class="options-grid">
+                            <div class="option-field">
+                                <label for="rotate-angle">ROTATION ANGLE</label>
+                                <select id="rotate-angle" class="cyber-select">
+                                    <option value="90">90° CLOCKWISE</option>
+                                    <option value="180">180° FLIP</option>
+                                    <option value="270">270° COUNTER-CLOCKWISE</option>
+                                </select>
+                            </div>
+                            <div class="option-field">
+                                <label for="rotate-target">TARGET PAGES</label>
+                                <select id="rotate-target" class="cyber-select">
+                                    <option value="all">ALL PAGES</option>
+                                    <option value="odd">ODD PAGES ONLY</option>
+                                    <option value="even">EVEN PAGES ONLY</option>
+                                    <option value="custom">CUSTOM RANGE</option>
+                                </select>
+                            </div>
+                            <div class="option-field" id="rotate-custom-field" style="display: none; grid-column: span 2;">
+                                <label for="rotate-range">CUSTOM RANGE</label>
+                                <input type="text" id="rotate-range" class="cyber-input" placeholder="e.g. 1, 3-5">
+                            </div>
+                        </div>
+
+                        <button class="neon-action-btn purple" id="btn-rotate" disabled>
+                            👾 ROTATE PDF PAGES
+                        </button>
+                    </div>
+
+                    <!-- TAB 6: WATERMARK & PAGE STAMP -->
+                    <div class="tab-content" id="panel-watermark">
+                        <div class="drop-zone pink-hover" id="drop-zone-watermark">
+                            <div class="drop-icon" style="color: var(--neon-pink);">🏷️</div>
+                            <div class="drop-text">Drag & drop a PDF file to stamp or <span style="color: var(--neon-pink); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-watermark" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-watermark">
+                            <!-- Single PDF details will appear here -->
+                        </div>
+
+                        <div class="options-grid">
+                            <div class="option-field" style="grid-column: span 2;">
+                                <label for="stamp-mode">STAMP OPERATION</label>
+                                <select id="stamp-mode" class="cyber-select">
+                                    <option value="watermark">STAMP WATERMARK TEXT</option>
+                                    <option value="pagenum">STAMP PAGE NUMBERS</option>
+                                </select>
+                            </div>
+
+                            <!-- Watermark Fields -->
+                            <div id="watermark-fields" style="display: contents;">
+                                <div class="option-field" style="grid-column: span 2;">
+                                    <label for="watermark-text">WATERMARK TEXT</label>
+                                    <input type="text" id="watermark-text" class="cyber-input" placeholder="e.g. CONFIDENTIAL">
+                                </div>
+                                <div class="option-field">
+                                    <label for="watermark-color">COLOR</label>
+                                    <select id="watermark-color" class="cyber-select">
+                                        <option value="red">RED</option>
+                                        <option value="gray">GRAY</option>
+                                        <option value="blue">BLUE</option>
+                                        <option value="black">BLACK</option>
+                                    </select>
+                                </div>
+                                <div class="option-field">
+                                    <label for="watermark-opacity">OPACITY</label>
+                                    <select id="watermark-opacity" class="cyber-select">
+                                        <option value="0.2">20% (SUBTLE)</option>
+                                        <option value="0.4" selected>40% (MEDIUM)</option>
+                                        <option value="0.6">60% (STRONG)</option>
+                                        <option value="0.8">80% (SOLID)</option>
+                                    </select>
+                                </div>
+                                <div class="option-field" style="grid-column: span 2;">
+                                    <label for="watermark-pos">PLACEMENT</label>
+                                    <select id="watermark-pos" class="cyber-select">
+                                        <option value="diagonal">DIAGONAL CENTER</option>
+                                        <option value="top">TOP MARGIN</option>
+                                        <option value="bottom">BOTTOM MARGIN</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Page Number Fields -->
+                            <div id="pagenum-fields" style="display: none; width: 100%; grid-column: span 2;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%;">
+                                    <div class="option-field">
+                                        <label for="pagenum-format">FORMAT</label>
+                                        <select id="pagenum-format" class="cyber-select">
+                                            <option value="page-x-of-y">PAGE X OF Y</option>
+                                            <option value="page-x">PAGE X</option>
+                                            <option value="x-y">X / Y</option>
+                                        </select>
+                                    </div>
+                                    <div class="option-field">
+                                        <label for="pagenum-pos">PLACEMENT</label>
+                                        <select id="pagenum-pos" class="cyber-select">
+                                            <option value="bottom-right">BOTTOM RIGHT</option>
+                                            <option value="bottom-center">BOTTOM CENTER</option>
+                                            <option value="top-right">TOP RIGHT</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="neon-action-btn pink" id="btn-watermark" disabled>
+                            🧬 STAMP DOCUMENT
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
@@ -741,6 +907,9 @@
         let mergeQueue = [];
         let compilerQueue = [];
         let extractorFile = null;
+        let splitFile = null;
+        let rotateFile = null;
+        let watermarkFile = null;
 
         // Tabs Toggle Logic
         document.querySelectorAll('.deck-tab').forEach(tab => {
@@ -1229,6 +1398,520 @@
                 btn.style.borderColor = '';
             }, 1500);
         });
+
+
+        // --- MODULE 04: SPLIT PDF LOGIC ---
+        setupDropZone('drop-zone-split', 'input-split', (files) => {
+            const file = files[0];
+            if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+                splitFile = file;
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded PDF for split operations: ${file.name}`);
+                renderSplitFile();
+            } else {
+                appendLog("Invalid file. Please load a PDF file.", "error");
+                playErrorBuzz();
+            }
+        });
+
+        function renderSplitFile() {
+            const queueContainer = document.getElementById('queue-split');
+            queueContainer.innerHTML = '';
+            if (splitFile) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                const sizeMB = (splitFile.size / (1024 * 1024)).toFixed(2);
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-cyan); font-family: monospace;">[INPUT]</span>
+                        <div class="file-name" title="${splitFile.name}">${splitFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="removeSplitFile()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+                document.getElementById('btn-split').disabled = false;
+            } else {
+                document.getElementById('btn-split').disabled = true;
+            }
+        }
+
+        window.removeSplitFile = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Cleared split input file`, 'warn');
+            splitFile = null;
+            renderSplitFile();
+        };
+
+        function parsePageRanges(rangeStr, maxPages) {
+            const list = [];
+            const parts = rangeStr.split(',');
+            for (let part of parts) {
+                part = part.trim();
+                if (!part) continue;
+                if (part.includes('-')) {
+                    const range = part.split('-');
+                    if (range.length === 2) {
+                        const start = parseInt(range[0].trim());
+                        const end = parseInt(range[1].trim());
+                        if (!isNaN(start) && !isNaN(end) && start > 0 && end > 0 && start <= maxPages && end <= maxPages) {
+                            const step = start <= end ? 1 : -1;
+                            for (let i = start; start <= end ? i <= end : i >= end; i += step) {
+                                list.push(i - 1);
+                            }
+                        } else {
+                            throw new Error(`Invalid range: ${part}`);
+                        }
+                    } else {
+                        throw new Error(`Invalid range syntax: ${part}`);
+                    }
+                } else {
+                    const val = parseInt(part);
+                    if (!isNaN(val) && val > 0 && val <= maxPages) {
+                        list.push(val - 1);
+                    } else {
+                        throw new Error(`Invalid page number: ${part}`);
+                    }
+                }
+            }
+            if (list.length === 0) {
+                throw new Error("No pages specified in selection.");
+            }
+            return list;
+        }
+
+        document.getElementById('btn-split').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-split');
+            const rangeInput = document.getElementById('split-range').value.trim();
+
+            if (!splitFile) return;
+            if (!rangeInput) {
+                appendLog("Page range cannot be empty.", "error");
+                playErrorBuzz();
+                return;
+            }
+
+            btn.disabled = true;
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'SPLITTING PDF...';
+            deckStatus.textContent = 'processing';
+            appendLog(`Splitting segments from: ${splitFile.name}`);
+
+            try {
+                const arrayBuffer = await splitFile.arrayBuffer();
+                const srcPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                const totalPages = srcPdf.getPageCount();
+
+                const targetIndices = parsePageRanges(rangeInput, totalPages);
+                appendLog(`Targeting indices list: [${targetIndices.map(x => x + 1).join(', ')}]`);
+
+                const outPdf = await PDFLib.PDFDocument.create();
+                
+                progressBarFill.style.width = '30%';
+                progressPercent.textContent = '30%';
+                appendLog('Copying target page layers...');
+                
+                const copiedPages = await outPdf.copyPages(srcPdf, targetIndices);
+                copiedPages.forEach((page, idx) => {
+                    outPdf.addPage(page);
+                    const percent = Math.round(30 + ((idx + 1) / copiedPages.length) * 50);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                });
+
+                progressBarFill.style.width = '90%';
+                progressPercent.textContent = '90%';
+                appendLog('Assembling new document output...');
+
+                const pdfBytes = await outPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `split_${splitFile.name}`;
+                link.click();
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog(`Success! Split PDF saved: split_${splitFile.name}`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Split operation failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'split';
+            }
+        });
+
+
+        // --- MODULE 05: ROTATE PDF LOGIC ---
+        setupDropZone('drop-zone-rotate', 'input-rotate', (files) => {
+            const file = files[0];
+            if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+                rotateFile = file;
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded PDF for rotation: ${file.name}`);
+                renderRotateFile();
+            } else {
+                appendLog("Invalid file. Please load a PDF file.", "error");
+                playErrorBuzz();
+            }
+        });
+
+        document.getElementById('rotate-target').addEventListener('change', (e) => {
+            const customField = document.getElementById('rotate-custom-field');
+            if (e.target.value === 'custom') {
+                customField.style.display = 'block';
+            } else {
+                customField.style.display = 'none';
+            }
+        });
+
+        function renderRotateFile() {
+            const queueContainer = document.getElementById('queue-rotate');
+            queueContainer.innerHTML = '';
+            if (rotateFile) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                const sizeMB = (rotateFile.size / (1024 * 1024)).toFixed(2);
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-purple); font-family: monospace;">[INPUT]</span>
+                        <div class="file-name" title="${rotateFile.name}">${rotateFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="removeRotateFile()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+                document.getElementById('btn-rotate').disabled = false;
+            } else {
+                document.getElementById('btn-rotate').disabled = true;
+            }
+        }
+
+        window.removeRotateFile = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Cleared rotation input file`, 'warn');
+            rotateFile = null;
+            renderRotateFile();
+        };
+
+        document.getElementById('btn-rotate').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-rotate');
+
+            const angleDegrees = parseInt(document.getElementById('rotate-angle').value);
+            const targetType = document.getElementById('rotate-target').value;
+            const customRangeStr = document.getElementById('rotate-range').value.trim();
+
+            if (!rotateFile) return;
+
+            btn.disabled = true;
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'ROTATING PAGES...';
+            deckStatus.textContent = 'processing';
+            appendLog(`Rotating pages by ${angleDegrees}° on file: ${rotateFile.name}`);
+
+            try {
+                const arrayBuffer = await rotateFile.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const totalPages = pdfDoc.getPageCount();
+                let targetIndices = [];
+
+                if (targetType === 'all') {
+                    for (let i = 0; i < totalPages; i++) targetIndices.push(i);
+                } else if (targetType === 'odd') {
+                    for (let i = 0; i < totalPages; i += 2) targetIndices.push(i);
+                } else if (targetType === 'even') {
+                    for (let i = 1; i < totalPages; i += 2) targetIndices.push(i);
+                } else if (targetType === 'custom') {
+                    if (!customRangeStr) {
+                        throw new Error("Custom range field cannot be empty.");
+                    }
+                    targetIndices = parsePageRanges(customRangeStr, totalPages);
+                }
+
+                appendLog(`Targeting indices for rotation: [${targetIndices.map(x => x + 1).join(', ')}]`);
+
+                const pages = pdfDoc.getPages();
+                targetIndices.forEach((idx, step) => {
+                    if (idx >= 0 && idx < pages.length) {
+                        const page = pages[idx];
+                        const currentRot = page.getRotation().angle;
+                        const nextRot = (currentRot + angleDegrees) % 360;
+                        page.setRotation(PDFLib.degrees(nextRot));
+                        
+                        const percent = Math.round(((step + 1) / targetIndices.length) * 80);
+                        progressBarFill.style.width = `${percent}%`;
+                        progressPercent.textContent = `${percent}%`;
+                    }
+                });
+
+                progressBarFill.style.width = '90%';
+                progressPercent.textContent = '90%';
+                appendLog('Building rotated output buffer...');
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `rotated_${rotateFile.name}`;
+                link.click();
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog(`Success! Rotated PDF downloaded: rotated_${rotateFile.name}`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Rotation failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'rotate';
+            }
+        });
+
+
+        // --- MODULE 06: WATERMARK & PAGE STAMP LOGIC ---
+        setupDropZone('drop-zone-watermark', 'input-watermark', (files) => {
+            const file = files[0];
+            if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+                watermarkFile = file;
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded PDF for stamping: ${file.name}`);
+                renderWatermarkFile();
+            } else {
+                appendLog("Invalid file. Please load a PDF file.", "error");
+                playErrorBuzz();
+            }
+        });
+
+        document.getElementById('stamp-mode').addEventListener('change', (e) => {
+            const wmFields = document.getElementById('watermark-fields');
+            const pnFields = document.getElementById('pagenum-fields');
+            if (e.target.value === 'watermark') {
+                wmFields.style.display = 'contents';
+                pnFields.style.display = 'none';
+            } else {
+                wmFields.style.display = 'none';
+                pnFields.style.display = 'block';
+            }
+        });
+
+        function renderWatermarkFile() {
+            const queueContainer = document.getElementById('queue-watermark');
+            queueContainer.innerHTML = '';
+            if (watermarkFile) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                const sizeMB = (watermarkFile.size / (1024 * 1024)).toFixed(2);
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-pink); font-family: monospace;">[INPUT]</span>
+                        <div class="file-name" title="${watermarkFile.name}">${watermarkFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="removeWatermarkFile()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+                document.getElementById('btn-watermark').disabled = false;
+            } else {
+                document.getElementById('btn-watermark').disabled = true;
+            }
+        }
+
+        window.removeWatermarkFile = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Cleared stamping input file`, 'warn');
+            watermarkFile = null;
+            renderWatermarkFile();
+        };
+
+        document.getElementById('btn-watermark').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-watermark');
+
+            const mode = document.getElementById('stamp-mode').value;
+
+            if (!watermarkFile) return;
+
+            btn.disabled = true;
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'STAMPING DOCUMENT...';
+            deckStatus.textContent = 'processing';
+            appendLog(`Running stamp operation (${mode.toUpperCase()}) on: ${watermarkFile.name}`);
+
+            try {
+                const arrayBuffer = await watermarkFile.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const totalPages = pdfDoc.getPageCount();
+                const pages = pdfDoc.getPages();
+
+                appendLog(`Loading Helvetica font resources...`);
+                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+                progressBarFill.style.width = '20%';
+                progressPercent.textContent = '20%';
+
+                if (mode === 'watermark') {
+                    const text = document.getElementById('watermark-text').value.trim() || 'WATERMARK';
+                    const colorVal = document.getElementById('watermark-color').value;
+                    const opacityVal = parseFloat(document.getElementById('watermark-opacity').value);
+                    const position = document.getElementById('watermark-pos').value;
+
+                    // Color mapping
+                    let colorObj = PDFLib.rgb(0.5, 0.5, 0.5);
+                    if (colorVal === 'red') colorObj = PDFLib.rgb(0.9, 0.1, 0.1);
+                    else if (colorVal === 'blue') colorObj = PDFLib.rgb(0.1, 0.1, 0.9);
+                    else if (colorVal === 'black') colorObj = PDFLib.rgb(0, 0, 0);
+
+                    appendLog(`Stamping custom text layer: "${text}"`);
+
+                    pages.forEach((page, idx) => {
+                        const { width, height } = page.getSize();
+                        
+                        if (position === 'diagonal') {
+                            const size = Math.round(width / 10);
+                            const textWidth = text.length * size * 0.45;
+                            page.drawText(text, {
+                                x: (width - textWidth) / 2 + 30,
+                                y: (height - 30) / 2 - 50,
+                                size: size,
+                                font: helveticaFont,
+                                color: colorObj,
+                                opacity: opacityVal,
+                                rotate: PDFLib.degrees(45),
+                            });
+                        } else if (position === 'top') {
+                            const size = 14;
+                            const textWidth = helveticaFont.widthOfTextAtSize(text, size);
+                            page.drawText(text, {
+                                x: (width - textWidth) / 2,
+                                y: height - 40,
+                                size: size,
+                                font: helveticaFont,
+                                color: colorObj,
+                                opacity: opacityVal,
+                            });
+                        } else if (position === 'bottom') {
+                            const size = 14;
+                            const textWidth = helveticaFont.widthOfTextAtSize(text, size);
+                            page.drawText(text, {
+                                x: (width - textWidth) / 2,
+                                y: 40,
+                                size: size,
+                                font: helveticaFont,
+                                color: colorObj,
+                                opacity: opacityVal,
+                            });
+                        }
+
+                        const percent = Math.round(20 + ((idx + 1) / totalPages) * 60);
+                        progressBarFill.style.width = `${percent}%`;
+                        progressPercent.textContent = `${percent}%`;
+                    });
+                } else if (mode === 'pagenum') {
+                    const format = document.getElementById('pagenum-format').value;
+                    const position = document.getElementById('pagenum-pos').value;
+
+                    appendLog(`Stamping formatted page numbers...`);
+
+                    pages.forEach((page, idx) => {
+                        const { width, height } = page.getSize();
+                        const pageNum = idx + 1;
+                        
+                        let textStr = '';
+                        if (format === 'page-x-of-y') textStr = `Page ${pageNum} of ${totalPages}`;
+                        else if (format === 'page-x') textStr = `Page ${pageNum}`;
+                        else if (format === 'x-y') textStr = `${pageNum} / ${totalPages}`;
+
+                        const size = 10;
+                        const textWidth = helveticaFont.widthOfTextAtSize(textStr, size);
+                        
+                        let xPos = 0;
+                        let yPos = 0;
+
+                        if (position === 'bottom-right') {
+                            xPos = width - textWidth - 40;
+                            yPos = 30;
+                        } else if (position === 'bottom-center') {
+                            xPos = (width - textWidth) / 2;
+                            yPos = 30;
+                        } else if (position === 'top-right') {
+                            xPos = width - textWidth - 40;
+                            yPos = height - 35;
+                        }
+
+                        page.drawText(textStr, {
+                            x: xPos,
+                            y: yPos,
+                            size: size,
+                            font: helveticaFont,
+                            color: PDFLib.rgb(0.5, 0.5, 0.5),
+                            opacity: 0.8,
+                        });
+
+                        const percent = Math.round(20 + ((idx + 1) / totalPages) * 60);
+                        progressBarFill.style.width = `${percent}%`;
+                        progressPercent.textContent = `${percent}%`;
+                    });
+                }
+
+                progressBarFill.style.width = '90%';
+                progressPercent.textContent = '90%';
+                appendLog('Exporting stamped output layers...');
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `stamped_${watermarkFile.name}`;
+                link.click();
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog(`Success! Stamped document downloaded: stamped_${watermarkFile.name}`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Stamp operation failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'watermark';
+            }
+        });
+
 
         // Sidebar close toggling handler
         document.addEventListener('DOMContentLoaded', () => {
