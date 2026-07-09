@@ -1,0 +1,21 @@
+# Ignore git and agent systems
+.git/
+.agent/
+
+# Ignore local temporary/diagnostic directories
+scratch/
+tests/
+
+# Ignore Python codebase utility scripts
+*.py
+
+# Ignore Maven wrapper files
+mvnw
+mvnw.cmd
+pom.xml
+.mvn/
+
+# Ignore wrangler log files
+.wrangler/
+wrangler.jsonc
+wrangler-*.log
