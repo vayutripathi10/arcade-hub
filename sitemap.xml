@@ -27,6 +27,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://arcadehubplay.com/pdf-tools</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://arcadehubplay.com/tos</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>

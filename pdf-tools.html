@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ffcc">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Use Arcade Hub's Decryption Deck to merge PDFs, compile images into PDFs, and extract readable text. High security, zero server uploads, 100% private.">
+    <meta name="keywords" content="pdf merge, convert image to pdf, pdf text extractor, unblocked pdf tools, online pdf helper">
+    <link rel="canonical" href="https://arcadehubplay.com/pdf-tools">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Decryption Deck - PDF Tools | Arcade Hub">
+    <meta property="og:description" content="Merge PDFs, convert images, and extract text client-side. Zero server uploads, 100% private and secure.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/pdf-tools.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Decryption Deck - PDF Tools | Arcade Hub">
+    <meta name="twitter:description" content="Merge PDFs, convert images, and extract text client-side. Zero server uploads, 100% private and secure.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <title>Decryption Deck: Cyberpunk PDF Tools | Arcade Hub</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-B8XQ759LPH');
+    </script>
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+
+    <style>
+        /* Cyberpunk Deck Layout and styling */
+        :root {
+            --neon-cyan: #00ffcc;
+            --neon-purple: #8a2be2;
+            --neon-pink: #ff007f;
+            --terminal-green: #39ff14;
+        }
+
+        body {
+            background: linear-gradient(135deg, #090b11 0%, #110e1a 100%);
+            font-family: 'Outfit', sans-serif;
+            color: #e2e8f0;
+        }
+
+        .deck-wrapper {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 992px) {
+            .deck-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphism Cyber Card */
+        .cyber-card {
+            background: rgba(13, 14, 22, 0.7);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cyber-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+        }
+
+        /* Terminal Display Console */
+        .terminal-panel {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--terminal-green);
+            padding: 20px;
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid rgba(57, 255, 20, 0.15);
+            box-shadow: inset 0 0 20px rgba(57, 255, 20, 0.05);
+        }
+
+        .terminal-header {
+            border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            letter-spacing: 1px;
+        }
+
+        .terminal-logs {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 6px;
+            scroll-behavior: smooth;
+        }
+
+        .terminal-log-entry {
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .terminal-log-entry.system { color: var(--neon-cyan); }
+        .terminal-log-entry.success { color: var(--terminal-green); }
+        .terminal-log-entry.warn { color: #f59e0b; }
+        .terminal-log-entry.error { color: var(--neon-pink); }
+
+        /* Decipher Engine Panel */
+        .engine-panel {
+            padding: 30px;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Cyber Tabs styling */
+        .deck-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .deck-tab {
+            font-family: 'Share Tech Mono', monospace;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .deck-tab .tab-mod {
+            font-size: 0.65rem;
+            opacity: 0.6;
+        }
+
+        .deck-tab:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .deck-tab.active[data-tab="merge"] {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
+            background: rgba(0, 255, 204, 0.03);
+        }
+
+        .deck-tab.active[data-tab="image-compiler"] {
+            border-color: var(--neon-purple);
+            color: var(--neon-purple);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.15);
+            background: rgba(138, 43, 226, 0.03);
+        }
+
+        .deck-tab.active[data-tab="text-extractor"] {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
+            background: rgba(255, 0, 127, 0.03);
+        }
+
+        /* Tab Content Panels */
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            animation: tabFadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Drag and Drop Zone */
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 255, 204, 0.02);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.05);
+        }
+
+        .drop-zone.purple-hover:hover, .drop-zone.purple-hover.dragover {
+            border-color: var(--neon-purple);
+            background: rgba(138, 43, 226, 0.02);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.05);
+        }
+
+        .drop-zone.pink-hover:hover, .drop-zone.pink-hover.dragover {
+            border-color: var(--neon-pink);
+            background: rgba(255, 0, 127, 0.02);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.05);
+        }
+
+        .drop-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .drop-zone:hover .drop-icon {
+            transform: translateY(-5px);
+        }
+
+        .drop-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* File list Queue style */
+        .file-queue {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .file-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        .file-size {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .file-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 1rem;
+            transition: color 0.2s ease;
+        }
+
+        .file-btn:hover {
+            color: #fff;
+        }
+
+        .file-btn.remove:hover {
+            color: var(--neon-pink);
+        }
+
+        /* Cyberpunk Form Fields */
+        .cyber-select, .cyber-input {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .cyber-select:focus, .cyber-input:focus {
+            border-color: var(--neon-cyan);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .option-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .option-field label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Hacking/Decks style buttons */
+        .neon-action-btn {
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 14px 24px;
+            border: 2px solid var(--neon-cyan);
+            background: transparent;
+            color: var(--neon-cyan);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .neon-action-btn:hover:not(:disabled) {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.3);
+        }
+
+        .neon-action-btn:disabled {
+            border-color: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .neon-action-btn.purple {
+            border-color: var(--neon-purple);
+            color: var(--neon-purple);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.1);
+        }
+
+        .neon-action-btn.purple:hover:not(:disabled) {
+            background: var(--neon-purple);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(138, 43, 226, 0.3);
+        }
+
+        .neon-action-btn.pink {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);
+        }
+
+        .neon-action-btn.pink:hover:not(:disabled) {
+            background: var(--neon-pink);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.3);
+        }
+
+        /* Output text area */
+        .output-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .text-output-area {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            color: #f1f5f9;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.95rem;
+            padding: 16px;
+            border-radius: 8px;
+            min-height: 250px;
+            resize: vertical;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .text-output-area:focus {
+            border-color: var(--neon-pink);
+        }
+
+        /* Retro Progress Indicator */
+        .progress-indicator {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--neon-cyan);
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .progress-bar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 14px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            width: 0%;
+            height: 100%;
+            transition: width 0.1s ease;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="pdf-tools" class="sidebar-link active-hub">🛠️ PDF Tools</a>
+            <a href="blog" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
+    <div class="header-container" style="margin-bottom: 2rem;">
+        <h1 class="main-title" style="font-size: clamp(2.5rem, 6vw, 3.5rem); text-shadow: 0 0 45px rgba(138,43,226,0.5);">Decryption Deck</h1>
+        <p class="subtitle" style="color: var(--neon-cyan); text-transform: uppercase; font-family: 'Share Tech Mono', monospace; font-size: 0.95rem; letter-spacing: 2px;">MODULE: CLIENT_SIDE_PDF_DECRYPTER_v1.0</p>
+    </div>
+
+    <main class="container" style="max-width: 1200px;">
+        <div class="deck-wrapper">
+            
+            <!-- Left: Terminal console log -->
+            <div class="cyber-card">
+                <div class="terminal-panel">
+                    <div class="terminal-header">
+                        <span>📟 System logs</span>
+                        <span id="deck-status" style="color: var(--neon-cyan);">ready</span>
+                    </div>
+                    <div class="terminal-logs" id="terminalLogs">
+                        <div class="terminal-log-entry system">[SYSTEM] Deck boot sequence activated.</div>
+                        <div class="terminal-log-entry system">[SYSTEM] Memory buffers allocation: 100% OK.</div>
+                        <div class="terminal-log-entry system">[SYSTEM] Local encryption models: LOADED.</div>
+                        <div class="terminal-log-entry system">[SYSTEM] Audio synthesis oscillators: ARMED.</div>
+                        <div class="terminal-log-entry">[ONLINE] Zero server uploads configuration: SAFE.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Tabbed deck engine -->
+            <div class="cyber-card" style="grid-column: span 1;">
+                <div class="engine-panel">
+                    
+                    <!-- Tabs -->
+                    <div class="deck-tabs">
+                        <div class="deck-tab active" data-tab="merge">
+                            <span class="tab-mod">MODULE_01</span>
+                            <span>Merge Core</span>
+                        </div>
+                        <div class="deck-tab" data-tab="image-compiler">
+                            <span class="tab-mod">MODULE_02</span>
+                            <span>Compiler</span>
+                        </div>
+                        <div class="deck-tab" data-tab="text-extractor">
+                            <span class="tab-mod">MODULE_03</span>
+                            <span>Extractor</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="progress-indicator" id="progressIndicator">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span id="progressText">PROCCESSING MATRIX...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" id="progressBarFill"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 1: MERGE CORE -->
+                    <div class="tab-content active" id="panel-merge">
+                        <div class="drop-zone" id="drop-zone-merge">
+                            <div class="drop-icon">📂</div>
+                            <div class="drop-text">Drag and drop PDF files here or <span style="color: var(--neon-cyan); text-decoration: underline;">browse folders</span></div>
+                            <input type="file" id="input-merge" class="file-input" multiple accept="application/pdf">
+                        </div>
+                        
+                        <div class="file-queue" id="queue-merge">
+                            <!-- Files list will appear here -->
+                        </div>
+
+                        <button class="neon-action-btn" id="btn-merge" disabled>
+                            ⚡ COMPILE MERGE BUFFER
+                        </button>
+                    </div>
+
+                    <!-- TAB 2: IMAGE COMPILER -->
+                    <div class="tab-content" id="panel-image-compiler">
+                        <div class="drop-zone purple-hover" id="drop-zone-compiler">
+                            <div class="drop-icon" style="color: var(--neon-purple);">🖼️</div>
+                            <div class="drop-text">Drag & drop JPEG/PNG images here or <span style="color: var(--neon-purple); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-compiler" class="file-input" multiple accept="image/png, image/jpeg, image/jpg, image/webp">
+                        </div>
+
+                        <div class="options-grid">
+                            <div class="option-field">
+                                <label for="comp-orientation">ORIENTATION</label>
+                                <select id="comp-orientation" class="cyber-select">
+                                    <option value="auto">AUTO (FIT TO IMAGE)</option>
+                                    <option value="portrait">PORTRAIT (A4)</option>
+                                    <option value="landscape">LANDSCAPE (A4)</option>
+                                </select>
+                            </div>
+                            <div class="option-field">
+                                <label for="comp-margin">MARGIN (PX)</label>
+                                <select id="comp-margin" class="cyber-select">
+                                    <option value="0">0 (BORDERLESS)</option>
+                                    <option value="18">18 (SMALL)</option>
+                                    <option value="36">36 (MEDIUM)</option>
+                                    <option value="54">54 (LARGE)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="file-queue" id="queue-compiler">
+                            <!-- Selected images will appear here -->
+                        </div>
+
+                        <button class="neon-action-btn purple" id="btn-compiler" disabled>
+                            👾 COMPILE IMAGES TO PDF
+                        </button>
+                    </div>
+
+                    <!-- TAB 3: TEXT EXTRACTOR -->
+                    <div class="tab-content" id="panel-text-extractor">
+                        <div class="drop-zone pink-hover" id="drop-zone-extractor">
+                            <div class="drop-icon" style="color: var(--neon-pink);">🔍</div>
+                            <div class="drop-text">Drag & drop a PDF file to extract text or <span style="color: var(--neon-pink); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-extractor" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-extractor">
+                            <!-- Single selected PDF -->
+                        </div>
+
+                        <button class="neon-action-btn pink" id="btn-extractor" disabled>
+                            🧬 DECRYPT PDF TEXT MATRIX
+                        </button>
+
+                        <div class="output-wrapper" id="extractor-output" style="display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--neon-pink);">DECRYPTED TEXT BUFFER</span>
+                                <button class="nav-link" id="btn-copy-text" style="font-size: 0.8rem; padding: 4px 12px; border-radius: 4px;">COPY TO CLIPBOARD</button>
+                            </div>
+                            <textarea class="text-output-area" id="extractor-text" readonly></textarea>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="site-footer" style="margin-top: 5rem;">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy">Privacy Policy</a> | <a href="tos">Terms of Service</a> | <a href="contact">Contact Us</a> | <a href="updates">News</a> | <a href="blog">Blog &amp; Guides</a> | <a href="pdf-tools">PDF Tools</a></p>
+    </footer>
+
+    <!-- Include pdf-lib for merging and image compiled PDF creation -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    
+    <!-- Include pdf.js for client-side text parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <script>
+        // Configure PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // 1. Audio Synth Helper
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBeep(frequency, duration, type = 'sine') {
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (err) {
+                // Ignore audio blockages
+            }
+        }
+
+        function playSuccessChord() {
+            const now = audioCtx.currentTime;
+            playBeep(523.25, 0.1, 'triangle'); // C5
+            setTimeout(() => playBeep(659.25, 0.1, 'triangle'), 80); // E5
+            setTimeout(() => playBeep(783.99, 0.1, 'triangle'), 160); // G5
+            setTimeout(() => playBeep(1046.50, 0.25, 'triangle'), 240); // C6
+        }
+
+        function playErrorBuzz() {
+            playBeep(150, 0.35, 'sawtooth');
+        }
+
+        // 2. Logging utility
+        const terminalLogs = document.getElementById('terminalLogs');
+        const deckStatus = document.getElementById('deck-status');
+
+        function appendLog(message, type = 'default') {
+            const entry = document.createElement('div');
+            entry.className = `terminal-log-entry ${type}`;
+            const time = new Date().toLocaleTimeString().split(' ')[0];
+            entry.textContent = `[${time}] ${message}`;
+            terminalLogs.appendChild(entry);
+            terminalLogs.scrollTop = terminalLogs.scrollHeight;
+        }
+
+        // 3. Global states
+        let mergeQueue = [];
+        let compilerQueue = [];
+        let extractorFile = null;
+
+        // Tabs Toggle Logic
+        document.querySelectorAll('.deck-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Audio click
+                playBeep(750, 0.05, 'sine');
+
+                document.querySelectorAll('.deck-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`panel-${targetTab}`).classList.add('active');
+
+                appendLog(`Switched deck focus to Module: ${targetTab.toUpperCase()}`);
+                deckStatus.textContent = targetTab;
+            });
+        });
+
+        // 4. File Drag and Drop / Select Setup
+        function setupDropZone(dropZoneId, fileInputId, onFilesAdded) {
+            const dropZone = document.getElementById(dropZoneId);
+            const fileInput = document.getElementById(fileInputId);
+
+            dropZone.addEventListener('click', () => {
+                playBeep(880, 0.05, 'sine');
+                fileInput.click();
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    onFilesAdded(e.dataTransfer.files);
+                }
+            });
+
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    onFilesAdded(fileInput.files);
+                    fileInput.value = ''; // Reset input to allow choosing same files again
+                }
+            });
+        }
+
+        // --- MODULE 01: MERGE CORE LOGIC ---
+        setupDropZone('drop-zone-merge', 'input-merge', (files) => {
+            let addedCount = 0;
+            for (let f of files) {
+                if (f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')) {
+                    mergeQueue.push(f);
+                    addedCount++;
+                } else {
+                    appendLog(`Skipped non-PDF file: ${f.name}`, 'warn');
+                }
+            }
+            if (addedCount > 0) {
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded ${addedCount} PDFs into compile buffer.`);
+                renderMergeQueue();
+            }
+        });
+
+        function renderMergeQueue() {
+            const queueContainer = document.getElementById('queue-merge');
+            queueContainer.innerHTML = '';
+            
+            mergeQueue.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-cyan); font-family: monospace;">[${String(index + 1).padStart(2, '0')}]</span>
+                        <div class="file-name" title="${file.name}">${file.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn" onclick="moveMergeItem(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                        <button class="file-btn" onclick="moveMergeItem(${index}, 1)" ${index === mergeQueue.length - 1 ? 'disabled' : ''}>▼</button>
+                        <button class="file-btn remove" onclick="removeMergeItem(${index})">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+            });
+
+            document.getElementById('btn-merge').disabled = mergeQueue.length < 2;
+        }
+
+        window.moveMergeItem = function(index, direction) {
+            playBeep(700, 0.05, 'sine');
+            const targetIndex = index + direction;
+            if (targetIndex >= 0 && targetIndex < mergeQueue.length) {
+                const temp = mergeQueue[index];
+                mergeQueue[index] = mergeQueue[targetIndex];
+                mergeQueue[targetIndex] = temp;
+                renderMergeQueue();
+            }
+        };
+
+        window.removeMergeItem = function(index) {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Removed from buffer: ${mergeQueue[index].name}`, 'warn');
+            mergeQueue.splice(index, 1);
+            renderMergeQueue();
+        };
+
+        document.getElementById('btn-merge').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-merge');
+
+            btn.disabled = true;
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'DECRYPTING & MERGING PDFs...';
+            deckStatus.textContent = 'processing';
+            appendLog(`Compiling ${mergeQueue.length} PDFs...`);
+
+            try {
+                const mergedPdf = await PDFLib.PDFDocument.create();
+                
+                for (let i = 0; i < mergeQueue.length; i++) {
+                    const file = mergeQueue[i];
+                    appendLog(`Reading buffers: [${file.name}]`);
+                    
+                    const percent = Math.round((i / mergeQueue.length) * 100);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    playBeep(400 + (percent * 4), 0.05, 'triangle');
+
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    pages.forEach(p => mergedPdf.addPage(p));
+                }
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog('Assembling structural elements...');
+
+                const pdfBytes = await mergedPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'merged_arcade_compiled.pdf';
+                link.click();
+
+                appendLog(`Successfully compiled! File downloaded: merged_arcade_compiled.pdf`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Compilation error: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'merge';
+            }
+        });
+
+
+        // --- MODULE 02: IMAGE COMPILER LOGIC ---
+        setupDropZone('drop-zone-compiler', 'input-compiler', (files) => {
+            let addedCount = 0;
+            for (let f of files) {
+                if (f.type.startsWith('image/')) {
+                    compilerQueue.push(f);
+                    addedCount++;
+                } else {
+                    appendLog(`Skipped non-image file: ${f.name}`, 'warn');
+                }
+            }
+            if (addedCount > 0) {
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded ${addedCount} images into compiler buffer.`);
+                renderCompilerQueue();
+            }
+        });
+
+        function renderCompilerQueue() {
+            const queueContainer = document.getElementById('queue-compiler');
+            queueContainer.innerHTML = '';
+            
+            compilerQueue.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                
+                const sizeKB = (file.size / 1024).toFixed(1);
+                item.innerHTML = `
+                    <div class="file-info" style="align-items: center;">
+                        <span style="color: var(--neon-purple); font-family: monospace;">[${String(index + 1).padStart(2, '0')}]</span>
+                        <div class="file-name" title="${file.name}">${file.name}</div>
+                        <div class="file-size">${sizeKB} KB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn" onclick="moveCompilerItem(${index}, -1)" ${index === 0 ? 'disabled' : ''}>▲</button>
+                        <button class="file-btn" onclick="moveCompilerItem(${index}, 1)" ${index === compilerQueue.length - 1 ? 'disabled' : ''}>▼</button>
+                        <button class="file-btn remove" onclick="removeCompilerItem(${index})">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+            });
+
+            document.getElementById('btn-compiler').disabled = compilerQueue.length === 0;
+        }
+
+        window.moveCompilerItem = function(index, direction) {
+            playBeep(700, 0.05, 'sine');
+            const targetIndex = index + direction;
+            if (targetIndex >= 0 && targetIndex < compilerQueue.length) {
+                const temp = compilerQueue[index];
+                compilerQueue[index] = compilerQueue[targetIndex];
+                compilerQueue[targetIndex] = temp;
+                renderCompilerQueue();
+            }
+        };
+
+        window.removeCompilerItem = function(index) {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Removed image from compiler buffer: ${compilerQueue[index].name}`, 'warn');
+            compilerQueue.splice(index, 1);
+            renderCompilerQueue();
+        };
+
+        // Canvas Helper to convert images to safe JPEGs (handles transparency, webp, gif, etc.)
+        function convertImageToJpgBytes(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff'; // White background for transparency
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                resolve(blob.arrayBuffer());
+                            } else {
+                                reject(new Error("Blob compilation failed"));
+                            }
+                        }, 'image/jpeg', 0.92);
+                    };
+                    img.onerror = () => reject(new Error("Image element loading failed"));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error("FileReader failed"));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.getElementById('btn-compiler').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-compiler');
+            const orientation = document.getElementById('comp-orientation').value;
+            const margin = parseInt(document.getElementById('comp-margin').value);
+
+            btn.disabled = true;
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'CONVERTING IMAGES & COMPILING PDF...';
+            deckStatus.textContent = 'processing';
+            appendLog(`Compiling ${compilerQueue.length} images...`);
+
+            try {
+                const pdfDoc = await PDFLib.PDFDocument.create();
+                
+                for (let i = 0; i < compilerQueue.length; i++) {
+                    const file = compilerQueue[i];
+                    appendLog(`Embedding image dimensions: [${file.name}]`);
+                    
+                    const percent = Math.round((i / compilerQueue.length) * 100);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    playBeep(450 + (percent * 3.5), 0.05, 'triangle');
+
+                    // Convert image format to JPEG ArrayBuffer for safe PDF insertion
+                    const jpgBytes = await convertImageToJpgBytes(file);
+                    const image = await pdfDoc.embedJpg(jpgBytes);
+                    const { width, height } = image.scale(1);
+                    
+                    let page;
+                    if (orientation === 'auto') {
+                        page = pdfDoc.addPage([width + margin * 2, height + margin * 2]);
+                        page.drawImage(image, {
+                            x: margin,
+                            y: margin,
+                            width: width,
+                            height: height
+                        });
+                    } else {
+                        // Standard A4 sizes
+                        const a4Width = 595.28;
+                        const a4Height = 841.89;
+                        const targetW = orientation === 'portrait' ? a4Width : a4Height;
+                        const targetH = orientation === 'portrait' ? a4Height : a4Width;
+                        
+                        page = pdfDoc.addPage([targetW, targetH]);
+                        
+                        const maxW = targetW - margin * 2;
+                        const maxH = targetH - margin * 2;
+                        const scale = Math.min(maxW / width, maxH / height);
+                        
+                        const scaledW = width * scale;
+                        const scaledH = height * scale;
+                        
+                        const x = margin + (maxW - scaledW) / 2;
+                        const y = margin + (maxH - scaledH) / 2;
+                        
+                        page.drawImage(image, {
+                            x, y,
+                            width: scaledW,
+                            height: scaledH
+                        });
+                    }
+                }
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog('Finalizing file layers...');
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'images_compiled.pdf';
+                link.click();
+
+                appendLog(`Success! Compiled images downloaded: images_compiled.pdf`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Image compiler failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'compiler';
+            }
+        });
+
+
+        // --- MODULE 03: TEXT EXTRACTOR LOGIC ---
+        setupDropZone('drop-zone-extractor', 'input-extractor', (files) => {
+            const file = files[0];
+            if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+                extractorFile = file;
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded PDF for decryption: ${file.name}`);
+                renderExtractorFile();
+            } else {
+                appendLog("Invalid file. Please load a PDF file.", "error");
+                playErrorBuzz();
+            }
+        });
+
+        function renderExtractorFile() {
+            const queueContainer = document.getElementById('queue-extractor');
+            queueContainer.innerHTML = '';
+            
+            if (extractorFile) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                const sizeMB = (extractorFile.size / (1024 * 1024)).toFixed(2);
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-pink); font-family: monospace;">[INPUT]</span>
+                        <div class="file-name" title="${extractorFile.name}">${extractorFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="removeExtractorFile()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+                document.getElementById('btn-extractor').disabled = false;
+            } else {
+                document.getElementById('btn-extractor').disabled = true;
+            }
+        }
+
+        window.removeExtractorFile = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Cleared decryption input file`, 'warn');
+            extractorFile = null;
+            renderExtractorFile();
+            document.getElementById('extractor-output').style.display = 'none';
+        };
+
+        document.getElementById('btn-extractor').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-extractor');
+            const outputArea = document.getElementById('extractor-text');
+            const outputWrapper = document.getElementById('extractor-output');
+
+            if (!extractorFile) return;
+
+            btn.disabled = true;
+            outputWrapper.style.display = 'none';
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'DECRYPTING TEXT CHARACTERS...';
+            deckStatus.textContent = 'decrypting';
+            appendLog(`Decrypting text layers from: ${extractorFile.name}`);
+
+            try {
+                const arrayBuffer = await extractorFile.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+                
+                let fullText = '';
+                const totalPages = pdf.numPages;
+                appendLog(`Total document segments found: ${totalPages}`);
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += `--- SEGMENT [PAGE ${i}] ---\n${pageText}\n\n`;
+
+                    const percent = Math.round((i / totalPages) * 100);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                    playBeep(500 + (percent * 3), 0.04, 'sine');
+                }
+
+                outputArea.value = fullText.trim();
+                outputWrapper.style.display = 'flex';
+                appendLog(`Decryption completed! Length: ${fullText.length} characters.`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Decryption error: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'text-extractor';
+            }
+        });
+
+        // Copy Clipboard logic
+        document.getElementById('btn-copy-text').addEventListener('click', () => {
+            const textarea = document.getElementById('extractor-text');
+            textarea.select();
+            document.execCommand('copy');
+            playBeep(1000, 0.08, 'sine');
+            appendLog("Copied text buffer successfully to clipboard.", "success");
+            
+            const btn = document.getElementById('btn-copy-text');
+            const originalText = btn.textContent;
+            btn.textContent = 'COPIED!';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#fff';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }, 1500);
+        });
+
+        // Sidebar close toggling handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>
