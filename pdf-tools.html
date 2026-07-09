@@ -676,14 +676,14 @@
     </footer>
 
     <!-- Include pdf-lib for merging and image compiled PDF creation -->
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="shared/pdf-lib.min.js"></script>
     
     <!-- Include pdf.js for client-side text parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="shared/pdf.min.js"></script>
 
     <script>
         // Configure PDF.js Worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'shared/pdf.worker.min.js';
 
         // 1. Audio Synth Helper
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();

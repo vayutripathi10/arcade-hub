@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v161';
+const CACHE_NAME = 'arcade-hub-cache-v162';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -156,6 +156,9 @@ const CORE_ASSETS = [
     'retro-tank-battle-frontend/thumbnail.png',
     'shared/achievements.js',
     'shared/audio-fx.js',
+    'shared/pdf-lib.min.js',
+    'shared/pdf.min.js',
+    'shared/pdf.worker.min.js',
     'shared/pwa-setup.js',
     'sky-jumper-frontend/index.html',
     'sky-jumper-frontend/script.js',
