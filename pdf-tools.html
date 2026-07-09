@@ -898,6 +898,19 @@
                                 </div>
                             </div>
 
+                            <!-- Global Find & Replace -->
+                            <div class="options-grid" style="grid-template-columns: 1fr 1fr auto; gap: 12px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; align-items: end;">
+                                <div class="option-field" style="margin-bottom: 0;">
+                                    <label for="editor-find-text">FIND TEXT</label>
+                                    <input type="text" id="editor-find-text" class="cyber-input" placeholder="Text to find..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                </div>
+                                <div class="option-field" style="margin-bottom: 0;">
+                                    <label for="editor-replace-text">REPLACE WITH</label>
+                                    <input type="text" id="editor-replace-text" class="cyber-input" placeholder="Replacement text..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                </div>
+                                <button class="cyber-btn" id="btn-editor-find-replace" style="height: 34px; padding: 0 16px; font-size: 0.8rem;">🔄 GLOBAL REPLACE</button>
+                            </div>
+
                             <!-- Page Navigation -->
                             <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
                                 <button class="file-btn" id="btn-editor-prev" style="font-size: 1.1rem; padding: 4px 12px;">▲ PREV PAGE</button>
@@ -2026,6 +2039,7 @@
 
         // --- MODULE 07: PDF EDITOR LOGIC ---
         let editorPageSizes = {}; // pageNum -> { w, h }
+        let editorTextItems = [];
 
         setupDropZone('drop-zone-editor', 'input-editor', async (files) => {
             const file = files[0];
@@ -2114,6 +2128,32 @@
                 overlay.height = canvas.height;
 
                 editorPageSizes[editorCurrentPage] = { w: canvas.width, h: canvas.height };
+
+                // Fetch page text structure for inline editing
+                const textContent = await page.getTextContent();
+                editorTextItems = textContent.items.map(item => {
+                    const tx = item.transform[4];
+                    const ty = item.transform[5];
+                    const fontSize = item.transform[3];
+                    
+                    const cx = tx * scale;
+                    const cy = scaledViewport.height - (ty * scale);
+                    const cw = item.width * scale;
+                    const ch = item.height * scale;
+                    
+                    return {
+                        str: item.str,
+                        fontSize: fontSize,
+                        x: cx,
+                        y: cy,
+                        w: cw,
+                        h: ch,
+                        pdfX: tx,
+                        pdfY: ty,
+                        pdfW: item.width,
+                        pdfH: item.height
+                    };
+                });
                 
                 document.getElementById('editor-page-indicator').textContent = `PAGE ${editorCurrentPage} OF ${editorTotalPages}`;
                 drawOverlayAnnotations();
@@ -2143,6 +2183,12 @@
                     ctx.lineWidth = 1;
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
                     ctx.strokeRect(annot.x, annot.y, annot.w, annot.h);
+                } else if (annot.type === 'replace-text') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
+                    ctx.fillStyle = '#000000';
+                    ctx.font = `${annot.size * 0.95}px sans-serif`;
+                    ctx.fillText(annot.text, annot.x, annot.y + annot.h);
                 } else if (annot.type === 'draw') {
                     ctx.strokeStyle = annot.color === 'red' ? '#ff007f' : annot.color === 'blue' ? '#00f0ff' : '#000000';
                     ctx.lineWidth = annot.size;
@@ -2233,6 +2279,38 @@
                 dragStartX = coords.x;
                 dragStartY = coords.y;
             } else if (editorActiveTool === 'text') {
+                // Check if user clicked on an existing text item
+                let clickedItem = null;
+                for (let item of editorTextItems) {
+                    if (coords.x >= item.x && coords.x <= item.x + item.w && coords.y >= item.y - item.h && coords.y <= item.y) {
+                        clickedItem = item;
+                        break;
+                    }
+                }
+                
+                if (clickedItem) {
+                    const newText = prompt(`Edit text value:`, clickedItem.str);
+                    if (newText !== null) {
+                        addAnnotation({
+                            type: 'replace-text',
+                            x: clickedItem.x,
+                            y: clickedItem.y - clickedItem.h,
+                            w: clickedItem.w,
+                            h: clickedItem.h,
+                            text: newText,
+                            size: clickedItem.fontSize,
+                            pdfX: clickedItem.pdfX,
+                            pdfY: clickedItem.pdfY,
+                            pdfW: clickedItem.pdfW,
+                            pdfH: clickedItem.pdfH,
+                            color: 'black'
+                        });
+                        drawOverlayAnnotations();
+                        playBeep(900, 0.05, 'sine');
+                    }
+                    return;
+                }
+
                 const textVal = document.getElementById('editor-text-input').value.trim() || 'Text';
                 const sizeVal = parseInt(document.getElementById('editor-font-size').value) || 16;
                 const colorVal = document.getElementById('editor-color').value || 'black';
@@ -2251,8 +2329,34 @@
         });
 
         overlay.addEventListener('mousemove', (e) => {
-            if (!editorIsDrawing) return;
             const coords = getMouseCoords(e);
+            if (!editorIsDrawing) {
+                if (editorActiveTool === 'text') {
+                    let found = null;
+                    for (let item of editorTextItems) {
+                        if (coords.x >= item.x && coords.x <= item.x + item.w && coords.y >= item.y - item.h && coords.y <= item.y) {
+                            found = item;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        overlay.style.cursor = 'pointer';
+                        drawOverlayAnnotations();
+                        const ctx = overlay.getContext('2d');
+                        ctx.strokeStyle = 'rgba(255, 0, 127, 0.7)';
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([4, 4]);
+                        ctx.strokeRect(found.x, found.y - found.h, found.w, found.h);
+                        ctx.setLineDash([]);
+                        overlay.title = `Click to edit: "${found.str}"`;
+                    } else {
+                        overlay.style.cursor = 'crosshair';
+                        overlay.title = '';
+                        drawOverlayAnnotations();
+                    }
+                }
+                return;
+            }
 
             if (editorActiveTool === 'draw') {
                 editorDrawPoints.push(coords);
@@ -2387,6 +2491,22 @@
                                 height: hPdf,
                                 color: fillRgb,
                             });
+                        } else if (annot.type === 'replace-text') {
+                            page.drawRectangle({
+                                x: annot.pdfX,
+                                y: annot.pdfY,
+                                width: annot.pdfW,
+                                height: annot.pdfH,
+                                color: PDFLib.rgb(1, 1, 1),
+                            });
+
+                            page.drawText(annot.text, {
+                                x: annot.pdfX,
+                                y: annot.pdfY,
+                                size: annot.size,
+                                font: helveticaFont,
+                                color: PDFLib.rgb(0, 0, 0),
+                            });
 
                             // For whiteout, we can draw a thin gray border in the actual PDF if they want, but typically borderless is preferred for clean edits.
                         } else if (annot.type === 'draw') {
@@ -2438,6 +2558,87 @@
                 deckStatus.textContent = 'editor';
             }
         });
+
+        // Find and Replace Logic
+        document.getElementById('btn-editor-find-replace').addEventListener('click', async () => {
+            const findText = document.getElementById('editor-find-text').value.trim();
+            const replaceText = document.getElementById('editor-replace-text').value;
+
+            if (!findText) {
+                appendLog("Search query cannot be empty.", "error");
+                playErrorBuzz();
+                return;
+            }
+
+            if (!editorPdf) return;
+            let matchCount = 0;
+
+            appendLog(`Searching document for: "${findText}"...`);
+
+            try {
+                for (let pageNum = 1; pageNum <= editorTotalPages; pageNum++) {
+                    const page = await editorPdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+
+                    textContent.items.forEach(item => {
+                        if (item.str && item.str.toLowerCase().includes(findText.toLowerCase())) {
+                            const tx = item.transform[4];
+                            const ty = item.transform[5];
+                            const fontSize = item.transform[3];
+
+                            const canvasSize = editorPageSizes[pageNum] || { w: 550, h: 700 };
+                            const pageScale = canvasSize.w / page.getViewport({ scale: 1.0 }).width;
+                            const pageHeight = canvasSize.h;
+
+                            const cx = tx * pageScale;
+                            const cy = pageHeight - (ty * pageScale);
+                            const cw = item.width * pageScale;
+                            const ch = item.height * pageScale;
+
+                            if (!editorAnnotations[pageNum]) {
+                                editorAnnotations[pageNum] = [];
+                            }
+
+                            // Match case replace
+                            const newText = item.str.replace(new RegExp(escapeRegExp(findText), 'gi'), replaceText);
+
+                            editorAnnotations[pageNum].push({
+                                type: 'replace-text',
+                                x: cx,
+                                y: cy - ch,
+                                w: cw,
+                                h: ch,
+                                text: newText,
+                                size: fontSize,
+                                pdfX: tx,
+                                pdfY: ty,
+                                pdfW: item.width,
+                                pdfH: item.height,
+                                color: 'black'
+                            });
+                            matchCount++;
+                        }
+                    });
+                }
+
+                if (matchCount > 0) {
+                    appendLog(`Success! Replaced ${matchCount} occurrences globally.`, 'success');
+                    playSuccessChord();
+                    drawOverlayAnnotations();
+                } else {
+                    appendLog(`No matches found for: "${findText}"`, 'warn');
+                    playErrorBuzz();
+                }
+            } catch (err) {
+                console.error(err);
+                appendLog(`Search & Replace failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            }
+        });
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
 
 
         // Sidebar close toggling handler
