@@ -203,7 +203,8 @@
         }
 
         .deck-tab.active[data-tab="text-extractor"],
-        .deck-tab.active[data-tab="watermark"] {
+        .deck-tab.active[data-tab="watermark"],
+        .deck-tab.active[data-tab="editor"] {
             border-color: var(--neon-pink);
             color: var(--neon-pink);
             box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
@@ -363,6 +364,28 @@
 
         .cyber-select:focus, .cyber-input:focus {
             border-color: var(--neon-cyan);
+        }
+
+        .cyber-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+        .cyber-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+        .cyber-btn.active {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            background: rgba(255, 0, 127, 0.05);
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
         }
 
         .options-grid {
@@ -580,6 +603,10 @@
                         <div class="deck-tab" data-tab="watermark">
                             <span class="tab-mod">MODULE_06</span>
                             <span>Watermark</span>
+                        </div>
+                        <div class="deck-tab" data-tab="editor">
+                            <span class="tab-mod">MODULE_07</span>
+                            <span>PDF Editor</span>
                         </div>
                     </div>
 
@@ -822,6 +849,77 @@
                         </button>
                     </div>
 
+                    <!-- TAB 7: PDF EDITOR -->
+                    <div class="tab-content" id="panel-editor">
+                        <div class="drop-zone pink-hover" id="drop-zone-editor">
+                            <div class="drop-icon" style="color: var(--neon-pink);">✏️</div>
+                            <div class="drop-text">Drag & drop a PDF file to edit or <span style="color: var(--neon-pink); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-editor" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-editor">
+                            <!-- Selected PDF info -->
+                        </div>
+
+                        <!-- Editor Stage Area (visible when file is loaded) -->
+                        <div id="editor-stage-container" style="display: none; flex-direction: column; gap: 20px;">
+                            <!-- Toolbar -->
+                            <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; background: rgba(255,255,255,0.01); border: 1px dashed var(--border-color); padding: 12px; border-radius: 8px;">
+                                <div class="option-field" style="grid-column: span 2;">
+                                    <label>SELECT TOOL</label>
+                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                                        <button class="cyber-btn active" id="tool-text" style="padding: 8px; font-size: 0.8rem;">💬 TEXT</button>
+                                        <button class="cyber-btn" id="tool-draw" style="padding: 8px; font-size: 0.8rem;">🖋️ DRAW</button>
+                                        <button class="cyber-btn" id="tool-redact" style="padding: 8px; font-size: 0.8rem;">⬛ REDACT</button>
+                                        <button class="cyber-btn" id="tool-whiteout" style="padding: 8px; font-size: 0.8rem;">⬜ ERASE</button>
+                                    </div>
+                                </div>
+                                <div class="option-field" id="editor-text-settings">
+                                    <label for="editor-text-input">TEXT TO PLACE</label>
+                                    <input type="text" id="editor-text-input" class="cyber-input" placeholder="Enter text..." value="Sample Text" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                </div>
+                                <div class="option-field" id="editor-size-settings">
+                                    <label for="editor-font-size">FONT SIZE</label>
+                                    <select id="editor-font-size" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                        <option value="12">12PX</option>
+                                        <option value="16" selected>16PX</option>
+                                        <option value="20">20PX</option>
+                                        <option value="24">24PX</option>
+                                        <option value="32">32PX</option>
+                                    </select>
+                                </div>
+                                <div class="option-field" id="editor-color-settings">
+                                    <label for="editor-color">COLOR</label>
+                                    <select id="editor-color" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                        <option value="black">BLACK</option>
+                                        <option value="red">RED</option>
+                                        <option value="blue">BLUE</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Page Navigation -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                <button class="file-btn" id="btn-editor-prev" style="font-size: 1.1rem; padding: 4px 12px;">▲ PREV PAGE</button>
+                                <span id="editor-page-indicator" style="font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; color: var(--neon-pink);">PAGE 1 OF 1</span>
+                                <button class="file-btn" id="btn-editor-next" style="font-size: 1.1rem; padding: 4px 12px;">▼ NEXT PAGE</button>
+                            </div>
+
+                            <!-- Workspace Canvas Area -->
+                            <div style="position: relative; display: flex; justify-content: center; width: 100%; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 600px; padding: 20px;">
+                                <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block;">
+                                    <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
+                                    <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Action button -->
+                            <button class="neon-action-btn pink" id="btn-editor-save">
+                                💾 SAVE & DOWNLOAD EDITED PDF
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -915,6 +1013,14 @@
         let splitFile = null;
         let rotateFile = null;
         let watermarkFile = null;
+        let editorFile = null;
+        let editorPdf = null;
+        let editorCurrentPage = 1;
+        let editorTotalPages = 1;
+        let editorActiveTool = 'text';
+        let editorAnnotations = {}; // pageNum -> Array of annotations
+        let editorIsDrawing = false;
+        let editorDrawPoints = [];
 
         // Tabs Toggle Logic
         document.querySelectorAll('.deck-tab').forEach(tab => {
@@ -1914,6 +2020,422 @@
                 btn.disabled = false;
                 progressIndicator.style.display = 'none';
                 deckStatus.textContent = 'watermark';
+            }
+        });
+
+
+        // --- MODULE 07: PDF EDITOR LOGIC ---
+        let editorPageSizes = {}; // pageNum -> { w, h }
+
+        setupDropZone('drop-zone-editor', 'input-editor', async (files) => {
+            const file = files[0];
+            if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+                editorFile = file;
+                editorAnnotations = {};
+                editorPageSizes = {};
+                editorCurrentPage = 1;
+                playBeep(980, 0.1, 'sine');
+                appendLog(`Loaded PDF for interactive editing: ${file.name}`);
+                
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                    editorPdf = await loadingTask.promise;
+                    editorTotalPages = editorPdf.numPages;
+                    
+                    document.getElementById('editor-stage-container').style.display = 'flex';
+                    renderEditorFileQueue();
+                    await renderEditorPage();
+                } catch (err) {
+                    console.error(err);
+                    appendLog(`Failed to parse PDF document structure: ${err.message}`, 'error');
+                    playErrorBuzz();
+                }
+            } else {
+                appendLog("Invalid file. Please load a PDF file.", "error");
+                playErrorBuzz();
+            }
+        });
+
+        function renderEditorFileQueue() {
+            const queueContainer = document.getElementById('queue-editor');
+            queueContainer.innerHTML = '';
+            if (editorFile) {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                const sizeMB = (editorFile.size / (1024 * 1024)).toFixed(2);
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-pink); font-family: monospace;">[EDITOR]</span>
+                        <div class="file-name" title="${editorFile.name}">${editorFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="removeEditorFile()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+            }
+        }
+
+        window.removeEditorFile = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            appendLog(`Cleared editor document`, 'warn');
+            editorFile = null;
+            editorPdf = null;
+            editorAnnotations = {};
+            editorPageSizes = {};
+            document.getElementById('queue-editor').innerHTML = '';
+            document.getElementById('editor-stage-container').style.display = 'none';
+        };
+
+        async function renderEditorPage() {
+            if (!editorPdf) return;
+
+            try {
+                const page = await editorPdf.getPage(editorCurrentPage);
+                const containerWidth = 550;
+                const viewport = page.getViewport({ scale: 1.0 });
+                const scale = containerWidth / viewport.width;
+                const scaledViewport = page.getViewport({ scale: scale });
+
+                const canvas = document.getElementById('editor-pdf-canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = scaledViewport.width;
+                canvas.height = scaledViewport.height;
+
+                await page.render({
+                    canvasContext: context,
+                    viewport: scaledViewport
+                }).promise;
+
+                const overlay = document.getElementById('editor-overlay-canvas');
+                overlay.width = canvas.width;
+                overlay.height = canvas.height;
+
+                editorPageSizes[editorCurrentPage] = { w: canvas.width, h: canvas.height };
+                
+                document.getElementById('editor-page-indicator').textContent = `PAGE ${editorCurrentPage} OF ${editorTotalPages}`;
+                drawOverlayAnnotations();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Error rendering page viewport: ${err.message}`, 'error');
+            }
+        }
+
+        function drawOverlayAnnotations() {
+            const overlay = document.getElementById('editor-overlay-canvas');
+            const ctx = overlay.getContext('2d');
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+            const list = editorAnnotations[editorCurrentPage] || [];
+            list.forEach(annot => {
+                if (annot.type === 'text') {
+                    ctx.fillStyle = annot.color === 'red' ? '#ff007f' : annot.color === 'blue' ? '#00f0ff' : '#000000';
+                    ctx.font = `bold ${annot.size}px sans-serif`;
+                    ctx.fillText(annot.text, annot.x, annot.y);
+                } else if (annot.type === 'redact') {
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
+                } else if (annot.type === 'whiteout') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
+                    ctx.strokeRect(annot.x, annot.y, annot.w, annot.h);
+                } else if (annot.type === 'draw') {
+                    ctx.strokeStyle = annot.color === 'red' ? '#ff007f' : annot.color === 'blue' ? '#00f0ff' : '#000000';
+                    ctx.lineWidth = annot.size;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    annot.points.forEach((pt, pIdx) => {
+                        if (pIdx === 0) ctx.moveTo(pt.x, pt.y);
+                        else ctx.lineTo(pt.x, pt.y);
+                    });
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function addAnnotation(annot) {
+            if (!editorAnnotations[editorCurrentPage]) {
+                editorAnnotations[editorCurrentPage] = [];
+            }
+            editorAnnotations[editorCurrentPage].push(annot);
+            appendLog(`Placed ${annot.type.toUpperCase()} annotation on Page ${editorCurrentPage}`);
+        }
+
+        // Toolbar Selection
+        const tools = ['text', 'draw', 'redact', 'whiteout'];
+        tools.forEach(tool => {
+            document.getElementById(`tool-${tool}`).addEventListener('click', () => {
+                playBeep(700, 0.05, 'sine');
+                editorActiveTool = tool;
+                tools.forEach(t => document.getElementById(`tool-${t}`).classList.remove('active'));
+                document.getElementById(`tool-${tool}`).classList.add('active');
+
+                // Adjust setting displays
+                if (tool === 'text') {
+                    document.getElementById('editor-text-settings').style.display = 'block';
+                    document.getElementById('editor-size-settings').style.display = 'block';
+                    document.getElementById('editor-color-settings').style.display = 'block';
+                } else if (tool === 'draw') {
+                    document.getElementById('editor-text-settings').style.display = 'none';
+                    document.getElementById('editor-size-settings').style.display = 'none';
+                    document.getElementById('editor-color-settings').style.display = 'block';
+                } else {
+                    document.getElementById('editor-text-settings').style.display = 'none';
+                    document.getElementById('editor-size-settings').style.display = 'none';
+                    document.getElementById('editor-color-settings').style.display = 'none';
+                }
+            });
+        });
+
+        // Page Navigation
+        document.getElementById('btn-editor-prev').addEventListener('click', () => {
+            if (editorCurrentPage > 1) {
+                playBeep(880, 0.05, 'sine');
+                editorCurrentPage--;
+                renderEditorPage();
+            }
+        });
+
+        document.getElementById('btn-editor-next').addEventListener('click', () => {
+            if (editorCurrentPage < editorTotalPages) {
+                playBeep(880, 0.05, 'sine');
+                editorCurrentPage++;
+                renderEditorPage();
+            }
+        });
+
+        // Mouse Event Handling on Canvas Overlay
+        const overlay = document.getElementById('editor-overlay-canvas');
+        let dragStartX = 0;
+        let dragStartY = 0;
+
+        function getMouseCoords(e) {
+            const rect = overlay.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        overlay.addEventListener('mousedown', (e) => {
+            const coords = getMouseCoords(e);
+            
+            if (editorActiveTool === 'draw') {
+                editorIsDrawing = true;
+                editorDrawPoints = [coords];
+            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
+                editorIsDrawing = true;
+                dragStartX = coords.x;
+                dragStartY = coords.y;
+            } else if (editorActiveTool === 'text') {
+                const textVal = document.getElementById('editor-text-input').value.trim() || 'Text';
+                const sizeVal = parseInt(document.getElementById('editor-font-size').value) || 16;
+                const colorVal = document.getElementById('editor-color').value || 'black';
+
+                addAnnotation({
+                    type: 'text',
+                    x: coords.x,
+                    y: coords.y,
+                    text: textVal,
+                    size: sizeVal,
+                    color: colorVal
+                });
+                drawOverlayAnnotations();
+                playBeep(900, 0.05, 'sine');
+            }
+        });
+
+        overlay.addEventListener('mousemove', (e) => {
+            if (!editorIsDrawing) return;
+            const coords = getMouseCoords(e);
+
+            if (editorActiveTool === 'draw') {
+                editorDrawPoints.push(coords);
+                drawOverlayAnnotations();
+                
+                // Draw current stroke path live
+                const ctx = overlay.getContext('2d');
+                ctx.strokeStyle = document.getElementById('editor-color').value === 'red' ? '#ff007f' : document.getElementById('editor-color').value === 'blue' ? '#00f0ff' : '#000000';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                editorDrawPoints.forEach((pt, pIdx) => {
+                    if (pIdx === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                });
+                ctx.stroke();
+            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
+                drawOverlayAnnotations();
+                const ctx = overlay.getContext('2d');
+                ctx.fillStyle = editorActiveTool === 'redact' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+                ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 1;
+                const w = coords.x - dragStartX;
+                const h = coords.y - dragStartY;
+                ctx.fillRect(dragStartX, dragStartY, w, h);
+                ctx.strokeRect(dragStartX, dragStartY, w, h);
+            }
+        });
+
+        overlay.addEventListener('mouseup', (e) => {
+            if (!editorIsDrawing) return;
+            editorIsDrawing = false;
+            const coords = getMouseCoords(e);
+
+            if (editorActiveTool === 'draw') {
+                const colorVal = document.getElementById('editor-color').value || 'black';
+                addAnnotation({
+                    type: 'draw',
+                    points: editorDrawPoints,
+                    color: colorVal,
+                    size: 3
+                });
+            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
+                const w = coords.x - dragStartX;
+                const h = coords.y - dragStartY;
+                if (Math.abs(w) > 4 && Math.abs(h) > 4) {
+                    addAnnotation({
+                        type: editorActiveTool,
+                        x: Math.min(dragStartX, coords.x),
+                        y: Math.min(dragStartY, coords.y),
+                        w: Math.abs(w),
+                        h: Math.abs(h)
+                    });
+                }
+            }
+            drawOverlayAnnotations();
+        });
+
+        overlay.addEventListener('mouseleave', () => {
+            if (editorIsDrawing) {
+                editorIsDrawing = false;
+                drawOverlayAnnotations();
+            }
+        });
+
+        // Compile and Export
+        document.getElementById('btn-editor-save').addEventListener('click', async () => {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+            const btn = document.getElementById('btn-editor-save');
+
+            if (!editorFile) return;
+
+            btn.disabled = true;
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'COMPILING EDITED PDF...';
+            deckStatus.textContent = 'processing';
+            appendLog(`Compiling annotations onto: ${editorFile.name}`);
+
+            try {
+                const arrayBuffer = await editorFile.arrayBuffer();
+                const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+                const pages = pdfDoc.getPages();
+
+                appendLog(`Loading Helvetica font resources...`);
+                const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+                progressBarFill.style.width = '20%';
+                progressPercent.textContent = '20%';
+
+                const pageKeys = Object.keys(editorAnnotations);
+                
+                pageKeys.forEach((pKey, step) => {
+                    const pageNum = parseInt(pKey);
+                    const page = pages[pageNum - 1];
+                    const { width: pdfW, height: pdfH } = page.getSize();
+                    
+                    const canvasSize = editorPageSizes[pageNum] || { w: 550, h: 700 };
+                    const scaleX = pdfW / canvasSize.w;
+                    const scaleY = pdfH / canvasSize.h;
+
+                    const annots = editorAnnotations[pageNum] || [];
+                    annots.forEach(annot => {
+                        if (annot.type === 'text') {
+                            const xPdf = annot.x * scaleX;
+                            const yPdf = (canvasSize.h - annot.y) * scaleY;
+                            const rgb = annot.color === 'red' ? PDFLib.rgb(0.9, 0.1, 0.1) : annot.color === 'blue' ? PDFLib.rgb(0.1, 0.1, 0.9) : PDFLib.rgb(0, 0, 0);
+                            
+                            page.drawText(annot.text, {
+                                x: xPdf,
+                                y: yPdf,
+                                size: (annot.size - 2) * scaleY, // slight offset for font metrics
+                                font: helveticaFont,
+                                color: rgb,
+                            });
+                        } else if (annot.type === 'redact' || annot.type === 'whiteout') {
+                            const xPdf = annot.x * scaleX;
+                            const yPdf = (canvasSize.h - (annot.y + annot.h)) * scaleY;
+                            const wPdf = annot.w * scaleX;
+                            const hPdf = annot.h * scaleY;
+                            const fillRgb = annot.type === 'redact' ? PDFLib.rgb(0, 0, 0) : PDFLib.rgb(1, 1, 1);
+
+                            page.drawRectangle({
+                                x: xPdf,
+                                y: yPdf,
+                                width: wPdf,
+                                height: hPdf,
+                                color: fillRgb,
+                            });
+
+                            // For whiteout, we can draw a thin gray border in the actual PDF if they want, but typically borderless is preferred for clean edits.
+                        } else if (annot.type === 'draw') {
+                            const rgb = annot.color === 'red' ? PDFLib.rgb(0.9, 0.1, 0.1) : annot.color === 'blue' ? PDFLib.rgb(0.1, 0.1, 0.9) : PDFLib.rgb(0, 0, 0);
+                            
+                            // Draw lines between consecutive points
+                            for (let i = 0; i < annot.points.length - 1; i++) {
+                                const pt1 = annot.points[i];
+                                const pt2 = annot.points[i + 1];
+
+                                page.drawLine({
+                                    start: { x: pt1.x * scaleX, y: (canvasSize.h - pt1.y) * scaleY },
+                                    end: { x: pt2.x * scaleX, y: (canvasSize.h - pt2.y) * scaleY },
+                                    thickness: annot.size * scaleY,
+                                    color: rgb,
+                                });
+                            }
+                        }
+                    });
+
+                    const percent = Math.round(20 + ((step + 1) / pageKeys.length) * 60);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                });
+
+                progressBarFill.style.width = '85%';
+                progressPercent.textContent = '85%';
+                appendLog('Exporting edited document buffers...');
+
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `edited_${editorFile.name}`;
+                link.click();
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog(`Success! Edited PDF downloaded: edited_${editorFile.name}`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error(err);
+                appendLog(`Save failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                btn.disabled = false;
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'editor';
             }
         });
 
