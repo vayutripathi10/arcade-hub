@@ -549,15 +549,15 @@
                     <div class="deck-tabs">
                         <div class="deck-tab active" data-tab="merge">
                             <span class="tab-mod">MODULE_01</span>
-                            <span>Merge Core</span>
+                            <span>Combine PDFs</span>
                         </div>
                         <div class="deck-tab" data-tab="image-compiler">
                             <span class="tab-mod">MODULE_02</span>
-                            <span>Compiler</span>
+                            <span>Images to PDF</span>
                         </div>
                         <div class="deck-tab" data-tab="text-extractor">
                             <span class="tab-mod">MODULE_03</span>
-                            <span>Extractor</span>
+                            <span>Extract Text</span>
                         </div>
                     </div>
 
@@ -585,7 +585,7 @@
                         </div>
 
                         <button class="neon-action-btn" id="btn-merge" disabled>
-                            ⚡ COMPILE MERGE BUFFER
+                            ⚡ COMBINE PDFs
                         </button>
                     </div>
 
@@ -622,7 +622,7 @@
                         </div>
 
                         <button class="neon-action-btn purple" id="btn-compiler" disabled>
-                            👾 COMPILE IMAGES TO PDF
+                            👾 CONVERT IMAGES TO PDF
                         </button>
                     </div>
 
@@ -639,7 +639,7 @@
                         </div>
 
                         <button class="neon-action-btn pink" id="btn-extractor" disabled>
-                            🧬 DECRYPT PDF TEXT MATRIX
+                            🧬 EXTRACT TEXT FROM PDF
                         </button>
 
                         <div class="output-wrapper" id="extractor-output" style="display: none;">
@@ -870,9 +870,9 @@
             progressIndicator.style.display = 'flex';
             progressBarFill.style.width = '0%';
             progressPercent.textContent = '0%';
-            progressText.textContent = 'DECRYPTING & MERGING PDFs...';
+            progressText.textContent = 'COMBINING PDFs...';
             deckStatus.textContent = 'processing';
-            appendLog(`Compiling ${mergeQueue.length} PDFs...`);
+            appendLog(`Combining ${mergeQueue.length} PDFs...`);
 
             try {
                 const mergedPdf = await PDFLib.PDFDocument.create();
@@ -1024,9 +1024,9 @@
             progressIndicator.style.display = 'flex';
             progressBarFill.style.width = '0%';
             progressPercent.textContent = '0%';
-            progressText.textContent = 'CONVERTING IMAGES & COMPILING PDF...';
+            progressText.textContent = 'CONVERTING IMAGES TO PDF...';
             deckStatus.textContent = 'processing';
-            appendLog(`Compiling ${compilerQueue.length} images...`);
+            appendLog(`Converting ${compilerQueue.length} images...`);
 
             try {
                 const pdfDoc = await PDFLib.PDFDocument.create();
@@ -1170,9 +1170,9 @@
             progressIndicator.style.display = 'flex';
             progressBarFill.style.width = '0%';
             progressPercent.textContent = '0%';
-            progressText.textContent = 'DECRYPTING TEXT CHARACTERS...';
-            deckStatus.textContent = 'decrypting';
-            appendLog(`Decrypting text layers from: ${extractorFile.name}`);
+            progressText.textContent = 'EXTRACTING TEXT...';
+            deckStatus.textContent = 'extracting';
+            appendLog(`Extracting text from: ${extractorFile.name}`);
 
             try {
                 const arrayBuffer = await extractorFile.arrayBuffer();
