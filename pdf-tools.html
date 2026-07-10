@@ -807,7 +807,7 @@
                             </div>
 
                             <!-- Watermark Fields -->
-                            <div id="watermark-fields" style="display: contents;">
+                            <div id="watermark-fields" style="display: grid; grid-template-columns: inherit; gap: inherit; grid-column: span 2; width: 100%;">
                                 <div class="option-field" style="grid-column: span 2;">
                                     <label for="watermark-text">WATERMARK TEXT</label>
                                     <input type="text" id="watermark-text" class="cyber-input" placeholder="e.g. CONFIDENTIAL">
@@ -2030,7 +2030,7 @@
             const wmFields = document.getElementById('watermark-fields');
             const pnFields = document.getElementById('pagenum-fields');
             if (e.target.value === 'watermark') {
-                wmFields.style.display = 'contents';
+                wmFields.style.display = 'grid';
                 pnFields.style.display = 'none';
             } else {
                 wmFields.style.display = 'none';
