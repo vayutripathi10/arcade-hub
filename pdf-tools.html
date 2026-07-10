@@ -1105,6 +1105,93 @@
             });
         }
 
+        async function loadSharedPdf(file) {
+            if (!file) return;
+            
+            extractFile = file;
+            extractorFile = file;
+            splitFile = file;
+            rotateFile = file;
+            watermarkFile = file;
+            editorFile = file;
+            
+            if (typeof renderExtractFile === 'function') renderExtractFile();
+            if (typeof renderSplitFile === 'function') renderSplitFile();
+            if (typeof renderRotateFile === 'function') renderRotateFile();
+            if (typeof renderWatermarkFile === 'function') renderWatermarkFile();
+            if (typeof renderEditorFileQueue === 'function') renderEditorFileQueue();
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Parse for Split page count
+                const srcPdf = await PDFLib.PDFDocument.load(arrayBuffer.slice(0));
+                splitTotalPages = srcPdf.getPageCount();
+                if (typeof buildSplitVisualSelector === 'function') {
+                    buildSplitVisualSelector(splitTotalPages);
+                }
+                
+                // Parse for PDF Editor
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+                editorPdf = await loadingTask.promise;
+                editorTotalPages = editorPdf.numPages;
+                editorCurrentPage = 1;
+                editorAnnotations = {};
+                editorUndoStack = [];
+                const undoBtn = document.getElementById('btn-editor-undo');
+                if (undoBtn) undoBtn.disabled = true;
+                
+                const stageContainer = document.getElementById('editor-stage-container');
+                if (stageContainer) stageContainer.style.display = 'flex';
+                
+                if (typeof renderEditorPage === 'function') {
+                    await renderEditorPage();
+                }
+            } catch (err) {
+                console.error("Unified PDF parsing failed:", err);
+                appendLog(`Unified PDF loading failed: ${err.message}`, 'error');
+            }
+            
+            appendLog(`Loaded PDF file across all tabs: ${file.name}`);
+        }
+
+        window.clearSharedPdf = function() {
+            extractFile = null;
+            extractorFile = null;
+            splitFile = null;
+            rotateFile = null;
+            watermarkFile = null;
+            editorFile = null;
+            
+            if (typeof renderExtractFile === 'function') renderExtractFile();
+            if (typeof renderExtractorFile === 'function') renderExtractorFile();
+            if (typeof renderSplitFile === 'function') renderSplitFile();
+            if (typeof renderRotateFile === 'function') renderRotateFile();
+            if (typeof renderWatermarkFile === 'function') renderWatermarkFile();
+            
+            splitTotalPages = 0;
+            const splitVisContainer = document.getElementById('split-visual-selector-container');
+            if (splitVisContainer) splitVisContainer.style.display = 'none';
+            const splitGrid = document.getElementById('split-pages-grid');
+            if (splitGrid) splitGrid.innerHTML = '';
+            const splitRange = document.getElementById('split-range');
+            if (splitRange) splitRange.value = '';
+            
+            editorPdf = null;
+            editorAnnotations = {};
+            editorUndoStack = [];
+            const undoBtn = document.getElementById('btn-editor-undo');
+            if (undoBtn) undoBtn.disabled = true;
+            editorPageSizes = {};
+            
+            const qEditor = document.getElementById('queue-editor');
+            if (qEditor) qEditor.innerHTML = '';
+            const stageContainer = document.getElementById('editor-stage-container');
+            if (stageContainer) stageContainer.style.display = 'none';
+            
+            appendLog("Cleared loaded PDF from all panels", "warn");
+        };
+
         // --- MODULE 01: MERGE CORE LOGIC ---
         setupDropZone('drop-zone-merge', 'input-merge', (files) => {
             let addedCount = 0;
@@ -1420,10 +1507,7 @@
         setupDropZone('drop-zone-extractor', 'input-extractor', (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
-                extractorFile = file;
-                playBeep(980, 0.1, 'sine');
-                appendLog(`Loaded PDF for decryption: ${file.name}`);
-                renderExtractorFile();
+                loadSharedPdf(file);
             } else {
                 appendLog("Invalid file. Please load a PDF file.", "error");
                 playErrorBuzz();
@@ -1457,9 +1541,7 @@
 
         window.removeExtractorFile = function() {
             playBeep(440, 0.05, 'sawtooth');
-            appendLog(`Cleared decryption input file`, 'warn');
-            extractorFile = null;
-            renderExtractorFile();
+            clearSharedPdf();
             document.getElementById('extractor-output').style.display = 'none';
         };
 
@@ -1543,23 +1625,10 @@
         // --- MODULE 04: SPLIT PDF LOGIC ---
         let splitTotalPages = 0;
 
-        setupDropZone('drop-zone-split', 'input-split', async (files) => {
+        setupDropZone('drop-zone-split', 'input-split', (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
-                splitFile = file;
-                playBeep(980, 0.1, 'sine');
-                appendLog(`Loaded PDF for split operations: ${file.name}`);
-                renderSplitFile();
-                
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const srcPdf = await PDFLib.PDFDocument.load(arrayBuffer);
-                    splitTotalPages = srcPdf.getPageCount();
-                    buildSplitVisualSelector(splitTotalPages);
-                } catch (err) {
-                    console.error(err);
-                    appendLog(`Failed to parse split page details: ${err.message}`, 'error');
-                }
+                loadSharedPdf(file);
             } else {
                 appendLog("Invalid file. Please load a PDF file.", "error");
                 playErrorBuzz();
@@ -1700,13 +1769,7 @@
 
         window.removeSplitFile = function() {
             playBeep(440, 0.05, 'sawtooth');
-            appendLog(`Cleared split input file`, 'warn');
-            splitFile = null;
-            splitTotalPages = 0;
-            document.getElementById('split-visual-selector-container').style.display = 'none';
-            document.getElementById('split-pages-grid').innerHTML = '';
-            document.getElementById('split-range').value = '';
-            renderSplitFile();
+            clearSharedPdf();
         };
 
         function parsePageRanges(rangeStr, maxPages) {
@@ -1823,10 +1886,7 @@
         setupDropZone('drop-zone-rotate', 'input-rotate', (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
-                rotateFile = file;
-                playBeep(980, 0.1, 'sine');
-                appendLog(`Loaded PDF for rotation: ${file.name}`);
-                renderRotateFile();
+                loadSharedPdf(file);
             } else {
                 appendLog("Invalid file. Please load a PDF file.", "error");
                 playErrorBuzz();
@@ -1868,9 +1928,7 @@
 
         window.removeRotateFile = function() {
             playBeep(440, 0.05, 'sawtooth');
-            appendLog(`Cleared rotation input file`, 'warn');
-            rotateFile = null;
-            renderRotateFile();
+            clearSharedPdf();
         };
 
         document.getElementById('btn-rotate').addEventListener('click', async () => {
@@ -1961,10 +2019,7 @@
         setupDropZone('drop-zone-watermark', 'input-watermark', (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
-                watermarkFile = file;
-                playBeep(980, 0.1, 'sine');
-                appendLog(`Loaded PDF for stamping: ${file.name}`);
-                renderWatermarkFile();
+                loadSharedPdf(file);
             } else {
                 appendLog("Invalid file. Please load a PDF file.", "error");
                 playErrorBuzz();
@@ -2009,9 +2064,7 @@
 
         window.removeWatermarkFile = function() {
             playBeep(440, 0.05, 'sawtooth');
-            appendLog(`Cleared stamping input file`, 'warn');
-            watermarkFile = null;
-            renderWatermarkFile();
+            clearSharedPdf();
         };
 
         document.getElementById('btn-watermark').addEventListener('click', async () => {
@@ -2189,32 +2242,10 @@
             document.getElementById('btn-editor-undo').disabled = false;
         }
 
-        setupDropZone('drop-zone-editor', 'input-editor', async (files) => {
+        setupDropZone('drop-zone-editor', 'input-editor', (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
-                editorFile = file;
-                editorAnnotations = {};
-                editorUndoStack = [];
-                document.getElementById('btn-editor-undo').disabled = true;
-                editorPageSizes = {};
-                editorCurrentPage = 1;
-                playBeep(980, 0.1, 'sine');
-                appendLog(`Loaded PDF for interactive editing: ${file.name}`);
-                
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-                    editorPdf = await loadingTask.promise;
-                    editorTotalPages = editorPdf.numPages;
-                    
-                    document.getElementById('editor-stage-container').style.display = 'flex';
-                    renderEditorFileQueue();
-                    await renderEditorPage();
-                } catch (err) {
-                    console.error(err);
-                    appendLog(`Failed to parse PDF document structure: ${err.message}`, 'error');
-                    playErrorBuzz();
-                }
+                loadSharedPdf(file);
             } else {
                 appendLog("Invalid file. Please load a PDF file.", "error");
                 playErrorBuzz();
@@ -2244,15 +2275,7 @@
 
         window.removeEditorFile = function() {
             playBeep(440, 0.05, 'sawtooth');
-            appendLog(`Cleared editor document`, 'warn');
-            editorFile = null;
-            editorPdf = null;
-            editorAnnotations = {};
-            editorUndoStack = [];
-            document.getElementById('btn-editor-undo').disabled = true;
-            editorPageSizes = {};
-            document.getElementById('queue-editor').innerHTML = '';
-            document.getElementById('editor-stage-container').style.display = 'none';
+            clearSharedPdf();
         };
 
         function groupTextItemsIntoLines(items, scale, pageHeight) {
