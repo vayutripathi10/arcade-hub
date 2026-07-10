@@ -869,11 +869,12 @@
                             <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; background: rgba(255,255,255,0.01); border: 1px dashed var(--border-color); padding: 12px; border-radius: 8px;">
                                 <div class="option-field" style="grid-column: span 2;">
                                     <label>SELECT TOOL</label>
-                                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 4px;">
                                         <button class="cyber-btn active" id="tool-text" style="padding: 8px; font-size: 0.8rem;">💬 TEXT</button>
                                         <button class="cyber-btn" id="tool-draw" style="padding: 8px; font-size: 0.8rem;">🖋️ DRAW</button>
                                         <button class="cyber-btn" id="tool-redact" style="padding: 8px; font-size: 0.8rem;">⬛ REDACT</button>
                                         <button class="cyber-btn" id="tool-whiteout" style="padding: 8px; font-size: 0.8rem;">⬜ ERASE</button>
+                                        <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
                                     </div>
                                 </div>
                                 <div class="option-field" id="editor-text-settings">
@@ -1028,6 +1029,8 @@
         let editorTotalPages = 1;
         let editorActiveTool = 'text';
         let editorAnnotations = {}; // pageNum -> Array of annotations
+        let editorUndoStack = []; // History array of stringified editorAnnotations
+        let editorBatchMode = false;
         let editorIsDrawing = false;
         let editorDrawPoints = [];
 
@@ -2037,11 +2040,21 @@
         let editorPageSizes = {}; // pageNum -> { w, h }
         let editorTextItems = [];
 
+        function saveEditorState() {
+            if (editorUndoStack.length >= 30) {
+                editorUndoStack.shift();
+            }
+            editorUndoStack.push(JSON.stringify(editorAnnotations));
+            document.getElementById('btn-editor-undo').disabled = false;
+        }
+
         setupDropZone('drop-zone-editor', 'input-editor', async (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
                 editorFile = file;
                 editorAnnotations = {};
+                editorUndoStack = [];
+                document.getElementById('btn-editor-undo').disabled = true;
                 editorPageSizes = {};
                 editorCurrentPage = 1;
                 playBeep(980, 0.1, 'sine');
@@ -2094,6 +2107,8 @@
             editorFile = null;
             editorPdf = null;
             editorAnnotations = {};
+            editorUndoStack = [];
+            document.getElementById('btn-editor-undo').disabled = true;
             editorPageSizes = {};
             document.getElementById('queue-editor').innerHTML = '';
             document.getElementById('editor-stage-container').style.display = 'none';
@@ -2271,6 +2286,9 @@
         }
 
         function addAnnotation(annot) {
+            if (!editorBatchMode) {
+                saveEditorState();
+            }
             if (!editorAnnotations[editorCurrentPage]) {
                 editorAnnotations[editorCurrentPage] = [];
             }
@@ -2492,6 +2510,7 @@
                 e.stopPropagation();
                 const newText = prompt(`Edit text value:`, existingAnnot.text);
                 if (newText !== null) {
+                    saveEditorState();
                     existingAnnot.text = newText;
                     drawOverlayAnnotations();
                     playBeep(900, 0.05, 'sine');
@@ -2688,6 +2707,8 @@
             appendLog(`Searching document for: "${findText}"...`);
 
             try {
+                saveEditorState();
+                editorBatchMode = true;
                 // Step 1: Scan and replace inside already-created replace-text annotations
                 const pageKeys = Object.keys(editorAnnotations);
                 pageKeys.forEach(pKey => {
@@ -2757,15 +2778,21 @@
                     });
                 }
 
+                editorBatchMode = false;
                 if (matchCount > 0) {
                     appendLog(`Success! Replaced ${matchCount} occurrences globally.`, 'success');
                     playSuccessChord();
                     drawOverlayAnnotations();
                 } else {
+                    editorUndoStack.pop();
+                    if (editorUndoStack.length === 0) {
+                        document.getElementById('btn-editor-undo').disabled = true;
+                    }
                     appendLog(`No matches found for: "${findText}"`, 'warn');
                     playErrorBuzz();
                 }
             } catch (err) {
+                editorBatchMode = false;
                 console.error(err);
                 appendLog(`Search & Replace failed: ${err.message}`, 'error');
                 playErrorBuzz();
@@ -2775,6 +2802,21 @@
         function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
+
+        // Undo Button Event Listener
+        document.getElementById('btn-editor-undo').addEventListener('click', () => {
+            if (editorUndoStack.length > 0) {
+                playBeep(440, 0.05, 'sine');
+                const previousState = editorUndoStack.pop();
+                editorAnnotations = JSON.parse(previousState);
+                drawOverlayAnnotations();
+                
+                if (editorUndoStack.length === 0) {
+                    document.getElementById('btn-editor-undo').disabled = true;
+                }
+                appendLog("Undid last operation.");
+            }
+        });
 
 
         // Sidebar close toggling handler
