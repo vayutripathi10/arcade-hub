@@ -725,6 +725,12 @@
                             <!-- Single PDF details will appear here -->
                         </div>
 
+                        <!-- Visual Page Selector -->
+                        <div id="split-visual-selector-container" style="display: none; flex-direction: column; gap: 8px; margin: 15px 0;">
+                            <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">SELECT PAGES VISUALLY</label>
+                            <div id="split-pages-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; max-height: 180px; overflow-y: auto; padding: 10px; border: 1px dashed var(--border-color); border-radius: 8px; background: rgba(255,255,255,0.01);"></div>
+                        </div>
+
                         <div class="options-grid">
                             <div class="option-field" style="grid-column: span 2;">
                                 <label for="split-range">PAGE RANGE TO EXTRACT</label>
@@ -1535,13 +1541,25 @@
 
 
         // --- MODULE 04: SPLIT PDF LOGIC ---
-        setupDropZone('drop-zone-split', 'input-split', (files) => {
+        let splitTotalPages = 0;
+
+        setupDropZone('drop-zone-split', 'input-split', async (files) => {
             const file = files[0];
             if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
                 splitFile = file;
                 playBeep(980, 0.1, 'sine');
                 appendLog(`Loaded PDF for split operations: ${file.name}`);
                 renderSplitFile();
+                
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const srcPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+                    splitTotalPages = srcPdf.getPageCount();
+                    buildSplitVisualSelector(splitTotalPages);
+                } catch (err) {
+                    console.error(err);
+                    appendLog(`Failed to parse split page details: ${err.message}`, 'error');
+                }
             } else {
                 appendLog("Invalid file. Please load a PDF file.", "error");
                 playErrorBuzz();
@@ -1572,10 +1590,122 @@
             }
         }
 
+        function buildSplitVisualSelector(totalPages) {
+            const container = document.getElementById('split-visual-selector-container');
+            const grid = document.getElementById('split-pages-grid');
+            grid.innerHTML = '';
+            
+            if (totalPages <= 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            for (let i = 1; i <= totalPages; i++) {
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 6px;
+                    padding: 8px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    background: rgba(255, 255, 255, 0.02);
+                `;
+                
+                card.innerHTML = `
+                    <input type="checkbox" id="split-cb-${i}" value="${i}" style="cursor: pointer; width: 14px; height: 14px; accent-color: var(--neon-cyan);">
+                    <label for="split-cb-${i}" style="font-size: 0.7rem; color: var(--text-secondary); cursor: pointer; user-select: none;">PAGE ${i}</label>
+                `;
+                
+                card.addEventListener('click', (e) => {
+                    const cb = card.querySelector('input');
+                    if (e.target !== cb && e.target.tagName !== 'LABEL') {
+                        cb.checked = !cb.checked;
+                    }
+                    updateSplitRangeFromCheckboxes(totalPages);
+                });
+                
+                card.querySelector('input').addEventListener('change', () => {
+                    updateSplitRangeFromCheckboxes(totalPages);
+                });
+                
+                grid.appendChild(card);
+            }
+            
+            // Clear range value initially
+            document.getElementById('split-range').value = '';
+        }
+
+        function updateSplitRangeFromCheckboxes(totalPages) {
+            const selected = [];
+            for (let i = 1; i <= totalPages; i++) {
+                const cb = document.getElementById(`split-cb-${i}`);
+                if (!cb) continue;
+                const card = cb.closest('div');
+                if (cb.checked) {
+                    selected.push(i);
+                    card.style.borderColor = 'var(--neon-cyan)';
+                    card.style.background = 'rgba(0, 255, 204, 0.05)';
+                    card.style.boxShadow = '0 0 5px rgba(0, 255, 204, 0.1)';
+                } else {
+                    card.style.borderColor = 'var(--border-color)';
+                    card.style.background = 'rgba(255, 255, 255, 0.02)';
+                    card.style.boxShadow = 'none';
+                }
+            }
+            document.getElementById('split-range').value = selected.join(', ');
+        }
+
+        function syncCheckboxesFromSplitRange(totalPages) {
+            const val = document.getElementById('split-range').value.trim();
+            for (let i = 1; i <= totalPages; i++) {
+                const cb = document.getElementById(`split-cb-${i}`);
+                if (cb) {
+                    cb.checked = false;
+                    const card = cb.closest('div');
+                    card.style.borderColor = 'var(--border-color)';
+                    card.style.background = 'rgba(255, 255, 255, 0.02)';
+                    card.style.boxShadow = 'none';
+                }
+            }
+            if (!val) return;
+            try {
+                const indices = parsePageRanges(val, totalPages);
+                indices.forEach(idx => {
+                    const cb = document.getElementById(`split-cb-${idx + 1}`);
+                    if (cb) {
+                        cb.checked = true;
+                        const card = cb.closest('div');
+                        card.style.borderColor = 'var(--neon-cyan)';
+                        card.style.background = 'rgba(0, 255, 204, 0.05)';
+                        card.style.boxShadow = '0 0 5px rgba(0, 255, 204, 0.1)';
+                    }
+                });
+            } catch (e) {
+                // Ignore parse errors while user is actively typing ranges
+            }
+        }
+
+        // Event listener for user manually typing in the split range input
+        document.getElementById('split-range').addEventListener('input', () => {
+            if (splitTotalPages > 0) {
+                syncCheckboxesFromSplitRange(splitTotalPages);
+            }
+        });
+
         window.removeSplitFile = function() {
             playBeep(440, 0.05, 'sawtooth');
             appendLog(`Cleared split input file`, 'warn');
             splitFile = null;
+            splitTotalPages = 0;
+            document.getElementById('split-visual-selector-container').style.display = 'none';
+            document.getElementById('split-pages-grid').innerHTML = '';
+            document.getElementById('split-range').value = '';
             renderSplitFile();
         };
 
