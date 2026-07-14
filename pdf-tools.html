@@ -890,15 +890,15 @@
                         <div id="editor-stage-container" style="display: none; flex-direction: column; gap: 20px;">
                             <!-- Toolbar -->
                             <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; background: rgba(255,255,255,0.01); border: 1px dashed var(--border-color); padding: 12px; border-radius: 8px;">
-                                <div class="option-field" style="grid-column: span 2;">
+                                <div class="option-field" style="grid-column: 1 / -1;">
                                     <label>SELECT TOOL</label>
-                                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 4px;">
-                                        <button class="cyber-btn active" id="tool-text" style="padding: 8px; font-size: 0.8rem;">💬 TEXT</button>
-                                        <button class="cyber-btn" id="tool-draw" style="padding: 8px; font-size: 0.8rem;">🖋️ DRAW</button>
-                                        <button class="cyber-btn" id="tool-redact" style="padding: 8px; font-size: 0.8rem;">⬛ REDACT</button>
-                                        <button class="cyber-btn" id="tool-whiteout" style="padding: 8px; font-size: 0.8rem;">⬜ ERASE</button>
-                                        <button class="cyber-btn" id="tool-sign" style="padding: 8px; font-size: 0.8rem;">✍️ SIGN</button>
-                                        <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; width: 100%;">
+                                        <button class="cyber-btn active" id="tool-text" style="padding: 8px 16px; font-size: 0.8rem;">💬 TEXT</button>
+                                        <button class="cyber-btn" id="tool-draw" style="padding: 8px 16px; font-size: 0.8rem;">🖋️ DRAW</button>
+                                        <button class="cyber-btn" id="tool-redact" style="padding: 8px 16px; font-size: 0.8rem;">⬛ REDACT</button>
+                                        <button class="cyber-btn" id="tool-whiteout" style="padding: 8px 16px; font-size: 0.8rem;">⬜ ERASE</button>
+                                        <button class="cyber-btn" id="tool-sign" style="padding: 8px 16px; font-size: 0.8rem;">✍️ SIGN</button>
+                                        <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px 16px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
                                     </div>
                                 </div>
                                 <div class="option-field" id="editor-text-settings">
@@ -2479,8 +2479,8 @@
                 const tx = first.pdfX;
                 const ty = first.pdfY;
                 const totalPdfW = (last.pdfX + last.pdfW) - first.pdfX;
-                const maxPdfH = Math.max(...group.map(item => item.pdfH));
                 const maxFontSize = Math.max(...group.map(item => item.fontSize));
+                const maxPdfH = Math.max(Math.max(...group.map(item => item.pdfH || 0)), maxFontSize);
                 
                 const cx = tx * scale;
                 const cy = pageHeight - (ty * scale);
@@ -2985,6 +2985,18 @@
             }
         });
 
+        function dataUrlToUint8Array(dataUrl) {
+            const base64Marker = ';base64,';
+            const parts = dataUrl.split(base64Marker);
+            const raw = window.atob(parts[1]);
+            const rawLength = raw.length;
+            const uInt8Array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            return uInt8Array;
+        }
+
         // Compile and Export
         document.getElementById('btn-editor-save').addEventListener('click', async () => {
             const progressIndicator = document.getElementById('progressIndicator');
@@ -3096,7 +3108,7 @@
                             const hPdf = annot.h * scaleY;
                             
                             try {
-                                const sigImgBytes = await fetch(annot.dataUrl).then(res => res.arrayBuffer());
+                                const sigImgBytes = dataUrlToUint8Array(annot.dataUrl);
                                 const embeddedImage = await pdfDoc.embedPng(sigImgBytes);
                                 page.drawImage(embeddedImage, {
                                     x: xPdf,
