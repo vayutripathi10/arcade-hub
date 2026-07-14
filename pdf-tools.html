@@ -466,6 +466,9 @@
                 height: auto;
                 overflow: visible;
             }
+            #editor-thumbnail-sidebar {
+                display: none !important;
+            }
         }
 
         .options-grid {
@@ -1050,11 +1053,19 @@
                                         <button class="file-btn" id="btn-editor-next" style="font-size: 0.95rem; padding: 4px 12px;">NEXT ►</button>
                                     </div>
 
-                                    <!-- Workspace Canvas scroll wrapper -->
-                                    <div class="editor-canvas-scroll-container" style="position: relative; display: flex; justify-content: center; width: 100%; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 550px; padding: 20px;">
-                                        <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block;">
-                                            <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
-                                            <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
+                                    <!-- Workspace horizontal row for Thumbnail Sidebar + Canvas -->
+                                    <div style="display: flex; gap: 12px; width: 100%; align-items: flex-start; flex: 1; overflow: hidden;">
+                                        <!-- Left Thumbnail Sidebar (Desktop/Laptop only) -->
+                                        <div id="editor-thumbnail-sidebar" style="width: 100px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; max-height: 550px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px;">
+                                            <!-- Thumbnails will be rendered here dynamically -->
+                                        </div>
+
+                                        <!-- Workspace Canvas scroll wrapper -->
+                                        <div class="editor-canvas-scroll-container" style="position: relative; display: flex; justify-content: center; flex: 1; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 550px; padding: 20px;">
+                                            <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block;">
+                                                <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
+                                                <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1415,6 +1426,9 @@
                 
                 if (typeof renderEditorPage === 'function') {
                     await renderEditorPage();
+                    if (typeof renderEditorThumbnails === 'function') {
+                        renderEditorThumbnails();
+                    }
                 }
 
                 // Parse for PDF to Image
@@ -1460,6 +1474,8 @@
             const undoBtn = document.getElementById('btn-editor-undo');
             if (undoBtn) undoBtn.disabled = true;
             editorPageSizes = {};
+            const sidebar = document.getElementById('editor-thumbnail-sidebar');
+            if (sidebar) sidebar.innerHTML = '';
             
             const qEditor = document.getElementById('queue-editor');
             if (qEditor) qEditor.innerHTML = '';
@@ -2697,11 +2713,102 @@
                 editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height);
                 
                 document.getElementById('editor-page-indicator').textContent = `PAGE ${editorCurrentPage} OF ${editorTotalPages}`;
+                if (typeof updateEditorThumbnailHighlights === 'function') {
+                    updateEditorThumbnailHighlights();
+                }
                 drawOverlayAnnotations();
             } catch (err) {
                 console.error(err);
                 appendLog(`Error rendering page viewport: ${err.message}`, 'error');
             }
+        }
+
+        async function renderEditorThumbnails() {
+            const sidebar = document.getElementById('editor-thumbnail-sidebar');
+            if (!sidebar) return;
+            sidebar.innerHTML = '';
+
+            if (!editorPdf) return;
+
+            for (let i = 1; i <= editorPdf.numPages; i++) {
+                const pageNum = i;
+                
+                const thumbCard = document.createElement('div');
+                thumbCard.className = `editor-thumb-card`;
+                thumbCard.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 6px;
+                    border: 1px solid ${pageNum === editorCurrentPage ? 'var(--neon-pink)' : 'var(--border-color)'};
+                    background: ${pageNum === editorCurrentPage ? 'rgba(255, 0, 127, 0.05)' : 'rgba(255, 255, 255, 0.01)'};
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                `;
+                thumbCard.dataset.page = pageNum;
+                
+                thumbCard.onmouseover = function() {
+                    if (parseInt(this.dataset.page) !== editorCurrentPage) {
+                        this.style.borderColor = 'rgba(255,255,255,0.4)';
+                    }
+                };
+                thumbCard.onmouseout = function() {
+                    if (parseInt(this.dataset.page) !== editorCurrentPage) {
+                        this.style.borderColor = 'var(--border-color)';
+                    }
+                };
+
+                thumbCard.addEventListener('click', () => {
+                    if (pageNum !== editorCurrentPage) {
+                        playBeep(600, 0.05, 'sine');
+                        editorCurrentPage = pageNum;
+                        renderEditorPage();
+                    }
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.style.cssText = 'width: 100%; display: block; border-radius: 4px; background: #000;';
+                thumbCard.appendChild(canvas);
+
+                const label = document.createElement('span');
+                label.textContent = `PAGE ${pageNum}`;
+                label.style.cssText = 'font-size: 0.65rem; font-family: "Share Tech Mono", monospace; color: var(--text-secondary); margin-top: 2px;';
+                thumbCard.appendChild(label);
+
+                sidebar.appendChild(thumbCard);
+
+                try {
+                    const page = await editorPdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 0.15 });
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    const ctx = canvas.getContext('2d');
+                    
+                    page.render({
+                        canvasContext: ctx,
+                        viewport: viewport
+                    });
+                } catch (eErr) {
+                    console.error("Failed to render thumbnail for page " + pageNum, eErr);
+                }
+            }
+        }
+
+        function updateEditorThumbnailHighlights() {
+            const cards = document.querySelectorAll('.editor-thumb-card');
+            cards.forEach(card => {
+                const pageNum = parseInt(card.dataset.page);
+                if (pageNum === editorCurrentPage) {
+                    card.style.borderColor = 'var(--neon-pink)';
+                    card.style.background = 'rgba(255, 0, 127, 0.05)';
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    card.style.borderColor = 'var(--border-color)';
+                    card.style.background = 'rgba(255, 255, 255, 0.01)';
+                }
+            });
         }
 
         function drawOverlayAnnotations() {
