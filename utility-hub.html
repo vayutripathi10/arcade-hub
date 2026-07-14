@@ -466,23 +466,38 @@
 
                         <div class="file-queue" id="queue-compress"></div>
 
-                        <div class="options-grid" id="compress-settings" style="display: none;">
+                        <div class="options-grid" id="compress-settings" style="display: none; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
                             <div class="option-field">
                                 <label for="compress-quality">Quality (<span id="lbl-quality">80</span>%)</label>
                                 <input type="range" id="compress-quality" min="10" max="100" value="80" style="accent-color: var(--neon-cyan); margin-top: 4px;">
                             </div>
                             <div class="option-field">
-                                <label for="compress-width">Max Width (PX)</label>
-                                <input type="number" id="compress-width" class="cyber-input" placeholder="e.g. 1920" style="margin-top: 4px;">
+                                <label for="compress-unit">Dimension Unit</label>
+                                <select id="compress-unit" class="cyber-select" style="margin-top: 4px;">
+                                    <option value="inch" selected>Inches (in)</option>
+                                    <option value="cm">Centimeters (cm)</option>
+                                </select>
+                            </div>
+                            <div class="option-field">
+                                <label for="compress-width">Width</label>
+                                <input type="number" id="compress-width" class="cyber-input" placeholder="Width" step="0.1" style="margin-top: 4px;">
+                            </div>
+                            <div class="option-field">
+                                <label for="compress-height">Height</label>
+                                <input type="number" id="compress-height" class="cyber-input" placeholder="Height" step="0.1" style="margin-top: 4px;">
                             </div>
                             <div class="option-field">
                                 <label for="compress-format">Output Format</label>
                                 <select id="compress-format" class="cyber-select" style="margin-top: 4px;">
                                     <option value="jpeg" selected>JPEG</option>
-                                    <option value="png">PNG (Lossless)</option>
+                                    <option value="png">PNG</option>
                                     <option value="webp">WEBP</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div id="compress-px-preview" style="display: none; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan); text-align: left;">
+                            Calculated target size: <span id="lbl-calc-px" style="color: #fff; font-weight: bold;">0 x 0</span> px (at 300 DPI print quality)
                         </div>
 
                         <button class="neon-action-btn" id="btn-compress-apply" style="width: 100%; display: none;">
@@ -791,6 +806,7 @@
 
         // --- MODULE 01: IMAGE COMPRESSOR & RESIZER ---
         let compressFile = null;
+        let currentLoadedImage = null;
         const dropZoneComp = document.getElementById('drop-zone-compress');
         const inputComp = document.getElementById('input-compress');
         const queueComp = document.getElementById('queue-compress');
@@ -835,10 +851,25 @@
             settingsComp.style.display = 'grid';
             btnComp.style.display = 'block';
 
-            // Auto-fill width dimensions if image
+            // Auto-fill width/height based on original dimensions at 300 DPI
             const img = new Image();
             img.onload = function() {
-                document.getElementById('compress-width').value = img.width;
+                currentLoadedImage = img;
+                const unit = document.getElementById('compress-unit').value;
+                const dpi = 300;
+
+                let defaultW, defaultH;
+                if (unit === 'inch') {
+                    defaultW = (img.width / dpi).toFixed(2);
+                    defaultH = (img.height / dpi).toFixed(2);
+                } else {
+                    defaultW = ((img.width / dpi) * 2.54).toFixed(2);
+                    defaultH = ((img.height / dpi) * 2.54).toFixed(2);
+                }
+
+                document.getElementById('compress-width').value = defaultW;
+                document.getElementById('compress-height').value = defaultH;
+                updatePxPreview();
             };
             img.src = URL.createObjectURL(file);
         }
@@ -846,23 +877,89 @@
         window.clearCompress = function() {
             playBeep(440, 0.05, 'sawtooth');
             compressFile = null;
+            currentLoadedImage = null;
             queueComp.innerHTML = '';
             settingsComp.style.display = 'none';
+            document.getElementById('compress-px-preview').style.display = 'none';
             btnComp.style.display = 'none';
             inputComp.value = '';
+        }
+
+        function updatePxPreview(changedField = '') {
+            if (!currentLoadedImage) return;
+
+            const unit = document.getElementById('compress-unit').value;
+            let wVal = parseFloat(document.getElementById('compress-width').value) || 0;
+            let hVal = parseFloat(document.getElementById('compress-height').value) || 0;
+            const dpi = 300;
+
+            const aspect = currentLoadedImage.width / currentLoadedImage.height;
+
+            if (changedField === 'width' && wVal > 0) {
+                hVal = parseFloat((wVal / aspect).toFixed(2));
+                document.getElementById('compress-height').value = hVal;
+            } else if (changedField === 'height' && hVal > 0) {
+                wVal = parseFloat((hVal * aspect).toFixed(2));
+                document.getElementById('compress-width').value = wVal;
+            }
+
+            let pxW = 0;
+            let pxH = 0;
+
+            if (unit === 'inch') {
+                pxW = Math.round(wVal * dpi);
+                pxH = Math.round(hVal * dpi);
+            } else {
+                pxW = Math.round((wVal / 2.54) * dpi);
+                pxH = Math.round((hVal / 2.54) * dpi);
+            }
+
+            const preview = document.getElementById('compress-px-preview');
+            const lbl = document.getElementById('lbl-calc-px');
+            if (pxW > 0 && pxH > 0) {
+                lbl.textContent = `${pxW} x ${pxH}`;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
         }
 
         document.getElementById('compress-quality').addEventListener('input', (e) => {
             document.getElementById('lbl-quality').textContent = e.target.value;
         });
 
+        document.getElementById('compress-unit').addEventListener('change', () => {
+            if (!currentLoadedImage) return;
+            const unit = document.getElementById('compress-unit').value;
+            const dpi = 300;
+
+            let newW, newH;
+            if (unit === 'inch') {
+                newW = (currentLoadedImage.width / dpi).toFixed(2);
+                newH = (currentLoadedImage.height / dpi).toFixed(2);
+            } else {
+                newW = ((currentLoadedImage.width / dpi) * 2.54).toFixed(2);
+                newH = ((currentLoadedImage.height / dpi) * 2.54).toFixed(2);
+            }
+
+            document.getElementById('compress-width').value = newW;
+            document.getElementById('compress-height').value = newH;
+            updatePxPreview();
+        });
+
+        document.getElementById('compress-width').addEventListener('input', () => updatePxPreview('width'));
+        document.getElementById('compress-height').addEventListener('input', () => updatePxPreview('height'));
+
         btnComp.addEventListener('click', () => {
             if (!compressFile) return;
             btnComp.disabled = true;
 
             const quality = parseFloat(document.getElementById('compress-quality').value) / 100;
-            const width = parseInt(document.getElementById('compress-width').value) || 0;
+            const unit = document.getElementById('compress-unit').value;
+            const wVal = parseFloat(document.getElementById('compress-width').value) || 0;
+            const hVal = parseFloat(document.getElementById('compress-height').value) || 0;
             const format = document.getElementById('compress-format').value;
+            const dpi = 300;
 
             const img = new Image();
             img.onload = function() {
@@ -870,9 +967,14 @@
                 let targetW = img.width;
                 let targetH = img.height;
 
-                if (width > 0 && width < img.width) {
-                    targetW = width;
-                    targetH = Math.round((img.height * width) / img.width);
+                if (wVal > 0 && hVal > 0) {
+                    if (unit === 'inch') {
+                        targetW = Math.round(wVal * dpi);
+                        targetH = Math.round(hVal * dpi);
+                    } else {
+                        targetW = Math.round((wVal / 2.54) * dpi);
+                        targetH = Math.round((hVal / 2.54) * dpi);
+                    }
                 }
 
                 canvas.width = targetW;
