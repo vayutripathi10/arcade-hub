@@ -890,36 +890,48 @@
             settingsComp.style.display = 'grid';
             btnComp.style.display = 'block';
 
-            // Auto-fill width/height based on original dimensions at 300 DPI
-            const img = new Image();
-            img.onload = function() {
-                currentLoadedImage = img;
-                const unit = document.getElementById('compress-unit').value;
-                const dpi = 300;
+            // Use FileReader to get base64 data url for robust browser compatibility
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentLoadedImage = img;
+                    const unit = document.getElementById('compress-unit').value;
+                    const dpi = 300;
 
-                let defaultW, defaultH;
-                if (unit === 'inch') {
-                    defaultW = (img.width / dpi).toFixed(2);
-                    defaultH = (img.height / dpi).toFixed(2);
-                } else {
-                    defaultW = ((img.width / dpi) * 2.54).toFixed(2);
-                    defaultH = ((img.height / dpi) * 2.54).toFixed(2);
-                }
+                    let defaultW, defaultH;
+                    if (unit === 'inch') {
+                        defaultW = (img.width / dpi).toFixed(2);
+                        defaultH = (img.height / dpi).toFixed(2);
+                    } else {
+                        defaultW = ((img.width / dpi) * 2.54).toFixed(2);
+                        defaultH = ((img.height / dpi) * 2.54).toFixed(2);
+                    }
 
-                document.getElementById('compress-width').value = defaultW;
-                document.getElementById('compress-height').value = defaultH;
-                
-                // Show visual preview
-                const previewImg = document.getElementById('compress-preview-img');
-                const previewContainer = document.getElementById('compress-preview-container');
-                if (previewImg && previewContainer) {
-                    previewImg.src = img.src;
-                    previewContainer.style.display = 'flex';
-                }
-                
-                updatePxPreview();
+                    document.getElementById('compress-width').value = defaultW;
+                    document.getElementById('compress-height').value = defaultH;
+                    
+                    // Show visual preview
+                    const previewImg = document.getElementById('compress-preview-img');
+                    const previewContainer = document.getElementById('compress-preview-container');
+                    if (previewImg && previewContainer) {
+                        previewImg.src = e.target.result;
+                        previewContainer.style.display = 'flex';
+                    }
+                    
+                    updatePxPreview();
+                };
+                img.onerror = function() {
+                    showNotification("Failed to decode the image file. The file format may be unsupported.", "error");
+                    playErrorBuzz();
+                };
+                img.src = e.target.result;
             };
-            img.src = URL.createObjectURL(file);
+            reader.onerror = function() {
+                showNotification("Failed to read the image file from disk.", "error");
+                playErrorBuzz();
+            };
+            reader.readAsDataURL(file);
         }
 
         window.clearCompress = function() {
