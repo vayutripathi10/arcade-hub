@@ -384,6 +384,90 @@
             box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
         }
 
+        /* Fullscreen and Split Pane App Layout for PDF Editor */
+        .editor-workspace-row {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            width: 100%;
+            margin-top: 12px;
+        }
+        .editor-sidebar-panel {
+            width: 260px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .editor-canvas-workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+        }
+        
+        #panel-editor.fullscreen-editor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: #0d0e16;
+            padding: 20px;
+            display: flex !important;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+        }
+        #panel-editor.fullscreen-editor #editor-stage-container {
+            display: flex !important;
+            flex-direction: column;
+            height: calc(100% - 10px);
+            gap: 12px;
+            overflow: hidden;
+        }
+        #panel-editor.fullscreen-editor .editor-workspace-row {
+            flex: 1;
+            overflow: hidden;
+            margin-top: 0;
+        }
+        #panel-editor.fullscreen-editor .editor-sidebar-panel {
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        #panel-editor.fullscreen-editor .editor-canvas-workspace {
+            height: 100%;
+            overflow: hidden;
+        }
+        #panel-editor.fullscreen-editor .editor-canvas-scroll-container {
+            flex: 1;
+            overflow: auto !important;
+            max-height: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .editor-workspace-row {
+                flex-direction: column;
+            }
+            .editor-sidebar-panel {
+                width: 100%;
+            }
+            #panel-editor.fullscreen-editor {
+                position: static;
+                width: 100%;
+                height: auto;
+                padding: 0;
+                overflow: visible;
+            }
+            #panel-editor.fullscreen-editor #editor-stage-container {
+                height: auto;
+                overflow: visible;
+            }
+        }
+
         .options-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -887,85 +971,99 @@
                         </div>
 
                         <!-- Editor Stage Area (visible when file is loaded) -->
-                        <div id="editor-stage-container" style="display: none; flex-direction: column; gap: 20px;">
-                            <!-- Toolbar -->
-                            <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; background: rgba(255,255,255,0.01); border: 1px dashed var(--border-color); padding: 12px; border-radius: 8px;">
-                                <div class="option-field" style="grid-column: 1 / -1;">
-                                    <label>SELECT TOOL</label>
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; width: 100%;">
-                                        <button class="cyber-btn active" id="tool-text" style="padding: 8px 16px; font-size: 0.8rem;">💬 TEXT</button>
-                                        <button class="cyber-btn" id="tool-draw" style="padding: 8px 16px; font-size: 0.8rem;">🖋️ DRAW</button>
-                                        <button class="cyber-btn" id="tool-redact" style="padding: 8px 16px; font-size: 0.8rem;">⬛ REDACT</button>
-                                        <button class="cyber-btn" id="tool-whiteout" style="padding: 8px 16px; font-size: 0.8rem;">⬜ ERASE</button>
-                                        <button class="cyber-btn" id="tool-sign" style="padding: 8px 16px; font-size: 0.8rem;">✍️ SIGN</button>
-                                        <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px 16px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
-                                    </div>
+                        <div id="editor-stage-container" style="display: none; flex-direction: column; gap: 16px;">
+                            <!-- Header / Toolbar row -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1;">
+                                    <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Share Tech Mono', monospace; margin-right: 8px;">TOOL:</label>
+                                    <button class="cyber-btn active" id="tool-text" style="padding: 8px 14px; font-size: 0.8rem;">💬 TEXT</button>
+                                    <button class="cyber-btn" id="tool-draw" style="padding: 8px 14px; font-size: 0.8rem;">🖋️ DRAW</button>
+                                    <button class="cyber-btn" id="tool-redact" style="padding: 8px 14px; font-size: 0.8rem;">⬛ REDACT</button>
+                                    <button class="cyber-btn" id="tool-whiteout" style="padding: 8px 14px; font-size: 0.8rem;">⬜ ERASE</button>
+                                    <button class="cyber-btn" id="tool-sign" style="padding: 8px 14px; font-size: 0.8rem;">✍️ SIGN</button>
+                                    <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px 14px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
                                 </div>
-                                <div class="option-field" id="editor-text-settings">
-                                    <label for="editor-text-input">TEXT TO PLACE</label>
-                                    <input type="text" id="editor-text-input" class="cyber-input" placeholder="Enter text..." value="Sample Text" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button class="cyber-btn" id="btn-editor-fullscreen" style="padding: 8px 14px; font-size: 0.8rem; border-color: var(--neon-cyan); color: var(--neon-cyan);">🖥️ FULLSCREEN</button>
                                 </div>
-                                <div class="option-field" id="editor-size-settings">
-                                    <label for="editor-font-size">FONT SIZE</label>
-                                    <select id="editor-font-size" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                        <option value="12">12PX</option>
-                                        <option value="16" selected>16PX</option>
-                                        <option value="20">20PX</option>
-                                        <option value="24">24PX</option>
-                                        <option value="32">32PX</option>
-                                    </select>
-                                </div>
-                                <div class="option-field" id="editor-color-settings">
-                                    <label for="editor-color">COLOR</label>
-                                    <select id="editor-color" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                        <option value="black">BLACK</option>
-                                        <option value="red">RED</option>
-                                        <option value="blue">BLUE</option>
-                                    </select>
-                                </div>
-                                <div class="option-field" id="editor-sign-settings" style="display: none;">
-                                    <label>SIGNATURE PREVIEW</label>
-                                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-                                        <div id="editor-sig-preview-img-container" style="height: 34px; width: 100px; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
-                                            <span style="font-size: 0.65rem; color: #888;">NONE</span>
+                            </div>
+
+                            <!-- Workspace body split row -->
+                            <div class="editor-workspace-row">
+                                <!-- Left Sidebar option panel -->
+                                <div class="editor-sidebar-panel">
+                                    <!-- Tool Context Settings -->
+                                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;">
+                                        <div class="option-field" id="editor-text-settings">
+                                            <label for="editor-text-input">TEXT TO PLACE</label>
+                                            <input type="text" id="editor-text-input" class="cyber-input" placeholder="Enter text..." value="Sample Text" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
                                         </div>
-                                        <button id="btn-editor-sig-configure" class="file-btn" style="padding: 4px 12px; font-size: 0.80rem; white-space: nowrap; height: 34px;">✍️ CHANGE</button>
+                                        <div class="option-field" id="editor-size-settings">
+                                            <label for="editor-font-size">FONT SIZE</label>
+                                            <select id="editor-font-size" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                                <option value="12">12PX</option>
+                                                <option value="16" selected>16PX</option>
+                                                <option value="20">20PX</option>
+                                                <option value="24">24PX</option>
+                                                <option value="32">32PX</option>
+                                            </select>
+                                        </div>
+                                        <div class="option-field" id="editor-color-settings">
+                                            <label for="editor-color">COLOR</label>
+                                            <select id="editor-color" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                                <option value="black">BLACK</option>
+                                                <option value="red">RED</option>
+                                                <option value="blue">BLUE</option>
+                                            </select>
+                                        </div>
+                                        <div class="option-field" id="editor-sign-settings" style="display: none;">
+                                            <label>SIGNATURE PREVIEW</label>
+                                            <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; width: 100%;">
+                                                <div id="editor-sig-preview-img-container" style="height: 34px; flex: 1; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
+                                                    <span style="font-size: 0.65rem; color: #888;">NONE</span>
+                                                </div>
+                                                <button id="btn-editor-sig-configure" class="file-btn" style="padding: 4px 12px; font-size: 0.80rem; white-space: nowrap; height: 34px;">✍️ CHANGE</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Find & Replace panel -->
+                                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;">
+                                        <div class="option-field" style="margin-bottom: 0;">
+                                            <label for="editor-find-text">FIND TEXT</label>
+                                            <input type="text" id="editor-find-text" class="cyber-input" placeholder="Text to find..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                        </div>
+                                        <div class="option-field" style="margin-bottom: 0;">
+                                            <label for="editor-replace-text">REPLACE WITH</label>
+                                            <input type="text" id="editor-replace-text" class="cyber-input" placeholder="Replacement text..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
+                                        </div>
+                                        <button class="cyber-btn" id="btn-editor-find-replace" style="height: 36px; padding: 0 16px; font-size: 0.8rem; width: 100%;">🔄 GLOBAL REPLACE</button>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Global Find & Replace -->
-                            <div class="replace-grid" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
-                                <div class="option-field" style="margin-bottom: 0;">
-                                    <label for="editor-find-text">FIND TEXT</label>
-                                    <input type="text" id="editor-find-text" class="cyber-input" placeholder="Text to find..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                </div>
-                                <div class="option-field" style="margin-bottom: 0;">
-                                    <label for="editor-replace-text">REPLACE WITH</label>
-                                    <input type="text" id="editor-replace-text" class="cyber-input" placeholder="Replacement text..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                </div>
-                                <button class="cyber-btn" id="btn-editor-find-replace" style="height: 34px; padding: 0 16px; font-size: 0.8rem;">🔄 GLOBAL REPLACE</button>
-                            </div>
+                                <!-- Right Workspace Area -->
+                                <div class="editor-canvas-workspace">
+                                    <!-- Page Navigation -->
+                                    <div class="editor-nav-container" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                        <button class="file-btn" id="btn-editor-prev" style="font-size: 0.95rem; padding: 4px 12px;">◄ PREV</button>
+                                        <span id="editor-page-indicator" style="font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--neon-pink);">PAGE 1 OF 1</span>
+                                        <button class="file-btn" id="btn-editor-next" style="font-size: 0.95rem; padding: 4px 12px;">NEXT ►</button>
+                                    </div>
 
-                            <!-- Page Navigation -->
-                            <div class="editor-nav-container" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
-                                <button class="file-btn" id="btn-editor-prev" style="font-size: 0.95rem; padding: 4px 12px;">◄ PREV</button>
-                                <span id="editor-page-indicator" style="font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--neon-pink);">PAGE 1 OF 1</span>
-                                <button class="file-btn" id="btn-editor-next" style="font-size: 0.95rem; padding: 4px 12px;">NEXT ►</button>
-                            </div>
+                                    <!-- Workspace Canvas scroll wrapper -->
+                                    <div class="editor-canvas-scroll-container" style="position: relative; display: flex; justify-content: center; width: 100%; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 550px; padding: 20px;">
+                                        <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block;">
+                                            <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
+                                            <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
+                                        </div>
+                                    </div>
 
-                            <!-- Workspace Canvas Area -->
-                            <div style="position: relative; display: flex; justify-content: center; width: 100%; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 600px; padding: 20px;">
-                                <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block;">
-                                    <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
-                                    <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
+                                    <!-- Compile Action Button -->
+                                    <button class="neon-action-btn pink" id="btn-editor-save" style="width: 100%;">
+                                        💾 SAVE & DOWNLOAD EDITED PDF
+                                    </button>
                                 </div>
                             </div>
-
-                            <!-- Action button -->
-                            <button class="neon-action-btn pink" id="btn-editor-save">
-                                💾 SAVE & DOWNLOAD EDITED PDF
-                            </button>
                         </div>
                     </div>
 
@@ -3295,6 +3393,28 @@
                     document.getElementById('btn-editor-undo').disabled = true;
                 }
                 appendLog("Undid last operation.");
+            }
+        });
+
+
+        // Fullscreen Toggle Event Listener
+        document.getElementById('btn-editor-fullscreen').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            const panel = document.getElementById('panel-editor');
+            const btn = document.getElementById('btn-editor-fullscreen');
+            
+            panel.classList.toggle('fullscreen-editor');
+            
+            if (panel.classList.contains('fullscreen-editor')) {
+                btn.textContent = '🚪 EXIT FULLSCREEN';
+                btn.style.borderColor = 'var(--neon-pink)';
+                btn.style.color = 'var(--neon-pink)';
+                appendLog("Entered full-screen editor layout focus.");
+            } else {
+                btn.textContent = '🖥️ FULLSCREEN';
+                btn.style.borderColor = 'var(--neon-cyan)';
+                btn.style.color = 'var(--neon-cyan)';
+                appendLog("Exited full-screen editor layout.");
             }
         });
 
