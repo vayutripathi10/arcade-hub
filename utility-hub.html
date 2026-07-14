@@ -1454,63 +1454,77 @@
 
                 try {
                     let responseText = "";
+                    let errors = [];
 
                     // Attempt 1: Try direct CORS-open transcript AI api
                     try {
                         const directApiUrl = `https://youtube-transcript.ai/transcript/${videoId}.txt`;
                         const res = await fetch(directApiUrl);
                         if (res.ok) {
-                            responseText = await res.text();
+                            const txt = await res.text();
+                            if (txt && !txt.includes("high volume") && !txt.includes("rate limits")) {
+                                responseText = txt;
+                            } else {
+                                errors.push("Direct API rate limited.");
+                            }
+                        } else {
+                            errors.push("Direct API returned status " + res.status);
                         }
                     } catch(apiErr) {
-                        console.warn("Direct API check failed, trying CORS fallback proxy...", apiErr);
+                        errors.push("Direct API network error: " + apiErr.message);
                     }
 
-                    // Attempt 2: Fallback scraping watch page via public CORS proxy
+                    // Attempt 2: Fallback scraping watch page HTML via corsproxy.io
                     if (!responseText.trim()) {
-                        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
-                        const res = await fetch(proxyUrl);
-                        if (!res.ok) throw new Error("Failed to reach fallback CORS proxy.");
-                        
-                        const data = await res.json();
-                        const html = data.contents;
-                        
-                        const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/) || html.match(/var\s+ytInitialPlayerResponse\s*=\s*({.+?});/);
-                        if (!match) throw new Error("Could not parse YouTube caption track nodes. Make sure captions are enabled.");
-                        
-                        const playerResponse = JSON.parse(match[1]);
-                        const captionTracks = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-                        if (!captionTracks || captionTracks.length === 0) throw new Error("No caption tracks found for this video.");
-                        
-                        const trackUrl = captionTracks[0].baseUrl;
-                        const trackProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`;
-                        const trackRes = await fetch(trackProxyUrl);
-                        if (!trackRes.ok) throw new Error("Failed to load caption XML data.");
-                        
-                        const trackData = await trackRes.json();
-                        const xmlText = trackData.contents;
-                        
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                        const textNodes = xmlDoc.getElementsByTagName("text");
-                        
-                        if (textNodes.length === 0) throw new Error("No readable text segments inside transcription XML.");
-                        
-                        let lines = [];
-                        for (let i = 0; i < textNodes.length; i++) {
-                            const node = textNodes[i];
-                            const start = parseFloat(node.getAttribute("start") || "0");
-                            const minutes = Math.floor(start / 60);
-                            const seconds = Math.floor(start % 60).toString().padStart(2, '0');
-                            const timestamp = `[${minutes}:${seconds}]`;
-                            const text = node.textContent.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                            lines.push(`${timestamp} ${text}`);
+                        try {
+                            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
+                            const res = await fetch(proxyUrl);
+                            if (res.ok) {
+                                const html = await res.text();
+                                responseText = await parseCaptionsFromHtml(html, videoId);
+                            } else {
+                                errors.push("corsproxy.io returned status " + res.status);
+                            }
+                        } catch(err) {
+                            errors.push("corsproxy.io fetch error: " + err.message);
                         }
-                        responseText = lines.join('\n');
+                    }
+
+                    // Attempt 3: Fallback scraping watch page HTML via allorigins
+                    if (!responseText.trim()) {
+                        try {
+                            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
+                            const res = await fetch(proxyUrl);
+                            if (res.ok) {
+                                const data = await res.json();
+                                const html = data.contents;
+                                responseText = await parseCaptionsFromHtml(html, videoId);
+                            } else {
+                                errors.push("allorigins returned status " + res.status);
+                            }
+                        } catch(err) {
+                            errors.push("allorigins fetch error: " + err.message);
+                        }
+                    }
+
+                    // Attempt 4: Fallback scraping watch page HTML via codetabs proxy
+                    if (!responseText.trim()) {
+                        try {
+                            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
+                            const res = await fetch(proxyUrl);
+                            if (res.ok) {
+                                const html = await res.text();
+                                responseText = await parseCaptionsFromHtml(html, videoId);
+                            } else {
+                                errors.push("codetabs returned status " + res.status);
+                            }
+                        } catch(err) {
+                            errors.push("codetabs fetch error: " + err.message);
+                        }
                     }
 
                     if (!responseText.trim()) {
-                        throw new Error("Transcripts returned empty text.");
+                        throw new Error("Unable to fetch transcript from this video. YouTube may have blocked proxy requests, or the video does not have captions enabled. Details: " + errors.join(" | "));
                     }
 
                     currentYtTranscriptText = responseText.trim();
@@ -1527,6 +1541,73 @@
                     ytLoading.style.display = 'none';
                 }
             });
+
+            // Helper function to extract caption XML track and parse lines
+            async function parseCaptionsFromHtml(html, videoId) {
+                if (!html) return "";
+                const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/) || html.match(/var\s+ytInitialPlayerResponse\s*=\s*({.+?});/);
+                if (!match) throw new Error("Caption metadata block not found on the page.");
+                
+                const playerResponse = JSON.parse(match[1]);
+                const captionTracks = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+                if (!captionTracks || captionTracks.length === 0) {
+                    throw new Error("No subtitles tracks found. Subtitles may be disabled for this video.");
+                }
+                
+                // Pick the first track
+                const trackUrl = captionTracks[0].baseUrl;
+                let xmlText = "";
+                let xmlErrors = [];
+
+                // Fetch track XML via corsproxy.io
+                try {
+                    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(trackUrl)}`);
+                    if (res.ok) {
+                        xmlText = await res.text();
+                    } else {
+                        xmlErrors.push("corsproxy.io xml status " + res.status);
+                    }
+                } catch(e) {
+                    xmlErrors.push("corsproxy.io xml error: " + e.message);
+                }
+
+                // Fetch track XML via allorigins
+                if (!xmlText) {
+                    try {
+                        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            xmlText = data.contents;
+                        } else {
+                            xmlErrors.push("allorigins xml status " + res.status);
+                        }
+                    } catch(e) {
+                        xmlErrors.push("allorigins xml error: " + e.message);
+                    }
+                }
+
+                if (!xmlText) {
+                    throw new Error("Failed to load caption XML. Subtitles block: " + xmlErrors.join(" | "));
+                }
+
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                const textNodes = xmlDoc.getElementsByTagName("text");
+                
+                if (textNodes.length === 0) return "";
+                
+                let lines = [];
+                for (let i = 0; i < textNodes.length; i++) {
+                    const node = textNodes[i];
+                    const start = parseFloat(node.getAttribute("start") || "0");
+                    const minutes = Math.floor(start / 60);
+                    const seconds = Math.floor(start % 60).toString().padStart(2, '0');
+                    const timestamp = `[${minutes}:${seconds}]`;
+                    const text = node.textContent.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                    lines.push(`${timestamp} ${text}`);
+                }
+                return lines.join('\n');
+            }
         }
 
         if (btnYtDownloadPdf) {
