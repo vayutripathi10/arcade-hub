@@ -1469,6 +1469,129 @@
             });
         }
 
+        // Shared robust PDF compilation helper (Unicode-safe for Hindi/Devanagari)
+        async function compileTextToPdf(docTitle, textContent, filename) {
+            try {
+                const pdfDoc = await PDFLib.PDFDocument.create();
+                
+                // Check for non-ASCII characters to trigger Noto Sans Devanagari font embedding
+                const hasUnicode = /[^\x00-\x7F]/.test(textContent) || /[^\x00-\x7F]/.test(docTitle);
+                
+                let fontToUse;
+                let boldFontToUse;
+                
+                if (hasUnicode) {
+                    showNotification("Formatting PDF with Unicode (Hindi) support...", "success");
+                    let fontBytes;
+                    try {
+                        const fontRes = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari/files/noto-sans-devanagari-devanagari-400-normal.ttf');
+                        if (!fontRes.ok) throw new Error("CDN load returned status " + fontRes.status);
+                        fontBytes = await fontRes.arrayBuffer();
+                    } catch(cdnErr) {
+                        console.warn("jsDelivr font load failed, trying raw githubusercontent fallback...", cdnErr);
+                        const fontRes = await fetch('https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf');
+                        if (!fontRes.ok) throw new Error("Fallback raw github fonts URL failed");
+                        fontBytes = await fontRes.arrayBuffer();
+                    }
+                    
+                    fontToUse = await pdfDoc.embedFont(fontBytes);
+                    boldFontToUse = fontToUse; // Reuse since it contains the Devanagari character glyph map
+                } else {
+                    fontToUse = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    boldFontToUse = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+                }
+                
+                const fontSize = 10;
+                const titleSize = 14;
+                const lineHeight = 14;
+                const margin = 50;
+                const pageWidth = 612; // Letter
+                const pageHeight = 792;
+                const maxTextWidth = pageWidth - (margin * 2);
+                
+                let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                let y = pageHeight - margin;
+                
+                currentPage.drawText(docTitle, {
+                    x: margin,
+                    y: y,
+                    size: titleSize,
+                    font: boldFontToUse,
+                    color: PDFLib.rgb(0, 0, 0)
+                });
+                y -= titleSize + 20;
+
+                const paragraphs = textContent.split('\n');
+                for (let para of paragraphs) {
+                    para = para.trim();
+                    if (!para) {
+                        y -= lineHeight;
+                        continue;
+                    }
+                    
+                    const words = para.split(' ');
+                    let currentLine = "";
+                    
+                    for (const word of words) {
+                        const testLine = currentLine ? currentLine + " " + word : word;
+                        let testWidth = 0;
+                        try {
+                            testWidth = fontToUse.widthOfTextAtSize(testLine, fontSize);
+                        } catch(wErr) {
+                            // Fallback estimation if character width throws
+                            testWidth = testLine.length * (fontSize * 0.6);
+                        }
+                        
+                        if (testWidth > maxTextWidth) {
+                            if (y < margin + lineHeight) {
+                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                                y = pageHeight - margin;
+                            }
+                            currentPage.drawText(currentLine, {
+                                x: margin,
+                                y: y,
+                                size: fontSize,
+                                font: fontToUse,
+                                color: PDFLib.rgb(0.1, 0.1, 0.1)
+                            });
+                            y -= lineHeight;
+                            currentLine = word;
+                        } else {
+                            currentLine = testLine;
+                        }
+                    }
+                    
+                    if (currentLine) {
+                        if (y < margin + lineHeight) {
+                            currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                            y = pageHeight - margin;
+                        }
+                        currentPage.drawText(currentLine, {
+                            x: margin,
+                            y: y,
+                            size: fontSize,
+                            font: fontToUse,
+                            color: PDFLib.rgb(0.1, 0.1, 0.1)
+                        });
+                        y -= lineHeight;
+                    }
+                    y -= 4; // gap
+                }
+                
+                const pdfBytes = await pdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+                showNotification("Downloaded PDF transcript successfully.", "success");
+            } catch (pdfErr) {
+                console.error(pdfErr);
+                showNotification(`PDF Compilation failed: ${pdfErr.message}`, "error");
+                playErrorBuzz();
+            }
+        }
+
         // Manual PDF compile action
         const btnYtManualDownload = document.getElementById('btn-yt-manual-download');
         const txtYtManualTitle = document.getElementById('yt-manual-title');
@@ -1484,99 +1607,10 @@
                 }
 
                 playBeep(880, 0.08, 'sine');
+                const docTitle = txtYtManualTitle.value.trim() || "Manual YouTube Transcript Exporter";
+                const safeName = docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".pdf";
                 
-                try {
-                    const pdfDoc = await PDFLib.PDFDocument.create();
-                    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-                    const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-                    
-                    const fontSize = 10;
-                    const titleSize = 14;
-                    const lineHeight = 14;
-                    const margin = 50;
-                    const pageWidth = 612; // Letter
-                    const pageHeight = 792;
-                    const maxTextWidth = pageWidth - (margin * 2);
-                    
-                    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                    let y = pageHeight - margin;
-                    
-                    const docTitle = txtYtManualTitle.value.trim() || "Manual YouTube Transcript Exporter";
-                    
-                    currentPage.drawText(docTitle, {
-                        x: margin,
-                        y: y,
-                        size: titleSize,
-                        font: boldFont,
-                        color: PDFLib.rgb(0, 0, 0)
-                    });
-                    y -= titleSize + 20;
-
-                    const paragraphs = textContent.split('\n');
-                    for (let para of paragraphs) {
-                        para = para.trim();
-                        if (!para) {
-                            y -= lineHeight;
-                            continue;
-                        }
-                        
-                        const words = para.split(' ');
-                        let currentLine = "";
-                        
-                        for (const word of words) {
-                            const testLine = currentLine ? currentLine + " " + word : word;
-                            const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-                            
-                            if (testWidth > maxTextWidth) {
-                                if (y < margin + lineHeight) {
-                                    currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                                    y = pageHeight - margin;
-                                }
-                                currentPage.drawText(currentLine, {
-                                    x: margin,
-                                    y: y,
-                                    size: fontSize,
-                                    font: font,
-                                    color: PDFLib.rgb(0.1, 0.1, 0.1)
-                                });
-                                y -= lineHeight;
-                                currentLine = word;
-                            } else {
-                                currentLine = testLine;
-                            }
-                        }
-                        
-                        if (currentLine) {
-                            if (y < margin + lineHeight) {
-                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                                y = pageHeight - margin;
-                            }
-                            currentPage.drawText(currentLine, {
-                                x: margin,
-                                y: y,
-                                size: fontSize,
-                                font: font,
-                                color: PDFLib.rgb(0.1, 0.1, 0.1)
-                            });
-                            y -= lineHeight;
-                        }
-                        y -= 4; // gap
-                    }
-                    
-                    const pdfBytes = await pdfDoc.save();
-                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    
-                    const safeName = docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                    link.download = `${safeName}.pdf`;
-                    link.click();
-                    showNotification("Downloaded PDF transcript successfully.", "success");
-                } catch (pdfErr) {
-                    console.error(pdfErr);
-                    showNotification(`PDF Compilation failed: ${pdfErr.message}`, "error");
-                    playErrorBuzz();
-                }
+                await compileTextToPdf(docTitle, textContent, safeName);
             });
         }
 
@@ -1773,95 +1807,9 @@
                 if (!currentYtTranscriptText) return;
                 playBeep(880, 0.08, 'sine');
                 
-                try {
-                    const pdfDoc = await PDFLib.PDFDocument.create();
-                    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-                    const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-                    
-                    const fontSize = 10;
-                    const titleSize = 14;
-                    const lineHeight = 14;
-                    const margin = 50;
-                    const pageWidth = 612; // Letter
-                    const pageHeight = 792;
-                    const maxTextWidth = pageWidth - (margin * 2);
-                    
-                    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                    let y = pageHeight - margin;
-                    
-                    const titleText = `YouTube Video Transcript (ID: ${currentYtVideoId})`;
-                    currentPage.drawText(titleText, {
-                        x: margin,
-                        y: y,
-                        size: titleSize,
-                        font: boldFont,
-                        color: PDFLib.rgb(0, 0, 0)
-                    });
-                    y -= titleSize + 20;
-
-                    const lines = currentYtTranscriptText.split('\n');
-                    for (let line of lines) {
-                        line = line.trim();
-                        if (!line) {
-                            y -= lineHeight;
-                            continue;
-                        }
-                        
-                        const words = line.split(' ');
-                        let currentLine = "";
-                        
-                        for (const word of words) {
-                            const testLine = currentLine ? currentLine + " " + word : word;
-                            const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-                            
-                            if (testWidth > maxTextWidth) {
-                                if (y < margin + lineHeight) {
-                                    currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                                    y = pageHeight - margin;
-                                }
-                                currentPage.drawText(currentLine, {
-                                    x: margin,
-                                    y: y,
-                                    size: fontSize,
-                                    font: font,
-                                    color: PDFLib.rgb(0.1, 0.1, 0.1)
-                                });
-                                y -= lineHeight;
-                                currentLine = word;
-                            } else {
-                                currentLine = testLine;
-                            }
-                        }
-                        
-                        if (currentLine) {
-                            if (y < margin + lineHeight) {
-                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                                y = pageHeight - margin;
-                            }
-                            currentPage.drawText(currentLine, {
-                                x: margin,
-                                y: y,
-                                size: fontSize,
-                                font: font,
-                                color: PDFLib.rgb(0.1, 0.1, 0.1)
-                            });
-                            y -= lineHeight;
-                        }
-                        y -= 4; // gap
-                    }
-                    
-                    const pdfBytes = await pdfDoc.save();
-                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `YouTube_Transcript_${currentYtVideoId}.pdf`;
-                    link.click();
-                    showNotification("Downloaded PDF transcript successfully.", "success");
-                } catch (pdfErr) {
-                    console.error(pdfErr);
-                    showNotification(`PDF Compilation failed: ${pdfErr.message}`, "error");
-                    playErrorBuzz();
-                }
+                const titleText = `YouTube Video Transcript (ID: ${currentYtVideoId})`;
+                const filename = `YouTube_Transcript_${currentYtVideoId}.pdf`;
+                await compileTextToPdf(titleText, currentYtTranscriptText, filename);
             });
         }
     </script>
