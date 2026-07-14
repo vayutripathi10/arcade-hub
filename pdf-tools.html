@@ -2431,34 +2431,50 @@
                 };
             });
             
-            mapped.sort((a, b) => {
-                if (Math.abs(a.pdfY - b.pdfY) > 5) {
-                    return b.pdfY - a.pdfY;
-                }
-                return a.pdfX - b.pdfX;
-            });
+            // Step 1: Sort strictly by Y descending (top of page first)
+            mapped.sort((a, b) => b.pdfY - a.pdfY);
             
-            let lines = [];
+            // Step 2: Group into baseline rows based on Y proximity
+            let groups = [];
             if (mapped.length > 0) {
-                let currentLine = [mapped[0]];
+                let currentGroup = [mapped[0]];
+                let baselineY = mapped[0].pdfY;
+                
                 for (let i = 1; i < mapped.length; i++) {
-                    let last = currentLine[currentLine.length - 1];
                     let curr = mapped[i];
+                    if (Math.abs(curr.pdfY - baselineY) <= 5) {
+                        currentGroup.push(curr);
+                    } else {
+                        groups.push(currentGroup);
+                        currentGroup = [curr];
+                        baselineY = curr.pdfY;
+                    }
+                }
+                groups.push(currentGroup);
+            }
+            
+            // Step 3: Sort each baseline group horizontally, and split by X gap
+            let finalLines = [];
+            groups.forEach(group => {
+                group.sort((a, b) => a.pdfX - b.pdfX);
+                
+                let currentLine = [group[0]];
+                for (let i = 1; i < group.length; i++) {
+                    let last = currentLine[currentLine.length - 1];
+                    let curr = group[i];
                     
-                    const sameBaseline = Math.abs(curr.pdfY - last.pdfY) <= 5;
                     const adjacentX = (curr.pdfX - (last.pdfX + last.pdfW)) <= 35;
-                    
-                    if (sameBaseline && adjacentX) {
+                    if (adjacentX) {
                         currentLine.push(curr);
                     } else {
-                        lines.push(currentLine);
+                        finalLines.push(currentLine);
                         currentLine = [curr];
                     }
                 }
-                lines.push(currentLine);
-            }
+                finalLines.push(currentLine);
+            });
             
-            return lines.map(group => {
+            return finalLines.map(group => {
                 let mergedStr = '';
                 group.forEach((item, idx) => {
                     if (idx === 0) {
