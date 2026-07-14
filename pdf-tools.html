@@ -1135,9 +1135,10 @@
             </div>
 
             <!-- Signature Tab headers -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button id="tab-sig-draw" class="cyber-btn active" style="padding: 8px; font-size: 0.85rem;">🖋️ DRAW SIGNATURE</button>
-                <button id="tab-sig-type" class="cyber-btn" style="padding: 8px; font-size: 0.85rem;">⌨️ TYPE NAME</button>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                <button id="tab-sig-draw" class="cyber-btn active" style="padding: 8px 4px; font-size: 0.75rem; white-space: nowrap;">🖋️ DRAW</button>
+                <button id="tab-sig-type" class="cyber-btn" style="padding: 8px 4px; font-size: 0.75rem; white-space: nowrap;">⌨️ TYPE</button>
+                <button id="tab-sig-upload" class="cyber-btn" style="padding: 8px 4px; font-size: 0.75rem; white-space: nowrap;">📁 UPLOAD</button>
             </div>
 
             <!-- DRAW SIGNATURE TAB PANEL -->
@@ -1170,6 +1171,22 @@
                     <div class="sig-font-card" data-font="Caveat" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; background: rgba(255,255,255,0.01); transition: all 0.2s;">
                         <span id="sig-preview-caveat" style="font-family: 'Caveat', cursive; font-size: 1.8rem; color: #fff; line-height: 1;">John Doe</span>
                         <span style="font-size: 0.7rem; color: var(--text-secondary); font-family: monospace;">CAVEAT</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPLOAD SIGNATURE TAB PANEL -->
+            <div id="panel-sig-upload" style="display: none; flex-direction: column; gap: 12px;">
+                <label style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">UPLOAD IMAGE OR PDF</label>
+                <div class="drop-zone purple-hover" id="drop-zone-sig-upload" style="height: 140px; border: 2px dashed var(--border-color); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; background: rgba(255,255,255,0.01);">
+                    <div style="font-size: 1.8rem; color: var(--neon-pink);">📁</div>
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; text-align: center; padding: 0 10px;">DRAG & DROP SIGNATURE FILE OR CLICK TO BROWSE</div>
+                    <input type="file" id="input-sig-upload" style="display: none;" accept="image/*,application/pdf">
+                </div>
+                <div id="sig-upload-preview-container" style="display: none; flex-direction: column; align-items: center; gap: 6px;">
+                    <span style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">UPLOAD PREVIEW:</span>
+                    <div style="height: 80px; width: 220px; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
+                        <img id="sig-upload-preview-img" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                     </div>
                 </div>
             </div>
@@ -1261,6 +1278,7 @@
 
         // Signature dragging and placement states
         let editorSignatureDataUrl = null;
+        let editorSignatureUploadDataUrl = null;
         let editorIsDraggingSig = false;
         let editorDraggingSigIndex = -1;
         let editorIsResizingSig = false;
@@ -3674,8 +3692,10 @@
             signatureActiveTab = 'draw';
             document.getElementById('tab-sig-draw').classList.add('active');
             document.getElementById('tab-sig-type').classList.remove('active');
+            document.getElementById('tab-sig-upload').classList.remove('active');
             document.getElementById('panel-sig-draw').style.display = 'flex';
             document.getElementById('panel-sig-type').style.display = 'none';
+            document.getElementById('panel-sig-upload').style.display = 'none';
         });
 
         document.getElementById('tab-sig-type').addEventListener('click', () => {
@@ -3683,9 +3703,22 @@
             signatureActiveTab = 'type';
             document.getElementById('tab-sig-type').classList.add('active');
             document.getElementById('tab-sig-draw').classList.remove('active');
+            document.getElementById('tab-sig-upload').classList.remove('active');
             document.getElementById('panel-sig-type').style.display = 'flex';
             document.getElementById('panel-sig-draw').style.display = 'none';
+            document.getElementById('panel-sig-upload').style.display = 'none';
             updateSignaturePreviews();
+        });
+
+        document.getElementById('tab-sig-upload').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            signatureActiveTab = 'upload';
+            document.getElementById('tab-sig-upload').classList.add('active');
+            document.getElementById('tab-sig-draw').classList.remove('active');
+            document.getElementById('tab-sig-type').classList.remove('active');
+            document.getElementById('panel-sig-upload').style.display = 'flex';
+            document.getElementById('panel-sig-draw').style.display = 'none';
+            document.getElementById('panel-sig-type').style.display = 'none';
         });
 
         document.getElementById('btn-sig-clear-pad').addEventListener('click', () => {
@@ -3783,12 +3816,132 @@
         sigCanvas.addEventListener('touchmove', drawSigStroke, { passive: false });
         sigCanvas.addEventListener('touchend', stopSigDrawing);
 
+        async function processUploadedSignature(file) {
+            if (!file) return;
+
+            const previewImg = document.getElementById('sig-upload-preview-img');
+            const previewContainer = document.getElementById('sig-upload-preview-container');
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imgData.data;
+
+                        // Filter out white backgrounds to create transparent signature pngs
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i];
+                            const g = data[i+1];
+                            const b = data[i+2];
+                            if (r > 230 && g > 230 && b > 230) {
+                                data[i+3] = 0;
+                            }
+                        }
+
+                        ctx.putImageData(imgData, 0, 0);
+                        editorSignatureUploadDataUrl = canvas.toDataURL('image/png');
+                        previewImg.src = editorSignatureUploadDataUrl;
+                        previewContainer.style.display = 'flex';
+                        playBeep(880, 0.08, 'sine');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const typedarray = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                        const page = await pdf.getPage(1);
+
+                        const viewport = page.getViewport({ scale: 2.0 });
+                        const canvas = document.createElement('canvas');
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        const ctx = canvas.getContext('2d');
+
+                        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imgData.data;
+
+                        // Filter out white backgrounds for PDF render too
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i];
+                            const g = data[i+1];
+                            const b = data[i+2];
+                            if (r > 230 && g > 230 && b > 230) {
+                                data[i+3] = 0;
+                            }
+                        }
+
+                        ctx.putImageData(imgData, 0, 0);
+                        editorSignatureUploadDataUrl = canvas.toDataURL('image/png');
+                        previewImg.src = editorSignatureUploadDataUrl;
+                        previewContainer.style.display = 'flex';
+                        playBeep(880, 0.08, 'sine');
+                    } catch (err) {
+                        console.error("Signature PDF extraction failed:", err);
+                        appendLog("Failed to render signature from PDF file.", "error");
+                        playErrorBuzz();
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        const dropZoneSig = document.getElementById('drop-zone-sig-upload');
+        const inputSig = document.getElementById('input-sig-upload');
+
+        dropZoneSig.addEventListener('click', () => inputSig.click());
+
+        inputSig.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processUploadedSignature(e.target.files[0]);
+            }
+        });
+
+        dropZoneSig.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZoneSig.style.borderColor = 'var(--neon-pink)';
+            dropZoneSig.style.background = 'rgba(255, 0, 127, 0.03)';
+        });
+
+        dropZoneSig.addEventListener('dragleave', () => {
+            dropZoneSig.style.borderColor = 'var(--border-color)';
+            dropZoneSig.style.background = 'rgba(255,255,255,0.01)';
+        });
+
+        dropZoneSig.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZoneSig.style.borderColor = 'var(--border-color)';
+            dropZoneSig.style.background = 'rgba(255,255,255,0.01)';
+            if (e.dataTransfer.files.length > 0) {
+                processUploadedSignature(e.dataTransfer.files[0]);
+            }
+        });
+
         function openSignatureModal() {
             document.getElementById('signature-modal').style.display = 'flex';
             const rect = sigCanvas.getBoundingClientRect();
             sigCanvas.width = rect.width || 450;
             sigCanvas.height = 180;
             clearSignaturePad();
+
+            // Reset upload panel state
+            document.getElementById('input-sig-upload').value = '';
+            document.getElementById('sig-upload-preview-container').style.display = 'none';
+            document.getElementById('sig-upload-preview-img').removeAttribute('src');
+            editorSignatureUploadDataUrl = null;
         }
 
         function closeSignatureModal() {
@@ -3819,7 +3972,7 @@
                 }
                 tempCtx.putImageData(imgData, 0, 0);
                 editorSignatureDataUrl = tempCanvas.toDataURL('image/png');
-            } else {
+            } else if (signatureActiveTab === 'type') {
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = 400;
                 tempCanvas.height = 120;
@@ -3834,6 +3987,13 @@
                 tempCtx.fillText(textVal, 200, 60);
 
                 editorSignatureDataUrl = tempCanvas.toDataURL('image/png');
+            } else if (signatureActiveTab === 'upload') {
+                if (!editorSignatureUploadDataUrl) {
+                    appendLog("Please upload a signature file first.", "error");
+                    playErrorBuzz();
+                    return;
+                }
+                editorSignatureDataUrl = editorSignatureUploadDataUrl;
             }
 
             const container = document.getElementById('editor-sig-preview-img-container');
