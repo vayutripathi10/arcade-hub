@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ffcc">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free, 100% client-side Utility Tools. Compress images, generate and scan QR codes, convert text case, analyze word statistics, and calculate age or Loan EMIs online securely.">
+    <meta name="keywords" content="image compressor, qr code generator, word counter, case converter, age calculator, emi calculator, online tools, free tools, client side utilities">
+    <link rel="canonical" href="https://arcadehubplay.com/utility-hub">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Free Online Utility Tools Suite | Arcade Hub">
+    <meta property="og:description" content="Compress images, generate QR codes, analyze text, and run calculations client-side. 100% private, zero server uploads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/utility-hub.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Free Online Utility Tools Suite | Arcade Hub">
+    <meta name="twitter:description" content="Compress images, generate QR codes, analyze text, and run calculations client-side. 100% private, zero server uploads.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+    
+    <title>Free Online Utility Tools: Image Compressor, QR Code, Word Counter & Calculators</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    
+    <!-- QRious QR generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- jsQR QR scanner -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-B8XQ759LPH');
+    </script>
+    
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+
+    <style>
+        /* Cyberpunk Deck Layout and styling */
+        :root {
+            --neon-cyan: #00ffcc;
+            --neon-pink: #ff007f;
+            --neon-purple: #8a2be2;
+            --border-color: rgba(0, 255, 204, 0.2);
+            --bg-darker: #07080e;
+            --text-secondary: #8b9bb4;
+        }
+
+        .cyber-card {
+            border: 2px solid var(--border-color);
+            background: rgba(13, 14, 22, 0.75);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.05);
+            width: 100%;
+        }
+
+        .engine-panel {
+            padding: 30px;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Cyber Tabs styling */
+        .deck-tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .deck-tab {
+            font-family: 'Share Tech Mono', monospace;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-height: 65px;
+        }
+
+        .deck-tab .tab-mod {
+            font-size: 0.65rem;
+            opacity: 0.6;
+        }
+
+        .deck-tab:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .deck-tab.active[data-tab="compress"] {
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
+            background: rgba(0, 255, 204, 0.03);
+        }
+
+        .deck-tab.active[data-tab="qr"] {
+            border-color: var(--neon-purple);
+            color: var(--neon-purple);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.15);
+            background: rgba(138, 43, 226, 0.03);
+        }
+
+        .deck-tab.active[data-tab="text-utils"],
+        .deck-tab.active[data-tab="calculator"] {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
+            background: rgba(255, 0, 127, 0.03);
+        }
+
+        /* Tab Content Panels */
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            animation: tabFadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Inputs & Buttons */
+        .cyber-input, .cyber-select {
+            background: rgba(7, 8, 14, 0.9);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease;
+            outline: none;
+        }
+        .cyber-input:focus, .cyber-select:focus {
+            border-color: var(--neon-cyan);
+        }
+
+        .cyber-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-family: 'Share Tech Mono', monospace;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+        .cyber-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+        .cyber-btn.active {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            background: rgba(255, 0, 127, 0.05);
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
+        }
+
+        .neon-action-btn {
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 14px 24px;
+            border: 2px solid var(--neon-cyan);
+            background: transparent;
+            color: var(--neon-cyan);
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .neon-action-btn:hover:not(:disabled) {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+        }
+        .neon-action-btn:disabled {
+            border-color: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.2);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .neon-action-btn.pink {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);
+        }
+        .neon-action-btn.pink:hover:not(:disabled) {
+            background: var(--neon-pink);
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4);
+        }
+
+        /* Dropzone layout */
+        .drop-zone {
+            height: 200px;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.01);
+            transition: all 0.3s ease;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 255, 204, 0.03);
+            box-shadow: inset 0 0 20px rgba(0, 255, 204, 0.05);
+        }
+        .drop-zone.pink-hover:hover, .drop-zone.pink-hover.dragover {
+            border-color: var(--neon-pink);
+            background: rgba(255, 0, 127, 0.03);
+            box-shadow: inset 0 0 20px rgba(255, 0, 127, 0.05);
+        }
+        .drop-icon {
+            font-size: 3rem;
+            transition: transform 0.2s ease;
+        }
+        .drop-zone:hover .drop-icon {
+            transform: scale(1.1);
+        }
+        .drop-text {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            text-align: center;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+        }
+        .file-input {
+            display: none;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .option-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .option-field label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* File items inside queues */
+        .file-queue {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .file-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+        .file-name {
+            font-size: 0.9rem;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-size {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+        .file-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .file-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            font-family: 'Share Tech Mono', monospace;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .file-btn:hover {
+            color: #fff;
+            border-color: rgba(255,255,255,0.4);
+        }
+        .file-btn.remove {
+            color: var(--neon-pink);
+            border-color: rgba(255, 0, 127, 0.2);
+        }
+        .file-btn.remove:hover {
+            background: rgba(255, 0, 127, 0.1);
+            border-color: var(--neon-pink);
+        }
+
+        /* Diagnostic logger mockup */
+        .console-log-mock {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+            background: #000;
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+                padding: 12px !important;
+            }
+            .options-grid > * {
+                grid-column: span 1 !important;
+            }
+            .engine-panel {
+                padding: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="pdf-tools" class="sidebar-link">🛠️ PDF Tools</a>
+            <a href="utility-hub" class="sidebar-link active-hub">⚙️ Utility Hub</a>
+            <a href="blog" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
+    <div class="header-container" style="margin-bottom: 2rem;">
+        <h1 class="main-title" style="font-size: clamp(2.5rem, 6vw, 3.5rem); text-shadow: 0 0 45px rgba(0, 255, 204, 0.4);">Utility Hub</h1>
+        <p class="subtitle" style="color: var(--neon-pink); text-transform: uppercase; font-family: 'Share Tech Mono', monospace; font-size: 0.95rem; letter-spacing: 2px;">MODULE: CLIENT_SIDE_UTILITIES_v1.0</p>
+    </div>
+
+    <main class="container" style="max-width: 900px; margin: 0 auto;">
+        <div class="deck-wrapper">
+            
+            <!-- Tabbed deck engine -->
+            <div class="cyber-card">
+                <div class="engine-panel">
+                    
+                    <!-- Tabs -->
+                    <div class="deck-tabs">
+                        <div class="deck-tab active" data-tab="compress">
+                            <span class="tab-mod">MODULE_01</span>
+                            <span>Compress Image</span>
+                        </div>
+                        <div class="deck-tab" data-tab="qr">
+                            <span class="tab-mod">MODULE_02</span>
+                            <span>QR Code</span>
+                        </div>
+                        <div class="deck-tab" data-tab="text-utils">
+                            <span class="tab-mod">MODULE_03</span>
+                            <span>Text Editor</span>
+                        </div>
+                        <div class="deck-tab" data-tab="calculator">
+                            <span class="tab-mod">MODULE_04</span>
+                            <span>Calculators</span>
+                        </div>
+                    </div>
+
+                    <!-- Logger diagnostic bar -->
+                    <div class="console-log-mock">
+                        <span>SYSTEM_STATUS: <span style="color: #fff;">READY</span></span>
+                        <span id="deck-status" style="color: var(--neon-pink);">COMPRESS</span>
+                    </div>
+
+                    <!-- TAB 1: IMAGE COMPRESSOR -->
+                    <div class="tab-content active" id="panel-compress">
+                        <div style="text-align: left; margin-bottom: 5px;">
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">⚡ Client-Side Image Compressor & Resizer</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Compress and resize your PNG, JPEG, SVG, or WebP images instantly. Everything runs 100% inside your local browser memory—no server uploads, ensuring total privacy.</p>
+                        </div>
+
+                        <div class="drop-zone" id="drop-zone-compress">
+                            <div class="drop-icon" style="color: var(--neon-cyan);">🖼️</div>
+                            <div class="drop-text">Drag & drop an image file or <span style="color: var(--neon-cyan); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-compress" class="file-input" accept="image/*">
+                        </div>
+
+                        <div class="file-queue" id="queue-compress"></div>
+
+                        <div class="options-grid" id="compress-settings" style="display: none;">
+                            <div class="option-field">
+                                <label for="compress-quality">Quality (<span id="lbl-quality">80</span>%)</label>
+                                <input type="range" id="compress-quality" min="10" max="100" value="80" style="accent-color: var(--neon-cyan); margin-top: 4px;">
+                            </div>
+                            <div class="option-field">
+                                <label for="compress-width">Max Width (PX)</label>
+                                <input type="number" id="compress-width" class="cyber-input" placeholder="e.g. 1920" style="margin-top: 4px;">
+                            </div>
+                            <div class="option-field">
+                                <label for="compress-format">Output Format</label>
+                                <select id="compress-format" class="cyber-select" style="margin-top: 4px;">
+                                    <option value="jpeg" selected>JPEG</option>
+                                    <option value="png">PNG (Lossless)</option>
+                                    <option value="webp">WEBP</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button class="neon-action-btn" id="btn-compress-apply" style="width: 100%; display: none;">
+                            ⚡ COMPRESS & DOWNLOAD
+                        </button>
+                    </div>
+
+                    <!-- TAB 2: QR CODE GENERATOR & SCANNER -->
+                    <div class="tab-content" id="panel-qr">
+                        <div style="text-align: left; margin-bottom: 5px;">
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">👁️ Offline QR Code Generator & Scanner</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Create custom QR codes or scan existing ones. Generation operates instantly using canvas renders, and scanning uses a local parser. Zero tracking data.</p>
+                        </div>
+
+                        <!-- Inner tab switcher -->
+                        <div style="display: flex; gap: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                            <button id="btn-qr-sub-gen" class="cyber-btn active" style="padding: 6px 16px; font-size: 0.75rem;">🖊️ GENERATE QR</button>
+                            <button id="btn-qr-sub-scan" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">📁 SCAN IMAGE</button>
+                        </div>
+
+                        <!-- Sub-panel: Generate QR -->
+                        <div id="qr-subpanel-gen" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="options-grid">
+                                <div class="option-field" style="grid-column: span 2;">
+                                    <label for="qr-input-text">TEXT OR URL TO ENCODE</label>
+                                    <input type="text" id="qr-input-text" class="cyber-input" placeholder="Type URL or text..." value="https://arcadehubplay.com" style="margin-top: 4px; width: 100%;">
+                                </div>
+                                <div class="option-field">
+                                    <label for="qr-color-foreground">FOREGROUND</label>
+                                    <input type="color" id="qr-color-foreground" value="#00ffcc" style="background: transparent; border: none; height: 36px; width: 100%; cursor: pointer; margin-top: 4px;">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid var(--border-color); width: 100%;">
+                                <canvas id="qr-output-canvas"></canvas>
+                            </div>
+
+                            <button class="neon-action-btn" id="btn-qr-download" style="width: 100%;">
+                                💾 DOWNLOAD QR CODE
+                            </button>
+                        </div>
+
+                        <!-- Sub-panel: Scan QR -->
+                        <div id="qr-subpanel-scan" style="display: none; flex-direction: column; gap: 16px;">
+                            <div class="drop-zone pink-hover" id="drop-zone-qr-scan">
+                                <div class="drop-icon" style="color: var(--neon-pink);">📷</div>
+                                <div class="drop-text">Drag & drop a QR code image or <span style="color: var(--neon-pink); text-decoration: underline;">browse files</span></div>
+                                <input type="file" id="input-qr-scan" class="file-input" accept="image/*">
+                            </div>
+
+                            <div id="qr-scan-result-card" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; flex-direction: column; gap: 8px; text-align: left;">
+                                <label style="font-size: 0.75rem; color: var(--neon-pink); font-family: 'Share Tech Mono', monospace; text-transform: uppercase;">Decoded Content:</label>
+                                <textarea id="qr-scan-result-text" class="cyber-input" style="width: 100%; height: 80px; resize: none; font-family: monospace;" readonly></textarea>
+                                <button id="btn-qr-scan-copy" class="file-btn" style="align-self: flex-end; font-size: 0.75rem; padding: 4px 12px;">📋 COPY TO CLIPBOARD</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: TEXT EDITOR & SEO WRITING TOOL -->
+                    <div class="tab-content" id="panel-text-utils">
+                        <div style="text-align: left; margin-bottom: 5px;">
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">📝 SEO Word Counter & Case Converter</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Count words, characters, estimate reading times, calculate top keyword densities, and instantly format text case in-memory.</p>
+                        </div>
+
+                        <div class="option-field">
+                            <textarea id="text-editor-input" class="cyber-input" placeholder="Type or paste your text content here..." style="width: 100%; height: 200px; resize: vertical; font-size: 0.9rem; line-height: 1.5;"></textarea>
+                        </div>
+
+                        <!-- Capitalization controls -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button id="btn-text-upper" class="file-btn" style="font-size: 0.8rem; padding: 6px 12px;">UPPERCASE</button>
+                            <button id="btn-text-lower" class="file-btn" style="font-size: 0.8rem; padding: 6px 12px;">lowercase</button>
+                            <button id="btn-text-title" class="file-btn" style="font-size: 0.8rem; padding: 6px 12px;">Title Case</button>
+                            <button id="btn-text-sentence" class="file-btn" style="font-size: 0.8rem; padding: 6px 12px;">Sentence case</button>
+                            <button id="btn-text-clear" class="file-btn remove" style="font-size: 0.8rem; padding: 6px 12px; margin-left: auto;">✕ CLEAR</button>
+                        </div>
+
+                        <!-- Statistics Grid -->
+                        <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); text-align: center;">
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                                <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="stat-words">0</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Words</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                                <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="stat-chars">0</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Characters</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                                <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="stat-reading">0s</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Reading Time</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                                <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="stat-paragraphs">0</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Paragraphs</div>
+                            </div>
+                        </div>
+
+                        <!-- Density Analyzer container -->
+                        <div id="keyword-density-card" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; text-align: left; flex-direction: column; gap: 8px;">
+                            <label style="font-size: 0.75rem; color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace; text-transform: uppercase;">Top Keyword Density:</label>
+                            <div id="keyword-density-list" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: CALCULATORS -->
+                    <div class="tab-content" id="panel-calculator">
+                        <div style="text-align: left; margin-bottom: 5px;">
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">🧮 Offline Age & Loan EMI Calculator</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Calculate exact milestones or compute loan repayments immediately using client-side algorithms.</p>
+                        </div>
+
+                        <!-- Calculator type selectors -->
+                        <div style="display: flex; gap: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                            <button id="btn-calc-sub-age" class="cyber-btn active" style="padding: 6px 16px; font-size: 0.75rem;">📅 AGE CALCULATOR</button>
+                            <button id="btn-calc-sub-emi" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">💰 LOAN EMI CALCULATOR</button>
+                        </div>
+
+                        <!-- Sub-panel: Age Calculator -->
+                        <div id="calc-subpanel-age" style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="options-grid" style="grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; width: 100%;">
+                                <div class="option-field">
+                                    <label for="birth-date">SELECT DATE OF BIRTH</label>
+                                    <input type="date" id="birth-date" class="cyber-input" style="margin-top: 4px; width: 100%;">
+                                </div>
+                            </div>
+
+                            <!-- Age Outputs -->
+                            <div id="age-result-grid" style="display: none; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="age-val-years">0</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Years</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="age-val-months">0</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Months</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; text-align: center;">
+                                    <div style="font-size: 1.4rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="age-val-days">0</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Days</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; text-align: center; grid-column: span 3;">
+                                    <div style="font-size: 0.95rem; color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace;" id="age-birthday-countdown">COUNTING DOWN...</div>
+                                    <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 2px;">Until Next Birthday</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-panel: EMI Calculator -->
+                        <div id="calc-subpanel-emi" style="display: none; flex-direction: column; gap: 16px;">
+                            <div class="options-grid">
+                                <div class="option-field">
+                                    <label for="emi-amount">LOAN AMOUNT ($)</label>
+                                    <input type="number" id="emi-amount" class="cyber-input" value="10000" style="margin-top: 4px;">
+                                </div>
+                                <div class="option-field">
+                                    <label for="emi-rate">INTEREST RATE (% P.A.)</label>
+                                    <input type="number" id="emi-rate" class="cyber-input" value="7.5" step="0.1" style="margin-top: 4px;">
+                                </div>
+                                <div class="option-field">
+                                    <label for="emi-tenure">TENURE (YEARS)</label>
+                                    <input type="number" id="emi-tenure" class="cyber-input" value="5" style="margin-top: 4px;">
+                                </div>
+                            </div>
+
+                            <!-- EMI Outputs -->
+                            <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); text-align: center;">
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                                    <div style="font-size: 1.6rem; color: var(--neon-pink); font-family: 'Share Tech Mono', monospace;" id="emi-monthly">0</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Monthly EMI</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                                    <div style="font-size: 1.6rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="emi-total-interest">0</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Total Interest</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                                    <div style="font-size: 1.6rem; color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace;" id="emi-total-payment">0</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Total Amount</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SEO RICH FAQ SECTION (Resolving thin content check) -->
+        <section class="engine-panel" style="margin-top: 40px; padding: 24px; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(13, 14, 22, 0.4); backdrop-filter: blur(10px);">
+            <h2 style="font-family: 'Share Tech Mono', monospace; font-size: 1.5rem; color: var(--neon-pink); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; text-align: left;">💡 Frequently Asked Questions (FAQ)</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; text-align: left;">
+                <div>
+                    <h3 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px;">How does the online image compressor work?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Our image compression tool loads your image file into local browser memory, draws it onto an offscreen canvas at updated resolution scales, and converts it into compressed JPEG/WebP formats using specific quality values. Everything is processed locally in-browser with zero uploads.</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px;">Are my images or documents uploaded to a server?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">No! All tools inside Arcade Hub's Utility Hub are 100% client-side. Processing occurs entirely in-memory on your local browser. Your data is never transmitted across the network, making it completely private and secure.</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px;">How do I scan a QR code from a saved image file?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Switch to the "Scan Image" sub-panel in the QR Code tab, drop or select your QR image file. The client-side parser scans the image pixel grid to find and decode the QR metadata directly, rendering the result text instantly without camera permissions.</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px;">How are word and character statistics calculated?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Our word counter scans the text input area, filters out punctuation marks, splits blocks by whitespace, and counts matches. Reading duration is estimated using a standard reading rate of 200 words per minute. The density parser counts repeating words to show top SEO search terms.</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px;">How is the Loan EMI amortization repayment computed?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">Repayment is computed using standard loan amortization formulas: \[EMI = \frac{P \cdot r \cdot (1+r)^n}{(1+r)^n - 1}\] where \(P\) is the Principal loan amount, \(r\) is the monthly interest rate, and \(n\) is the duration in months.</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 1rem; color: var(--neon-cyan); margin-bottom: 8px;">How is my exact age calculated?</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">The age calculator compares the millisecond timestamp of your birth date to the current system clock time, breaking down the difference into years, months, and days, and computes the millisecond difference to the next annual birthday.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Adsterra Mobile Banner (320x50) - OUTSIDE AREA -->
+    <div class="ad-container mobile-banner" style="margin: 20px auto; display: flex; justify-content: center; width: 100%; max-width: 100%; overflow: hidden;">
+        <script>
+        atOptions = {
+            'key' : '68ced95a589a3c37a8f41a8fff267340',
+            'format' : 'iframe',
+            'height' : 50,
+            'width' : 320,
+            'params' : {}
+        };
+        </script>
+        <script src="https://www.highperformanceformat.com/68ced95a589a3c37a8f41a8fff267340/invoke.js"></script>
+    </div>
+
+    <footer class="site-footer" style="margin-top: 5rem;">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="privacy">Privacy Policy</a> | <a href="tos">Terms of Service</a> | <a href="contact">Contact Us</a> | <a href="updates">News</a> | <a href="blog">Blog &amp; Guides</a> | <a href="pdf-tools">PDF Tools</a> | <a href="utility-hub">Utility Hub</a></p>
+    </footer>
+
+    <script>
+        // Hamburger sidebar drawer script
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+
+        // 1. Audio Synth Helper
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(frequency, duration, type = 'sine') {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        function playSuccessChord() {
+            playBeep(523.25, 0.08, 'sine');
+            setTimeout(() => playBeep(659.25, 0.08, 'sine'), 60);
+            setTimeout(() => playBeep(783.99, 0.15, 'sine'), 120);
+        }
+        function playErrorBuzz() {
+            playBeep(120, 0.15, 'sawtooth');
+            setTimeout(() => playBeep(120, 0.15, 'sawtooth'), 80);
+        }
+
+        // Global Tab Switching Logic
+        const tabs = document.querySelectorAll('.deck-tab');
+        const contents = document.querySelectorAll('.tab-content');
+        const deckStatus = document.getElementById('deck-status');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                playBeep(700, 0.05, 'sine');
+
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(`panel-${target}`).classList.add('active');
+                deckStatus.textContent = target.toUpperCase();
+            });
+        });
+
+        // --- MODULE 01: IMAGE COMPRESSOR & RESIZER ---
+        let compressFile = null;
+        const dropZoneComp = document.getElementById('drop-zone-compress');
+        const inputComp = document.getElementById('input-compress');
+        const queueComp = document.getElementById('queue-compress');
+        const settingsComp = document.getElementById('compress-settings');
+        const btnComp = document.getElementById('btn-compress-apply');
+
+        dropZoneComp.addEventListener('click', () => inputComp.click());
+        inputComp.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) loadCompressFile(e.target.files[0]);
+        });
+        dropZoneComp.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZoneComp.classList.add('dragover');
+        });
+        dropZoneComp.addEventListener('dragleave', () => dropZoneComp.classList.remove('dragover'));
+        dropZoneComp.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZoneComp.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) loadCompressFile(e.dataTransfer.files[0]);
+        });
+
+        function loadCompressFile(file) {
+            compressFile = file;
+            playBeep(880, 0.08, 'sine');
+
+            queueComp.innerHTML = '';
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.innerHTML = `
+                <div class="file-info">
+                    <span style="color: var(--neon-cyan); font-family: monospace;">[IMAGE]</span>
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-size">${sizeMB} MB</div>
+                </div>
+                <div class="file-controls">
+                    <button class="file-btn remove" onclick="clearCompress()">✕</button>
+                </div>
+            `;
+            queueComp.appendChild(item);
+
+            settingsComp.style.display = 'grid';
+            btnComp.style.display = 'block';
+
+            // Auto-fill width dimensions if image
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('compress-width').value = img.width;
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        window.clearCompress = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            compressFile = null;
+            queueComp.innerHTML = '';
+            settingsComp.style.display = 'none';
+            btnComp.style.display = 'none';
+            inputComp.value = '';
+        }
+
+        document.getElementById('compress-quality').addEventListener('input', (e) => {
+            document.getElementById('lbl-quality').textContent = e.target.value;
+        });
+
+        btnComp.addEventListener('click', () => {
+            if (!compressFile) return;
+            btnComp.disabled = true;
+
+            const quality = parseFloat(document.getElementById('compress-quality').value) / 100;
+            const width = parseInt(document.getElementById('compress-width').value) || 0;
+            const format = document.getElementById('compress-format').value;
+
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let targetW = img.width;
+                let targetH = img.height;
+
+                if (width > 0 && width < img.width) {
+                    targetW = width;
+                    targetH = Math.round((img.height * width) / img.width);
+                }
+
+                canvas.width = targetW;
+                canvas.height = targetH;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, targetW, targetH);
+
+                const mimeType = format === 'png' ? 'image/png' : format === 'webp' ? 'image/webp' : 'image/jpeg';
+                const outputUrl = canvas.toDataURL(mimeType, format === 'png' ? undefined : quality);
+
+                const link = document.createElement('a');
+                link.href = outputUrl;
+                link.download = `compressed_${compressFile.name.replace(/\.[^/.]+$/, "")}.${format}`;
+                link.click();
+
+                playSuccessChord();
+                btnComp.disabled = false;
+            };
+            img.onerror = function() {
+                playErrorBuzz();
+                btnComp.disabled = false;
+            }
+            img.src = URL.createObjectURL(compressFile);
+        });
+
+
+        // --- MODULE 02: QR CODE GENERATOR & SCANNER ---
+        // Generater
+        const qrCanvas = document.getElementById('qr-output-canvas');
+        let qrObj = new QRious({
+            element: qrCanvas,
+            value: 'https://arcadehubplay.com',
+            size: 200,
+            foreground: '#00ffcc',
+            background: '#ffffff'
+        });
+
+        function updateQR() {
+            const val = document.getElementById('qr-input-text').value.trim() || 'https://arcadehubplay.com';
+            const fg = document.getElementById('qr-color-foreground').value;
+            qrObj.set({
+                value: val,
+                foreground: fg
+            });
+        }
+
+        document.getElementById('qr-input-text').addEventListener('input', updateQR);
+        document.getElementById('qr-color-foreground').addEventListener('change', updateQR);
+
+        document.getElementById('btn-qr-download').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            const link = document.createElement('a');
+            link.href = qrCanvas.toDataURL('image/png');
+            link.download = 'qrcode.png';
+            link.click();
+            playSuccessChord();
+        });
+
+        // Scanner
+        const dropZoneQr = document.getElementById('drop-zone-qr-scan');
+        const inputQr = document.getElementById('input-qr-scan');
+        const scanResultCard = document.getElementById('qr-scan-result-card');
+        const scanResultText = document.getElementById('qr-scan-result-text');
+
+        dropZoneQr.addEventListener('click', () => inputQr.click());
+        inputQr.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) scanQRImage(e.target.files[0]);
+        });
+        dropZoneQr.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZoneQr.classList.add('dragover');
+        });
+        dropZoneQr.addEventListener('dragleave', () => dropZoneQr.classList.remove('dragover'));
+        dropZoneQr.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZoneQr.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) scanQRImage(e.dataTransfer.files[0]);
+        });
+
+        function scanQRImage(file) {
+            playBeep(880, 0.08, 'sine');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imgData.data, imgData.width, imgData.height);
+
+                    if (code) {
+                        scanResultText.value = code.data;
+                        scanResultCard.style.display = 'flex';
+                        playSuccessChord();
+                    } else {
+                        scanResultText.value = "Failed to locate or parse QR Code in the uploaded image.";
+                        scanResultCard.style.display = 'flex';
+                        playErrorBuzz();
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('btn-qr-scan-copy').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            scanResultText.select();
+            document.execCommand('copy');
+            playSuccessChord();
+        });
+
+        // Tab subpanel toggles
+        document.getElementById('btn-qr-sub-gen').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            document.getElementById('btn-qr-sub-gen').classList.add('active');
+            document.getElementById('btn-qr-sub-scan').classList.remove('active');
+            document.getElementById('qr-subpanel-gen').style.display = 'flex';
+            document.getElementById('qr-subpanel-scan').style.display = 'none';
+        });
+        document.getElementById('btn-qr-sub-scan').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            document.getElementById('btn-qr-sub-scan').classList.add('active');
+            document.getElementById('btn-qr-sub-gen').classList.remove('active');
+            document.getElementById('qr-subpanel-scan').style.display = 'flex';
+            document.getElementById('qr-subpanel-gen').style.display = 'none';
+        });
+
+
+        // --- MODULE 03: TEXT EDITOR & SEO WRITING TOOL ---
+        const textInput = document.getElementById('text-editor-input');
+
+        textInput.addEventListener('input', runTextAnalysis);
+
+        function runTextAnalysis() {
+            const val = textInput.value;
+            
+            // Characters
+            document.getElementById('stat-chars').textContent = val.length;
+
+            // Words
+            const cleanText = val.trim().replace(/\s+/g, ' ');
+            const wordsArr = cleanText === '' ? [] : cleanText.split(' ');
+            document.getElementById('stat-words').textContent = wordsArr.length;
+
+            // Reading time
+            const seconds = Math.round((wordsArr.length / 200) * 60);
+            document.getElementById('stat-reading').textContent = seconds < 60 ? `${seconds}s` : `${Math.round(seconds/60)}m`;
+
+            // Paragraphs
+            const paragraphs = val.split(/\n+/).filter(p => p.trim() !== '').length;
+            document.getElementById('stat-paragraphs').textContent = paragraphs;
+
+            // Keyword density
+            const densityCard = document.getElementById('keyword-density-card');
+            const densityList = document.getElementById('keyword-density-list');
+            if (wordsArr.length > 5) {
+                const freqs = {};
+                wordsArr.forEach(word => {
+                    const cleanWord = word.toLowerCase().replace(/[^a-zA-Z]/g, '');
+                    if (cleanWord.length > 3) {
+                        freqs[cleanWord] = (freqs[cleanWord] || 0) + 1;
+                    }
+                });
+
+                const sorted = Object.keys(freqs).map(k => [k, freqs[k]]).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                
+                if (sorted.length > 0) {
+                    densityList.innerHTML = '';
+                    sorted.forEach(([k, v]) => {
+                        const badge = document.createElement('span');
+                        const percent = Math.round((v / wordsArr.length) * 100);
+                        badge.className = 'file-btn';
+                        badge.style.cssText = 'font-size: 0.7rem; padding: 4px 10px; border-color: var(--neon-cyan);';
+                        badge.textContent = `${k.toUpperCase()} (${percent}%)`;
+                        densityList.appendChild(badge);
+                    });
+                    densityCard.style.display = 'flex';
+                } else {
+                    densityCard.style.display = 'none';
+                }
+            } else {
+                densityCard.style.display = 'none';
+            }
+        }
+
+        document.getElementById('btn-text-upper').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            textInput.value = textInput.value.toUpperCase();
+            runTextAnalysis();
+        });
+        document.getElementById('btn-text-lower').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            textInput.value = textInput.value.toLowerCase();
+            runTextAnalysis();
+        });
+        document.getElementById('btn-text-title').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            textInput.value = textInput.value.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.substring(1)).join(' ');
+            runTextAnalysis();
+        });
+        document.getElementById('btn-text-sentence').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            textInput.value = textInput.value.toLowerCase().replace(/(^\s*|[.!?]\s+)([a-z])/g, m => m.toUpperCase());
+            runTextAnalysis();
+        });
+        document.getElementById('btn-text-clear').addEventListener('click', () => {
+            playBeep(440, 0.05, 'sawtooth');
+            textInput.value = '';
+            runTextAnalysis();
+        });
+
+
+        // --- MODULE 04: CALCULATORS ---
+        // Sub tabs
+        document.getElementById('btn-calc-sub-age').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            document.getElementById('btn-calc-sub-age').classList.add('active');
+            document.getElementById('btn-calc-sub-emi').classList.remove('active');
+            document.getElementById('calc-subpanel-age').style.display = 'flex';
+            document.getElementById('calc-subpanel-emi').style.display = 'none';
+        });
+        document.getElementById('btn-calc-sub-emi').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            document.getElementById('btn-calc-sub-emi').classList.add('active');
+            document.getElementById('btn-calc-sub-age').classList.remove('active');
+            document.getElementById('calc-subpanel-emi').style.display = 'flex';
+            document.getElementById('calc-subpanel-age').style.display = 'none';
+        });
+
+        // Age logic
+        const dateInput = document.getElementById('birth-date');
+        dateInput.addEventListener('change', () => {
+            if (!dateInput.value) return;
+            playBeep(880, 0.08, 'sine');
+
+            const dob = new Date(dateInput.value);
+            const now = new Date();
+
+            let years = now.getFullYear() - dob.getFullYear();
+            let months = now.getMonth() - dob.getMonth();
+            let days = now.getDate() - dob.getDate();
+
+            if (days < 0) {
+                months--;
+                const lastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+                days += lastMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            document.getElementById('age-val-years').textContent = years;
+            document.getElementById('age-val-months').textContent = months;
+            document.getElementById('age-val-days').textContent = days;
+
+            // Birthday countdown
+            const nextBday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+            if (now > nextBday) {
+                nextBday.setFullYear(now.getFullYear() + 1);
+            }
+            const diffMs = nextBday - now;
+            const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            document.getElementById('age-birthday-countdown').textContent = `${diffDays} DAYS LEFT`;
+
+            document.getElementById('age-result-grid').style.display = 'grid';
+        });
+
+        // EMI logic
+        const emiAmt = document.getElementById('emi-amount');
+        const emiRate = document.getElementById('emi-rate');
+        const emiTenure = document.getElementById('emi-tenure');
+
+        [emiAmt, emiRate, emiTenure].forEach(el => el.addEventListener('input', calculateEMI));
+
+        function calculateEMI() {
+            const P = parseFloat(emiAmt.value) || 0;
+            const annualR = parseFloat(emiRate.value) || 0;
+            const N = (parseInt(emiTenure.value) || 0) * 12;
+
+            if (P <= 0 || annualR <= 0 || N <= 0) {
+                document.getElementById('emi-monthly').textContent = '$0';
+                document.getElementById('emi-total-interest').textContent = '$0';
+                document.getElementById('emi-total-payment').textContent = '$0';
+                return;
+            }
+
+            const r = (annualR / 12) / 100;
+            const emi = (P * r * Math.pow(1 + r, N)) / (Math.pow(1 + r, N) - 1);
+            const totalRepayment = emi * N;
+            const totalInterest = totalRepayment - P;
+
+            document.getElementById('emi-monthly').textContent = `$${Math.round(emi).toLocaleString()}`;
+            document.getElementById('emi-total-interest').textContent = `$${Math.round(totalInterest).toLocaleString()}`;
+            document.getElementById('emi-total-payment').textContent = `$${Math.round(totalRepayment).toLocaleString()}`;
+        }
+
+        // Initialize EMI
+        calculateEMI();
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>

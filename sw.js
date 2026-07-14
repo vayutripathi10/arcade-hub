@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v184';
+const CACHE_NAME = 'arcade-hub-cache-v185';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -133,6 +133,7 @@ const CORE_ASSETS = [
     'play-tictactoe.html',
     'privacy.html',
     'pdf-tools.html',
+    'utility-hub.html',
     'retro-hub.html',
     'retro-racer-frontend/enemy.png',
     'retro-racer-frontend/index.html',
