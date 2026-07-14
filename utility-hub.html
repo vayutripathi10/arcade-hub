@@ -472,6 +472,11 @@
 
                         <div class="file-queue" id="queue-compress"></div>
 
+                        <!-- Preview Card -->
+                        <div id="compress-preview-container" style="display: none; justify-content: center; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+                            <img id="compress-preview-img" style="max-width: 100%; max-height: 200px; border-radius: 6px; border: 1px solid var(--border-color); box-shadow: 0 0 15px rgba(0,0,0,0.5);">
+                        </div>
+
                         <div class="options-grid" id="compress-settings" style="display: none; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
                             <div class="option-field">
                                 <label for="compress-quality">Quality (<span id="lbl-quality">80</span>%)</label>
@@ -903,6 +908,15 @@
 
                 document.getElementById('compress-width').value = defaultW;
                 document.getElementById('compress-height').value = defaultH;
+                
+                // Show visual preview
+                const previewImg = document.getElementById('compress-preview-img');
+                const previewContainer = document.getElementById('compress-preview-container');
+                if (previewImg && previewContainer) {
+                    previewImg.src = img.src;
+                    previewContainer.style.display = 'flex';
+                }
+                
                 updatePxPreview();
             };
             img.src = URL.createObjectURL(file);
@@ -915,6 +929,14 @@
             queueComp.innerHTML = '';
             settingsComp.style.display = 'none';
             document.getElementById('compress-px-preview').style.display = 'none';
+            
+            const previewImg = document.getElementById('compress-preview-img');
+            const previewContainer = document.getElementById('compress-preview-container');
+            if (previewImg && previewContainer) {
+                previewImg.src = '';
+                previewContainer.style.display = 'none';
+            }
+            
             btnComp.style.display = 'none';
             inputComp.value = '';
         }
@@ -985,7 +1007,7 @@
         document.getElementById('compress-height').addEventListener('input', () => updatePxPreview('height'));
 
         btnComp.addEventListener('click', () => {
-            if (!compressFile) {
+            if (!compressFile || !currentLoadedImage) {
                 showNotification("Please upload an image file first.", "error");
                 playErrorBuzz();
                 return;
@@ -1007,62 +1029,45 @@
             btnComp.disabled = true;
             document.getElementById('status-notification').style.display = 'none'; // Clear old messages
 
-            const img = new Image();
-            img.onload = function() {
-                try {
-                    const canvas = document.createElement('canvas');
-                    let targetW = img.width;
-                    let targetH = img.height;
-
-                    if (wVal > 0 && hVal > 0) {
-                        if (unit === 'inch') {
-                            targetW = Math.round(wVal * dpi);
-                            targetH = Math.round(hVal * dpi);
-                        } else {
-                            targetW = Math.round((wVal / 2.54) * dpi);
-                            targetH = Math.round((hVal / 2.54) * dpi);
-                        }
-                    }
-
-                    if (targetW <= 0 || targetH <= 0) {
-                        throw new Error("Calculated dimensions are too small.");
-                    }
-
-                    canvas.width = targetW;
-                    canvas.height = targetH;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, targetW, targetH);
-
-                    const mimeType = format === 'png' ? 'image/png' : format === 'webp' ? 'image/webp' : 'image/jpeg';
-                    // Fix: Avoid passing quality parameter to toDataURL for PNG to prevent TypeError in some browsers
-                    const outputUrl = format === 'png' ? canvas.toDataURL(mimeType) : canvas.toDataURL(mimeType, quality);
-
-                    const link = document.createElement('a');
-                    link.href = outputUrl;
-                    link.download = `compressed_${compressFile.name.replace(/\.[^/.]+$/, "")}.${format}`;
-                    link.click();
-
-                    showNotification("Success! Image compressed and downloaded successfully.", "success");
-                    playSuccessChord();
-                    btnComp.disabled = false;
-                } catch (err) {
-                    console.error("Compression execution error:", err);
-                    showNotification("An error occurred during compression: " + err.message + ". Please try using a different output format or size.", "error");
-                    playErrorBuzz();
-                    btnComp.disabled = false;
-                }
-            };
-            img.onerror = function() {
-                showNotification("Unable to load the image file. The file might be corrupted or in an unsupported format.", "error");
-                playErrorBuzz();
-                btnComp.disabled = false;
-            }
-            
             try {
-                img.src = URL.createObjectURL(compressFile);
+                const canvas = document.createElement('canvas');
+                let targetW = currentLoadedImage.width;
+                let targetH = currentLoadedImage.height;
+
+                if (wVal > 0 && hVal > 0) {
+                    if (unit === 'inch') {
+                        targetW = Math.round(wVal * dpi);
+                        targetH = Math.round(hVal * dpi);
+                    } else {
+                        targetW = Math.round((wVal / 2.54) * dpi);
+                        targetH = Math.round((hVal / 2.54) * dpi);
+                    }
+                }
+
+                if (targetW <= 0 || targetH <= 0) {
+                    throw new Error("Calculated dimensions are too small.");
+                }
+
+                canvas.width = targetW;
+                canvas.height = targetH;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(currentLoadedImage, 0, 0, targetW, targetH);
+
+                const mimeType = format === 'png' ? 'image/png' : format === 'webp' ? 'image/webp' : 'image/jpeg';
+                // Fix: Avoid passing quality parameter to toDataURL for PNG to prevent TypeError in some browsers
+                const outputUrl = format === 'png' ? canvas.toDataURL(mimeType) : canvas.toDataURL(mimeType, quality);
+
+                const link = document.createElement('a');
+                link.href = outputUrl;
+                link.download = `compressed_${compressFile.name.replace(/\.[^/.]+$/, "")}.${format}`;
+                link.click();
+
+                showNotification("Success! Image compressed and downloaded successfully.", "success");
+                playSuccessChord();
+                btnComp.disabled = false;
             } catch (err) {
-                console.error("ObjectURL creation error:", err);
-                showNotification("Could not read the uploaded image. Please try uploading the file again.", "error");
+                console.error("Compression execution error:", err);
+                showNotification("An error occurred during compression: " + err.message + ". Please try using a different output format or size.", "error");
                 playErrorBuzz();
                 btnComp.disabled = false;
             }
