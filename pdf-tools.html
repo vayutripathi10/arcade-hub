@@ -987,9 +987,6 @@
                                     <button class="cyber-btn" id="tool-sign" style="padding: 8px 14px; font-size: 0.8rem;">✍️ SIGN</button>
                                     <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px 14px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
                                 </div>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <button class="cyber-btn" id="btn-editor-fullscreen" style="padding: 8px 14px; font-size: 0.8rem; border-color: var(--neon-cyan); color: var(--neon-cyan);">🖥️ FULLSCREEN</button>
-                                </div>
                             </div>
 
                             <!-- Workspace body split row -->
@@ -1062,8 +1059,8 @@
                                         </div>
 
                                         <!-- Workspace Canvas scroll wrapper -->
-                                        <div class="editor-canvas-scroll-container" style="position: relative; display: flex; justify-content: center; flex: 1; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 550px; padding: 20px;">
-                                            <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block;">
+                                        <div class="editor-canvas-scroll-container" style="position: relative; display: flex; justify-content: flex-start; align-items: flex-start; flex: 1; background: #000; border: 1px solid var(--border-color); border-radius: 8px; overflow: auto; min-height: 400px; max-height: 550px; padding: 20px;">
+                                            <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block; margin: auto;">
                                                 <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
                                                 <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
                                             </div>
@@ -3555,26 +3552,7 @@
         });
 
 
-        // Fullscreen Toggle Event Listener
-        document.getElementById('btn-editor-fullscreen').addEventListener('click', () => {
-            playBeep(700, 0.05, 'sine');
-            const panel = document.getElementById('panel-editor');
-            const btn = document.getElementById('btn-editor-fullscreen');
-            
-            panel.classList.toggle('fullscreen-editor');
-            
-            if (panel.classList.contains('fullscreen-editor')) {
-                btn.textContent = '🚪 EXIT FULLSCREEN';
-                btn.style.borderColor = 'var(--neon-pink)';
-                btn.style.color = 'var(--neon-pink)';
-                appendLog("Entered full-screen editor layout focus.");
-            } else {
-                btn.textContent = '🖥️ FULLSCREEN';
-                btn.style.borderColor = 'var(--neon-cyan)';
-                btn.style.color = 'var(--neon-cyan)';
-                appendLog("Exited full-screen editor layout.");
-            }
-        });
+        // Fullscreen Toggle Event Listener removed
 
 
         // --- MODULE 08: PDF TO IMAGE LOGIC ---
