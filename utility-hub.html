@@ -704,10 +704,17 @@
                     <div class="tab-content" id="panel-yt-transcript">
                         <div style="text-align: left; margin-bottom: 5px;">
                             <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">📺 YouTube Video Transcript Exporter</h2>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Fetch captions and auto-generated transcripts from any YouTube video instantly and save as a formatted PDF document.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Fetch captions from any YouTube video instantly or compile manually pasted transcripts into a formatted PDF document.</p>
                         </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+                        <!-- Sub-tab selectors -->
+                        <div style="display: flex; gap: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
+                            <button id="btn-yt-sub-auto" class="cyber-btn active" style="padding: 6px 16px; font-size: 0.75rem;">⚡ AUTO-FETCH LINK</button>
+                            <button id="btn-yt-sub-manual" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">📝 MANUAL PASTE</button>
+                        </div>
+
+                        <!-- Sub-panel: Auto Fetch -->
+                        <div id="yt-subpanel-auto" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
                             <div class="option-field" style="width: 100%;">
                                 <label for="yt-video-url">PASTE YOUTUBE VIDEO LINK</label>
                                 <div style="display: flex; gap: 10px; margin-top: 4px;">
@@ -732,8 +739,24 @@
                                         ⬇️ EXPORT TO PDF
                                     </button>
                                 </div>
-                                <textarea class="text-output-area" id="yt-transcript-text" readonly style="height: 250px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
+                                <textarea class="text-output-area" id="yt-transcript-text" readonly style="height: 200px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
                             </div>
+                        </div>
+
+                        <!-- Sub-panel: Manual Paste -->
+                        <div id="yt-subpanel-manual" style="display: none; flex-direction: column; gap: 15px; text-align: left;">
+                            <div class="option-field" style="width: 100%;">
+                                <label for="yt-manual-title">DOCUMENT TITLE (OPTIONAL)</label>
+                                <input type="text" id="yt-manual-title" class="cyber-input" placeholder="e.g., Amer Fort History Transcript" style="margin-top: 4px; width: 100%;">
+                            </div>
+                            <div class="option-field" style="width: 100%;">
+                                <label for="yt-manual-text">PASTE TRANSCRIPT CONTENT HERE</label>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">You can copy the transcript from YouTube's "Show Transcript" sidebar and paste it directly below.</p>
+                                <textarea class="text-output-area" id="yt-manual-text" placeholder="Paste subtitles here..." style="height: 220px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
+                            </div>
+                            <button class="neon-action-btn pink" id="btn-yt-manual-download" style="margin-top: 5px;">
+                                ⬇️ COMPILE & DOWNLOAD PDF
+                            </button>
                         </div>
                     </div>
 
@@ -1421,6 +1444,141 @@
 
         let currentYtVideoId = "";
         let currentYtTranscriptText = "";
+
+        // Sub-tabs switching
+        const btnYtSubAuto = document.getElementById('btn-yt-sub-auto');
+        const btnYtSubManual = document.getElementById('btn-yt-sub-manual');
+        const ytSubpanelAuto = document.getElementById('yt-subpanel-auto');
+        const ytSubpanelManual = document.getElementById('yt-subpanel-manual');
+
+        if (btnYtSubAuto && btnYtSubManual) {
+            btnYtSubAuto.addEventListener('click', () => {
+                playBeep(700, 0.05, 'sine');
+                btnYtSubAuto.classList.add('active');
+                btnYtSubManual.classList.remove('active');
+                ytSubpanelAuto.style.display = 'flex';
+                ytSubpanelManual.style.display = 'none';
+            });
+
+            btnYtSubManual.addEventListener('click', () => {
+                playBeep(700, 0.05, 'sine');
+                btnYtSubManual.classList.add('active');
+                btnYtSubAuto.classList.remove('active');
+                ytSubpanelManual.style.display = 'flex';
+                ytSubpanelAuto.style.display = 'none';
+            });
+        }
+
+        // Manual PDF compile action
+        const btnYtManualDownload = document.getElementById('btn-yt-manual-download');
+        const txtYtManualTitle = document.getElementById('yt-manual-title');
+        const txtYtManualText = document.getElementById('yt-manual-text');
+
+        if (btnYtManualDownload) {
+            btnYtManualDownload.addEventListener('click', async () => {
+                const textContent = txtYtManualText.value.trim();
+                if (!textContent) {
+                    showNotification("Please paste some transcript content first.", "error");
+                    playErrorBuzz();
+                    return;
+                }
+
+                playBeep(880, 0.08, 'sine');
+                
+                try {
+                    const pdfDoc = await PDFLib.PDFDocument.create();
+                    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+                    
+                    const fontSize = 10;
+                    const titleSize = 14;
+                    const lineHeight = 14;
+                    const margin = 50;
+                    const pageWidth = 612; // Letter
+                    const pageHeight = 792;
+                    const maxTextWidth = pageWidth - (margin * 2);
+                    
+                    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                    let y = pageHeight - margin;
+                    
+                    const docTitle = txtYtManualTitle.value.trim() || "Manual YouTube Transcript Exporter";
+                    
+                    currentPage.drawText(docTitle, {
+                        x: margin,
+                        y: y,
+                        size: titleSize,
+                        font: boldFont,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+                    y -= titleSize + 20;
+
+                    const paragraphs = textContent.split('\n');
+                    for (let para of paragraphs) {
+                        para = para.trim();
+                        if (!para) {
+                            y -= lineHeight;
+                            continue;
+                        }
+                        
+                        const words = para.split(' ');
+                        let currentLine = "";
+                        
+                        for (const word of words) {
+                            const testLine = currentLine ? currentLine + " " + word : word;
+                            const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+                            
+                            if (testWidth > maxTextWidth) {
+                                if (y < margin + lineHeight) {
+                                    currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                                    y = pageHeight - margin;
+                                }
+                                currentPage.drawText(currentLine, {
+                                    x: margin,
+                                    y: y,
+                                    size: fontSize,
+                                    font: font,
+                                    color: PDFLib.rgb(0.1, 0.1, 0.1)
+                                });
+                                y -= lineHeight;
+                                currentLine = word;
+                            } else {
+                                currentLine = testLine;
+                            }
+                        }
+                        
+                        if (currentLine) {
+                            if (y < margin + lineHeight) {
+                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                                y = pageHeight - margin;
+                            }
+                            currentPage.drawText(currentLine, {
+                                x: margin,
+                                y: y,
+                                size: fontSize,
+                                font: font,
+                                color: PDFLib.rgb(0.1, 0.1, 0.1)
+                            });
+                            y -= lineHeight;
+                        }
+                        y -= 4; // gap
+                    }
+                    
+                    const pdfBytes = await pdfDoc.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    
+                    const safeName = docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    link.download = `${safeName}.pdf`;
+                    link.click();
+                    showNotification("Downloaded PDF transcript successfully.", "success");
+                } catch (pdfErr) {
+                    console.error(pdfErr);
+                    showNotification(`PDF Compilation failed: ${pdfErr.message}`, "error");
+                    playErrorBuzz();
+                }
+            });
+        }
 
         function extractYouTubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
