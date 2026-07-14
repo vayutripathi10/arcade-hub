@@ -207,6 +207,34 @@
             background: rgba(255, 0, 127, 0.03);
         }
 
+        .excel-tab {
+            font-family: 'Share Tech Mono', monospace;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .excel-tab:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .excel-tab.active {
+            color: #fff;
+            background: rgba(138,43,226,0.1);
+        }
+
         /* Tab Content Panels */
         .tab-content {
             display: none;
@@ -1131,10 +1159,10 @@
                         <div id="pdf-to-excel-workspace" style="display: none; flex-direction: column; gap: 15px; margin: 20px 0;">
                             <!-- Tab switches for Spreadsheet vs Raw Text -->
                             <div style="display: flex; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-                                <button class="deck-tab active" id="tab-excel-grid" style="font-size: 0.8rem; padding: 6px 12px; width: auto; border: 1px solid var(--neon-cyan);">
+                                <button class="excel-tab active" id="tab-excel-grid" style="font-size: 0.8rem; padding: 6px 12px; width: auto; border: 1px solid var(--neon-cyan);">
                                     📊 Spreadsheet Grid
                                 </button>
-                                <button class="deck-tab" id="tab-excel-text" style="font-size: 0.8rem; padding: 6px 12px; width: auto; border: 1px solid transparent;">
+                                <button class="excel-tab" id="tab-excel-text" style="font-size: 0.8rem; padding: 6px 12px; width: auto; border: 1px solid transparent;">
                                     📝 Raw Text Buffer
                                 </button>
                             </div>
