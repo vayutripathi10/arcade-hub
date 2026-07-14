@@ -715,6 +715,10 @@
                             <span class="tab-mod">MODULE_08</span>
                             <span>PDF to Image</span>
                         </div>
+                        <div class="deck-tab" data-tab="pdf-to-excel">
+                            <span class="tab-mod">MODULE_09</span>
+                            <span>PDF to Excel/CSV</span>
+                        </div>
                     </div>
 
                     <!-- Progress Indicator -->
@@ -1109,6 +1113,56 @@
                         <button class="neon-action-btn" id="btn-pdf-to-img" disabled>
                             ⚡ ZIP & DOWNLOAD ALL PAGES
                         </button>
+                    </div>
+
+                    <!-- TAB 9: PDF TO EXCEL / CSV -->
+                    <div class="tab-content" id="panel-pdf-to-excel">
+                        <div class="drop-zone" id="drop-zone-pdf-to-excel">
+                            <div class="drop-icon">📊</div>
+                            <div class="drop-text">Drag & drop a PDF statement or invoice to convert to Excel or <span style="color: var(--neon-cyan); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-pdf-to-excel" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-pdf-to-excel">
+                            <!-- Single PDF details will appear here -->
+                        </div>
+
+                        <!-- Interactive Spreadsheet Workspace -->
+                        <div id="pdf-to-excel-workspace" style="display: none; flex-direction: column; gap: 15px; margin: 20px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">SPREADSHEET PREVIEW & EDITOR</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <button class="neon-action-btn" id="btn-excel-add-row" style="padding: 6px 12px; font-size: 0.8rem; width: auto; background: transparent; border: 1px solid var(--neon-cyan);">
+                                        ➕ Add Row
+                                    </button>
+                                    <button class="neon-action-btn" id="btn-excel-add-col" style="padding: 6px 12px; font-size: 0.8rem; width: auto; background: transparent; border: 1px solid var(--neon-purple);">
+                                        ➕ Add Column
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Table Scroll Container -->
+                            <div style="overflow-x: auto; max-height: 400px; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.4); padding: 1px;">
+                                <table id="excel-preview-table" style="width: 100%; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; text-align: left;">
+                                    <thead id="excel-preview-thead">
+                                        <!-- Column Headers -->
+                                    </thead>
+                                    <tbody id="excel-preview-tbody">
+                                        <!-- Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Conversion Download Buttons -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                                <button class="neon-action-btn pink" id="btn-excel-download-csv">
+                                    ⬇️ DOWNLOAD CSV
+                                </button>
+                                <button class="neon-action-btn" id="btn-excel-download-xlsx">
+                                    ⬇️ DOWNLOAD EXCEL (.XLS)
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -4120,6 +4174,357 @@
             playSuccessChord();
             closeSignatureModal();
             appendLog("Signature successfully loaded into active session memory.");
+        });
+
+
+        // --- MODULE 09: PDF TO EXCEL / CSV CONVERTER ---
+        let pdfToExcelFile = null;
+        let pdfToExcelDoc = null;
+        let excelExtractedData = []; // Array of arrays: row cells
+
+        setupDropZone('drop-zone-pdf-to-excel', 'input-pdf-to-excel', (files) => {
+            if (files.length > 0) {
+                loadPdfToExcelFile(files[0]);
+            }
+        });
+
+        function loadPdfToExcelFile(file) {
+            pdfToExcelFile = file;
+            playBeep(880, 0.08, 'sine');
+            appendLog(`Loaded PDF for conversion: ${file.name}`);
+
+            const queueContainer = document.getElementById('queue-pdf-to-excel');
+            queueContainer.innerHTML = '';
+            
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            const item = document.createElement('div');
+            item.className = 'file-item';
+            item.innerHTML = `
+                <div class="file-info">
+                    <span style="color: var(--neon-cyan); font-family: monospace;">[PDF]</span>
+                    <div class="file-name" title="${file.name}">${file.name}</div>
+                    <div class="file-size">${sizeMB} MB</div>
+                </div>
+                <div class="file-controls">
+                    <button class="file-btn remove" onclick="clearPdfToExcel()">✕</button>
+                </div>
+            `;
+            queueContainer.appendChild(item);
+
+            // Trigger extraction
+            parsePdfToExcel(file);
+        }
+
+        window.clearPdfToExcel = function() {
+            playBeep(440, 0.05, 'sawtooth');
+            pdfToExcelFile = null;
+            pdfToExcelDoc = null;
+            excelExtractedData = [];
+            document.getElementById('queue-pdf-to-excel').innerHTML = '';
+            document.getElementById('pdf-to-excel-workspace').style.display = 'none';
+            document.getElementById('input-pdf-to-excel').value = '';
+            appendLog('Cleared conversion file.');
+        }
+
+        async function parsePdfToExcel(file) {
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressText = document.getElementById('progressText');
+
+            progressIndicator.style.display = 'flex';
+            progressBarFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressText.textContent = 'EXTRACTING TRANSACTION DATA...';
+            deckStatus.textContent = 'processing';
+
+            try {
+                // Read PDF into memory
+                const fileReader = new FileReader();
+                const arrayBuffer = await new Promise((resolve, reject) => {
+                    fileReader.onload = (e) => resolve(e.target.result);
+                    fileReader.onerror = (err) => reject(err);
+                    fileReader.readAsArrayBuffer(file);
+                });
+
+                // pdfjsLib is loaded globally in shared/pdf.min.js
+                pdfToExcelDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const totalPages = pdfToExcelDoc.numPages;
+                appendLog(`Parsing statement: ${totalPages} pages found.`);
+
+                let allRows = [];
+                // Standard columns: Date, Transaction Description, Withdrawal (Debit), Deposit (Credit), Balance
+                let headers = ["Date", "Description", "Withdrawal (Debit)", "Deposit (Credit)", "Balance"];
+
+                for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                    const page = await pdfToExcelDoc.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    const items = textContent.items;
+
+                    // Group text items by Y coordinate (vertical offset)
+                    // If items are within 4px of each other, group them on the same line
+                    const linesMap = {};
+                    for (const item of items) {
+                        const y = item.transform[5];
+                        let foundKey = null;
+                        for (const key of Object.keys(linesMap)) {
+                            if (Math.abs(parseFloat(key) - y) < 4) {
+                                foundKey = key;
+                                break;
+                            }
+                        }
+                        const keyToUse = foundKey !== null ? foundKey : y.toString();
+                        if (!linesMap[keyToUse]) linesMap[keyToUse] = [];
+                        linesMap[keyToUse].push(item);
+                    }
+
+                    // Sort lines from top to bottom
+                    const sortedY = Object.keys(linesMap).sort((a, b) => parseFloat(b) - parseFloat(a));
+
+                    for (const y of sortedY) {
+                        // Sort items in the line from left to right
+                        const lineItems = linesMap[y].sort((a, b) => a.transform[4] - b.transform[4]);
+                        
+                        // Parse columns based on horizontal gap (transform[4])
+                        let cols = [];
+                        let currentCol = "";
+                        let lastX = -1;
+                        let lastW = 0;
+
+                        for (const item of lineItems) {
+                            const x = item.transform[4];
+                            const str = item.str.trim();
+                            if (!str) continue;
+
+                            // If gap is more than 15px, start a new column
+                            if (lastX !== -1 && (x - (lastX + lastW)) > 15) {
+                                cols.push(currentCol.trim());
+                                currentCol = str;
+                            } else {
+                                currentCol += " " + str;
+                            }
+                            lastX = x;
+                            lastW = item.width || (str.length * 6);
+                        }
+                        if (currentCol.trim()) {
+                            cols.push(currentCol.trim());
+                        }
+
+                        // Let's filter line: is it a candidate transaction row?
+                        if (cols.length >= 2) {
+                            const firstCol = cols[0];
+                            const datePrefixRegex = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|[0-9]{1,2})/i;
+
+                            if (datePrefixRegex.test(firstCol) && cols.length >= 2) {
+                                // Pad array to match 5 columns: Date, Description, Withdrawal, Deposit, Balance
+                                let paddedRow = Array(5).fill("");
+                                paddedRow[0] = cols[0]; // Date
+                                
+                                if (cols.length === 2) {
+                                    paddedRow[1] = cols[1]; // Description
+                                } else if (cols.length === 3) {
+                                    paddedRow[1] = cols[1]; // Description
+                                    paddedRow[4] = cols[2]; // Amount or Balance
+                                } else if (cols.length === 4) {
+                                    paddedRow[1] = cols[1]; // Description
+                                    paddedRow[2] = cols[2]; // Debit/Withdrawal
+                                    paddedRow[4] = cols[3]; // Credit or Balance
+                                } else if (cols.length >= 5) {
+                                    paddedRow[1] = cols.slice(1, cols.length - 3).join(" "); // Combined description columns
+                                    paddedRow[2] = cols[cols.length - 3];
+                                    paddedRow[3] = cols[cols.length - 2];
+                                    paddedRow[4] = cols[cols.length - 1];
+                                }
+                                allRows.push(paddedRow);
+                            }
+                        }
+                    }
+
+                    // Progress percentage update
+                    const percent = Math.round((pageNum / totalPages) * 100);
+                    progressBarFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                }
+
+                // Fallback if no structured date rows found
+                if (allRows.length === 0) {
+                    appendLog("No exact transaction structures matched. Loading all text lines for custom editing.", "warning");
+                    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                        const page = await pdfToExcelDoc.getPage(pageNum);
+                        const textContent = await page.getTextContent();
+                        const items = textContent.items;
+                        const linesMap = {};
+                        for (const item of items) {
+                            const y = Math.round(item.transform[5]);
+                            if (!linesMap[y]) linesMap[y] = [];
+                            linesMap[y].push(item);
+                        }
+                        const sortedY = Object.keys(linesMap).sort((a, b) => b - a);
+                        for (const y of sortedY) {
+                            const rowItems = linesMap[y].sort((a, b) => a.transform[4] - b.transform[4]);
+                            const text = rowItems.map(it => it.str).join(' ').trim();
+                            if (text && text.length > 2) {
+                                allRows.push([`Line`, text, "", "", ""]);
+                            }
+                        }
+                    }
+                }
+
+                excelExtractedData = allRows;
+                renderExcelGrid(headers, allRows);
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog(`Extracted ${allRows.length} rows of tabular data successfully.`, 'success');
+                playSuccessChord();
+            } catch (err) {
+                console.error("PDF tabular extraction failed:", err);
+                appendLog(`Extraction failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'pdf-to-excel';
+            }
+        }
+
+        function renderExcelGrid(headers, rows) {
+            const thead = document.getElementById('excel-preview-thead');
+            const tbody = document.getElementById('excel-preview-tbody');
+            const workspace = document.getElementById('pdf-to-excel-workspace');
+
+            if (!thead || !tbody || !workspace) return;
+
+            thead.innerHTML = '';
+            const headerRow = document.createElement('tr');
+            
+            const emptyTh = document.createElement('th');
+            emptyTh.style.cssText = "width: 40px; background: rgba(138,43,226,0.2); border-bottom: 2px solid var(--neon-purple); text-align: center; border-right: 1px solid rgba(255,255,255,0.08);";
+            emptyTh.textContent = "✕";
+            headerRow.appendChild(emptyTh);
+
+            headers.forEach((h, index) => {
+                const th = document.createElement('th');
+                th.style.cssText = "background: rgba(138,43,226,0.15); border-bottom: 2px solid var(--neon-purple); color: var(--neon-cyan); padding: 10px; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.08); position: relative;";
+                
+                const headerInput = document.createElement('input');
+                headerInput.value = h;
+                headerInput.style.cssText = "background: transparent; border: none; color: var(--neon-cyan); font-weight: bold; outline: none; width: calc(100% - 20px); font-family: inherit;";
+                headerInput.addEventListener('input', (e) => {
+                    headers[index] = e.target.value;
+                });
+                th.appendChild(headerInput);
+
+                const delColBtn = document.createElement('button');
+                delColBtn.innerHTML = "✕";
+                delColBtn.style.cssText = "position: absolute; right: 4px; top: 12px; background: transparent; border: none; color: var(--neon-pink); cursor: pointer; font-size: 0.75rem; font-weight: bold;";
+                delColBtn.addEventListener('click', () => {
+                    playBeep(440, 0.05, 'sawtooth');
+                    headers.splice(index, 1);
+                    rows.forEach(r => r.splice(index, 1));
+                    renderExcelGrid(headers, rows);
+                });
+                th.appendChild(delColBtn);
+
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            tbody.innerHTML = '';
+            rows.forEach((row, rowIndex) => {
+                const tr = document.createElement('tr');
+                tr.style.cssText = "border-bottom: 1px solid rgba(255,255,255,0.08);";
+
+                const delTd = document.createElement('td');
+                delTd.style.cssText = "border-right: 1px solid rgba(255,255,255,0.08); text-align: center; padding: 4px;";
+                const delRowBtn = document.createElement('button');
+                delRowBtn.textContent = "✕";
+                delRowBtn.style.cssText = "background: transparent; border: none; color: var(--neon-pink); cursor: pointer; font-weight: bold;";
+                delRowBtn.addEventListener('click', () => {
+                    playBeep(440, 0.05, 'sawtooth');
+                    rows.splice(rowIndex, 1);
+                    renderExcelGrid(headers, rows);
+                });
+                delTd.appendChild(delRowBtn);
+                tr.appendChild(delTd);
+
+                row.forEach((cellVal, colIndex) => {
+                    const td = document.createElement('td');
+                    td.style.cssText = "border-right: 1px solid rgba(255,255,255,0.08); padding: 2px;";
+                    
+                    const cellInput = document.createElement('input');
+                    cellInput.value = cellVal;
+                    cellInput.style.cssText = "width: 100%; background: transparent; border: none; color: #fff; padding: 6px; font-family: inherit; font-size: inherit; outline: none;";
+                    cellInput.addEventListener('input', (e) => {
+                        row[colIndex] = e.target.value;
+                    });
+                    td.appendChild(cellInput);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+
+            window.currentExcelHeaders = headers;
+            workspace.style.display = 'flex';
+        }
+
+        document.getElementById('btn-excel-add-row').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            const colCount = window.currentExcelHeaders ? window.currentExcelHeaders.length : 5;
+            const newRow = Array(colCount).fill("");
+            excelExtractedData.push(newRow);
+            renderExcelGrid(window.currentExcelHeaders, excelExtractedData);
+            appendLog("Added new row to grid.");
+        });
+
+        document.getElementById('btn-excel-add-col').addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            if (!window.currentExcelHeaders) window.currentExcelHeaders = ["Date", "Description", "Withdrawal (Debit)", "Deposit (Credit)", "Balance"];
+            
+            const newColName = `Column ${window.currentExcelHeaders.length + 1}`;
+            window.currentExcelHeaders.push(newColName);
+            excelExtractedData.forEach(row => row.push(""));
+            renderExcelGrid(window.currentExcelHeaders, excelExtractedData);
+            appendLog("Added new column to grid.");
+        });
+
+        document.getElementById('btn-excel-download-csv').addEventListener('click', () => {
+            if (excelExtractedData.length === 0 || !window.currentExcelHeaders) return;
+            playBeep(880, 0.08, 'sine');
+
+            let csvContent = "";
+            csvContent += window.currentExcelHeaders.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
+            excelExtractedData.forEach(row => {
+                csvContent += row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${pdfToExcelFile.name.replace(/\.pdf$/i, '')}_transactions.csv`;
+            link.click();
+            appendLog("Downloaded spreadsheet as CSV.");
+        });
+
+        document.getElementById('btn-excel-download-xlsx').addEventListener('click', () => {
+            if (excelExtractedData.length === 0 || !window.currentExcelHeaders) return;
+            playBeep(880, 0.08, 'sine');
+
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            html += '<head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>';
+            html += '<x:Name>Sheet1</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:Worksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+            html += '<table border="1">';
+            html += '<tr>' + window.currentExcelHeaders.map(h => `<th style="background-color: #efefef; font-weight: bold;">${h}</th>`).join('') + '</tr>';
+            excelExtractedData.forEach(row => {
+                html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+            });
+            html += '</table></body></html>';
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${pdfToExcelFile.name.replace(/\.pdf$/i, '')}_transactions.xls`;
+            link.click();
+            appendLog("Downloaded spreadsheet as Microsoft Excel XLS.");
         });
 
 
