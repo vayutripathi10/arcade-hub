@@ -1129,28 +1129,62 @@
 
                         <!-- Interactive Spreadsheet Workspace -->
                         <div id="pdf-to-excel-workspace" style="display: none; flex-direction: column; gap: 15px; margin: 20px 0;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">SPREADSHEET PREVIEW & EDITOR</label>
-                                <div style="display: flex; gap: 10px; align-items: center;">
-                                    <button class="neon-action-btn" id="btn-excel-add-row" style="padding: 6px 12px; font-size: 0.8rem; width: auto; background: transparent; border: 1px solid var(--neon-cyan);">
-                                        ➕ Add Row
-                                    </button>
-                                    <button class="neon-action-btn" id="btn-excel-add-col" style="padding: 6px 12px; font-size: 0.8rem; width: auto; background: transparent; border: 1px solid var(--neon-purple);">
-                                        ➕ Add Column
-                                    </button>
+                            <!-- Tab switches for Spreadsheet vs Raw Text -->
+                            <div style="display: flex; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                                <button class="deck-tab active" id="tab-excel-grid" style="font-size: 0.8rem; padding: 6px 12px; width: auto; border: 1px solid var(--neon-cyan);">
+                                    📊 Spreadsheet Grid
+                                </button>
+                                <button class="deck-tab" id="tab-excel-text" style="font-size: 0.8rem; padding: 6px 12px; width: auto; border: 1px solid transparent;">
+                                    📝 Raw Text Buffer
+                                </button>
+                            </div>
+
+                            <!-- Spreadsheet Content Area -->
+                            <div id="excel-grid-view" style="display: flex; flex-direction: column; gap: 15px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                    <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">SPREADSHEET PREVIEW & EDITOR</label>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <button class="neon-action-btn" id="btn-excel-add-row" style="padding: 6px 12px; font-size: 0.8rem; width: auto; background: transparent; border: 1px solid var(--neon-cyan);">
+                                            ➕ Add Row
+                                        </button>
+                                        <button class="neon-action-btn" id="btn-excel-add-col" style="padding: 6px 12px; font-size: 0.8rem; width: auto; background: transparent; border: 1px solid var(--neon-purple);">
+                                            ➕ Add Column
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Table Scroll Container -->
+                                <div style="overflow-x: auto; max-height: 400px; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.4); padding: 1px;">
+                                    <table id="excel-preview-table" style="width: 100%; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; text-align: left;">
+                                        <thead id="excel-preview-thead">
+                                            <!-- Column Headers -->
+                                        </thead>
+                                        <tbody id="excel-preview-tbody">
+                                            <!-- Rows -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
-                            <!-- Table Scroll Container -->
-                            <div style="overflow-x: auto; max-height: 400px; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.4); padding: 1px;">
-                                <table id="excel-preview-table" style="width: 100%; border-collapse: collapse; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; text-align: left;">
-                                    <thead id="excel-preview-thead">
-                                        <!-- Column Headers -->
-                                    </thead>
-                                    <tbody id="excel-preview-tbody">
-                                        <!-- Rows -->
-                                    </tbody>
-                                </table>
+                            <!-- Raw Text Content Area -->
+                            <div id="excel-text-view" style="display: none; flex-direction: column; gap: 12px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">RAW EXTRACTED TEXT BUFFER (EDITABLE)</label>
+                                <textarea id="excel-raw-text-area" class="text-output-area" style="height: 250px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; resize: vertical;"></textarea>
+                                
+                                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <label for="excel-delimiter-select" style="font-size: 0.8rem; color: var(--text-secondary);">Column Separator:</label>
+                                        <select id="excel-delimiter-select" class="cyber-select" style="width: auto; padding: 4px 8px; font-size: 0.8rem;">
+                                            <option value="auto" selected>Auto-Detect Columns</option>
+                                            <option value="spaces">2 or More Spaces</option>
+                                            <option value="tab">Tabs</option>
+                                            <option value="comma">Commas</option>
+                                        </select>
+                                    </div>
+                                    <button class="neon-action-btn" id="btn-excel-reparse" style="padding: 6px 15px; font-size: 0.8rem; width: auto; background: rgba(138,43,226,0.15); border: 1px dashed var(--neon-purple);">
+                                        ⚙️ RE-PARSE TEXT INTO GRID
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Conversion Download Buttons -->
@@ -4180,6 +4214,7 @@
         let pdfToExcelFile = null;
         let pdfToExcelDoc = null;
         let excelExtractedData = []; // Array of arrays: row cells
+        let excelExtractedRawText = ""; // Raw text representation
 
         setupDropZone('drop-zone-pdf-to-excel', 'input-pdf-to-excel', (files) => {
             if (files.length > 0) {
@@ -4219,10 +4254,39 @@
             pdfToExcelFile = null;
             pdfToExcelDoc = null;
             excelExtractedData = [];
+            excelExtractedRawText = "";
             document.getElementById('queue-pdf-to-excel').innerHTML = '';
             document.getElementById('pdf-to-excel-workspace').style.display = 'none';
             document.getElementById('input-pdf-to-excel').value = '';
+            document.getElementById('excel-raw-text-area').value = '';
             appendLog('Cleared conversion file.');
+        }
+
+        // View toggle events
+        const tabExcelGrid = document.getElementById('tab-excel-grid');
+        const tabExcelText = document.getElementById('tab-excel-text');
+        const viewExcelGrid = document.getElementById('excel-grid-view');
+        const viewExcelText = document.getElementById('excel-text-view');
+
+        if (tabExcelGrid && tabExcelText) {
+            tabExcelGrid.addEventListener('click', () => {
+                playBeep(700, 0.05, 'sine');
+                tabExcelGrid.classList.add('active');
+                tabExcelGrid.style.borderColor = 'var(--neon-cyan)';
+                tabExcelText.classList.remove('active');
+                tabExcelText.style.borderColor = 'transparent';
+                viewExcelGrid.style.display = 'flex';
+                viewExcelText.style.display = 'none';
+            });
+            tabExcelText.addEventListener('click', () => {
+                playBeep(700, 0.05, 'sine');
+                tabExcelText.classList.add('active');
+                tabExcelText.style.borderColor = 'var(--neon-purple)';
+                tabExcelGrid.classList.remove('active');
+                tabExcelGrid.style.borderColor = 'transparent';
+                viewExcelGrid.style.display = 'none';
+                viewExcelText.style.display = 'flex';
+            });
         }
 
         async function parsePdfToExcel(file) {
@@ -4238,7 +4302,6 @@
             deckStatus.textContent = 'processing';
 
             try {
-                // Read PDF into memory
                 const fileReader = new FileReader();
                 const arrayBuffer = await new Promise((resolve, reject) => {
                     fileReader.onload = (e) => resolve(e.target.result);
@@ -4246,22 +4309,23 @@
                     fileReader.readAsArrayBuffer(file);
                 });
 
-                // pdfjsLib is loaded globally in shared/pdf.min.js
                 pdfToExcelDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 const totalPages = pdfToExcelDoc.numPages;
                 appendLog(`Parsing statement: ${totalPages} pages found.`);
 
                 let allRows = [];
-                // Standard columns: Date, Transaction Description, Withdrawal (Debit), Deposit (Credit), Balance
-                let headers = ["Date", "Description", "Withdrawal (Debit)", "Deposit (Credit)", "Balance"];
+                let fullRawText = "";
 
                 for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
                     const page = await pdfToExcelDoc.getPage(pageNum);
                     const textContent = await page.getTextContent();
                     const items = textContent.items;
 
+                    if (items.length === 0) continue;
+
+                    fullRawText += `\n--- PAGE ${pageNum} ---\n`;
+
                     // Group text items by Y coordinate (vertical offset)
-                    // If items are within 4px of each other, group them on the same line
                     const linesMap = {};
                     for (const item of items) {
                         const y = item.transform[5];
@@ -4280,13 +4344,54 @@
                     // Sort lines from top to bottom
                     const sortedY = Object.keys(linesMap).sort((a, b) => parseFloat(b) - parseFloat(a));
 
+                    // Step 1: Detect column slots based on X coordinates projection across this page
+                    let xCoords = [];
                     for (const y of sortedY) {
-                        // Sort items in the line from left to right
+                        const lineItems = linesMap[y].sort((a, b) => a.transform[4] - b.transform[4]);
+                        let lastX = -1;
+                        let lastW = 0;
+                        
+                        for (const item of lineItems) {
+                            const x = item.transform[4];
+                            const str = item.str.trim();
+                            if (!str) continue;
+
+                            if (lastX === -1 || (x - (lastX + lastW)) > 15) {
+                                xCoords.push(x);
+                                lastX = x;
+                                lastW = item.width || (str.length * 6);
+                            } else {
+                                lastW += (x - (lastX + lastW)) + (item.width || (str.length * 6));
+                            }
+                        }
+                    }
+
+                    // Cluster starting horizontal coordinates
+                    xCoords.sort((a, b) => a - b);
+                    let columnSlots = [];
+                    if (xCoords.length > 0) {
+                        let currentCluster = [xCoords[0]];
+                        for (let i = 1; i < xCoords.length; i++) {
+                            if (xCoords[i] - xCoords[i - 1] < 35) {
+                                currentCluster.push(xCoords[i]);
+                            } else {
+                                const avg = currentCluster.reduce((sum, val) => sum + val, 0) / currentCluster.length;
+                                columnSlots.push(avg);
+                                currentCluster = [xCoords[i]];
+                            }
+                        }
+                        const avg = currentCluster.reduce((sum, val) => sum + val, 0) / currentCluster.length;
+                        columnSlots.push(avg);
+                    }
+                    columnSlots.sort((a, b) => a - b);
+
+                    // Step 2: Extract text segments and align them to the column slots
+                    for (const y of sortedY) {
                         const lineItems = linesMap[y].sort((a, b) => a.transform[4] - b.transform[4]);
                         
-                        // Parse columns based on horizontal gap (transform[4])
-                        let cols = [];
+                        let lineCols = [];
                         let currentCol = "";
+                        let currentColX = -1;
                         let lastX = -1;
                         let lastW = 0;
 
@@ -4295,77 +4400,89 @@
                             const str = item.str.trim();
                             if (!str) continue;
 
-                            // If gap is more than 15px, start a new column
-                            if (lastX !== -1 && (x - (lastX + lastW)) > 15) {
-                                cols.push(currentCol.trim());
+                            if (lastX === -1 || (x - (lastX + lastW)) > 15) {
+                                if (currentCol.trim()) {
+                                    lineCols.push({ text: currentCol.trim(), x: currentColX });
+                                }
                                 currentCol = str;
+                                currentColX = x;
+                                lastX = x;
+                                lastW = item.width || (str.length * 6);
                             } else {
                                 currentCol += " " + str;
+                                lastW += (x - (lastX + lastW)) + (item.width || (str.length * 6));
                             }
-                            lastX = x;
-                            lastW = item.width || (str.length * 6);
                         }
                         if (currentCol.trim()) {
-                            cols.push(currentCol.trim());
+                            lineCols.push({ text: currentCol.trim(), x: currentColX });
                         }
 
-                        // Let's filter line: is it a candidate transaction row?
-                        if (cols.length >= 2) {
-                            const firstCol = cols[0];
-                            const datePrefixRegex = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|[0-9]{1,2})/i;
-
-                            if (datePrefixRegex.test(firstCol) && cols.length >= 2) {
-                                // Pad array to match 5 columns: Date, Description, Withdrawal, Deposit, Balance
-                                let paddedRow = Array(5).fill("");
-                                paddedRow[0] = cols[0]; // Date
-                                
-                                if (cols.length === 2) {
-                                    paddedRow[1] = cols[1]; // Description
-                                } else if (cols.length === 3) {
-                                    paddedRow[1] = cols[1]; // Description
-                                    paddedRow[4] = cols[2]; // Amount or Balance
-                                } else if (cols.length === 4) {
-                                    paddedRow[1] = cols[1]; // Description
-                                    paddedRow[2] = cols[2]; // Debit/Withdrawal
-                                    paddedRow[4] = cols[3]; // Credit or Balance
-                                } else if (cols.length >= 5) {
-                                    paddedRow[1] = cols.slice(1, cols.length - 3).join(" "); // Combined description columns
-                                    paddedRow[2] = cols[cols.length - 3];
-                                    paddedRow[3] = cols[cols.length - 2];
-                                    paddedRow[4] = cols[cols.length - 1];
+                        // Align to slots
+                        if (lineCols.length > 0) {
+                            let alignedRow = Array(columnSlots.length).fill("");
+                            for (const segment of lineCols) {
+                                let closestIndex = 0;
+                                let minDiff = Infinity;
+                                for (let i = 0; i < columnSlots.length; i++) {
+                                    const diff = Math.abs(segment.x - columnSlots[i]);
+                                    if (diff < minDiff) {
+                                        minDiff = diff;
+                                        closestIndex = i;
+                                    }
                                 }
-                                allRows.push(paddedRow);
+                                alignedRow[closestIndex] = segment.text;
+                            }
+
+                            // Build raw text preview
+                            fullRawText += alignedRow.join(" \t ") + "\n";
+
+                            // Filter rows to only keep rows containing transaction date prefixes or numeric values
+                            const firstCol = alignedRow[0] || "";
+                            const datePrefixRegex = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|[0-9]{1,2})/i;
+                            const hasDecimals = alignedRow.some(cell => /\.[0-9]{2}/.test(cell) || /\d+,\d{3}/.test(cell));
+
+                            if (datePrefixRegex.test(firstCol) || (hasDecimals && alignedRow.filter(c => c).length >= 2)) {
+                                allRows.push(alignedRow);
                             }
                         }
                     }
 
-                    // Progress percentage update
                     const percent = Math.round((pageNum / totalPages) * 100);
                     progressBarFill.style.width = `${percent}%`;
                     progressPercent.textContent = `${percent}%`;
                 }
 
-                // Fallback if no structured date rows found
+                excelExtractedRawText = fullRawText;
+                document.getElementById('excel-raw-text-area').value = fullRawText;
+
+                // Fallback: If no candidate transaction rows were matched, load all non-empty lines
                 if (allRows.length === 0) {
-                    appendLog("No exact transaction structures matched. Loading all text lines for custom editing.", "warning");
-                    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-                        const page = await pdfToExcelDoc.getPage(pageNum);
-                        const textContent = await page.getTextContent();
-                        const items = textContent.items;
-                        const linesMap = {};
-                        for (const item of items) {
-                            const y = Math.round(item.transform[5]);
-                            if (!linesMap[y]) linesMap[y] = [];
-                            linesMap[y].push(item);
+                    appendLog("No structured date tables matched. Displaying raw extracted lines.", "warning");
+                    const lines = fullRawText.split("\n");
+                    lines.forEach(line => {
+                        if (line.trim() && !line.startsWith("---")) {
+                            allRows.push([line.trim(), "", "", "", ""]);
                         }
-                        const sortedY = Object.keys(linesMap).sort((a, b) => b - a);
-                        for (const y of sortedY) {
-                            const rowItems = linesMap[y].sort((a, b) => a.transform[4] - b.transform[4]);
-                            const text = rowItems.map(it => it.str).join(' ').trim();
-                            if (text && text.length > 2) {
-                                allRows.push([`Line`, text, "", "", ""]);
-                            }
-                        }
+                    });
+                }
+
+                // Determine column grid sizes
+                let maxCols = 0;
+                allRows.forEach(r => {
+                    if (r.length > maxCols) maxCols = r.length;
+                });
+                allRows.forEach(r => {
+                    while (r.length < maxCols) {
+                        r.push("");
+                    }
+                });
+
+                let headers = [];
+                if (maxCols === 5) {
+                    headers = ["Date", "Description", "Withdrawal (Debit)", "Deposit (Credit)", "Balance"];
+                } else {
+                    for (let i = 1; i <= maxCols; i++) {
+                        headers.push(`Column ${i}`);
                     }
                 }
 
@@ -4374,7 +4491,7 @@
 
                 progressBarFill.style.width = '100%';
                 progressPercent.textContent = '100%';
-                appendLog(`Extracted ${allRows.length} rows of tabular data successfully.`, 'success');
+                appendLog(`Extracted ${allRows.length} aligned rows successfully.`, 'success');
                 playSuccessChord();
             } catch (err) {
                 console.error("PDF tabular extraction failed:", err);
@@ -4465,6 +4582,72 @@
             window.currentExcelHeaders = headers;
             workspace.style.display = 'flex';
         }
+
+        // Delimiter-based parsing on click of Reparse Button
+        document.getElementById('btn-excel-reparse').addEventListener('click', () => {
+            playBeep(880, 0.08, 'sine');
+            const rawText = document.getElementById('excel-raw-text-area').value;
+            const delimiterSelect = document.getElementById('excel-delimiter-select').value;
+            const lines = rawText.split('\n');
+            
+            let parsedRows = [];
+            lines.forEach(line => {
+                let cleanLine = line.trim();
+                if (!cleanLine || cleanLine.startsWith("--- PAGE")) return;
+
+                let cols = [];
+                if (delimiterSelect === 'spaces') {
+                    cols = cleanLine.split(/\s{2,}/);
+                } else if (delimiterSelect === 'tab') {
+                    cols = cleanLine.split('\t');
+                } else if (delimiterSelect === 'comma') {
+                    cols = cleanLine.split(',');
+                } else {
+                    // Auto detect: try tabs first, then multiple spaces, then commas
+                    if (cleanLine.includes('\t')) {
+                        cols = cleanLine.split('\t');
+                    } else if (/\s{2,}/.test(cleanLine)) {
+                        cols = cleanLine.split(/\s{2,}/);
+                    } else {
+                        cols = cleanLine.split(',');
+                    }
+                }
+                parsedRows.push(cols.map(c => c.trim()));
+            });
+
+            if (parsedRows.length === 0) {
+                appendLog("No lines to parse.", "error");
+                playErrorBuzz();
+                return;
+            }
+
+            // Align sizes
+            let maxCols = 0;
+            parsedRows.forEach(r => {
+                if (r.length > maxCols) maxCols = r.length;
+            });
+            parsedRows.forEach(r => {
+                while (r.length < maxCols) {
+                    r.push("");
+                }
+            });
+
+            let headers = [];
+            if (maxCols === 5) {
+                headers = ["Date", "Description", "Withdrawal (Debit)", "Deposit (Credit)", "Balance"];
+            } else {
+                for (let i = 1; i <= maxCols; i++) {
+                    headers.push(`Column ${i}`);
+                }
+            }
+
+            excelExtractedData = parsedRows;
+            renderExcelGrid(headers, parsedRows);
+            
+            // Switch back to grid view tab
+            tabExcelGrid.click();
+            appendLog(`Re-parsed! Loaded ${parsedRows.length} grid rows successfully.`, 'success');
+        });
 
         document.getElementById('btn-excel-add-row').addEventListener('click', () => {
             playBeep(700, 0.05, 'sine');
