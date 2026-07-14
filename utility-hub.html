@@ -154,6 +154,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Inputs & Buttons */
         .cyber-input, .cyber-select {
             background: rgba(7, 8, 14, 0.9);
@@ -443,6 +447,10 @@
                             <span class="tab-mod">MODULE_04</span>
                             <span>Calculators</span>
                         </div>
+                        <div class="deck-tab" data-tab="yt-transcript">
+                            <span class="tab-mod">MODULE_05</span>
+                            <span>YouTube Transcript</span>
+                        </div>
                     </div>
 
                     <!-- Logger diagnostic bar -->
@@ -688,6 +696,43 @@
                                     <div style="font-size: 1.6rem; color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace;" id="emi-total-payment">0</div>
                                     <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Total Amount</div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: YOUTUBE TRANSCRIPT EXPORTER -->
+                    <div class="tab-content" id="panel-yt-transcript">
+                        <div style="text-align: left; margin-bottom: 5px;">
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">📺 YouTube Video Transcript Exporter</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Fetch captions and auto-generated transcripts from any YouTube video instantly and save as a formatted PDF document.</p>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+                            <div class="option-field" style="width: 100%;">
+                                <label for="yt-video-url">PASTE YOUTUBE VIDEO LINK</label>
+                                <div style="display: flex; gap: 10px; margin-top: 4px;">
+                                    <input type="text" id="yt-video-url" class="cyber-input" placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ" style="flex: 1;">
+                                    <button class="neon-action-btn" id="btn-yt-fetch" style="width: auto; padding: 0 20px; font-size: 0.8rem; margin: 0; background: rgba(0, 255, 204, 0.1); border: 1px solid var(--neon-cyan);">
+                                        ⚡ FETCH TRANSCRIPT
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Progress indicator block -->
+                            <div id="yt-loading-indicator" style="display: none; align-items: center; gap: 10px; padding: 10px; background: rgba(0,255,204,0.05); border: 1px dashed var(--neon-cyan); border-radius: 6px;">
+                                <div class="spinner" style="width: 16px; height: 16px; border: 2px solid rgba(0,255,204,0.2); border-top-color: var(--neon-cyan); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                                <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">SCRAPING TIMED CAPTION TRACKS...</span>
+                            </div>
+
+                            <!-- Transcript Preview -->
+                            <div id="yt-output-wrapper" style="display: none; flex-direction: column; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">TRANSCRIPT BUFFER PREVIEW</span>
+                                    <button class="neon-action-btn pink" id="btn-yt-download-pdf" style="width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0;">
+                                        ⬇️ EXPORT TO PDF
+                                    </button>
+                                </div>
+                                <textarea class="text-output-area" id="yt-transcript-text" readonly style="height: 250px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
                             </div>
                         </div>
                     </div>
@@ -1364,7 +1409,224 @@
 
         // Initialize EMI
         calculateEMI();
+
+
+        // --- MODULE 05: YOUTUBE TRANSCRIPT EXPORTER LOGIC ---
+        const btnYtFetch = document.getElementById('btn-yt-fetch');
+        const btnYtDownloadPdf = document.getElementById('btn-yt-download-pdf');
+        const inputYtUrl = document.getElementById('yt-video-url');
+        const ytLoading = document.getElementById('yt-loading-indicator');
+        const ytOutputWrapper = document.getElementById('yt-output-wrapper');
+        const txtYtTranscript = document.getElementById('yt-transcript-text');
+
+        let currentYtVideoId = "";
+        let currentYtTranscriptText = "";
+
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        if (btnYtFetch) {
+            btnYtFetch.addEventListener('click', async () => {
+                const url = inputYtUrl.value.trim();
+                if (!url) {
+                    showNotification("Please paste a valid YouTube video URL first.", "error");
+                    playErrorBuzz();
+                    return;
+                }
+
+                const videoId = extractYouTubeId(url);
+                if (!videoId) {
+                    showNotification("Invalid YouTube link. Please check the URL format.", "error");
+                    playErrorBuzz();
+                    return;
+                }
+
+                currentYtVideoId = videoId;
+                playBeep(880, 0.05, 'sine');
+                
+                ytLoading.style.display = 'flex';
+                ytOutputWrapper.style.display = 'none';
+                txtYtTranscript.value = "";
+                currentYtTranscriptText = "";
+
+                try {
+                    let responseText = "";
+
+                    // Attempt 1: Try direct CORS-open transcript AI api
+                    try {
+                        const directApiUrl = `https://youtube-transcript.ai/transcript/${videoId}.txt`;
+                        const res = await fetch(directApiUrl);
+                        if (res.ok) {
+                            responseText = await res.text();
+                        }
+                    } catch(apiErr) {
+                        console.warn("Direct API check failed, trying CORS fallback proxy...", apiErr);
+                    }
+
+                    // Attempt 2: Fallback scraping watch page via public CORS proxy
+                    if (!responseText.trim()) {
+                        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
+                        const res = await fetch(proxyUrl);
+                        if (!res.ok) throw new Error("Failed to reach fallback CORS proxy.");
+                        
+                        const data = await res.json();
+                        const html = data.contents;
+                        
+                        const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/) || html.match(/var\s+ytInitialPlayerResponse\s*=\s*({.+?});/);
+                        if (!match) throw new Error("Could not parse YouTube caption track nodes. Make sure captions are enabled.");
+                        
+                        const playerResponse = JSON.parse(match[1]);
+                        const captionTracks = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+                        if (!captionTracks || captionTracks.length === 0) throw new Error("No caption tracks found for this video.");
+                        
+                        const trackUrl = captionTracks[0].baseUrl;
+                        const trackProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`;
+                        const trackRes = await fetch(trackProxyUrl);
+                        if (!trackRes.ok) throw new Error("Failed to load caption XML data.");
+                        
+                        const trackData = await trackRes.json();
+                        const xmlText = trackData.contents;
+                        
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                        const textNodes = xmlDoc.getElementsByTagName("text");
+                        
+                        if (textNodes.length === 0) throw new Error("No readable text segments inside transcription XML.");
+                        
+                        let lines = [];
+                        for (let i = 0; i < textNodes.length; i++) {
+                            const node = textNodes[i];
+                            const start = parseFloat(node.getAttribute("start") || "0");
+                            const minutes = Math.floor(start / 60);
+                            const seconds = Math.floor(start % 60).toString().padStart(2, '0');
+                            const timestamp = `[${minutes}:${seconds}]`;
+                            const text = node.textContent.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                            lines.push(`${timestamp} ${text}`);
+                        }
+                        responseText = lines.join('\n');
+                    }
+
+                    if (!responseText.trim()) {
+                        throw new Error("Transcripts returned empty text.");
+                    }
+
+                    currentYtTranscriptText = responseText.trim();
+                    txtYtTranscript.value = currentYtTranscriptText;
+                    ytOutputWrapper.style.display = 'flex';
+                    
+                    showNotification("YouTube transcript fetched successfully!", "success");
+                    playSuccessChord();
+                } catch (err) {
+                    console.error(err);
+                    showNotification(`Error: ${err.message}`, "error");
+                    playErrorBuzz();
+                } finally {
+                    ytLoading.style.display = 'none';
+                }
+            });
+        }
+
+        if (btnYtDownloadPdf) {
+            btnYtDownloadPdf.addEventListener('click', async () => {
+                if (!currentYtTranscriptText) return;
+                playBeep(880, 0.08, 'sine');
+                
+                try {
+                    const pdfDoc = await PDFLib.PDFDocument.create();
+                    const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    const boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+                    
+                    const fontSize = 10;
+                    const titleSize = 14;
+                    const lineHeight = 14;
+                    const margin = 50;
+                    const pageWidth = 612; // Letter
+                    const pageHeight = 792;
+                    const maxTextWidth = pageWidth - (margin * 2);
+                    
+                    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                    let y = pageHeight - margin;
+                    
+                    const titleText = `YouTube Video Transcript (ID: ${currentYtVideoId})`;
+                    currentPage.drawText(titleText, {
+                        x: margin,
+                        y: y,
+                        size: titleSize,
+                        font: boldFont,
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+                    y -= titleSize + 20;
+
+                    const lines = currentYtTranscriptText.split('\n');
+                    for (let line of lines) {
+                        line = line.trim();
+                        if (!line) {
+                            y -= lineHeight;
+                            continue;
+                        }
+                        
+                        const words = line.split(' ');
+                        let currentLine = "";
+                        
+                        for (const word of words) {
+                            const testLine = currentLine ? currentLine + " " + word : word;
+                            const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+                            
+                            if (testWidth > maxTextWidth) {
+                                if (y < margin + lineHeight) {
+                                    currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                                    y = pageHeight - margin;
+                                }
+                                currentPage.drawText(currentLine, {
+                                    x: margin,
+                                    y: y,
+                                    size: fontSize,
+                                    font: font,
+                                    color: PDFLib.rgb(0.1, 0.1, 0.1)
+                                });
+                                y -= lineHeight;
+                                currentLine = word;
+                            } else {
+                                currentLine = testLine;
+                            }
+                        }
+                        
+                        if (currentLine) {
+                            if (y < margin + lineHeight) {
+                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+                                y = pageHeight - margin;
+                            }
+                            currentPage.drawText(currentLine, {
+                                x: margin,
+                                y: y,
+                                size: fontSize,
+                                font: font,
+                                color: PDFLib.rgb(0.1, 0.1, 0.1)
+                            });
+                            y -= lineHeight;
+                        }
+                        y -= 4; // gap
+                    }
+                    
+                    const pdfBytes = await pdfDoc.save();
+                    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `YouTube_Transcript_${currentYtVideoId}.pdf`;
+                    link.click();
+                    showNotification("Downloaded PDF transcript successfully.", "success");
+                } catch (pdfErr) {
+                    console.error(pdfErr);
+                    showNotification(`PDF Compilation failed: ${pdfErr.message}`, "error");
+                    playErrorBuzz();
+                }
+            });
+        }
     </script>
+    <script src="shared/pdf-lib.min.js"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
