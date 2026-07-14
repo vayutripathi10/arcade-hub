@@ -1432,6 +1432,8 @@
         
         let pdfToImgFile = null;
         let pdfToImgPdf = null;
+        let pdfToExcelFile = null;
+        let pdfToExcelDoc = null;
 
         // Signature dragging and placement states
         let editorSignatureDataUrl = null;
@@ -1507,6 +1509,7 @@
             watermarkFile = file;
             editorFile = file;
             pdfToImgFile = file;
+            pdfToExcelFile = file;
             
             if (typeof renderExtractorFile === 'function') renderExtractorFile();
             if (typeof renderSplitFile === 'function') renderSplitFile();
@@ -1514,6 +1517,8 @@
             if (typeof renderWatermarkFile === 'function') renderWatermarkFile();
             if (typeof renderEditorFileQueue === 'function') renderEditorFileQueue();
             if (typeof renderPdfToImgFile === 'function') renderPdfToImgFile();
+            if (typeof renderPdfToExcelFile === 'function') renderPdfToExcelFile();
+            if (typeof parsePdfToExcel === 'function') parsePdfToExcel(file);
             
             try {
                 const arrayBuffer = await file.arrayBuffer();
@@ -1566,12 +1571,24 @@
             editorFile = null;
             pdfToImgFile = null;
             pdfToImgPdf = null;
+            pdfToExcelFile = null;
+            pdfToExcelDoc = null;
+            excelExtractedData = [];
+            excelExtractedRawText = "";
             
             if (typeof renderExtractorFile === 'function') renderExtractorFile();
             if (typeof renderSplitFile === 'function') renderSplitFile();
             if (typeof renderRotateFile === 'function') renderRotateFile();
             if (typeof renderWatermarkFile === 'function') renderWatermarkFile();
             if (typeof renderPdfToImgFile === 'function') renderPdfToImgFile();
+            if (typeof renderPdfToExcelFile === 'function') renderPdfToExcelFile();
+
+            const excelWorkspace = document.getElementById('pdf-to-excel-workspace');
+            if (excelWorkspace) excelWorkspace.style.display = 'none';
+            const excelInput = document.getElementById('input-pdf-to-excel');
+            if (excelInput) excelInput.value = '';
+            const excelRaw = document.getElementById('excel-raw-text-area');
+            if (excelRaw) excelRaw.value = '';
             
             splitTotalPages = 0;
             const splitVisContainer = document.getElementById('split-visual-selector-container');
@@ -4239,55 +4256,38 @@
 
 
         // --- MODULE 09: PDF TO EXCEL / CSV CONVERTER ---
-        let pdfToExcelFile = null;
-        let pdfToExcelDoc = null;
         let excelExtractedData = []; // Array of arrays: row cells
         let excelExtractedRawText = ""; // Raw text representation
 
         setupDropZone('drop-zone-pdf-to-excel', 'input-pdf-to-excel', (files) => {
             if (files.length > 0) {
-                loadPdfToExcelFile(files[0]);
+                loadSharedPdf(files[0]);
             }
         });
 
-        function loadPdfToExcelFile(file) {
-            pdfToExcelFile = file;
-            playBeep(880, 0.08, 'sine');
-            appendLog(`Loaded PDF for conversion: ${file.name}`);
-
+        function renderPdfToExcelFile() {
             const queueContainer = document.getElementById('queue-pdf-to-excel');
             queueContainer.innerHTML = '';
-            
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            const item = document.createElement('div');
-            item.className = 'file-item';
-            item.innerHTML = `
-                <div class="file-info">
-                    <span style="color: var(--neon-cyan); font-family: monospace;">[PDF]</span>
-                    <div class="file-name" title="${file.name}">${file.name}</div>
-                    <div class="file-size">${sizeMB} MB</div>
-                </div>
-                <div class="file-controls">
-                    <button class="file-btn remove" onclick="clearPdfToExcel()">✕</button>
-                </div>
-            `;
-            queueContainer.appendChild(item);
-
-            // Trigger extraction
-            parsePdfToExcel(file);
+            if (pdfToExcelFile) {
+                const sizeMB = (pdfToExcelFile.size / (1024 * 1024)).toFixed(2);
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-cyan); font-family: monospace;">[PDF]</span>
+                        <div class="file-name" title="${pdfToExcelFile.name}">${pdfToExcelFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="clearSharedPdf()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+            }
         }
 
         window.clearPdfToExcel = function() {
-            playBeep(440, 0.05, 'sawtooth');
-            pdfToExcelFile = null;
-            pdfToExcelDoc = null;
-            excelExtractedData = [];
-            excelExtractedRawText = "";
-            document.getElementById('queue-pdf-to-excel').innerHTML = '';
-            document.getElementById('pdf-to-excel-workspace').style.display = 'none';
-            document.getElementById('input-pdf-to-excel').value = '';
-            document.getElementById('excel-raw-text-area').value = '';
-            appendLog('Cleared conversion file.');
+            clearSharedPdf();
         }
 
         // View toggle events
