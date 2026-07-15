@@ -1750,8 +1750,20 @@
                     let responseText = "";
                     let errors = [];
 
-                    // Check if custom Cloudflare Worker proxy is provided
-                    const workerBaseUrl = localStorage.getItem('yt_worker_url') || "";
+                    // Check if custom Cloudflare Worker proxy is provided (read directly from input or fallback to localStorage)
+                    let workerBaseUrl = "";
+                    if (inputWorkerUrl) {
+                        workerBaseUrl = inputWorkerUrl.value.trim();
+                        if (workerBaseUrl.endsWith('/')) {
+                            workerBaseUrl = workerBaseUrl.slice(0, -1);
+                        }
+                        if (workerBaseUrl) {
+                            localStorage.setItem('yt_worker_url', workerBaseUrl);
+                        }
+                    }
+                    if (!workerBaseUrl) {
+                        workerBaseUrl = localStorage.getItem('yt_worker_url') || "";
+                    }
 
                     if (workerBaseUrl) {
                         try {
@@ -1761,23 +1773,49 @@
                             if (res.ok) {
                                 const data = await res.json();
                                 let parsedText = "";
-                                if (Array.isArray(data)) {
-                                    parsedText = data.map(item => {
-                                        if (item.text !== undefined) {
-                                            const start = parseFloat(item.start || "0");
+
+                                // Helper function to extract text segments from multi-format API payloads
+                                function extractTranscriptFromData(obj) {
+                                    if (!obj) return "";
+                                    if (typeof obj === 'string') return obj;
+                                    if (obj.transcriptionAsText && typeof obj.transcriptionAsText === 'string') {
+                                        return obj.transcriptionAsText;
+                                    }
+                                    if (Array.isArray(obj.transcription)) {
+                                        return obj.transcription.map(t => {
+                                            const start = parseFloat(t.start || "0");
                                             const mins = Math.floor(start / 60);
                                             const secs = Math.floor(start % 60).toString().padStart(2, '0');
-                                            return `[${mins}:${secs}] ${item.text}`;
-                                        }
-                                        return String(item);
-                                    }).join('\n');
+                                            return `[${mins}:${secs}] ${t.subtitle || t.text || ""}`;
+                                        }).join('\n');
+                                    }
+                                    return obj.transcript || obj.text || obj.content || JSON.stringify(obj);
+                                }
+
+                                if (Array.isArray(data)) {
+                                    if (data.length > 0 && (data[0].transcription || data[0].transcriptionAsText)) {
+                                        parsedText = extractTranscriptFromData(data[0]);
+                                    } else {
+                                        parsedText = data.map(item => {
+                                            if (item && typeof item === 'object') {
+                                                if (item.text !== undefined) {
+                                                    const start = parseFloat(item.start || "0");
+                                                    const mins = Math.floor(start / 60);
+                                                    const secs = Math.floor(start % 60).toString().padStart(2, '0');
+                                                    return `[${mins}:${secs}] ${item.text}`;
+                                                }
+                                                return extractTranscriptFromData(item);
+                                            }
+                                            return String(item);
+                                        }).join('\n');
+                                    }
                                 } else if (data && typeof data === 'object') {
-                                    parsedText = data.transcript || data.text || data.content || JSON.stringify(data);
+                                    parsedText = extractTranscriptFromData(data);
                                 } else {
                                     parsedText = String(data);
                                 }
 
-                                if (parsedText.trim()) {
+                                if (parsedText.trim() && parsedText !== "[object Object]") {
                                     responseText = parsedText.trim();
                                     showNotification("Transcript retrieved via secure Cloudflare Worker proxy!", "success");
                                 }
