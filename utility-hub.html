@@ -1650,12 +1650,62 @@
 
                 try {
                     let responseText = "";
+                    let data = null;
                     const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}`;
                     
-                    const res = await fetch(targetUrl);
+                    // Attempt A: Standard fetch
+                    try {
+                        const res = await fetch(targetUrl);
+                        if (res.ok) {
+                            data = await res.json();
+                        } else {
+                            console.warn("Standard fetch failed, trying JSONP fallback...");
+                        }
+                    } catch(fetchErr) {
+                        console.warn("Standard fetch threw exception: " + fetchErr.message + ". Trying JSONP fallback...");
+                    }
 
-                    if (res.ok) {
-                        const data = await res.json();
+                    // Attempt B: JSONP Fallback
+                    if (!data) {
+                        data = await new Promise((resolve, reject) => {
+                            const callbackName = 'jsonp_cb_' + Math.floor(Math.random() * 1000000);
+                            const timeoutId = setTimeout(() => {
+                                cleanup();
+                                reject(new Error("Request timed out. Please check your internet connection."));
+                            }, 10000);
+
+                            function cleanup() {
+                                clearTimeout(timeoutId);
+                                if (window[callbackName]) delete window[callbackName];
+                                const scriptEl = document.getElementById(callbackName);
+                                if (scriptEl) scriptEl.remove();
+                            }
+
+                            window[callbackName] = function(payload) {
+                                cleanup();
+                                if (payload) {
+                                    resolve(payload);
+                                } else {
+                                    reject(new Error("Received empty payload from JSONP."));
+                                }
+                            };
+
+                            const script = document.createElement('script');
+                            script.id = callbackName;
+                            script.src = `${targetUrl}&callback=${callbackName}`;
+                            script.onerror = function() {
+                                cleanup();
+                                reject(new Error("Failed to load JSONP script."));
+                            };
+                            document.body.appendChild(script);
+                        });
+                    }
+
+                    if (data) {
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+
                         let parsedText = "";
 
                         // Helper function to extract text segments from multi-format API payloads
