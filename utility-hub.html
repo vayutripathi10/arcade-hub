@@ -715,6 +715,35 @@
 
                         <!-- Sub-panel: Auto Fetch -->
                         <div id="yt-subpanel-auto" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
+                            
+                            <!-- API Settings Box -->
+                            <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 5px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="yt-settings-header">
+                                    <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">⚙️ OPTIONAL: CUSTOM RAPIDAPI CONFIG (FOR 100% AUTOMATED UPTIME)</span>
+                                    <span id="yt-settings-arrow" style="font-size: 0.8rem; color: var(--text-secondary);">▶</span>
+                                </div>
+                                <div id="yt-api-settings-panel" style="display: none; flex-direction: column; gap: 10px; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin: 0;">
+                                        YouTube limits free public proxies. If you encounter errors, you can connect any YouTube Transcript API from RapidAPI here. Credentials save locally.
+                                    </p>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                        <div class="option-field" style="width: 100%;">
+                                            <label for="yt-rapidapi-key" style="font-size: 0.65rem; color: var(--neon-cyan);">RAPIDAPI KEY</label>
+                                            <input type="password" id="yt-rapidapi-key" class="cyber-input" placeholder="Enter x-rapidapi-key..." style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
+                                        </div>
+                                        <div class="option-field" style="width: 100%;">
+                                            <label for="yt-rapidapi-host" style="font-size: 0.65rem; color: var(--neon-cyan);">RAPIDAPI HOST</label>
+                                            <input type="text" id="yt-rapidapi-host" class="cyber-input" placeholder="e.g., youtube-transcription-api.p.rapidapi.com" style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
+                                        </div>
+                                    </div>
+                                    <div class="option-field" style="width: 100%;">
+                                        <label for="yt-rapidapi-url" style="font-size: 0.65rem; color: var(--neon-cyan);">API ENDPOINT URL (USE {videoId} AS PLACEHOLDER)</label>
+                                        <input type="text" id="yt-rapidapi-url" class="cyber-input" placeholder="https://youtube-transcription-api.p.rapidapi.com/transcript?videoId={videoId}" style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
+                                    </div>
+                                    <button class="cyber-btn" id="btn-yt-save-settings" style="align-self: flex-start; padding: 4px 12px; font-size: 0.7rem; margin-top: 5px;">💾 SAVE SETTINGS</button>
+                                </div>
+                            </div>
+
                             <div class="option-field" style="width: 100%;">
                                 <label for="yt-video-url">PASTE YOUTUBE VIDEO LINK</label>
                                 <div style="display: flex; gap: 10px; margin-top: 4px;">
@@ -1445,6 +1474,50 @@
         let currentYtVideoId = "";
         let currentYtTranscriptText = "";
 
+        // RapidAPI config UI elements
+        const ytSettingsHeader = document.getElementById('yt-settings-header');
+        const ytSettingsArrow = document.getElementById('yt-settings-arrow');
+        const ytApiSettingsPanel = document.getElementById('yt-api-settings-panel');
+        const inputRapidApiKey = document.getElementById('yt-rapidapi-key');
+        const inputRapidApiHost = document.getElementById('yt-rapidapi-host');
+        const inputRapidApiUrl = document.getElementById('yt-rapidapi-url');
+        const btnYtSaveSettings = document.getElementById('btn-yt-save-settings');
+
+        // Toggle panel
+        if (ytSettingsHeader) {
+            ytSettingsHeader.addEventListener('click', () => {
+                const isOpen = ytApiSettingsPanel.style.display === 'flex';
+                ytApiSettingsPanel.style.display = isOpen ? 'none' : 'flex';
+                ytSettingsArrow.textContent = isOpen ? '▶' : '▼';
+            });
+        }
+
+        // Save action
+        if (btnYtSaveSettings) {
+            btnYtSaveSettings.addEventListener('click', () => {
+                playBeep(880, 0.05, 'sine');
+                const key = inputRapidApiKey.value.trim();
+                const host = inputRapidApiHost.value.trim();
+                const url = inputRapidApiUrl.value.trim();
+
+                localStorage.setItem('yt_rapidapi_key', key);
+                localStorage.setItem('yt_rapidapi_host', host);
+                localStorage.setItem('yt_rapidapi_url', url);
+
+                showNotification("RapidAPI settings saved successfully!", "success");
+            });
+        }
+
+        // Load action on startup
+        function loadYtApiSettings() {
+            if (inputRapidApiKey) {
+                inputRapidApiKey.value = localStorage.getItem('yt_rapidapi_key') || "";
+                inputRapidApiHost.value = localStorage.getItem('yt_rapidapi_host') || "";
+                inputRapidApiUrl.value = localStorage.getItem('yt_rapidapi_url') || "";
+            }
+        }
+        loadYtApiSettings();
+
         // Sub-tabs switching
         const btnYtSubAuto = document.getElementById('btn-yt-sub-auto');
         const btnYtSubManual = document.getElementById('btn-yt-sub-manual');
@@ -1691,22 +1764,71 @@
                     let responseText = "";
                     let errors = [];
 
-                    // Attempt 1: Try direct CORS-open transcript AI api
-                    try {
-                        const directApiUrl = `https://youtube-transcript.ai/transcript/${videoId}.txt`;
-                        const res = await fetch(directApiUrl);
-                        if (res.ok) {
-                            const txt = await res.text();
-                            if (txt && !txt.includes("high volume") && !txt.includes("rate limits")) {
-                                responseText = txt;
+                    // Check if custom RapidAPI configuration is provided
+                    const rApiKey = localStorage.getItem('yt_rapidapi_key') || "";
+                    const rApiHost = localStorage.getItem('yt_rapidapi_host') || "";
+                    const rApiUrlTemplate = localStorage.getItem('yt_rapidapi_url') || "";
+
+                    if (rApiKey && rApiHost && rApiUrlTemplate) {
+                        try {
+                            const targetUrl = rApiUrlTemplate.replace('{videoId}', videoId);
+                            const res = await fetch(targetUrl, {
+                                method: 'GET',
+                                headers: {
+                                    'x-rapidapi-key': rApiKey,
+                                    'x-rapidapi-host': rApiHost
+                                }
+                            });
+
+                            if (res.ok) {
+                                const data = await res.json();
+                                let parsedText = "";
+                                if (Array.isArray(data)) {
+                                    parsedText = data.map(item => {
+                                        if (item.text !== undefined) {
+                                            const start = parseFloat(item.start || "0");
+                                            const mins = Math.floor(start / 60);
+                                            const secs = Math.floor(start % 60).toString().padStart(2, '0');
+                                            return `[${mins}:${secs}] ${item.text}`;
+                                        }
+                                        return String(item);
+                                    }).join('\n');
+                                } else if (data && typeof data === 'object') {
+                                    parsedText = data.transcript || data.text || data.content || JSON.stringify(data);
+                                } else {
+                                    parsedText = String(data);
+                                }
+
+                                if (parsedText.trim()) {
+                                    responseText = parsedText.trim();
+                                    showNotification("Transcript retrieved via custom RapidAPI configuration!", "success");
+                                }
                             } else {
-                                errors.push("Direct API rate limited.");
+                                errors.push("RapidAPI responded with status " + res.status);
                             }
-                        } else {
-                            errors.push("Direct API returned status " + res.status);
+                        } catch(rErr) {
+                            errors.push("RapidAPI connection error: " + rErr.message);
                         }
-                    } catch(apiErr) {
-                        errors.push("Direct API network error: " + apiErr.message);
+                    }
+
+                    // Attempt 1: Try direct CORS-open transcript AI api
+                    if (!responseText.trim()) {
+                        try {
+                            const directApiUrl = `https://youtube-transcript.ai/transcript/${videoId}.txt`;
+                            const res = await fetch(directApiUrl);
+                            if (res.ok) {
+                                const txt = await res.text();
+                                if (txt && !txt.includes("high volume") && !txt.includes("rate limits")) {
+                                    responseText = txt;
+                                } else {
+                                    errors.push("Direct API rate limited.");
+                                }
+                            } else {
+                                errors.push("Direct API returned status " + res.status);
+                            }
+                        } catch(apiErr) {
+                            errors.push("Direct API network error: " + apiErr.message);
+                        }
                     }
 
                     // Attempt 2: Fallback scraping watch page HTML via corsproxy.io
@@ -1779,7 +1901,7 @@
                     }
 
                     if (!responseText.trim()) {
-                        throw new Error("Unable to fetch transcript. YouTube blocked the connection, or captions are disabled. Details: " + errors.join(" | "));
+                        throw new Error("Unable to retrieve the transcript automatically. The video might not have captions enabled, or YouTube's anti-bot system is blocking the connection. Please try switching to the 'Manual Paste' tab above as a fallback.");
                     }
 
                     currentYtTranscriptText = responseText.trim();
