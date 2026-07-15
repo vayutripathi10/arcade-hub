@@ -716,23 +716,6 @@
                         <!-- Sub-panel: Auto Fetch -->
                         <div id="yt-subpanel-auto" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
                             
-                            <!-- API Settings Box -->
-                            <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 5px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="yt-settings-header">
-                                    <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">⚙️ OPTIONAL: SECURE CLOUDFLARE WORKER ROUTE (100% AUTOMATED UPTIME)</span>
-                                    <span id="yt-settings-arrow" style="font-size: 0.8rem; color: var(--text-secondary);">▶</span>
-                                </div>
-                                <div id="yt-api-settings-panel" style="display: none; flex-direction: column; gap: 10px; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
-                                    <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin: 0;">
-                                        Exposing API keys in client-side code is insecure. Use a free **Cloudflare Worker** as a secure proxy to hold your RapidAPI Key.
-                                    </p>
-                                    <div class="option-field" style="width: 100%;">
-                                        <label for="yt-worker-url" style="font-size: 0.65rem; color: var(--neon-cyan);">CLOUDFLARE WORKER URL</label>
-                                        <input type="text" id="yt-worker-url" class="cyber-input" placeholder="e.g., https://your-worker-name.workers.dev" style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
-                                    </div>
-                                    <button class="cyber-btn" id="btn-yt-save-settings" style="align-self: flex-start; padding: 4px 12px; font-size: 0.7rem; margin-top: 5px;">💾 SAVE SETTINGS</button>
-                                </div>
-                            </div>
 
                             <div class="option-field" style="width: 100%;">
                                 <label for="yt-video-url">PASTE YOUTUBE VIDEO LINK</label>
@@ -1464,45 +1447,7 @@
         let currentYtVideoId = "";
         let currentYtTranscriptText = "";
 
-        // Cloudflare Worker config UI elements
-        const ytSettingsHeader = document.getElementById('yt-settings-header');
-        const ytSettingsArrow = document.getElementById('yt-settings-arrow');
-        const ytApiSettingsPanel = document.getElementById('yt-api-settings-panel');
-        const inputWorkerUrl = document.getElementById('yt-worker-url');
-        const btnYtSaveSettings = document.getElementById('btn-yt-save-settings');
 
-        // Toggle panel
-        if (ytSettingsHeader) {
-            ytSettingsHeader.addEventListener('click', () => {
-                const isOpen = ytApiSettingsPanel.style.display === 'flex';
-                ytApiSettingsPanel.style.display = isOpen ? 'none' : 'flex';
-                ytSettingsArrow.textContent = isOpen ? '▶' : '▼';
-            });
-        }
-
-        // Save action
-        if (btnYtSaveSettings) {
-            btnYtSaveSettings.addEventListener('click', () => {
-                playBeep(880, 0.05, 'sine');
-                let workerUrl = inputWorkerUrl.value.trim();
-                
-                // Strip trailing slash if present
-                if (workerUrl.endsWith('/')) {
-                    workerUrl = workerUrl.slice(0, -1);
-                }
-
-                localStorage.setItem('yt_worker_url', workerUrl);
-                showNotification("Cloudflare Worker configuration saved successfully!", "success");
-            });
-        }
-
-        // Load action on startup
-        function loadYtApiSettings() {
-            if (inputWorkerUrl) {
-                inputWorkerUrl.value = localStorage.getItem('yt_worker_url') || "";
-            }
-        }
-        loadYtApiSettings();
 
         // Sub-tabs switching
         const btnYtSubAuto = document.getElementById('btn-yt-sub-auto');
@@ -1680,49 +1625,6 @@
         }
 
         if (btnYtFetch) {
-            // Helper function to load data using JSONP script injection (bypasses CORS and AdBlocker blocks)
-            function fetchJsonp(url, service = 'allorigins') {
-                return new Promise((resolve, reject) => {
-                    const callbackName = 'jsonp_cb_' + Math.floor(Math.random() * 1000000);
-                    const timeoutId = setTimeout(() => {
-                        cleanup();
-                        reject(new Error("Timeout"));
-                    }, 12000);
-
-                    function cleanup() {
-                        clearTimeout(timeoutId);
-                        if (window[callbackName]) delete window[callbackName];
-                        const scriptEl = document.getElementById(callbackName);
-                        if (scriptEl) scriptEl.remove();
-                    }
-
-                    window[callbackName] = function(data) {
-                        cleanup();
-                        if (data && data.contents) {
-                            resolve(data.contents);
-                        } else if (typeof data === 'string') {
-                            resolve(data);
-                        } else {
-                            reject(new Error("Empty contents"));
-                        }
-                    };
-
-                    const script = document.createElement('script');
-                    script.id = callbackName;
-                    if (service === 'codetabs') {
-                        script.src = `https://api.codetabs.com/v1/jsonp?quest=${encodeURIComponent(url)}&callback=${callbackName}`;
-                    } else {
-                        script.src = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}&callback=${callbackName}`;
-                    }
-                    
-                    script.onerror = function() {
-                        cleanup();
-                        reject(new Error("Script load error"));
-                    };
-                    document.body.appendChild(script);
-                });
-            }
-
             btnYtFetch.addEventListener('click', async () => {
                 const url = inputYtUrl.value.trim();
                 if (!url) {
@@ -1748,176 +1650,62 @@
 
                 try {
                     let responseText = "";
-                    let errors = [];
+                    const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}`;
+                    
+                    const res = await fetch(targetUrl);
 
-                    // Check if custom Cloudflare Worker proxy is provided (read directly from input or fallback to localStorage)
-                    let workerBaseUrl = "";
-                    if (inputWorkerUrl) {
-                        workerBaseUrl = inputWorkerUrl.value.trim();
-                        if (workerBaseUrl.endsWith('/')) {
-                            workerBaseUrl = workerBaseUrl.slice(0, -1);
+                    if (res.ok) {
+                        const data = await res.json();
+                        let parsedText = "";
+
+                        // Helper function to extract text segments from multi-format API payloads
+                        function extractTranscriptFromData(obj) {
+                            if (!obj) return "";
+                            if (typeof obj === 'string') return obj;
+                            if (obj.transcriptionAsText && typeof obj.transcriptionAsText === 'string') {
+                                return obj.transcriptionAsText;
+                            }
+                            if (Array.isArray(obj.transcription)) {
+                                return obj.transcription.map(t => {
+                                    const start = parseFloat(t.start || "0");
+                                    const mins = Math.floor(start / 60);
+                                    const secs = Math.floor(start % 60).toString().padStart(2, '0');
+                                    return `[${mins}:${secs}] ${t.subtitle || t.text || ""}`;
+                                }).join('\n');
+                            }
+                            return obj.transcript || obj.text || obj.content || JSON.stringify(obj);
                         }
-                        if (workerBaseUrl) {
-                            localStorage.setItem('yt_worker_url', workerBaseUrl);
-                        }
-                    }
-                    if (!workerBaseUrl) {
-                        workerBaseUrl = localStorage.getItem('yt_worker_url') || "";
-                    }
 
-                    if (workerBaseUrl) {
-                        try {
-                            const targetUrl = `${workerBaseUrl}/transcript?videoId=${videoId}`;
-                            const res = await fetch(targetUrl);
-
-                            if (res.ok) {
-                                const data = await res.json();
-                                let parsedText = "";
-
-                                // Helper function to extract text segments from multi-format API payloads
-                                function extractTranscriptFromData(obj) {
-                                    if (!obj) return "";
-                                    if (typeof obj === 'string') return obj;
-                                    if (obj.transcriptionAsText && typeof obj.transcriptionAsText === 'string') {
-                                        return obj.transcriptionAsText;
-                                    }
-                                    if (Array.isArray(obj.transcription)) {
-                                        return obj.transcription.map(t => {
-                                            const start = parseFloat(t.start || "0");
+                        if (Array.isArray(data)) {
+                            if (data.length > 0 && (data[0].transcription || data[0].transcriptionAsText)) {
+                                parsedText = extractTranscriptFromData(data[0]);
+                            } else {
+                                parsedText = data.map(item => {
+                                    if (item && typeof item === 'object') {
+                                        if (item.text !== undefined) {
+                                            const start = parseFloat(item.start || "0");
                                             const mins = Math.floor(start / 60);
                                             const secs = Math.floor(start % 60).toString().padStart(2, '0');
-                                            return `[${mins}:${secs}] ${t.subtitle || t.text || ""}`;
-                                        }).join('\n');
+                                            return `[${mins}:${secs}] ${item.text}`;
+                                        }
+                                        return extractTranscriptFromData(item);
                                     }
-                                    return obj.transcript || obj.text || obj.content || JSON.stringify(obj);
-                                }
-
-                                if (Array.isArray(data)) {
-                                    if (data.length > 0 && (data[0].transcription || data[0].transcriptionAsText)) {
-                                        parsedText = extractTranscriptFromData(data[0]);
-                                    } else {
-                                        parsedText = data.map(item => {
-                                            if (item && typeof item === 'object') {
-                                                if (item.text !== undefined) {
-                                                    const start = parseFloat(item.start || "0");
-                                                    const mins = Math.floor(start / 60);
-                                                    const secs = Math.floor(start % 60).toString().padStart(2, '0');
-                                                    return `[${mins}:${secs}] ${item.text}`;
-                                                }
-                                                return extractTranscriptFromData(item);
-                                            }
-                                            return String(item);
-                                        }).join('\n');
-                                    }
-                                } else if (data && typeof data === 'object') {
-                                    parsedText = extractTranscriptFromData(data);
-                                } else {
-                                    parsedText = String(data);
-                                }
-
-                                if (parsedText.trim() && parsedText !== "[object Object]") {
-                                    responseText = parsedText.trim();
-                                    showNotification("Transcript retrieved via secure Cloudflare Worker proxy!", "success");
-                                }
-                            } else {
-                                errors.push("Cloudflare Worker responded with status " + res.status);
+                                    return String(item);
+                                }).join('\n');
                             }
-                        } catch(wErr) {
-                            errors.push("Cloudflare Worker connection error: " + wErr.message);
+                        } else if (data && typeof data === 'object') {
+                            parsedText = extractTranscriptFromData(data);
+                        } else {
+                            parsedText = String(data);
                         }
-                    }
 
-                    // Attempt 1: Try direct CORS-open transcript AI api
-                    if (!responseText.trim()) {
-                        try {
-                            const directApiUrl = `https://youtube-transcript.ai/transcript/${videoId}.txt`;
-                            const res = await fetch(directApiUrl);
-                            if (res.ok) {
-                                const txt = await res.text();
-                                if (txt && !txt.includes("high volume") && !txt.includes("rate limits")) {
-                                    responseText = txt;
-                                } else {
-                                    errors.push("Direct API rate limited.");
-                                }
-                            } else {
-                                errors.push("Direct API returned status " + res.status);
-                            }
-                        } catch(apiErr) {
-                            errors.push("Direct API network error: " + apiErr.message);
-                        }
-                    }
-
-                    // Attempt 2: Fallback scraping watch page HTML via corsproxy.io
-                    if (!responseText.trim()) {
-                        try {
-                            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
-                            const res = await fetch(proxyUrl);
-                            if (res.ok) {
-                                const html = await res.text();
-                                responseText = await parseCaptionsFromHtml(html, videoId, false);
-                            } else {
-                                errors.push("corsproxy.io returned status " + res.status);
-                            }
-                        } catch(err) {
-                            errors.push("corsproxy.io fetch error: " + err.message);
-                        }
-                    }
-
-                    // Attempt 3: Fallback scraping watch page HTML via allorigins (CORS)
-                    if (!responseText.trim()) {
-                        try {
-                            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
-                            const res = await fetch(proxyUrl);
-                            if (res.ok) {
-                                const data = await res.json();
-                                const html = data.contents;
-                                responseText = await parseCaptionsFromHtml(html, videoId, false);
-                            } else {
-                                errors.push("allorigins returned status " + res.status);
-                            }
-                        } catch(err) {
-                            errors.push("allorigins fetch error: " + err.message);
-                        }
-                    }
-
-                    // Attempt 4: Fallback scraping watch page HTML via codetabs proxy (CORS)
-                    if (!responseText.trim()) {
-                        try {
-                            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
-                            const res = await fetch(proxyUrl);
-                            if (res.ok) {
-                                const html = await res.text();
-                                responseText = await parseCaptionsFromHtml(html, videoId, false);
-                            } else {
-                                errors.push("codetabs returned status " + res.status);
-                            }
-                        } catch(err) {
-                            errors.push("codetabs fetch error: " + err.message);
-                        }
-                    }
-
-                    // Attempt 5: Fallback scraping watch page HTML via allorigins JSONP (Bypasses CORS and AdBlocker blocks)
-                    if (!responseText.trim()) {
-                        try {
-                            const html = await fetchJsonp('https://www.youtube.com/watch?v=' + videoId, 'allorigins');
-                            responseText = await parseCaptionsFromHtml(html, videoId, true);
-                        } catch(err) {
-                            errors.push("allorigins JSONP fetch error: " + err.message);
-                        }
-                    }
-
-                    // Attempt 6: Fallback scraping watch page HTML via codetabs JSONP (Bypasses CORS and AdBlocker blocks)
-                    if (!responseText.trim()) {
-                        try {
-                            const html = await fetchJsonp('https://www.youtube.com/watch?v=' + videoId, 'codetabs');
-                            responseText = await parseCaptionsFromHtml(html, videoId, true);
-                        } catch(err) {
-                            errors.push("codetabs JSONP fetch error: " + err.message);
+                        if (parsedText.trim() && parsedText !== "[object Object]") {
+                            responseText = parsedText.trim();
                         }
                     }
 
                     if (!responseText.trim()) {
-                        throw new Error("Unable to retrieve the transcript automatically. The video might not have captions enabled, or YouTube's anti-bot system is blocking the connection. Please try switching to the 'Manual Paste' tab above as a fallback.");
+                        throw new Error("Unable to retrieve the transcript from this video. Please ensure subtitles are enabled and try again, or use 'Manual Paste' above.");
                     }
 
                     currentYtTranscriptText = responseText.trim();
@@ -1934,88 +1722,6 @@
                     ytLoading.style.display = 'none';
                 }
             });
-
-            // Helper function to extract caption XML track and parse lines
-            async function parseCaptionsFromHtml(html, videoId, isJsonp = false) {
-                if (!html) return "";
-                const match = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/) || html.match(/var\s+ytInitialPlayerResponse\s*=\s*({.+?});/);
-                if (!match) throw new Error("Caption metadata block not found on the page.");
-                
-                const playerResponse = JSON.parse(match[1]);
-                const captionTracks = playerResponse.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-                if (!captionTracks || captionTracks.length === 0) {
-                    throw new Error("No subtitles tracks found. Subtitles may be disabled for this video.");
-                }
-                
-                // Pick the first track
-                const trackUrl = captionTracks[0].baseUrl;
-                let xmlText = "";
-                let xmlErrors = [];
-
-                if (isJsonp) {
-                    // Fetch XML track via JSONP
-                    try {
-                        xmlText = await fetchJsonp(trackUrl, 'allorigins');
-                    } catch(e) {
-                        xmlErrors.push("allorigins JSONP XML failed: " + e.message);
-                    }
-                    if (!xmlText) {
-                        try {
-                            xmlText = await fetchJsonp(trackUrl, 'codetabs');
-                        } catch(e) {
-                            xmlErrors.push("codetabs JSONP XML failed: " + e.message);
-                        }
-                    }
-                } else {
-                    // Fetch track XML via standard CORS
-                    try {
-                        const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(trackUrl)}`);
-                        if (res.ok) {
-                            xmlText = await res.text();
-                        } else {
-                            xmlErrors.push("corsproxy.io xml status " + res.status);
-                        }
-                    } catch(e) {
-                        xmlErrors.push("corsproxy.io xml error: " + e.message);
-                    }
-
-                    if (!xmlText) {
-                        try {
-                            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(trackUrl)}`);
-                            if (res.ok) {
-                                const data = await res.json();
-                                xmlText = data.contents;
-                            } else {
-                                xmlErrors.push("allorigins xml status " + res.status);
-                            }
-                        } catch(e) {
-                            xmlErrors.push("allorigins xml error: " + e.message);
-                        }
-                    }
-                }
-
-                if (!xmlText) {
-                    throw new Error("Failed to load caption XML. Subtitles block: " + xmlErrors.join(" | "));
-                }
-
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                const textNodes = xmlDoc.getElementsByTagName("text");
-                
-                if (textNodes.length === 0) return "";
-                
-                let lines = [];
-                for (let i = 0; i < textNodes.length; i++) {
-                    const node = textNodes[i];
-                    const start = parseFloat(node.getAttribute("start") || "0");
-                    const minutes = Math.floor(start / 60);
-                    const seconds = Math.floor(start % 60).toString().padStart(2, '0');
-                    const timestamp = `[${minutes}:${seconds}]`;
-                    const text = node.textContent.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-                    lines.push(`${timestamp} ${text}`);
-                }
-                return lines.join('\n');
-            }
         }
 
         if (btnYtDownloadPdf) {
