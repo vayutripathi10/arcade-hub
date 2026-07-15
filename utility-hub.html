@@ -1470,19 +1470,17 @@
                 btnYtSubAuto.classList.remove('active');
                 ytSubpanelManual.style.display = 'flex';
                 ytSubpanelAuto.style.display = 'none';
-            });
-        }
-
-        // Shared robust PDF compilation helper (Unicode-safe for Hindi/Devanagari)
-        async function compileTextToPdf(docTitle, textContent, filename) {
+              async function compileTextToPdf(docTitle, textContent, filename) {
             try {
                 const pdfDoc = await PDFLib.PDFDocument.create();
                 
-                // Check for non-ASCII characters to trigger Noto Sans Devanagari font embedding
-                const hasUnicode = /[^\x00-\x7F]/.test(textContent) || /[^\x00-\x7F]/.test(docTitle);
+                // Only trigger Noto Sans Devanagari font embedding if text actually contains Devanagari script (Hindi) characters
+                const hasUnicode = /[\u0900-\u097F]/.test(textContent) || /[\u0900-\u097F]/.test(docTitle);
                 
                 let fontToUse;
                 let boldFontToUse;
+                let cleanText = textContent;
+                let cleanTitle = docTitle;
                 
                 if (hasUnicode) {
                     showNotification("Formatting PDF with Unicode (Hindi) support...", "success");
@@ -1501,6 +1499,24 @@
                     fontToUse = await pdfDoc.embedFont(fontBytes);
                     boldFontToUse = fontToUse; // Reuse since it contains the Devanagari character glyph map
                 } else {
+                    // Replace common non-ASCII typography characters with ASCII equivalents to prevent pdf-lib encoding crashes
+                    const replacements = [
+                        [/[\u2018\u2019]/g, "'"], // Smart single quotes
+                        [/[\u201C\u201D]/g, '"'], // Smart double quotes
+                        [/[\u2013\u2014]/g, "-"], // En/Em dashes
+                        [/\u00A0/g, " "],         // Non-breaking space
+                        [/\u2026/g, "..."],       // Ellipsis
+                        [/\u266B|\u266A/g, ""],   // Music notes (remove)
+                    ];
+                    for (const [regex, replacement] of replacements) {
+                        cleanText = cleanText.replace(regex, replacement);
+                        cleanTitle = cleanTitle.replace(regex, replacement);
+                    }
+                    
+                    // Strip any remaining non-ASCII characters to guarantee WinAnsi compatibility
+                    cleanText = cleanText.replace(/[^\x00-\x7F]/g, "");
+                    cleanTitle = cleanTitle.replace(/[^\x00-\x7F]/g, "");
+
                     fontToUse = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
                     boldFontToUse = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
                 }
@@ -1516,7 +1532,7 @@
                 let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
                 let y = pageHeight - margin;
                 
-                currentPage.drawText(docTitle, {
+                currentPage.drawText(cleanTitle, {
                     x: margin,
                     y: y,
                     size: titleSize,
@@ -1524,8 +1540,7 @@
                     color: PDFLib.rgb(0, 0, 0)
                 });
                 y -= titleSize + 20;
-
-                const paragraphs = textContent.split('\n');
+                const paragraphs = cleanText.split('\n');
                 for (let para of paragraphs) {
                     para = para.trim();
                     if (!para) {
