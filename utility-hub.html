@@ -719,26 +719,16 @@
                             <!-- API Settings Box -->
                             <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 6px; padding: 12px; margin-bottom: 5px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="yt-settings-header">
-                                    <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">⚙️ OPTIONAL: CUSTOM RAPIDAPI CONFIG (FOR 100% AUTOMATED UPTIME)</span>
+                                    <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">⚙️ OPTIONAL: SECURE CLOUDFLARE WORKER ROUTE (100% AUTOMATED UPTIME)</span>
                                     <span id="yt-settings-arrow" style="font-size: 0.8rem; color: var(--text-secondary);">▶</span>
                                 </div>
                                 <div id="yt-api-settings-panel" style="display: none; flex-direction: column; gap: 10px; margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px;">
                                     <p style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; margin: 0;">
-                                        YouTube limits free public proxies. If you encounter errors, you can connect any YouTube Transcript API from RapidAPI here. Credentials save locally.
+                                        Exposing API keys in client-side code is insecure. Use a free **Cloudflare Worker** as a secure proxy to hold your RapidAPI Key.
                                     </p>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                        <div class="option-field" style="width: 100%;">
-                                            <label for="yt-rapidapi-key" style="font-size: 0.65rem; color: var(--neon-cyan);">RAPIDAPI KEY</label>
-                                            <input type="password" id="yt-rapidapi-key" class="cyber-input" placeholder="Enter x-rapidapi-key..." style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
-                                        </div>
-                                        <div class="option-field" style="width: 100%;">
-                                            <label for="yt-rapidapi-host" style="font-size: 0.65rem; color: var(--neon-cyan);">RAPIDAPI HOST</label>
-                                            <input type="text" id="yt-rapidapi-host" class="cyber-input" placeholder="e.g., youtube-transcription-api.p.rapidapi.com" style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
-                                        </div>
-                                    </div>
                                     <div class="option-field" style="width: 100%;">
-                                        <label for="yt-rapidapi-url" style="font-size: 0.65rem; color: var(--neon-cyan);">API ENDPOINT URL (USE {videoId} AS PLACEHOLDER)</label>
-                                        <input type="text" id="yt-rapidapi-url" class="cyber-input" placeholder="https://youtube-transcription-api.p.rapidapi.com/transcript?videoId={videoId}" style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
+                                        <label for="yt-worker-url" style="font-size: 0.65rem; color: var(--neon-cyan);">CLOUDFLARE WORKER URL</label>
+                                        <input type="text" id="yt-worker-url" class="cyber-input" placeholder="e.g., https://your-worker-name.workers.dev" style="font-size: 0.75rem; padding: 6px; width: 100%; margin-top: 4px;">
                                     </div>
                                     <button class="cyber-btn" id="btn-yt-save-settings" style="align-self: flex-start; padding: 4px 12px; font-size: 0.7rem; margin-top: 5px;">💾 SAVE SETTINGS</button>
                                 </div>
@@ -1474,13 +1464,11 @@
         let currentYtVideoId = "";
         let currentYtTranscriptText = "";
 
-        // RapidAPI config UI elements
+        // Cloudflare Worker config UI elements
         const ytSettingsHeader = document.getElementById('yt-settings-header');
         const ytSettingsArrow = document.getElementById('yt-settings-arrow');
         const ytApiSettingsPanel = document.getElementById('yt-api-settings-panel');
-        const inputRapidApiKey = document.getElementById('yt-rapidapi-key');
-        const inputRapidApiHost = document.getElementById('yt-rapidapi-host');
-        const inputRapidApiUrl = document.getElementById('yt-rapidapi-url');
+        const inputWorkerUrl = document.getElementById('yt-worker-url');
         const btnYtSaveSettings = document.getElementById('btn-yt-save-settings');
 
         // Toggle panel
@@ -1496,24 +1484,22 @@
         if (btnYtSaveSettings) {
             btnYtSaveSettings.addEventListener('click', () => {
                 playBeep(880, 0.05, 'sine');
-                const key = inputRapidApiKey.value.trim();
-                const host = inputRapidApiHost.value.trim();
-                const url = inputRapidApiUrl.value.trim();
+                let workerUrl = inputWorkerUrl.value.trim();
+                
+                // Strip trailing slash if present
+                if (workerUrl.endsWith('/')) {
+                    workerUrl = workerUrl.slice(0, -1);
+                }
 
-                localStorage.setItem('yt_rapidapi_key', key);
-                localStorage.setItem('yt_rapidapi_host', host);
-                localStorage.setItem('yt_rapidapi_url', url);
-
-                showNotification("RapidAPI settings saved successfully!", "success");
+                localStorage.setItem('yt_worker_url', workerUrl);
+                showNotification("Cloudflare Worker configuration saved successfully!", "success");
             });
         }
 
         // Load action on startup
         function loadYtApiSettings() {
-            if (inputRapidApiKey) {
-                inputRapidApiKey.value = localStorage.getItem('yt_rapidapi_key') || "";
-                inputRapidApiHost.value = localStorage.getItem('yt_rapidapi_host') || "";
-                inputRapidApiUrl.value = localStorage.getItem('yt_rapidapi_url') || "";
+            if (inputWorkerUrl) {
+                inputWorkerUrl.value = localStorage.getItem('yt_worker_url') || "";
             }
         }
         loadYtApiSettings();
@@ -1764,21 +1750,13 @@
                     let responseText = "";
                     let errors = [];
 
-                    // Check if custom RapidAPI configuration is provided
-                    const rApiKey = localStorage.getItem('yt_rapidapi_key') || "";
-                    const rApiHost = localStorage.getItem('yt_rapidapi_host') || "";
-                    const rApiUrlTemplate = localStorage.getItem('yt_rapidapi_url') || "";
+                    // Check if custom Cloudflare Worker proxy is provided
+                    const workerBaseUrl = localStorage.getItem('yt_worker_url') || "";
 
-                    if (rApiKey && rApiHost && rApiUrlTemplate) {
+                    if (workerBaseUrl) {
                         try {
-                            const targetUrl = rApiUrlTemplate.replace('{videoId}', videoId);
-                            const res = await fetch(targetUrl, {
-                                method: 'GET',
-                                headers: {
-                                    'x-rapidapi-key': rApiKey,
-                                    'x-rapidapi-host': rApiHost
-                                }
-                            });
+                            const targetUrl = `${workerBaseUrl}/transcript?videoId=${videoId}`;
+                            const res = await fetch(targetUrl);
 
                             if (res.ok) {
                                 const data = await res.json();
@@ -1801,13 +1779,13 @@
 
                                 if (parsedText.trim()) {
                                     responseText = parsedText.trim();
-                                    showNotification("Transcript retrieved via custom RapidAPI configuration!", "success");
+                                    showNotification("Transcript retrieved via secure Cloudflare Worker proxy!", "success");
                                 }
                             } else {
-                                errors.push("RapidAPI responded with status " + res.status);
+                                errors.push("Cloudflare Worker responded with status " + res.status);
                             }
-                        } catch(rErr) {
-                            errors.push("RapidAPI connection error: " + rErr.message);
+                        } catch(wErr) {
+                            errors.push("Cloudflare Worker connection error: " + wErr.message);
                         }
                     }
 
