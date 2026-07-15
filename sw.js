@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v205';
+const CACHE_NAME = 'arcade-hub-cache-v206';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -361,6 +361,11 @@ self.addEventListener('fetch', (e) => {
 
     // Only handle HTTP/HTTPS (ignore chrome-extension, file://, etc.)
     if (!url.protocol.startsWith('http')) return;
+
+    // Bypass service worker for YouTube Transcript proxy worker requests
+    if (url.hostname === 'youtube-transcript-proxy.vayutripathi.workers.dev') {
+        return;
+    }
 
     // Handle Google Analytics offline queueing
     const isAnalyticsRequest = url.hostname.includes('google-analytics.com') || 
