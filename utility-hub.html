@@ -177,63 +177,85 @@
         }
 
         .cyber-btn {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-secondary);
             font-family: 'Share Tech Mono', monospace;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            outline: none;
         }
-        .cyber-btn:hover {
-            border-color: rgba(255,255,255,0.3);
+        .cyber-btn:hover:not(:disabled) {
+            border-color: var(--neon-cyan);
             color: #fff;
+            background: rgba(0, 255, 204, 0.05);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.1);
+            transform: translateY(-1px);
+        }
+        .cyber-btn:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
         }
         .cyber-btn.active {
             border-color: var(--neon-pink);
             color: var(--neon-pink);
-            background: rgba(255, 0, 127, 0.05);
-            box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
+            background: rgba(255, 0, 127, 0.08);
+            box-shadow: 0 0 12px rgba(255, 0, 127, 0.25);
+        }
+        .cyber-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
         }
 
         .neon-action-btn {
             font-family: 'Share Tech Mono', monospace;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.95rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             padding: 14px 24px;
-            border: 2px solid var(--neon-cyan);
-            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.08), rgba(0, 255, 204, 0.02));
             color: var(--neon-cyan);
             border-radius: 8px;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
-            transition: all 0.3s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             text-align: center;
+            outline: none;
         }
         .neon-action-btn:hover:not(:disabled) {
             background: var(--neon-cyan);
-            color: #000;
-            box-shadow: 0 0 25px rgba(0, 255, 204, 0.4);
+            color: #0b0c10;
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.4), inset 0 0 10px rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        .neon-action-btn:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
         }
         .neon-action-btn:disabled {
-            border-color: rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+            color: rgba(255,255,255,0.15);
             box-shadow: none;
             cursor: not-allowed;
+            transform: none !important;
         }
         .neon-action-btn.pink {
             border-color: var(--neon-pink);
             color: var(--neon-pink);
+            background: linear-gradient(135deg, rgba(255, 0, 127, 0.08), rgba(255, 0, 127, 0.02));
             box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);
         }
         .neon-action-btn.pink:hover:not(:disabled) {
             background: var(--neon-pink);
             color: #fff;
-            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4);
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4), inset 0 0 10px rgba(255,255,255,0.2);
         }
 
         /* Dropzone layout */
@@ -814,7 +836,7 @@
                             </div>
 
                             <button class="neon-action-btn" id="btn-rmbg-apply" style="align-self: flex-start; margin-top: 5px;">
-                                REMOVE BACKGROUND
+                                Remove Image Background
                             </button>
                             <p id="rmbg-initial-notice" style="font-size: 0.75rem; color: var(--text-secondary); text-align: left; margin: 0; display: block;">* First use downloads AI model (~5MB). Subsequent uses are instant.</p>
                         </div>
