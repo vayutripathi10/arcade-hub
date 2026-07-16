@@ -849,13 +849,18 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 10px; justify-content: flex-start;">
-                                <button class="neon-action-btn" id="btn-rmbg-download" style="background: var(--neon-cyan); border-color: var(--neon-cyan); color: #000; font-weight: 600; width: auto;">
-                                    ⬇️ DOWNLOAD PNG
-                                </button>
-                                <button class="cyber-btn" id="btn-rmbg-reset">
-                                    🔄 TRY ANOTHER
-                                </button>
+                            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+                                <div style="display: flex; gap: 10px; justify-content: flex-start;">
+                                    <button class="neon-action-btn" id="btn-rmbg-download" style="background: var(--neon-cyan); border-color: var(--neon-cyan); color: #000; font-weight: 600; width: auto;">
+                                        ⬇️ DOWNLOAD PNG
+                                    </button>
+                                    <button class="cyber-btn" id="btn-rmbg-reset">
+                                        🔄 TRY ANOTHER
+                                    </button>
+                                </div>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary); text-align: left; margin: 4px 0 0 0; line-height: 1.4;">
+                                    * <strong>Mobile Tip</strong>: If download doesn't start, tap the button to open the share sheet, or long-press the transparent image above and choose "Save to Photos".
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -2222,11 +2227,35 @@
                 const originalName = rmbgFile ? rmbgFile.name : "image";
                 const dotIdx = originalName.lastIndexOf('.');
                 const baseName = dotIdx !== -1 ? originalName.substring(0, dotIdx) : originalName;
+                const fileName = `${baseName}_no_bg.png`;
+
+                // Native Share Sheet API Support on Mobile Devices
+                if (navigator.canShare && navigator.share) {
+                    try {
+                        const file = new File([rmbgOutputFileBlob], fileName, { type: 'image/png' });
+                        if (navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Share Background Removed Image',
+                                text: 'Here is your background removed image from Arcade Hub.'
+                            });
+                            showNotification("Shared successfully!", "success");
+                            return;
+                        }
+                    } catch (shareErr) {
+                        console.warn("Mobile share sheet failed:", shareErr);
+                    }
+                }
                 
+                // Fallback for standard downloads (appended to body to work in Firefox/Safari Mobile)
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(rmbgOutputFileBlob);
-                link.download = `${baseName}_no_bg.png`;
+                link.download = fileName;
+                document.body.appendChild(link);
                 link.click();
+                setTimeout(() => {
+                    link.remove();
+                }, 100);
             });
         }
     </script>
