@@ -727,6 +727,16 @@
                                 </div>
                             </div>
 
+                            <div class="option-field" style="width: 100%;">
+                                <label for="yt-lang-select">SELECT TRANSCRIPT LANGUAGE</label>
+                                <select id="yt-lang-select" class="cyber-input" style="width: 100%; margin-top: 4px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); cursor: pointer; outline: none; border-radius: 6px; padding: 10px 14px;">
+                                    <option value="hi,en">Hindi (English fallback)</option>
+                                    <option value="en">English only</option>
+                                    <option value="hi">Hindi only</option>
+                                    <option value="en,hi">English (Hindi fallback)</option>
+                                </select>
+                            </div>
+
                             <!-- Progress indicator block -->
                             <div id="yt-loading-indicator" style="display: none; align-items: center; gap: 10px; padding: 10px; background: rgba(0,255,204,0.05); border: 1px dashed var(--neon-cyan); border-radius: 6px;">
                                 <div class="spinner" style="width: 16px; height: 16px; border: 2px solid rgba(0,255,204,0.2); border-top-color: var(--neon-cyan); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
@@ -1670,7 +1680,8 @@
                 try {
                     let responseText = "";
                     let data = null;
-                    const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}&lang=en,hi`;
+                    const selectedLang = document.getElementById('yt-lang-select')?.value || 'hi,en';
+                    const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}&lang=${selectedLang}`;
                     
                     // Attempt A: Standard fetch
                     try {
@@ -1722,7 +1733,12 @@
 
                     if (data) {
                         if (data.error) {
-                            throw new Error(data.error);
+                            let errorMsg = data.error;
+                            if (data.availableLangs && data.availableLangs.length > 0) {
+                                errorMsg += `\n\nAvailable languages for this video: ${data.availableLangs.join(', ')}`;
+                                errorMsg += `\n\nTry selecting a different language from the dropdown menu above.`;
+                            }
+                            throw new Error(errorMsg);
                         }
 
                         let parsedText = "";
