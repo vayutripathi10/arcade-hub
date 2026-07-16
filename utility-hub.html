@@ -1470,7 +1470,11 @@
                 btnYtSubAuto.classList.remove('active');
                 ytSubpanelManual.style.display = 'flex';
                 ytSubpanelAuto.style.display = 'none';
-              async function compileTextToPdf(docTitle, textContent, filename) {
+            });
+        }
+
+        // Shared robust PDF compilation helper (Unicode-safe for Hindi/Devanagari)
+        async function compileTextToPdf(docTitle, textContent, filename) {
             try {
                 const pdfDoc = await PDFLib.PDFDocument.create();
                 
