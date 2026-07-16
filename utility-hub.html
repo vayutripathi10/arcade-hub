@@ -2220,7 +2220,7 @@
         }
 
         if (btnRmbgDownload) {
-            btnRmbgDownload.addEventListener('click', () => {
+            btnRmbgDownload.addEventListener('click', async () => {
                 if (!rmbgOutputFileBlob) return;
                 playBeep(880, 0.08, 'sine');
                 
