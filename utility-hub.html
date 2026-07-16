@@ -115,7 +115,8 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .deck-tab.active[data-tab="compress"] {
+        .deck-tab.active[data-tab="compress"],
+        .deck-tab.active[data-tab="remove-bg"] {
             border-color: var(--neon-cyan);
             color: var(--neon-cyan);
             box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
@@ -130,7 +131,8 @@
         }
 
         .deck-tab.active[data-tab="text-utils"],
-        .deck-tab.active[data-tab="calculator"] {
+        .deck-tab.active[data-tab="calculator"],
+        .deck-tab.active[data-tab="yt-transcript"] {
             border-color: var(--neon-pink);
             color: var(--neon-pink);
             box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
@@ -2167,7 +2169,7 @@
                     progressBarRmbg.style.width = "10%";
 
                     const config = {
-                        publicPath: 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/',
+                        publicPath: 'https://staticimgly.com/@imgly/background-removal-data/1.4.5/dist/',
                         progress: (key, current, total) => {
                             const percent = Math.round((current / total) * 100);
                             
