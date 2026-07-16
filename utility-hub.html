@@ -1488,6 +1488,11 @@
             try {
                 const pdfDoc = await PDFLib.PDFDocument.create();
                 
+                // Register fontkit instance to support custom TTF/OTF font embedding
+                if (window.fontkit) {
+                    pdfDoc.registerFontkit(window.fontkit);
+                }
+                
                 // Only trigger Noto Sans Devanagari font embedding if text actually contains Devanagari script (Hindi) characters
                 const hasUnicode = /[\u0900-\u097F]/.test(textContent) || /[\u0900-\u097F]/.test(docTitle);
                 
@@ -1821,6 +1826,7 @@
         }
     </script>
     <script src="shared/pdf-lib.min.js"></script>
+    <script src="shared/fontkit.umd.js"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
