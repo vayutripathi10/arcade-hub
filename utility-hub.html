@@ -2082,7 +2082,7 @@
         async function lazyLoadRmbgLibrary() {
             if (removeBackgroundFn) return removeBackgroundFn;
             try {
-                const module = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/background-removal.js');
+                const module = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.mjs');
                 removeBackgroundFn = module.removeBackground;
                 return removeBackgroundFn;
             } catch (err) {
