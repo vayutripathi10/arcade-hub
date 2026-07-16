@@ -2116,7 +2116,7 @@
                 return removeBackgroundFn;
             } catch (err) {
                 console.error("Library loading failed:", err);
-                throw new Error("Could not load AI model. Check your connection and try again.");
+                throw err;
             }
         }
 
@@ -2228,13 +2228,7 @@
                 } catch (err) {
                     console.error("BG Removal Error:", err);
                     playErrorBuzz();
-                    
-                    let userError = "Processing failed. Try a smaller image or different format.";
-                    if (err.message && (err.message.includes("fetch") || err.message.includes("network") || err.message.includes("Could not load"))) {
-                        userError = "Could not load AI model. Check your connection and try again.";
-                    }
-                    
-                    showNotification(userError, "error");
+                    showNotification(`Error: ${err.message || err}`, "error");
                     resetRmbgWorkspace();
                 } finally {
                     btnRmbgApply.disabled = false;
