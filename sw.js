@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v211';
+const CACHE_NAME = 'arcade-hub-cache-v212';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -158,6 +158,7 @@ const CORE_ASSETS = [
     'shared/achievements.js',
     'shared/audio-fx.js',
     'shared/pdf-lib.min.js',
+    'shared/regenerator-runtime.js',
     'shared/fontkit.umd.js',
     'shared/pdf.min.js',
     'shared/pdf.worker.min.js',
