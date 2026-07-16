@@ -747,9 +747,14 @@
                             <div id="yt-output-wrapper" style="display: none; flex-direction: column; gap: 10px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">TRANSCRIPT BUFFER PREVIEW</span>
-                                    <button class="neon-action-btn pink" id="btn-yt-download-pdf" style="width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0;">
-                                        ⬇️ EXPORT TO PDF
-                                    </button>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="neon-action-btn" id="btn-yt-copy" style="width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0; background: rgba(0, 255, 204, 0.15); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
+                                            📋 COPY
+                                        </button>
+                                        <button class="neon-action-btn pink" id="btn-yt-download-pdf" style="width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0;">
+                                            ⬇️ EXPORT TO PDF
+                                        </button>
+                                    </div>
                                 </div>
                                 <textarea class="text-output-area" id="yt-transcript-text" readonly style="height: 200px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
                             </div>
@@ -1822,6 +1827,25 @@
                 const titleText = `YouTube Video Transcript (ID: ${currentYtVideoId})`;
                 const filename = `YouTube_Transcript_${currentYtVideoId}.pdf`;
                 await compileTextToPdf(titleText, currentYtTranscriptText, filename);
+            });
+        }
+
+        const btnYtCopy = document.getElementById('btn-yt-copy');
+        if (btnYtCopy) {
+            btnYtCopy.addEventListener('click', async () => {
+                if (!currentYtTranscriptText) return;
+                playBeep(880, 0.05, 'sine');
+                
+                try {
+                    await navigator.clipboard.writeText(currentYtTranscriptText);
+                    showNotification("Transcript copied to clipboard!", "success");
+                } catch (err) {
+                    console.error("Failed to copy transcript:", err);
+                    // Fallback to manual selection and copy
+                    txtYtTranscript.select();
+                    document.execCommand('copy');
+                    showNotification("Transcript copied to clipboard!", "success");
+                }
             });
         }
     </script>
