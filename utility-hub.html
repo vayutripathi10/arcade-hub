@@ -2109,6 +2109,9 @@
         }
 
         async function lazyLoadRmbgLibrary() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(reg => reg.update()).catch(() => {});
+            }
             if (removeBackgroundFn) return removeBackgroundFn;
             try {
                 const module = await import('https://esm.sh/@imgly/background-removal@1.4.5?bundle');
