@@ -2191,7 +2191,7 @@
                     progressBarRmbg.style.width = "10%";
 
                     const config = {
-                        publicPath: 'https://unpkg.com/@imgly/background-removal-data@1.4.5/dist/',
+                        publicPath: window.location.origin + '/shared/background-removal/',
                         progress: (key, current, total) => {
                             const percent = Math.round((current / total) * 100);
                             
