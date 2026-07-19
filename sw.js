@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v223';
+const CACHE_NAME = 'arcade-hub-cache-v224';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -364,10 +364,11 @@ self.addEventListener('fetch', (e) => {
     // Only handle HTTP/HTTPS (ignore chrome-extension, file://, etc.)
     if (!url.protocol.startsWith('http')) return;
 
-    // Bypass service worker for YouTube proxy, jsdelivr CDN, and img.ly static assets
+    // Bypass service worker for YouTube proxy, jsdelivr CDN, esm.sh CDN, and img.ly static assets
     if (
         url.hostname === 'youtube-transcript-proxy.vayutripathi.workers.dev' ||
         url.hostname.includes('jsdelivr.net') ||
+        url.hostname.includes('esm.sh') ||
         url.hostname.includes('staticimgly.com')
     ) {
         return;
