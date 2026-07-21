@@ -6,9 +6,7 @@ const isSubfolder = window.location.pathname.includes('/retro-racer-frontend/') 
 
 const swPath = window.location.pathname.endsWith('/404.html') ? '/sw.js' : (isSubfolder ? '../sw.js' : 'sw.js');
 
-const isUtilityHub = window.location.pathname.includes('/utility-hub');
-
-if ('serviceWorker' in navigator && !isUtilityHub) {
+if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register(swPath)
             .then((reg) => console.log('Service Worker registered successfully with scope:', reg.scope))
