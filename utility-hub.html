@@ -151,6 +151,27 @@
             display: flex;
         }
 
+        .rmbg-preview-wrapper {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.25s ease;
+        }
+
+        .rmbg-preview-wrapper.checkerboard {
+            background-color: #0b0c10;
+            background-image: linear-gradient(45deg, #1f1f2e 25%, transparent 25%), 
+                              linear-gradient(-45deg, #1f1f2e 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #1f1f2e 75%), 
+                              linear-gradient(-45deg, transparent 75%, #1f1f2e 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+
         @keyframes tabFadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -867,8 +888,23 @@
                                 <!-- After -->
                                 <div style="display: flex; flex-direction: column; gap: 8px;">
                                     <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan); text-align: left; text-transform: uppercase;">Background Removed</span>
-                                    <div style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; aspect-ratio: 4/3; display: flex; justify-content: center; align-items: center; background-color: #0b0c10; background-image: linear-gradient(45deg, #1f1f2e 25%, transparent 25%), linear-gradient(-45deg, #1f1f2e 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1f1f2e 75%), linear-gradient(-45deg, transparent 75%, #1f1f2e 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;">
+                                    <div id="rmbg-img-after-wrapper" class="rmbg-preview-wrapper checkerboard">
                                         <img id="rmbg-img-after" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Background Color Replacement Controls -->
+                            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left;">
+                                <label style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">REPLACE BACKGROUND COLOR</label>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                                    <button class="cyber-btn rmbg-color-btn active" data-bg="transparent" style="padding: 6px 12px; font-size: 0.75rem;">Transparent</button>
+                                    <button class="cyber-btn rmbg-color-btn" data-bg="#ffffff" style="padding: 6px 12px; font-size: 0.75rem;">White</button>
+                                    <button class="cyber-btn rmbg-color-btn" data-bg="#f0f0f0" style="padding: 6px 12px; font-size: 0.75rem;">Grey</button>
+                                    <button class="cyber-btn rmbg-color-btn" data-bg="#00ff00" style="padding: 6px 12px; font-size: 0.75rem;">Green (Screen)</button>
+                                    <div style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; height: 32px;">
+                                        <span style="font-size: 0.75rem; color: var(--text-secondary); font-family: 'Share Tech Mono', monospace;">Custom:</span>
+                                        <input type="color" id="rmbg-custom-bg" value="#00ffcc" style="background: transparent; border: none; height: 20px; width: 30px; cursor: pointer; padding: 0;">
                                     </div>
                                 </div>
                             </div>
@@ -876,7 +912,7 @@
                             <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
                                 <div style="display: flex; gap: 10px; justify-content: flex-start;">
                                     <button class="neon-action-btn" id="btn-rmbg-download" style="background: var(--neon-cyan); border-color: var(--neon-cyan); color: #000; font-weight: 600; width: auto;">
-                                        ⬇️ DOWNLOAD PNG
+                                        ⬇️ DOWNLOAD IMAGE
                                     </button>
                                     <button class="cyber-btn" id="btn-rmbg-reset">
                                         🔄 TRY ANOTHER
@@ -2014,6 +2050,10 @@
         let rmbgFile = null;
         let rmbgOutputFileBlob = null;
         let removeBackgroundFn = null; // cached reference to the imported function
+        let currentBgMode = 'transparent';
+
+        const imgAfterWrapperRmbg = document.getElementById('rmbg-img-after-wrapper');
+        const customBgInputRmbg = document.getElementById('rmbg-custom-bg');
 
         const dropZoneRmbg = document.getElementById('drop-zone-rmbg');
         const inputRmbg = document.getElementById('input-rmbg');
@@ -2033,6 +2073,40 @@
         const resultContainerRmbg = document.getElementById('rmbg-result-container');
         const imgBeforeRmbg = document.getElementById('rmbg-img-before');
         const imgAfterRmbg = document.getElementById('rmbg-img-after');
+
+        // Background color switcher listeners
+        document.querySelectorAll('.rmbg-color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.rmbg-color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const bgType = btn.getAttribute('data-bg');
+                currentBgMode = bgType;
+                
+                if (imgAfterWrapperRmbg) {
+                    if (bgType === 'transparent') {
+                        imgAfterWrapperRmbg.className = "rmbg-preview-wrapper checkerboard";
+                        imgAfterWrapperRmbg.style.backgroundColor = "";
+                    } else {
+                        imgAfterWrapperRmbg.className = "rmbg-preview-wrapper";
+                        imgAfterWrapperRmbg.style.backgroundColor = bgType;
+                    }
+                }
+                playBeep(600, 0.03, 'sine');
+            });
+        });
+
+        if (customBgInputRmbg) {
+            customBgInputRmbg.addEventListener('input', () => {
+                document.querySelectorAll('.rmbg-color-btn').forEach(b => b.classList.remove('active'));
+                currentBgMode = 'custom';
+                
+                if (imgAfterWrapperRmbg) {
+                    imgAfterWrapperRmbg.className = "rmbg-preview-wrapper";
+                    imgAfterWrapperRmbg.style.backgroundColor = customBgInputRmbg.value;
+                }
+            });
+        }
 
         if (dropZoneRmbg) {
             dropZoneRmbg.addEventListener('click', () => inputRmbg.click());
@@ -2131,6 +2205,20 @@
             rmbgFile = null;
             rmbgOutputFileBlob = null;
             inputRmbg.value = "";
+            currentBgMode = 'transparent';
+            
+            if (imgAfterWrapperRmbg) {
+                imgAfterWrapperRmbg.className = "rmbg-preview-wrapper checkerboard";
+                imgAfterWrapperRmbg.style.backgroundColor = "";
+            }
+            
+            document.querySelectorAll('.rmbg-color-btn').forEach(btn => {
+                if (btn.getAttribute('data-bg') === 'transparent') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
             
             dropZoneRmbg.style.display = 'flex';
             previewContainerRmbg.style.display = 'none';
@@ -2289,11 +2377,30 @@
                 const baseName = dotIdx !== -1 ? originalName.substring(0, dotIdx) : originalName;
                 const fileName = `${baseName}_no_bg.png`;
 
+                let downloadBlob = rmbgOutputFileBlob;
+                
+                // If a colored background replacement is selected, draw on canvas first
+                if (currentBgMode !== 'transparent') {
+                    statusTextRmbg.textContent = "Applying background color...";
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imgAfterRmbg.naturalWidth || imgAfterRmbg.width || 800;
+                    canvas.height = imgAfterRmbg.naturalHeight || imgAfterRmbg.height || 600;
+                    const ctx = canvas.getContext('2d');
+                    
+                    ctx.fillStyle = currentBgMode === 'custom' ? customBgInputRmbg.value : currentBgMode;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(imgAfterRmbg, 0, 0, canvas.width, canvas.height);
+                    
+                    downloadBlob = await new Promise(resolve => {
+                        canvas.toBlob(blob => resolve(blob || rmbgOutputFileBlob), 'image/png');
+                    });
+                }
+
                 // Native Share Sheet API Support on Mobile Devices
                 const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
                 if (isMobile && navigator.canShare && navigator.share) {
                     try {
-                        const file = new File([rmbgOutputFileBlob], fileName, { type: 'image/png' });
+                        const file = new File([downloadBlob], fileName, { type: 'image/png' });
                         if (navigator.canShare({ files: [file] })) {
                             await navigator.share({
                                 files: [file],
@@ -2308,9 +2415,9 @@
                     }
                 }
                 
-                // Fallback for standard downloads (appended to body to work in Firefox/Safari Mobile)
+                // Fallback for standard downloads
                 const link = document.createElement('a');
-                link.href = URL.createObjectURL(rmbgOutputFileBlob);
+                link.href = URL.createObjectURL(downloadBlob);
                 link.download = fileName;
                 document.body.appendChild(link);
                 link.click();
