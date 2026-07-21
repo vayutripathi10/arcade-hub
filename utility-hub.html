@@ -960,6 +960,27 @@
     </footer>
 
     <script>
+        // Global fetch debugger for background removal network monitoring
+        const fetchLogs = [];
+        const originalFetch = window.fetch;
+        window.fetch = async function(...args) {
+            const url = typeof args[0] === 'string' ? args[0] : (args[0] instanceof Request ? args[0].url : String(args[0]));
+            if (url.includes('background-removal') || url.includes('wasm') || url.includes('onnx')) {
+                const logEntry = { url, status: 'fetching...', contentType: '' };
+                fetchLogs.push(logEntry);
+                try {
+                    const response = await originalFetch(...args);
+                    logEntry.status = `${response.status} ${response.statusText}`;
+                    logEntry.contentType = response.headers.get('content-type') || 'none';
+                    return response;
+                } catch (err) {
+                    logEntry.status = `FAILED: ${err.message || err}`;
+                    throw err;
+                }
+            }
+            return originalFetch(...args);
+        };
+
         // Hamburger sidebar drawer script
         document.addEventListener('DOMContentLoaded', () => {
             // Force unregister active service workers to prevent cache quota and interception crashes
@@ -2247,7 +2268,8 @@
                 } catch (err) {
                     console.error("BG Removal Error:", err);
                     playErrorBuzz();
-                    showNotification(`Error: ${err.message || err}`, "error");
+                    const logDetails = fetchLogs.map(log => `\n- ${log.url.split('/').pop()} => status: ${log.status}, type: ${log.contentType}`).join('');
+                    showNotification(`Error: ${err.message || err}\nFetch Logs:${logDetails}`, "error");
                     resetRmbgWorkspace();
                 } finally {
                     btnRmbgApply.disabled = false;
