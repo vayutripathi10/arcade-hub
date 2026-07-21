@@ -2290,7 +2290,8 @@
                 const fileName = `${baseName}_no_bg.png`;
 
                 // Native Share Sheet API Support on Mobile Devices
-                if (navigator.canShare && navigator.share) {
+                const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                if (isMobile && navigator.canShare && navigator.share) {
                     try {
                         const file = new File([rmbgOutputFileBlob], fileName, { type: 'image/png' });
                         if (navigator.canShare({ files: [file] })) {
