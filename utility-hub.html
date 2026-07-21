@@ -728,7 +728,7 @@
                         <div id="calc-subpanel-emi" style="display: none; flex-direction: column; gap: 16px;">
                             <div class="options-grid">
                                 <div class="option-field">
-                                    <label for="emi-amount">LOAN AMOUNT ($)</label>
+                                    <label for="emi-amount">LOAN AMOUNT</label>
                                     <input type="number" id="emi-amount" class="cyber-input" value="10000" style="margin-top: 4px;">
                                 </div>
                                 <div class="option-field">
@@ -768,7 +768,7 @@
 
                             <div class="options-grid">
                                 <div class="option-field">
-                                    <label id="lbl-mf-amount" for="mf-amount">MONTHLY INVESTMENT ($)</label>
+                                    <label id="lbl-mf-amount" for="mf-amount">MONTHLY INVESTMENT</label>
                                     <input type="number" id="mf-amount" class="cyber-input" value="500" style="margin-top: 4px;">
                                 </div>
                                 <div class="option-field">
@@ -1698,9 +1698,9 @@
             const N = (parseInt(emiTenure.value) || 0) * 12;
 
             if (P <= 0 || annualR <= 0 || N <= 0) {
-                document.getElementById('emi-monthly').textContent = '$0';
-                document.getElementById('emi-total-interest').textContent = '$0';
-                document.getElementById('emi-total-payment').textContent = '$0';
+                document.getElementById('emi-monthly').textContent = '0';
+                document.getElementById('emi-total-interest').textContent = '0';
+                document.getElementById('emi-total-payment').textContent = '0';
                 return;
             }
 
@@ -1709,9 +1709,9 @@
             const totalRepayment = emi * N;
             const totalInterest = totalRepayment - P;
 
-            document.getElementById('emi-monthly').textContent = `$${Math.round(emi).toLocaleString()}`;
-            document.getElementById('emi-total-interest').textContent = `$${Math.round(totalInterest).toLocaleString()}`;
-            document.getElementById('emi-total-payment').textContent = `$${Math.round(totalRepayment).toLocaleString()}`;
+            document.getElementById('emi-monthly').textContent = `${Math.round(emi).toLocaleString()}`;
+            document.getElementById('emi-total-interest').textContent = `${Math.round(totalInterest).toLocaleString()}`;
+            document.getElementById('emi-total-payment').textContent = `${Math.round(totalRepayment).toLocaleString()}`;
         }
 
         // Mutual Fund logic
@@ -1729,7 +1729,7 @@
                 mfType = 'sip';
                 btnMfSip.classList.add('active');
                 if (btnMfLumpsum) btnMfLumpsum.classList.remove('active');
-                if (lblMfAmount) lblMfAmount.textContent = "MONTHLY INVESTMENT ($)";
+                if (lblMfAmount) lblMfAmount.textContent = "MONTHLY INVESTMENT";
                 calculateMF();
             });
         }
@@ -1740,7 +1740,7 @@
                 mfType = 'lumpsum';
                 btnMfLumpsum.classList.add('active');
                 if (btnMfSip) btnMfSip.classList.remove('active');
-                if (lblMfAmount) lblMfAmount.textContent = "LUMPSUM INVESTMENT ($)";
+                if (lblMfAmount) lblMfAmount.textContent = "LUMPSUM INVESTMENT";
                 calculateMF();
             });
         }
@@ -1776,9 +1776,9 @@
 
             const returns = Math.max(0, total - invested);
 
-            document.getElementById('mf-invested-amount').textContent = `$${Math.round(invested).toLocaleString()}`;
-            document.getElementById('mf-wealth-gained').textContent = `$${Math.round(returns).toLocaleString()}`;
-            document.getElementById('mf-total-value').textContent = `$${Math.round(total).toLocaleString()}`;
+            document.getElementById('mf-invested-amount').textContent = `${Math.round(invested).toLocaleString()}`;
+            document.getElementById('mf-wealth-gained').textContent = `${Math.round(returns).toLocaleString()}`;
+            document.getElementById('mf-total-value').textContent = `${Math.round(total).toLocaleString()}`;
         }
 
         // Initialize EMI & MF
