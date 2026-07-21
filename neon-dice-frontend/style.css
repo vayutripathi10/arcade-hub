@@ -1638,3 +1638,10 @@ body.gray-sad {
         transform: translateY(0) scale(1);
     }
 }
+
+#three-canvas-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    will-change: transform;
+}

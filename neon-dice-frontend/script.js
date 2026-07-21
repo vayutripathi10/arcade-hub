@@ -467,7 +467,12 @@ class DiceViewport {
         this.camera.lookAt(0, -0.5, 0);
 
         // Renderer
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        this.renderer = new THREE.WebGLRenderer({ 
+            antialias: true, 
+            alpha: false,
+            powerPreference: "high-performance"
+        });
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         this.renderer.setSize(width, height);
         this.renderer.setClearColor('#06070a', 1);
         this.renderer.shadowMap.enabled = true;
@@ -756,17 +761,23 @@ class DiceViewport {
     animate(currentTime) {
         if (!this.isAnimating) return;
 
+        // Use performance.now() as a robust fallback to prevent requestAnimationFrame epoch jumps
+        const now = performance.now();
+
         let timeScale = 1.0;
         // If dice are settling, slow down time step to 0.42 for dramatic suspense
         if (gameState.rolling && this.dice.some(d => d.state === 'settling')) {
             timeScale = 0.42;
         }
 
-        let dt = ((currentTime - this.lastTime) / 1000) * timeScale;
-        this.lastTime = currentTime;
+        let dt = ((now - this.lastTime) / 1000) * timeScale;
+        this.lastTime = now;
 
-        // Cap dt to prevent frame gaps
-        dt = Math.min(dt, 0.1);
+        // If dt is negative, zero, too small, or too large (e.g., due to background tab suspending or screen recording launch),
+        // fallback to a standard single-frame tick (16.67ms) to keep animation moving smoothly.
+        if (dt <= 0 || dt > 0.1 || isNaN(dt)) {
+            dt = 0.01667;
+        }
 
         if (gameState.rolling) {
             this.updatePhysics(dt);
