@@ -572,10 +572,7 @@
         </div>
     </div>
     <script>
-        // Immediate check to prevent flashes on repeat visits
-        if (localStorage.getItem('utility_hub_loaded')) {
-            document.getElementById('cyber-page-loader').style.display = 'none';
-        }
+        // Keep the loader visible to cover script parsing times on repeat visits
     </script>
 
     <!-- Hamburger Menu Button -->
@@ -2724,9 +2721,11 @@
 
         // Loader initialization and progressive animation
         const loader = document.getElementById('cyber-page-loader');
-        if (loader && loader.style.display !== 'none') {
+        if (loader) {
             const fill = document.getElementById('loader-progress-fill');
             const statusText = document.getElementById('loader-status-text');
+            
+            const isReturning = localStorage.getItem('utility_hub_loaded');
             
             const phases = [
                 { limit: 30, text: "Synchronizing offline database buffers..." },
@@ -2736,8 +2735,9 @@
             ];
 
             let progress = 0;
-            const duration = 2200; // 2.2 seconds total
-            const intervalTime = 50;
+            // 2.2 seconds for first visit; 300ms for returning visits
+            const duration = isReturning ? 300 : 2200; 
+            const intervalTime = 30;
             const steps = duration / intervalTime;
             const increment = 100 / steps;
 
@@ -2756,7 +2756,7 @@
                         setTimeout(() => {
                             loader.style.display = 'none';
                         }, 500);
-                    }, 200);
+                    }, 150);
                 } else {
                     fill.style.width = `${progress}%`;
                     for (const phase of phases) {
