@@ -2712,8 +2712,6 @@
             const fill = document.getElementById('loader-progress-fill');
             const statusText = document.getElementById('loader-status-text');
             
-            const isReturning = localStorage.getItem('utility_hub_loaded');
-            
             const phases = [
                 { limit: 30, text: "Synchronizing offline database buffers..." },
                 { limit: 65, text: "Deploying localized client-side compilers..." },
@@ -2722,38 +2720,66 @@
             ];
 
             let progress = 0;
-            // 2.2 seconds for first visit; 300ms for returning visits
-            const duration = isReturning ? 300 : 2200; 
-            const intervalTime = 30;
-            const steps = duration / intervalTime;
-            const increment = 100 / steps;
+            let loaded = false;
 
-            const timer = setInterval(() => {
-                progress += increment;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(timer);
-                    
-                    fill.style.width = '100%';
-                    statusText.textContent = "System ready.";
-                    
-                    setTimeout(() => {
-                        loader.classList.add('fade-out');
-                        localStorage.setItem('utility_hub_loaded', 'true');
-                        setTimeout(() => {
-                            loader.style.display = 'none';
-                        }, 500);
-                    }, 150);
-                } else {
-                    fill.style.width = `${progress}%`;
-                    for (const phase of phases) {
-                        if (progress <= phase.limit) {
-                            statusText.textContent = phase.text;
-                            break;
-                        }
+            // Animate progress up to 90% smoothly
+            const progressTimer = setInterval(() => {
+                if (progress < 90) {
+                    const step = progress < 50 ? 5 : 2;
+                    progress += step;
+                    updateProgress(progress);
+                }
+            }, 50);
+
+            function updateProgress(value) {
+                fill.style.width = `${value}%`;
+                for (const phase of phases) {
+                    if (value <= phase.limit) {
+                        statusText.textContent = phase.text;
+                        break;
                     }
                 }
-            }, intervalTime);
+            }
+
+            function completeLoader() {
+                if (loaded) return;
+                loaded = true;
+                
+                clearInterval(progressTimer);
+                
+                // Fast transition to 100%
+                let finalVal = progress;
+                const finalTimer = setInterval(() => {
+                    finalVal += 5;
+                    if (finalVal >= 100) {
+                        finalVal = 100;
+                        clearInterval(finalTimer);
+                        
+                        updateProgress(100);
+                        statusText.textContent = "System ready.";
+                        
+                        setTimeout(() => {
+                            loader.classList.add('fade-out');
+                            localStorage.setItem('utility_hub_loaded', 'true');
+                            setTimeout(() => {
+                                loader.style.display = 'none';
+                            }, 500);
+                        }, 150);
+                    } else {
+                        updateProgress(finalVal);
+                    }
+                }, 15);
+            }
+
+            // Trigger completion when the window has fully loaded
+            if (document.readyState === 'complete') {
+                completeLoader();
+            } else {
+                window.addEventListener('load', completeLoader);
+            }
+            
+            // Safety timeout: force close loader after 8 seconds in case of broken network requests
+            setTimeout(completeLoader, 8000);
         }
     </script>
     <script src="shared/pdf-lib.min.js"></script>
