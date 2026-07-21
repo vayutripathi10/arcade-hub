@@ -985,12 +985,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Force unregister active service workers to prevent cache quota and interception crashes
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then((registrations) => {
-                    if (registrations.length > 0) {
+                navigator.serviceWorker.getRegistrations().then(async (registrations) => {
+                    if (registrations.length > 0 && !sessionStorage.getItem('sw_unregistered_hub')) {
                         for (let registration of registrations) {
-                            registration.unregister();
+                            await registration.unregister();
                         }
-                        console.log("Unregistered service worker, reloading page...");
+                        sessionStorage.setItem('sw_unregistered_hub', 'true');
+                        console.log("Unregistered service worker, reloading page to clean state...");
                         window.location.reload();
                     }
                 }).catch(err => console.warn("Failed to unregister SW:", err));
