@@ -683,14 +683,15 @@
                     <!-- TAB 4: CALCULATORS -->
                     <div class="tab-content" id="panel-calculator">
                         <div style="text-align: left; margin-bottom: 5px;">
-                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">🧮 Offline Age & Loan EMI Calculator</h2>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Calculate exact milestones or compute loan repayments immediately using client-side algorithms.</p>
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">🧮 Offline Financial & Date Calculators</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Calculate dates or compute loan repayments and mutual fund returns instantly using client-side algorithms.</p>
                         </div>
 
                         <!-- Calculator type selectors -->
-                        <div style="display: flex; gap: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
                             <button id="btn-calc-sub-age" class="cyber-btn active" style="padding: 6px 16px; font-size: 0.75rem;">📅 AGE CALCULATOR</button>
                             <button id="btn-calc-sub-emi" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">💰 LOAN EMI CALCULATOR</button>
+                            <button id="btn-calc-sub-mf" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">📈 MUTUAL FUND CALCULATOR</button>
                         </div>
 
                         <!-- Sub-panel: Age Calculator -->
@@ -753,6 +754,46 @@
                                 <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
                                     <div style="font-size: 1.6rem; color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace;" id="emi-total-payment">0</div>
                                     <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Total Amount</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-panel: Mutual Fund Calculator -->
+                        <div id="calc-subpanel-mf" style="display: none; flex-direction: column; gap: 16px;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-start;">
+                                <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--text-secondary);">INVESTMENT TYPE:</span>
+                                <button id="btn-mf-type-sip" class="cyber-btn active" style="padding: 4px 12px; font-size: 0.7rem;">SIP (Monthly)</button>
+                                <button id="btn-mf-type-lumpsum" class="cyber-btn" style="padding: 4px 12px; font-size: 0.7rem;">Lumpsum (One-time)</button>
+                            </div>
+
+                            <div class="options-grid">
+                                <div class="option-field">
+                                    <label id="lbl-mf-amount" for="mf-amount">MONTHLY INVESTMENT ($)</label>
+                                    <input type="number" id="mf-amount" class="cyber-input" value="500" style="margin-top: 4px;">
+                                </div>
+                                <div class="option-field">
+                                    <label for="mf-rate">EXPECTED RETURN RATE (% P.A.)</label>
+                                    <input type="number" id="mf-rate" class="cyber-input" value="12" step="0.5" style="margin-top: 4px;">
+                                </div>
+                                <div class="option-field">
+                                    <label for="mf-tenure">TIME PERIOD (YEARS)</label>
+                                    <input type="number" id="mf-tenure" class="cyber-input" value="10" style="margin-top: 4px;">
+                                </div>
+                            </div>
+
+                            <!-- MF Outputs -->
+                            <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); text-align: center;">
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                                    <div style="font-size: 1.6rem; color: #fff; font-family: 'Share Tech Mono', monospace;" id="mf-invested-amount">0</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Invested Amount</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                                    <div style="font-size: 1.6rem; color: var(--neon-cyan); font-family: 'Share Tech Mono', monospace;" id="mf-wealth-gained">0</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Est. Returns</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                                    <div style="font-size: 1.6rem; color: var(--neon-pink); font-family: 'Share Tech Mono', monospace;" id="mf-total-value">0</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px;">Total Wealth</div>
                                 </div>
                             </div>
                         </div>
@@ -1572,20 +1613,37 @@
 
 
         // --- MODULE 04: CALCULATORS ---
-        // Sub tabs
-        document.getElementById('btn-calc-sub-age').addEventListener('click', () => {
+        // Sub tabs navigation
+        const btnCalcAge = document.getElementById('btn-calc-sub-age');
+        const btnCalcEmi = document.getElementById('btn-calc-sub-emi');
+        const btnCalcMf = document.getElementById('btn-calc-sub-mf');
+        
+        const subpanelAge = document.getElementById('calc-subpanel-age');
+        const subpanelEmi = document.getElementById('calc-subpanel-emi');
+        const subpanelMf = document.getElementById('calc-subpanel-mf');
+
+        function selectCalcSubtab(activeBtn, showPanel) {
+            [btnCalcAge, btnCalcEmi, btnCalcMf].forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+            [subpanelAge, subpanelEmi, subpanelMf].forEach(panel => {
+                if (panel) panel.style.display = 'none';
+            });
+            if (activeBtn) activeBtn.classList.add('active');
+            if (showPanel) showPanel.style.display = 'flex';
+        }
+
+        if (btnCalcAge) btnCalcAge.addEventListener('click', () => {
             playBeep(700, 0.05, 'sine');
-            document.getElementById('btn-calc-sub-age').classList.add('active');
-            document.getElementById('btn-calc-sub-emi').classList.remove('active');
-            document.getElementById('calc-subpanel-age').style.display = 'flex';
-            document.getElementById('calc-subpanel-emi').style.display = 'none';
+            selectCalcSubtab(btnCalcAge, subpanelAge);
         });
-        document.getElementById('btn-calc-sub-emi').addEventListener('click', () => {
+        if (btnCalcEmi) btnCalcEmi.addEventListener('click', () => {
             playBeep(700, 0.05, 'sine');
-            document.getElementById('btn-calc-sub-emi').classList.add('active');
-            document.getElementById('btn-calc-sub-age').classList.remove('active');
-            document.getElementById('calc-subpanel-emi').style.display = 'flex';
-            document.getElementById('calc-subpanel-age').style.display = 'none';
+            selectCalcSubtab(btnCalcEmi, subpanelEmi);
+        });
+        if (btnCalcMf) btnCalcMf.addEventListener('click', () => {
+            playBeep(700, 0.05, 'sine');
+            selectCalcSubtab(btnCalcMf, subpanelMf);
         });
 
         // Age logic
@@ -1656,8 +1714,76 @@
             document.getElementById('emi-total-payment').textContent = `$${Math.round(totalRepayment).toLocaleString()}`;
         }
 
-        // Initialize EMI
+        // Mutual Fund logic
+        let mfType = 'sip'; // or 'lumpsum'
+        const btnMfSip = document.getElementById('btn-mf-type-sip');
+        const btnMfLumpsum = document.getElementById('btn-mf-type-lumpsum');
+        const mfAmount = document.getElementById('mf-amount');
+        const mfRate = document.getElementById('mf-rate');
+        const mfTenure = document.getElementById('mf-tenure');
+        const lblMfAmount = document.getElementById('lbl-mf-amount');
+
+        if (btnMfSip) {
+            btnMfSip.addEventListener('click', () => {
+                playBeep(700, 0.04, 'sine');
+                mfType = 'sip';
+                btnMfSip.classList.add('active');
+                if (btnMfLumpsum) btnMfLumpsum.classList.remove('active');
+                if (lblMfAmount) lblMfAmount.textContent = "MONTHLY INVESTMENT ($)";
+                calculateMF();
+            });
+        }
+
+        if (btnMfLumpsum) {
+            btnMfLumpsum.addEventListener('click', () => {
+                playBeep(700, 0.04, 'sine');
+                mfType = 'lumpsum';
+                btnMfLumpsum.classList.add('active');
+                if (btnMfSip) btnMfSip.classList.remove('active');
+                if (lblMfAmount) lblMfAmount.textContent = "LUMPSUM INVESTMENT ($)";
+                calculateMF();
+            });
+        }
+
+        [mfAmount, mfRate, mfTenure].forEach(el => {
+            if (el) el.addEventListener('input', calculateMF);
+        });
+
+        function calculateMF() {
+            const amount = parseFloat(mfAmount.value) || 0;
+            const expectedRate = parseFloat(mfRate.value) || 0;
+            const years = parseFloat(mfTenure.value) || 0;
+
+            let invested = 0;
+            let total = 0;
+
+            if (amount > 0 && expectedRate >= 0 && years > 0) {
+                const r = expectedRate / 100;
+                if (mfType === 'sip') {
+                    const i = r / 12;
+                    const n = years * 12;
+                    invested = amount * n;
+                    if (i === 0) {
+                        total = invested;
+                    } else {
+                        total = amount * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
+                    }
+                } else {
+                    invested = amount;
+                    total = amount * Math.pow(1 + r, years);
+                }
+            }
+
+            const returns = Math.max(0, total - invested);
+
+            document.getElementById('mf-invested-amount').textContent = `$${Math.round(invested).toLocaleString()}`;
+            document.getElementById('mf-wealth-gained').textContent = `$${Math.round(returns).toLocaleString()}`;
+            document.getElementById('mf-total-value').textContent = `$${Math.round(total).toLocaleString()}`;
+        }
+
+        // Initialize EMI & MF
         calculateEMI();
+        calculateMF();
 
 
         // --- MODULE 05: YOUTUBE TRANSCRIPT EXPORTER LOGIC ---
