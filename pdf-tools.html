@@ -15,7 +15,7 @@
     <meta property="og:title" content="Free Online PDF Tools | Arcade Hub">
     <meta property="og:description" content="Edit PDF text, sign documents, merge, split, and convert PDFs client-side. Zero server uploads, 100% private and secure.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://arcadehubplay.com/pdf-tools.html">
+    <meta property="og:url" content="https://arcadehubplay.com/pdf-tools">
     <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
     
     <!-- Twitter -->
@@ -25,6 +25,75 @@
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
     
     <title>Free PDF Tools: Edit, Sign, Merge, Split, Convert & Watermark PDFs Online</title>
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "name": "Arcade Hub PDF Tools Suite",
+          "url": "https://arcadehubplay.com/pdf-tools",
+          "description": "100% free client-side PDF utility suite. Edit PDF text, sign documents, merge & split PDFs, convert JPG/PNG to PDF, export PDF to Excel/CSV, extract text, rotate, and watermark PDFs without server uploads.",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Any",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "browserRequirements": "Requires JavaScript and HTML5 Canvas support."
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://arcadehubplay.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "PDF Tools",
+              "item": "https://arcadehubplay.com/pdf-tools"
+            }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is it safe to edit or convert my confidential PDF files here?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, 100% safe! All operations happen locally in your web browser using HTML5 WebAssembly and JavaScript. Your files are never uploaded to any cloud server."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are there any file size limits or paywalls for PDF tools?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No! Our PDF suite is entirely free with zero page limits, zero subscriptions, and zero file size caps."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I convert bank statement PDFs to Excel or CSV files?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Our PDF to Excel/CSV converter extracts tabular transaction records using DPI coordinate mapping and exports clean CSV or XLS spreadsheets directly in your browser."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1483,7 +1552,7 @@
                 <div id="sig-upload-preview-container" style="display: none; flex-direction: column; align-items: center; gap: 6px;">
                     <span style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">UPLOAD PREVIEW:</span>
                     <div style="height: 80px; width: 220px; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 4px;">
-                        <img id="sig-upload-preview-img" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                        <img id="sig-upload-preview-img" alt="Signature Preview" style="max-height: 100%; max-width: 100%; object-fit: contain;">
                     </div>
                 </div>
             </div>
@@ -4387,7 +4456,7 @@
             }
 
             const container = document.getElementById('editor-sig-preview-img-container');
-            container.innerHTML = `<img src="${editorSignatureDataUrl}" style="max-height: 100%; max-width: 100%; object-fit: contain;">`;
+            container.innerHTML = `<img src="${editorSignatureDataUrl}" alt="Uploaded Signature" style="max-height: 100%; max-width: 100%; object-fit: contain;">`;
 
             playSuccessChord();
             closeSignatureModal();

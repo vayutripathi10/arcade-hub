@@ -34,7 +34,82 @@
     <meta name="twitter:description" content="Play 24+ free arcade games instantly — no download, no login. Sky Jumper, Neon Pipes, Cyber Survivor and more!">
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
 
-    <title>Arcade Hub — 24+ Free Browser Games | ArcadeHubPlay.com</title><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>Arcade Hub — 24+ Free Browser Games | ArcadeHubPlay.com</title>
+    
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://arcadehubplay.com/#website",
+          "url": "https://arcadehubplay.com/",
+          "name": "Arcade Hub",
+          "description": "Play 24+ free browser arcade games instantly — no download, no login required.",
+          "publisher": {
+            "@id": "https://arcadehubplay.com/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://arcadehubplay.com/?s={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://arcadehubplay.com/#organization",
+          "name": "Arcade Hub",
+          "url": "https://arcadehubplay.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://arcadehubplay.com/icon-512.png"
+          }
+        },
+        {
+          "@type": "ItemList",
+          "name": "Featured Free Online Games & Tools",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Cyber Survivor",
+              "url": "https://arcadehubplay.com/play-cyber-survivor"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Zen Dino",
+              "url": "https://arcadehubplay.com/play-dino"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Neon Flappy",
+              "url": "https://arcadehubplay.com/play-flappy"
+            },
+            {
+              "@type": "ListItem",
+              "position": 4,
+              "name": "PDF Tools",
+              "url": "https://arcadehubplay.com/pdf-tools"
+            },
+            {
+              "@type": "ListItem",
+              "position": 5,
+              "name": "Utility Hub",
+              "url": "https://arcadehubplay.com/utility-hub"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="hub-style.css?v=2">
 
