@@ -1397,83 +1397,60 @@
                                                 <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
                                                 <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
                                                 
-                                                <!-- Floating In-Context Text Formatting Popover Toolbar -->
-                                                <div id="inline-text-popover" class="inline-text-popover" style="display: none;">
-                                                    <div class="popover-header">
-                                                        <span class="popover-title">📝 EDIT TEXT</span>
-                                                        <button type="button" class="popover-close-btn" id="popover-close">✕</button>
-                                                    </div>
-                                                    <div class="popover-body">
-                                                        <textarea id="popover-text-input" class="cyber-textarea popover-textarea" placeholder="Type text here..." rows="2"></textarea>
+                                                <!-- On-Canvas Direct In-Situ Text Editor Wrapper -->
+                                                <div id="canvas-inline-editor-wrapper" style="position: absolute; display: none; z-index: 1000; flex-direction: column; align-items: flex-start;">
+                                                    <!-- Compact Floating Formatting Toolbar Strip directly above the active text cursor -->
+                                                    <div id="canvas-inline-toolbar" style="display: flex; align-items: center; gap: 6px; background: #0c0d14; border: 1px solid var(--neon-pink); border-radius: 6px; padding: 4px 8px; margin-bottom: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); white-space: nowrap; font-size: 0.75rem; user-select: none;">
+                                                        <button type="button" id="inline-btn-bold" class="popover-tool-btn" style="padding: 2px 8px; height: 26px; border-radius: 4px; font-weight: bold;" title="Toggle Bold">B</button>
                                                         
-                                                        <div class="popover-toolbar">
-                                                            <!-- Bold Toggle -->
-                                                            <button type="button" id="popover-btn-bold" class="popover-tool-btn" title="Toggle Bold"><b>B</b></button>
-                                                            
-                                                            <!-- Font Size Select -->
-                                                            <div class="popover-tool-group">
-                                                                <label>SIZE</label>
-                                                                <select id="popover-font-size" class="cyber-select popover-select">
-                                                                    <option value="4">4px</option>
-                                                                    <option value="6">6px</option>
-                                                                    <option value="8">8px</option>
-                                                                    <option value="9">9px</option>
-                                                                    <option value="10">10px</option>
-                                                                    <option value="11">11px</option>
-                                                                    <option value="12">12px</option>
-                                                                    <option value="14">14px</option>
-                                                                    <option value="16" selected>16px</option>
-                                                                    <option value="18">18px</option>
-                                                                    <option value="20">20px</option>
-                                                                    <option value="24">24px</option>
-                                                                    <option value="28">28px</option>
-                                                                    <option value="32">32px</option>
-                                                                    <option value="36">36px</option>
-                                                                    <option value="48">48px</option>
-                                                                    <option value="64">64px</option>
-                                                                    <option value="72">72px</option>
-                                                                </select>
-                                                            </div>
+                                                        <select id="inline-font-size" class="cyber-select" style="padding: 2px 6px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Font Size">
+                                                            <option value="4">4px</option>
+                                                            <option value="6">6px</option>
+                                                            <option value="8">8px</option>
+                                                            <option value="9">9px</option>
+                                                            <option value="10">10px</option>
+                                                            <option value="11">11px</option>
+                                                            <option value="12">12px</option>
+                                                            <option value="14">14px</option>
+                                                            <option value="16" selected>16px</option>
+                                                            <option value="18">18px</option>
+                                                            <option value="20">20px</option>
+                                                            <option value="24">24px</option>
+                                                            <option value="28">28px</option>
+                                                            <option value="32">32px</option>
+                                                            <option value="36">36px</option>
+                                                            <option value="48">48px</option>
+                                                            <option value="64">64px</option>
+                                                            <option value="72">72px</option>
+                                                        </select>
 
-                                                            <!-- Text Color -->
-                                                            <div class="popover-tool-group">
-                                                                <label>COLOR</label>
-                                                                <select id="popover-text-color" class="cyber-select popover-select">
-                                                                    <option value="black">BLACK</option>
-                                                                    <option value="red">RED</option>
-                                                                    <option value="blue">BLUE</option>
-                                                                    <option value="green">GREEN</option>
-                                                                    <option value="white">WHITE</option>
-                                                                </select>
-                                                            </div>
+                                                        <select id="inline-text-color" class="cyber-select" style="padding: 2px 6px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Text Color">
+                                                            <option value="black">BLACK</option>
+                                                            <option value="red">RED</option>
+                                                            <option value="blue">BLUE</option>
+                                                            <option value="green">GREEN</option>
+                                                            <option value="white">WHITE</option>
+                                                        </select>
 
-                                                            <!-- Highlight Color -->
-                                                            <div class="popover-tool-group">
-                                                                <label>HIGHLIGHT</label>
-                                                                <select id="popover-highlight-color" class="cyber-select popover-select">
-                                                                    <option value="none">NONE</option>
-                                                                    <option value="yellow">💛 YELLOW</option>
-                                                                    <option value="green">💚 GREEN</option>
-                                                                    <option value="cyan">🩵 CYAN</option>
-                                                                    <option value="pink">🩷 PINK</option>
-                                                                    <option value="orange">🧡 ORANGE</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
+                                                        <select id="inline-highlight-color" class="cyber-select" style="padding: 2px 6px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Highlight Background">
+                                                            <option value="none">HL: NONE</option>
+                                                            <option value="yellow">💛 YELLOW</option>
+                                                            <option value="green">💚 GREEN</option>
+                                                            <option value="cyan">🩵 CYAN</option>
+                                                            <option value="pink">🩷 PINK</option>
+                                                            <option value="orange">🧡 ORANGE</option>
+                                                        </select>
 
-                                                        <!-- Cover Background Checkbox for Scanned/Image PDFs -->
-                                                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
-                                                            <input type="checkbox" id="popover-cover-bg" checked style="accent-color: var(--neon-pink); cursor: pointer;">
-                                                            <label for="popover-cover-bg" style="font-size: 0.72rem; color: #fff; cursor: pointer; user-select: none;">Cover Old Background Text (Whiteout)</label>
-                                                        </div>
+                                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 0.70rem; color: #fff; cursor: pointer; user-select: none;" title="Erase original text background">
+                                                            <input type="checkbox" id="inline-cover-bg" checked style="accent-color: var(--neon-pink);"> Whiteout
+                                                        </label>
 
-                                                        <div class="popover-footer">
-                                                            <button type="button" id="popover-btn-delete" class="file-btn danger" style="display: none; padding: 5px 10px; font-size: 0.75rem; color: #ff0055; border-color: #ff0055;">🗑️ DELETE</button>
-                                                            <div style="flex: 1;"></div>
-                                                            <button type="button" id="popover-btn-cancel" class="file-btn" style="padding: 5px 12px; font-size: 0.75rem;">CANCEL</button>
-                                                            <button type="button" id="popover-btn-apply" class="cyber-btn" style="padding: 5px 14px; font-size: 0.75rem;">✓ APPLY</button>
-                                                        </div>
+                                                        <button type="button" id="inline-btn-delete" class="file-btn danger" style="padding: 2px 8px; font-size: 0.75rem; height: 26px; display: none;" title="Delete Text Line">🗑️</button>
+                                                        <button type="button" id="inline-btn-done" class="cyber-btn" style="padding: 2px 10px; font-size: 0.75rem; height: 26px;" title="Apply & Close">✓ DONE</button>
                                                     </div>
+
+                                                    <!-- Live On-Page Editable Input Box directly over canvas text line -->
+                                                    <textarea id="canvas-inline-input" style="outline: 2px dashed var(--neon-pink); border: none; background: #ffffff; color: #000000; font-family: 'Outfit', sans-serif; resize: none; overflow: hidden; white-space: pre-wrap; padding: 2px 4px; box-sizing: border-box; display: block; border-radius: 2px; line-height: 1.15; box-shadow: 0 0 10px rgba(255,0,127,0.3);"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -3321,145 +3298,168 @@
             });
         }
 
-        let editorEditingAnnot = null;
-        let editorEditingTarget = null; // 'annot', 'line', or 'new'
-        let editorEditingCoords = { x: 0, y: 0 };
-        let editorEditingLine = null;
+        let activeInlineAnnot = null;
+        let activeInlineTargetType = null; // 'annot', 'line', 'new'
+        let activeInlineLine = null;
+        let activeInlineCoords = { x: 0, y: 0 };
 
-        function showTextPopover(coords, targetObj) {
-            const popover = document.getElementById('inline-text-popover');
-            const input = document.getElementById('popover-text-input');
-            const sizeSelect = document.getElementById('popover-font-size');
-            const colorSelect = document.getElementById('popover-text-color');
-            const highlightSelect = document.getElementById('popover-highlight-color');
-            const boldBtn = document.getElementById('popover-btn-bold');
-            const deleteBtn = document.getElementById('popover-btn-delete');
-            const coverBgCheckbox = document.getElementById('popover-cover-bg');
-            
-            editorEditingCoords = coords;
+        function openCanvasInlineEditor(coords, targetObj) {
+            commitCanvasInlineEditor();
+
+            const wrapper = document.getElementById('canvas-inline-editor-wrapper');
+            const input = document.getElementById('canvas-inline-input');
+            const fontSizeSel = document.getElementById('inline-font-size');
+            const textColorSel = document.getElementById('inline-text-color');
+            const highlightSel = document.getElementById('inline-highlight-color');
+            const boldBtn = document.getElementById('inline-btn-bold');
+            const coverBgCheckbox = document.getElementById('inline-cover-bg');
+            const deleteBtn = document.getElementById('inline-btn-delete');
+
+            activeInlineCoords = coords;
+
+            let posX = coords.x;
+            let posY = coords.y;
+            let initText = '';
+            let fontSz = 16;
+            let colorVal = 'black';
+            let hlVal = 'none';
+            let isBld = false;
+            let isCvr = true;
+            let boxW = 220;
 
             if (targetObj && targetObj.type) {
-                editorEditingTarget = 'annot';
-                editorEditingAnnot = targetObj;
-                editorEditingLine = null;
-                
-                input.value = targetObj.text || '';
-                sizeSelect.value = targetObj.size || 16;
-                colorSelect.value = targetObj.color || 'black';
-                highlightSelect.value = targetObj.highlight || 'none';
-                boldBtn.classList.toggle('active', !!targetObj.isBold);
-                coverBgCheckbox.checked = targetObj.coverBg !== false;
+                activeInlineTargetType = 'annot';
+                activeInlineAnnot = targetObj;
+                activeInlineLine = null;
+
+                posX = targetObj.x;
+                posY = targetObj.y - (targetObj.size || 16);
+                initText = targetObj.text || '';
+                fontSz = targetObj.size || 16;
+                colorVal = targetObj.color || 'black';
+                hlVal = targetObj.highlight || 'none';
+                isBld = !!targetObj.isBold;
+                isCvr = targetObj.coverBg !== false;
+                boxW = Math.max(targetObj.w || 0, targetObj.origW || 0, 180);
                 deleteBtn.style.display = 'inline-block';
             } else if (targetObj && targetObj.str !== undefined) {
-                editorEditingTarget = 'line';
-                editorEditingAnnot = null;
-                editorEditingLine = targetObj;
-                
-                input.value = targetObj.str || '';
-                sizeSelect.value = Math.round(targetObj.fontSize) || 16;
-                colorSelect.value = 'black';
-                highlightSelect.value = 'none';
-                boldBtn.classList.remove('active');
-                coverBgCheckbox.checked = true;
+                activeInlineTargetType = 'line';
+                activeInlineAnnot = null;
+                activeInlineLine = targetObj;
+
+                posX = targetObj.x;
+                posY = targetObj.y - targetObj.h;
+                initText = targetObj.str || '';
+                fontSz = Math.round(targetObj.fontSize) || 16;
+                colorVal = 'black';
+                hlVal = 'none';
+                isBld = false;
+                isCvr = true;
+                boxW = Math.max(targetObj.w || 0, 180);
                 deleteBtn.style.display = 'none';
             } else {
-                editorEditingTarget = 'new';
-                editorEditingAnnot = null;
-                editorEditingLine = null;
-                
-                input.value = '';
-                sizeSelect.value = '16';
-                colorSelect.value = 'black';
-                highlightSelect.value = 'none';
-                boldBtn.classList.remove('active');
-                coverBgCheckbox.checked = true;
+                activeInlineTargetType = 'new';
+                activeInlineAnnot = null;
+                activeInlineLine = null;
+
+                posX = coords.x;
+                posY = coords.y - 12;
+                initText = '';
+                fontSz = 16;
+                colorVal = 'black';
+                hlVal = 'none';
+                isBld = false;
+                isCvr = true;
+                boxW = 220;
                 deleteBtn.style.display = 'none';
             }
 
-            const container = document.getElementById('editor-canvas-container');
-            const cWidth = container.clientWidth || 550;
-            
-            let popoverX = coords.x;
-            let popoverY = coords.y - 200;
-            
-            if (popoverY < 10) popoverY = coords.y + 20;
-            if (popoverX + 330 > cWidth) popoverX = Math.max(10, cWidth - 335);
+            fontSizeSel.value = fontSz.toString();
+            textColorSel.value = colorVal;
+            highlightSel.value = hlVal;
+            boldBtn.classList.toggle('active', isBld);
+            coverBgCheckbox.checked = isCvr;
 
-            popover.style.left = `${popoverX}px`;
-            popover.style.top = `${popoverY}px`;
-            popover.style.display = 'block';
+            const container = document.getElementById('editor-canvas-container');
+            const maxRight = (container.clientWidth || 600) - 20;
+            const finalLeft = Math.max(5, Math.min(posX, maxRight - boxW));
+            const finalTop = Math.max(5, posY - 38);
+
+            wrapper.style.left = `${finalLeft}px`;
+            wrapper.style.top = `${finalTop}px`;
+            wrapper.style.display = 'flex';
+
+            input.value = initText;
+            input.style.fontSize = `${fontSz}px`;
+            input.style.fontWeight = isBld ? 'bold' : 'normal';
+            input.style.color = colorVal === 'white' ? '#ffffff' : colorVal === 'red' ? '#ff007f' : colorVal === 'blue' ? '#00f0ff' : '#000000';
+            input.style.background = isCvr ? '#ffffff' : 'transparent';
+            input.style.minWidth = `${boxW}px`;
+            input.style.minHeight = `${Math.max(26, fontSz * 1.3)}px`;
+
+            if (activeInlineAnnot) {
+                activeInlineAnnot._editing = true;
+                drawOverlayAnnotations();
+            }
 
             setTimeout(() => {
                 input.focus();
                 input.select();
+                autoResizeInlineInput();
             }, 50);
         }
 
-        function hideTextPopover() {
-            const popover = document.getElementById('inline-text-popover');
-            if (popover) popover.style.display = 'none';
-            editorEditingAnnot = null;
-            editorEditingLine = null;
-            editorEditingTarget = null;
+        function autoResizeInlineInput() {
+            const input = document.getElementById('canvas-inline-input');
+            if (!input) return;
+            input.style.height = 'auto';
+            input.style.height = `${Math.max(26, input.scrollHeight)}px`;
+            
+            const textLen = input.value.length;
+            const fontSz = parseInt(document.getElementById('inline-font-size').value) || 16;
+            const calcW = Math.max(180, textLen * fontSz * 0.65);
+            input.style.width = `${calcW}px`;
         }
 
-        document.getElementById('popover-close').addEventListener('click', hideTextPopover);
-        document.getElementById('popover-btn-cancel').addEventListener('click', hideTextPopover);
+        function commitCanvasInlineEditor() {
+            const wrapper = document.getElementById('canvas-inline-editor-wrapper');
+            if (!wrapper || wrapper.style.display === 'none') return;
 
-        document.getElementById('popover-btn-bold').addEventListener('click', () => {
-            document.getElementById('popover-btn-bold').classList.toggle('active');
-            playBeep(750, 0.03, 'sine');
-        });
+            const input = document.getElementById('canvas-inline-input');
+            const textVal = input.value.trim();
+            const fontSz = parseInt(document.getElementById('inline-font-size').value) || 16;
+            const colorVal = document.getElementById('inline-text-color').value || 'black';
+            const hlVal = document.getElementById('inline-highlight-color').value || 'none';
+            const isBld = document.getElementById('inline-btn-bold').classList.contains('active');
+            const isCvr = document.getElementById('inline-cover-bg').checked;
 
-        document.getElementById('popover-btn-apply').addEventListener('click', applyPopoverTextEdit);
-
-        document.getElementById('popover-text-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || !e.shiftKey)) {
-                e.preventDefault();
-                applyPopoverTextEdit();
-            } else if (e.key === 'Escape') {
-                hideTextPopover();
+            if (activeInlineAnnot) {
+                activeInlineAnnot._editing = false;
             }
-        });
 
-        document.getElementById('popover-btn-delete').addEventListener('click', () => {
-            if (editorEditingTarget === 'annot' && editorEditingAnnot) {
-                saveEditorState();
-                const list = editorAnnotations[editorCurrentPage] || [];
-                const idx = list.indexOf(editorEditingAnnot);
-                if (idx !== -1) {
-                    list.splice(idx, 1);
-                }
-                drawOverlayAnnotations();
-                playBeep(600, 0.05, 'sine');
-            }
-            hideTextPopover();
-        });
-
-        function applyPopoverTextEdit() {
-            const textVal = document.getElementById('popover-text-input').value.trim();
             if (!textVal) {
-                hideTextPopover();
+                if (activeInlineTargetType === 'annot' && activeInlineAnnot) {
+                    saveEditorState();
+                    const list = editorAnnotations[editorCurrentPage] || [];
+                    const idx = list.indexOf(activeInlineAnnot);
+                    if (idx !== -1) list.splice(idx, 1);
+                }
+                wrapper.style.display = 'none';
+                drawOverlayAnnotations();
                 return;
             }
 
-            const sizeVal = parseInt(document.getElementById('popover-font-size').value) || 16;
-            const colorVal = document.getElementById('popover-text-color').value || 'black';
-            const highlightVal = document.getElementById('popover-highlight-color').value || 'none';
-            const isBold = document.getElementById('popover-btn-bold').classList.contains('active');
-            const coverBg = document.getElementById('popover-cover-bg').checked;
-
             saveEditorState();
 
-            if (editorEditingTarget === 'annot' && editorEditingAnnot) {
-                editorEditingAnnot.text = textVal;
-                editorEditingAnnot.size = sizeVal;
-                editorEditingAnnot.color = colorVal;
-                editorEditingAnnot.highlight = highlightVal;
-                editorEditingAnnot.isBold = isBold;
-                editorEditingAnnot.coverBg = coverBg;
-            } else if (editorEditingTarget === 'line' && editorEditingLine) {
-                const line = editorEditingLine;
+            if (activeInlineTargetType === 'annot' && activeInlineAnnot) {
+                activeInlineAnnot.text = textVal;
+                activeInlineAnnot.size = fontSz;
+                activeInlineAnnot.color = colorVal;
+                activeInlineAnnot.highlight = hlVal;
+                activeInlineAnnot.isBold = isBld;
+                activeInlineAnnot.coverBg = isCvr;
+            } else if (activeInlineTargetType === 'line' && activeInlineLine) {
+                const line = activeInlineLine;
                 addAnnotation({
                     type: 'replace-text',
                     x: line.x,
@@ -3469,34 +3469,80 @@
                     origW: line.w,
                     origH: line.h,
                     text: textVal,
-                    size: sizeVal,
+                    size: fontSz,
                     pdfX: line.pdfX,
                     pdfY: line.pdfY,
                     pdfW: line.pdfW,
                     pdfH: line.pdfH,
                     color: colorVal,
-                    highlight: highlightVal,
-                    isBold: isBold,
-                    coverBg: coverBg
+                    highlight: hlVal,
+                    isBold: isBld,
+                    coverBg: isCvr
                 });
             } else {
                 addAnnotation({
                     type: 'text',
-                    x: editorEditingCoords.x,
-                    y: editorEditingCoords.y,
+                    x: activeInlineCoords.x,
+                    y: activeInlineCoords.y,
                     text: textVal,
-                    size: sizeVal,
+                    size: fontSz,
                     color: colorVal,
-                    highlight: highlightVal,
-                    isBold: isBold,
-                    coverBg: coverBg
+                    highlight: hlVal,
+                    isBold: isBld,
+                    coverBg: isCvr
                 });
             }
 
+            wrapper.style.display = 'none';
             drawOverlayAnnotations();
             playBeep(900, 0.05, 'sine');
-            hideTextPopover();
         }
+
+        document.getElementById('canvas-inline-input').addEventListener('input', autoResizeInlineInput);
+        document.getElementById('canvas-inline-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                commitCanvasInlineEditor();
+            } else if (e.key === 'Escape') {
+                commitCanvasInlineEditor();
+            }
+        });
+
+        document.getElementById('inline-btn-done').addEventListener('click', commitCanvasInlineEditor);
+
+        document.getElementById('inline-btn-bold').addEventListener('click', () => {
+            const boldBtn = document.getElementById('inline-btn-bold');
+            boldBtn.classList.toggle('active');
+            document.getElementById('canvas-inline-input').style.fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
+            playBeep(750, 0.03, 'sine');
+        });
+
+        document.getElementById('inline-font-size').addEventListener('change', (e) => {
+            const sz = e.target.value;
+            document.getElementById('canvas-inline-input').style.fontSize = `${sz}px`;
+            autoResizeInlineInput();
+        });
+
+        document.getElementById('inline-text-color').addEventListener('change', (e) => {
+            const colorVal = e.target.value;
+            document.getElementById('canvas-inline-input').style.color = colorVal === 'white' ? '#ffffff' : colorVal === 'red' ? '#ff007f' : colorVal === 'blue' ? '#00f0ff' : '#000000';
+        });
+
+        document.getElementById('inline-cover-bg').addEventListener('change', (e) => {
+            document.getElementById('canvas-inline-input').style.background = e.target.checked ? '#ffffff' : 'transparent';
+        });
+
+        document.getElementById('inline-btn-delete').addEventListener('click', () => {
+            if (activeInlineTargetType === 'annot' && activeInlineAnnot) {
+                saveEditorState();
+                const list = editorAnnotations[editorCurrentPage] || [];
+                const idx = list.indexOf(activeInlineAnnot);
+                if (idx !== -1) list.splice(idx, 1);
+            }
+            document.getElementById('canvas-inline-editor-wrapper').style.display = 'none';
+            drawOverlayAnnotations();
+            playBeep(600, 0.05, 'sine');
+        });
 
         function drawOverlayAnnotations() {
             const overlay = document.getElementById('editor-overlay-canvas');
@@ -3505,6 +3551,8 @@
 
             const list = editorAnnotations[editorCurrentPage] || [];
             list.forEach(annot => {
+                if (annot._editing) return;
+
                 if (annot.type === 'text' || annot.type === 'replace-text') {
                     const fontWeight = annot.isBold ? 'bold' : 'normal';
                     const fontSize = annot.size || 16;
@@ -3619,9 +3667,9 @@
                 tools.forEach(t => document.getElementById(`tool-${t}`).classList.remove('active'));
                 document.getElementById(`tool-${tool}`).classList.add('active');
 
-                // Close text popover if open when switching tools
+                // Commit inline text editor if open when switching tools
                 if (tool !== 'text') {
-                    hideTextPopover();
+                    commitCanvasInlineEditor();
                 }
 
                 // Adjust setting displays
@@ -3643,7 +3691,7 @@
             if (editorCurrentPage > 1) {
                 playBeep(880, 0.05, 'sine');
                 editorCurrentPage--;
-                hideTextPopover();
+                commitCanvasInlineEditor();
                 renderEditorPage();
             }
         });
@@ -3652,7 +3700,7 @@
             if (editorCurrentPage < editorTotalPages) {
                 playBeep(880, 0.05, 'sine');
                 editorCurrentPage++;
-                hideTextPopover();
+                commitCanvasInlineEditor();
                 renderEditorPage();
             }
         });
@@ -3746,7 +3794,7 @@
                 dragStartY = coords.y;
             } else if (editorActiveTool === 'text') {
                 const textResult = findClickedTextTarget(coords);
-                showTextPopover(coords, textResult.target);
+                openCanvasInlineEditor(coords, textResult.target);
             }
         });
 
@@ -3791,10 +3839,10 @@
                         const bh = obj.h || (obj.size || 16);
                         ctx.strokeRect(bx, by, bw, bh);
                         ctx.setLineDash([]);
-                        overlay.title = `Click or Double Click to edit: "${obj.text || obj.str}"`;
+                        overlay.title = `Click to edit line directly: "${obj.text || obj.str}"`;
                     } else {
                         overlay.style.cursor = 'text';
-                        overlay.title = 'Click anywhere to add text';
+                        overlay.title = 'Click anywhere to type text directly on page';
                         drawOverlayAnnotations();
                     }
                 } else if (editorActiveTool === 'sign') {
@@ -3898,7 +3946,7 @@
             if (editorActiveTool !== 'text') return;
             const coords = getMouseCoords(e);
             const textResult = findClickedTextTarget(coords);
-            showTextPopover(coords, textResult.target);
+            openCanvasInlineEditor(coords, textResult.target);
         });
 
         function dataUrlToUint8Array(dataUrl) {
