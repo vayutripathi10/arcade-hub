@@ -1715,6 +1715,33 @@
                 <button id="btn-sig-cancel" class="file-btn" style="padding: 10px; font-size: 0.85rem; border-color: var(--neon-pink); color: var(--neon-pink);">CANCEL</button>
                 <button id="btn-sig-apply" class="cyber-btn active" style="padding: 10px; font-size: 0.85rem;">APPLY SIGNATURE</button>
             </div>
+    </div>
+
+    <!-- Modal for Vector / Print-to-PDF Guidance -->
+    <div id="vector-pdf-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #0d0e17; border: 1px solid var(--neon-pink); border-radius: 12px; width: 100%; max-width: 480px; padding: 24px; box-shadow: 0 0 35px rgba(255,0,127,0.35); display: flex; flex-direction: column; gap: 16px; animation: popIn 0.25s ease-out;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px; font-family: 'Share Tech Mono', monospace; font-size: 1.05rem; color: var(--neon-pink); font-weight: bold;">
+                    <span>💡 VECTOR / PRINT-TO-PDF DETECTED</span>
+                </div>
+                <button type="button" id="btn-close-vector-modal" style="background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+
+            <div style="font-size: 0.85rem; color: #e0e0e0; line-height: 1.6;">
+                This document contains <b>vector text shapes</b> (commonly created via <i>Microsoft Print to PDF</i> or image exports) instead of standard embedded text characters.
+                <br><br>
+                <div style="background: rgba(255,0,127,0.12); border-left: 3px solid var(--neon-pink); padding: 12px; border-radius: 4px; color: #fff; line-height: 1.5;">
+                    <b style="color: var(--neon-cyan);">👉 How to Edit Vector Text Easily:</b><br>
+                    1. Select the <b>⬜ ERASE</b> tool from top toolbar.<br>
+                    2. <b>Drag a box</b> over any text line to erase it.<br>
+                    3. Type your replacement text directly inside the box!
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap;">
+                <button type="button" id="btn-vector-modal-close" class="file-btn" style="padding: 8px 16px; font-size: 0.8rem;">Got It</button>
+                <button type="button" id="btn-vector-modal-switch-erase" class="cyber-btn" style="padding: 8px 18px; font-size: 0.8rem;">⬜ SWITCH TO ERASE & TYPE</button>
+            </div>
         </div>
     </div>
 
@@ -3202,6 +3229,11 @@
                 const textContent = await page.getTextContent();
                 editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height);
                 
+                if (textContent.items.length < 5 && !editorWarnedVectorPages[editorCurrentPage]) {
+                    editorWarnedVectorPages[editorCurrentPage] = true;
+                    setTimeout(showVectorPdfModal, 300);
+                }
+                
                 document.getElementById('editor-page-indicator').textContent = `PAGE ${editorCurrentPage} OF ${editorTotalPages}`;
                 if (typeof updateEditorThumbnailHighlights === 'function') {
                     updateEditorThumbnailHighlights();
@@ -3212,6 +3244,27 @@
                 appendLog(`Error rendering page viewport: ${err.message}`, 'error');
             }
         }
+
+        let editorWarnedVectorPages = {};
+
+        function showVectorPdfModal() {
+            const modal = document.getElementById('vector-pdf-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function hideVectorPdfModal() {
+            const modal = document.getElementById('vector-pdf-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        document.getElementById('btn-close-vector-modal').addEventListener('click', hideVectorPdfModal);
+        document.getElementById('btn-vector-modal-close').addEventListener('click', hideVectorPdfModal);
+        document.getElementById('btn-vector-modal-switch-erase').addEventListener('click', () => {
+            hideVectorPdfModal();
+            const eraseBtn = document.getElementById('tool-whiteout');
+            if (eraseBtn) eraseBtn.click();
+            showToast('⬜ ERASE Mode Active: Drag a box over any text line to erase & type!', 'info');
+        });
 
         async function renderEditorThumbnails() {
             const sidebar = document.getElementById('editor-thumbnail-sidebar');
