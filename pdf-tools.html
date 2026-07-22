@@ -276,6 +276,116 @@
             background: rgba(255, 0, 127, 0.03);
         }
 
+        /* In-Context Text Formatting Popover Toolbar */
+        .inline-text-popover {
+            position: absolute;
+            z-index: 10000;
+            width: 330px;
+            background: #0d0e12;
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4), 0 10px 30px rgba(0,0,0,0.85);
+            border-radius: 10px;
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+            color: #fff;
+            text-align: left;
+        }
+        .popover-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .popover-title {
+            font-size: 0.75rem;
+            color: var(--neon-pink);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .popover-close-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .popover-close-btn:hover { color: #fff; }
+        .popover-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: #000;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            outline: none;
+            min-height: 54px;
+        }
+        .popover-textarea:focus {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+        }
+        .popover-toolbar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-top: 8px;
+        }
+        .popover-tool-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .popover-tool-btn:hover {
+            border-color: var(--neon-pink);
+        }
+        .popover-tool-btn.active {
+            background: var(--neon-pink);
+            color: #000;
+            font-weight: bold;
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+        .popover-tool-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .popover-tool-group label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+        .popover-select {
+            padding: 3px 6px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            background: #000;
+            color: #fff;
+            border: 1px solid var(--border-color);
+        }
+        .popover-footer {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
         .excel-tab {
             font-family: 'Share Tech Mono', monospace;
             background: rgba(255, 255, 255, 0.02);
@@ -1236,27 +1346,9 @@
                                 <div class="editor-sidebar-panel">
                                     <!-- Tool Context Settings -->
                                     <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;">
-                                        <div class="option-field" id="editor-text-settings">
-                                            <label for="editor-text-input">TEXT TO PLACE</label>
-                                            <input type="text" id="editor-text-input" class="cyber-input" placeholder="Enter text..." value="Sample Text" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                        </div>
-                                        <div class="option-field" id="editor-size-settings">
-                                            <label for="editor-font-size">FONT SIZE</label>
-                                            <select id="editor-font-size" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                                <option value="12">12PX</option>
-                                                <option value="16" selected>16PX</option>
-                                                <option value="20">20PX</option>
-                                                <option value="24">24PX</option>
-                                                <option value="32">32PX</option>
-                                            </select>
-                                        </div>
-                                        <div class="option-field" id="editor-color-settings">
-                                            <label for="editor-color">COLOR</label>
-                                            <select id="editor-color" class="cyber-select" style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                                <option value="black">BLACK</option>
-                                                <option value="red">RED</option>
-                                                <option value="blue">BLUE</option>
-                                            </select>
+                                        <div style="font-size: 0.8rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">💡 DIRECT TEXT EDITING</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
+                                            Click anywhere on blank space or double-click existing text to write, format (Bold/Highlight/Size/Color), and edit directly on the PDF canvas.
                                         </div>
                                         <div class="option-field" id="editor-sign-settings" style="display: none;">
                                             <label>SIGNATURE PREVIEW</label>
@@ -1304,6 +1396,73 @@
                                             <div id="editor-canvas-container" style="position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.7); display: inline-block; margin: auto;">
                                                 <canvas id="editor-pdf-canvas" style="display: block;"></canvas>
                                                 <canvas id="editor-overlay-canvas" style="position: absolute; top: 0; left: 0; cursor: crosshair; display: block;"></canvas>
+                                                
+                                                <!-- Floating In-Context Text Formatting Popover Toolbar -->
+                                                <div id="inline-text-popover" class="inline-text-popover" style="display: none;">
+                                                    <div class="popover-header">
+                                                        <span class="popover-title">📝 EDIT TEXT</span>
+                                                        <button type="button" class="popover-close-btn" id="popover-close">✕</button>
+                                                    </div>
+                                                    <div class="popover-body">
+                                                        <textarea id="popover-text-input" class="cyber-textarea popover-textarea" placeholder="Type text here..." rows="2"></textarea>
+                                                        
+                                                        <div class="popover-toolbar">
+                                                            <!-- Bold Toggle -->
+                                                            <button type="button" id="popover-btn-bold" class="popover-tool-btn" title="Toggle Bold"><b>B</b></button>
+                                                            
+                                                            <!-- Font Size Select -->
+                                                            <div class="popover-tool-group">
+                                                                <label>SIZE</label>
+                                                                <select id="popover-font-size" class="cyber-select popover-select">
+                                                                    <option value="10">10px</option>
+                                                                    <option value="12">12px</option>
+                                                                    <option value="14">14px</option>
+                                                                    <option value="16" selected>16px</option>
+                                                                    <option value="18">18px</option>
+                                                                    <option value="20">20px</option>
+                                                                    <option value="24">24px</option>
+                                                                    <option value="28">28px</option>
+                                                                    <option value="32">32px</option>
+                                                                    <option value="36">36px</option>
+                                                                    <option value="48">48px</option>
+                                                                    <option value="64">64px</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Text Color -->
+                                                            <div class="popover-tool-group">
+                                                                <label>COLOR</label>
+                                                                <select id="popover-text-color" class="cyber-select popover-select">
+                                                                    <option value="black">BLACK</option>
+                                                                    <option value="red">RED</option>
+                                                                    <option value="blue">BLUE</option>
+                                                                    <option value="green">GREEN</option>
+                                                                    <option value="white">WHITE</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <!-- Highlight Color -->
+                                                            <div class="popover-tool-group">
+                                                                <label>HIGHLIGHT</label>
+                                                                <select id="popover-highlight-color" class="cyber-select popover-select">
+                                                                    <option value="none">NONE</option>
+                                                                    <option value="yellow">💛 YELLOW</option>
+                                                                    <option value="green">💚 GREEN</option>
+                                                                    <option value="cyan">🩵 CYAN</option>
+                                                                    <option value="pink">🩷 PINK</option>
+                                                                    <option value="orange">🧡 ORANGE</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="popover-footer">
+                                                            <button type="button" id="popover-btn-delete" class="file-btn danger" style="display: none; padding: 5px 10px; font-size: 0.75rem; color: #ff0055; border-color: #ff0055;">🗑️ DELETE</button>
+                                                            <div style="flex: 1;"></div>
+                                                            <button type="button" id="popover-btn-cancel" class="file-btn" style="padding: 5px 12px; font-size: 0.75rem;">CANCEL</button>
+                                                            <button type="button" id="popover-btn-apply" class="cyber-btn" style="padding: 5px 14px; font-size: 0.75rem;">✓ APPLY</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -3150,6 +3309,173 @@
             });
         }
 
+        let editorEditingAnnot = null;
+        let editorEditingTarget = null; // 'annot', 'line', or 'new'
+        let editorEditingCoords = { x: 0, y: 0 };
+        let editorEditingLine = null;
+
+        function showTextPopover(coords, targetObj) {
+            const popover = document.getElementById('inline-text-popover');
+            const input = document.getElementById('popover-text-input');
+            const sizeSelect = document.getElementById('popover-font-size');
+            const colorSelect = document.getElementById('popover-text-color');
+            const highlightSelect = document.getElementById('popover-highlight-color');
+            const boldBtn = document.getElementById('popover-btn-bold');
+            const deleteBtn = document.getElementById('popover-btn-delete');
+            
+            editorEditingCoords = coords;
+
+            if (targetObj && targetObj.type) {
+                editorEditingTarget = 'annot';
+                editorEditingAnnot = targetObj;
+                editorEditingLine = null;
+                
+                input.value = targetObj.text || '';
+                sizeSelect.value = targetObj.size || 16;
+                colorSelect.value = targetObj.color || 'black';
+                highlightSelect.value = targetObj.highlight || 'none';
+                boldBtn.classList.toggle('active', !!targetObj.isBold);
+                deleteBtn.style.display = 'inline-block';
+            } else if (targetObj && targetObj.str !== undefined) {
+                editorEditingTarget = 'line';
+                editorEditingAnnot = null;
+                editorEditingLine = targetObj;
+                
+                input.value = targetObj.str || '';
+                sizeSelect.value = Math.round(targetObj.fontSize) || 16;
+                colorSelect.value = 'black';
+                highlightSelect.value = 'none';
+                boldBtn.classList.remove('active');
+                deleteBtn.style.display = 'none';
+            } else {
+                editorEditingTarget = 'new';
+                editorEditingAnnot = null;
+                editorEditingLine = null;
+                
+                input.value = '';
+                sizeSelect.value = '16';
+                colorSelect.value = 'black';
+                highlightSelect.value = 'none';
+                boldBtn.classList.remove('active');
+                deleteBtn.style.display = 'none';
+            }
+
+            const container = document.getElementById('editor-canvas-container');
+            const cWidth = container.clientWidth || 550;
+            
+            let popoverX = coords.x;
+            let popoverY = coords.y - 200;
+            
+            if (popoverY < 10) popoverY = coords.y + 20;
+            if (popoverX + 330 > cWidth) popoverX = Math.max(10, cWidth - 335);
+
+            popover.style.left = `${popoverX}px`;
+            popover.style.top = `${popoverY}px`;
+            popover.style.display = 'block';
+
+            setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 50);
+        }
+
+        function hideTextPopover() {
+            const popover = document.getElementById('inline-text-popover');
+            if (popover) popover.style.display = 'none';
+            editorEditingAnnot = null;
+            editorEditingLine = null;
+            editorEditingTarget = null;
+        }
+
+        document.getElementById('popover-close').addEventListener('click', hideTextPopover);
+        document.getElementById('popover-btn-cancel').addEventListener('click', hideTextPopover);
+
+        document.getElementById('popover-btn-bold').addEventListener('click', () => {
+            document.getElementById('popover-btn-bold').classList.toggle('active');
+            playBeep(750, 0.03, 'sine');
+        });
+
+        document.getElementById('popover-btn-apply').addEventListener('click', applyPopoverTextEdit);
+
+        document.getElementById('popover-text-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || !e.shiftKey)) {
+                e.preventDefault();
+                applyPopoverTextEdit();
+            } else if (e.key === 'Escape') {
+                hideTextPopover();
+            }
+        });
+
+        document.getElementById('popover-btn-delete').addEventListener('click', () => {
+            if (editorEditingTarget === 'annot' && editorEditingAnnot) {
+                saveEditorState();
+                const list = editorAnnotations[editorCurrentPage] || [];
+                const idx = list.indexOf(editorEditingAnnot);
+                if (idx !== -1) {
+                    list.splice(idx, 1);
+                }
+                drawOverlayAnnotations();
+                playBeep(600, 0.05, 'sine');
+            }
+            hideTextPopover();
+        });
+
+        function applyPopoverTextEdit() {
+            const textVal = document.getElementById('popover-text-input').value.trim();
+            if (!textVal) {
+                hideTextPopover();
+                return;
+            }
+
+            const sizeVal = parseInt(document.getElementById('popover-font-size').value) || 16;
+            const colorVal = document.getElementById('popover-text-color').value || 'black';
+            const highlightVal = document.getElementById('popover-highlight-color').value || 'none';
+            const isBold = document.getElementById('popover-btn-bold').classList.contains('active');
+
+            saveEditorState();
+
+            if (editorEditingTarget === 'annot' && editorEditingAnnot) {
+                editorEditingAnnot.text = textVal;
+                editorEditingAnnot.size = sizeVal;
+                editorEditingAnnot.color = colorVal;
+                editorEditingAnnot.highlight = highlightVal;
+                editorEditingAnnot.isBold = isBold;
+            } else if (editorEditingTarget === 'line' && editorEditingLine) {
+                const line = editorEditingLine;
+                addAnnotation({
+                    type: 'replace-text',
+                    x: line.x,
+                    y: line.y - line.h,
+                    w: line.w,
+                    h: line.h,
+                    text: textVal,
+                    size: sizeVal,
+                    pdfX: line.pdfX,
+                    pdfY: line.pdfY,
+                    pdfW: line.pdfW,
+                    pdfH: line.pdfH,
+                    color: colorVal,
+                    highlight: highlightVal,
+                    isBold: isBold
+                });
+            } else {
+                addAnnotation({
+                    type: 'text',
+                    x: editorEditingCoords.x,
+                    y: editorEditingCoords.y,
+                    text: textVal,
+                    size: sizeVal,
+                    color: colorVal,
+                    highlight: highlightVal,
+                    isBold: isBold
+                });
+            }
+
+            drawOverlayAnnotations();
+            playBeep(900, 0.05, 'sine');
+            hideTextPopover();
+        }
+
         function drawOverlayAnnotations() {
             const overlay = document.getElementById('editor-overlay-canvas');
             const ctx = overlay.getContext('2d');
@@ -3157,10 +3483,51 @@
 
             const list = editorAnnotations[editorCurrentPage] || [];
             list.forEach(annot => {
-                if (annot.type === 'text') {
-                    ctx.fillStyle = annot.color === 'red' ? '#ff007f' : annot.color === 'blue' ? '#00f0ff' : '#000000';
-                    ctx.font = `bold ${annot.size}px sans-serif`;
-                    ctx.fillText(annot.text, annot.x, annot.y);
+                if (annot.type === 'text' || annot.type === 'replace-text') {
+                    const fontWeight = annot.isBold ? 'bold' : 'normal';
+                    const fontSize = annot.size || 16;
+                    ctx.font = `${fontWeight} ${fontSize}px 'Outfit', sans-serif`;
+                    
+                    const textMetrics = ctx.measureText(annot.text);
+                    const textWidth = textMetrics.width;
+                    annot.w = Math.max(annot.w || 0, textWidth);
+                    annot.h = fontSize;
+
+                    // Cover original text background if replace-text
+                    if (annot.type === 'replace-text') {
+                        const scaleX = annot.pdfW ? (annot.w / annot.pdfW) : 1;
+                        const scaleY = annot.pdfH ? (annot.h / annot.pdfH) : 1;
+                        const padX = 2 * scaleX;
+                        const padY = 3 * scaleY;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(annot.x - padX, annot.y - padY, annot.w + (2 * padX), annot.h + (2 * padY));
+                    }
+
+                    // Highlight background if set
+                    if (annot.highlight && annot.highlight !== 'none') {
+                        ctx.save();
+                        const hlColors = {
+                            yellow: 'rgba(255, 235, 59, 0.55)',
+                            green: 'rgba(105, 240, 174, 0.55)',
+                            cyan: 'rgba(0, 229, 255, 0.55)',
+                            pink: 'rgba(255, 64, 129, 0.55)',
+                            orange: 'rgba(255, 152, 0, 0.55)'
+                        };
+                        ctx.fillStyle = hlColors[annot.highlight] || 'rgba(255, 235, 59, 0.55)';
+                        ctx.fillRect(annot.x - 2, annot.y - (fontSize * 0.8), textWidth + 4, fontSize * 1.15);
+                        ctx.restore();
+                    }
+
+                    // Draw Text
+                    const colorMap = {
+                        red: '#ff007f',
+                        blue: '#00f0ff',
+                        green: '#00e676',
+                        white: '#ffffff',
+                        black: '#000000'
+                    };
+                    ctx.fillStyle = colorMap[annot.color] || annot.color || '#000000';
+                    ctx.fillText(annot.text, annot.x, annot.type === 'replace-text' ? annot.y + annot.h - 2 : annot.y);
                 } else if (annot.type === 'redact') {
                     ctx.fillStyle = '#000000';
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
@@ -3170,18 +3537,9 @@
                     ctx.lineWidth = 1;
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
                     ctx.strokeRect(annot.x, annot.y, annot.w, annot.h);
-                } else if (annot.type === 'replace-text') {
-                    const scaleX = annot.pdfW ? (annot.w / annot.pdfW) : 1;
-                    const scaleY = annot.pdfH ? (annot.h / annot.pdfH) : 1;
-                    const padX = 2 * scaleX;
-                    const padY = 3 * scaleY;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(annot.x - padX, annot.y - padY, annot.w + (2 * padX), annot.h + (2 * padY));
-                    ctx.fillStyle = '#000000';
-                    ctx.font = `${annot.size * 0.95}px sans-serif`;
-                    ctx.fillText(annot.text, annot.x, annot.y + annot.h);
                 } else if (annot.type === 'draw') {
-                    ctx.strokeStyle = annot.color === 'red' ? '#ff007f' : annot.color === 'blue' ? '#00f0ff' : '#000000';
+                    const colorMap = { red: '#ff007f', blue: '#00f0ff', green: '#00e676', white: '#ffffff', black: '#000000' };
+                    ctx.strokeStyle = colorMap[annot.color] || annot.color || '#000000';
                     ctx.lineWidth = annot.size;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
@@ -3240,29 +3598,20 @@
                 tools.forEach(t => document.getElementById(`tool-${t}`).classList.remove('active'));
                 document.getElementById(`tool-${tool}`).classList.add('active');
 
+                // Close text popover if open when switching tools
+                if (tool !== 'text') {
+                    hideTextPopover();
+                }
+
                 // Adjust setting displays
-                if (tool === 'text') {
-                    document.getElementById('editor-text-settings').style.display = 'block';
-                    document.getElementById('editor-size-settings').style.display = 'block';
-                    document.getElementById('editor-color-settings').style.display = 'block';
-                    document.getElementById('editor-sign-settings').style.display = 'none';
-                } else if (tool === 'draw') {
-                    document.getElementById('editor-text-settings').style.display = 'none';
-                    document.getElementById('editor-size-settings').style.display = 'none';
-                    document.getElementById('editor-color-settings').style.display = 'block';
+                if (tool === 'draw') {
                     document.getElementById('editor-sign-settings').style.display = 'none';
                 } else if (tool === 'sign') {
-                    document.getElementById('editor-text-settings').style.display = 'none';
-                    document.getElementById('editor-size-settings').style.display = 'none';
-                    document.getElementById('editor-color-settings').style.display = 'none';
                     document.getElementById('editor-sign-settings').style.display = 'block';
                     if (!editorSignatureDataUrl) {
                         openSignatureModal();
                     }
                 } else {
-                    document.getElementById('editor-text-settings').style.display = 'none';
-                    document.getElementById('editor-size-settings').style.display = 'none';
-                    document.getElementById('editor-color-settings').style.display = 'none';
                     document.getElementById('editor-sign-settings').style.display = 'none';
                 }
             });
@@ -3273,6 +3622,7 @@
             if (editorCurrentPage > 1) {
                 playBeep(880, 0.05, 'sine');
                 editorCurrentPage--;
+                hideTextPopover();
                 renderEditorPage();
             }
         });
@@ -3281,6 +3631,7 @@
             if (editorCurrentPage < editorTotalPages) {
                 playBeep(880, 0.05, 'sine');
                 editorCurrentPage++;
+                hideTextPopover();
                 renderEditorPage();
             }
         });
@@ -3296,6 +3647,25 @@
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top
             };
+        }
+
+        function findClickedTextTarget(coords) {
+            // 1. Check existing annotations
+            const existingAnnot = (editorAnnotations[editorCurrentPage] || []).find(annot =>
+                (annot.type === 'text' || annot.type === 'replace-text') &&
+                coords.x >= annot.x - 4 && coords.x <= annot.x + (annot.w || 50) + 4 &&
+                coords.y >= annot.y - (annot.size || 16) - 4 && coords.y <= annot.y + 4
+            );
+            if (existingAnnot) return { type: 'annot', target: existingAnnot };
+
+            // 2. Check original PDF text items
+            for (let line of editorTextItems) {
+                if (coords.x >= line.x && coords.x <= line.x + line.w && coords.y >= line.y - line.h && coords.y <= line.y) {
+                    return { type: 'line', target: line };
+                }
+            }
+
+            return { type: 'blank', target: null };
         }
 
         overlay.addEventListener('mousedown', (e) => {
@@ -3354,39 +3724,8 @@
                 dragStartX = coords.x;
                 dragStartY = coords.y;
             } else if (editorActiveTool === 'text') {
-                // First check if user clicked on an already edited replace-text annotation
-                const existingAnnot = (editorAnnotations[editorCurrentPage] || []).find(annot =>
-                    annot.type === 'replace-text' &&
-                    coords.x >= annot.x && coords.x <= annot.x + annot.w && coords.y >= annot.y && coords.y <= annot.y + annot.h
-                );
-
-                // Check if user clicked on an existing original text line
-                let clickedLine = null;
-                for (let line of editorTextItems) {
-                    if (coords.x >= line.x && coords.x <= line.x + line.w && coords.y >= line.y - line.h && coords.y <= line.y) {
-                        clickedLine = line;
-                        break;
-                    }
-                }
-                
-                if (existingAnnot || clickedLine) {
-                    return; // Ignore single-clicks on text structures, let double-click trigger prompt
-                }
-
-                const textVal = document.getElementById('editor-text-input').value.trim() || 'Text';
-                const sizeVal = parseInt(document.getElementById('editor-font-size').value) || 16;
-                const colorVal = document.getElementById('editor-color').value || 'black';
-
-                addAnnotation({
-                    type: 'text',
-                    x: coords.x,
-                    y: coords.y,
-                    text: textVal,
-                    size: sizeVal,
-                    color: colorVal
-                });
-                drawOverlayAnnotations();
-                playBeep(900, 0.05, 'sine');
+                const textResult = findClickedTextTarget(coords);
+                showTextPopover(coords, textResult.target);
             }
         });
 
@@ -3416,26 +3755,25 @@
 
             if (!editorIsDrawing) {
                 if (editorActiveTool === 'text') {
-                    let found = null;
-                    for (let item of editorTextItems) {
-                        if (coords.x >= item.x && coords.x <= item.x + item.w && coords.y >= item.y - item.h && coords.y <= item.y) {
-                            found = item;
-                            break;
-                        }
-                    }
-                    if (found) {
+                    const textResult = findClickedTextTarget(coords);
+                    if (textResult.type === 'line' || textResult.type === 'annot') {
                         overlay.style.cursor = 'pointer';
                         drawOverlayAnnotations();
                         const ctx = overlay.getContext('2d');
-                        ctx.strokeStyle = 'rgba(255, 0, 127, 0.7)';
-                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = 'rgba(255, 0, 127, 0.8)';
+                        ctx.lineWidth = 1.5;
                         ctx.setLineDash([4, 4]);
-                        ctx.strokeRect(found.x, found.y - found.h, found.w, found.h);
+                        const obj = textResult.target;
+                        const bx = obj.x;
+                        const by = obj.type ? (obj.y - (obj.size || 16)) : (obj.y - obj.h);
+                        const bw = obj.w || 50;
+                        const bh = obj.h || (obj.size || 16);
+                        ctx.strokeRect(bx, by, bw, bh);
                         ctx.setLineDash([]);
-                        overlay.title = `Double click to edit line: "${found.str}"`;
+                        overlay.title = `Click or Double Click to edit: "${obj.text || obj.str}"`;
                     } else {
-                        overlay.style.cursor = 'crosshair';
-                        overlay.title = '';
+                        overlay.style.cursor = 'text';
+                        overlay.title = 'Click anywhere to add text';
                         drawOverlayAnnotations();
                     }
                 } else if (editorActiveTool === 'sign') {
@@ -3470,9 +3808,8 @@
                 editorDrawPoints.push(coords);
                 drawOverlayAnnotations();
                 
-                // Draw current stroke path live
                 const ctx = overlay.getContext('2d');
-                ctx.strokeStyle = document.getElementById('editor-color').value === 'red' ? '#ff007f' : document.getElementById('editor-color').value === 'blue' ? '#00f0ff' : '#000000';
+                ctx.strokeStyle = '#000000';
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
@@ -3507,11 +3844,10 @@
             const coords = getMouseCoords(e);
 
             if (editorActiveTool === 'draw') {
-                const colorVal = document.getElementById('editor-color').value || 'black';
                 addAnnotation({
                     type: 'draw',
                     points: editorDrawPoints,
-                    color: colorVal,
+                    color: 'black',
                     size: 3
                 });
             } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
@@ -3537,62 +3873,11 @@
             }
         });
 
-        // Double Click to Edit Text Lines
         overlay.addEventListener('dblclick', (e) => {
             if (editorActiveTool !== 'text') return;
             const coords = getMouseCoords(e);
-            
-            // 1. Check if user clicked on an already edited replace-text annotation
-            const existingAnnot = (editorAnnotations[editorCurrentPage] || []).find(annot =>
-                annot.type === 'replace-text' &&
-                coords.x >= annot.x && coords.x <= annot.x + annot.w && coords.y >= annot.y && coords.y <= annot.y + annot.h
-            );
-            
-            if (existingAnnot) {
-                e.preventDefault();
-                e.stopPropagation();
-                const newText = prompt(`Edit text value:`, existingAnnot.text);
-                if (newText !== null) {
-                    saveEditorState();
-                    existingAnnot.text = newText;
-                    drawOverlayAnnotations();
-                    playBeep(900, 0.05, 'sine');
-                }
-                return;
-            }
-
-            // 2. Check if user clicked on an original text line
-            let clickedLine = null;
-            for (let line of editorTextItems) {
-                if (coords.x >= line.x && coords.x <= line.x + line.w && coords.y >= line.y - line.h && coords.y <= line.y) {
-                    clickedLine = line;
-                    break;
-                }
-            }
-            
-            if (clickedLine) {
-                e.preventDefault();
-                e.stopPropagation();
-                const newText = prompt(`Edit line text:`, clickedLine.str);
-                if (newText !== null) {
-                    addAnnotation({
-                        type: 'replace-text',
-                        x: clickedLine.x,
-                        y: clickedLine.y - clickedLine.h,
-                        w: clickedLine.w,
-                        h: clickedLine.h,
-                        text: newText,
-                        size: clickedLine.fontSize,
-                        pdfX: clickedLine.pdfX,
-                        pdfY: clickedLine.pdfY,
-                        pdfW: clickedLine.pdfW,
-                        pdfH: clickedLine.pdfH,
-                        color: 'black'
-                    });
-                    drawOverlayAnnotations();
-                    playBeep(900, 0.05, 'sine');
-                }
-            }
+            const textResult = findClickedTextTarget(coords);
+            showTextPopover(coords, textResult.target);
         });
 
         function dataUrlToUint8Array(dataUrl) {
@@ -3632,6 +3917,7 @@
 
                 appendLog(`Loading Helvetica font resources...`);
                 const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                const helveticaBoldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
 
                 progressBarFill.style.width = '20%';
                 progressPercent.textContent = '20%';
@@ -3653,13 +3939,40 @@
                         if (annot.type === 'text') {
                             const xPdf = annot.x * scaleX;
                             const yPdf = (canvasSize.h - annot.y) * scaleY;
-                            const rgb = annot.color === 'red' ? PDFLib.rgb(0.9, 0.1, 0.1) : annot.color === 'blue' ? PDFLib.rgb(0.1, 0.1, 0.9) : PDFLib.rgb(0, 0, 0);
+                            const fontSizePdf = Math.max(8, (annot.size - 2) * scaleY);
+                            const fontToUse = annot.isBold ? helveticaBoldFont : helveticaFont;
+                            
+                            let rgb = PDFLib.rgb(0, 0, 0);
+                            if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
+                            else if (annot.color === 'blue') rgb = PDFLib.rgb(0, 0.6, 1);
+                            else if (annot.color === 'green') rgb = PDFLib.rgb(0, 0.8, 0.3);
+                            else if (annot.color === 'white') rgb = PDFLib.rgb(1, 1, 1);
+
+                            if (annot.highlight && annot.highlight !== 'none') {
+                                let hlRgb = PDFLib.rgb(1, 0.95, 0.2);
+                                if (annot.highlight === 'green') hlRgb = PDFLib.rgb(0.4, 0.95, 0.4);
+                                else if (annot.highlight === 'cyan') hlRgb = PDFLib.rgb(0.3, 0.9, 1);
+                                else if (annot.highlight === 'pink') hlRgb = PDFLib.rgb(1, 0.4, 0.7);
+                                else if (annot.highlight === 'orange') hlRgb = PDFLib.rgb(1, 0.6, 0.2);
+
+                                try {
+                                    const textWidthPdf = fontToUse.widthOfTextAtSize(annot.text, fontSizePdf);
+                                    page.drawRectangle({
+                                        x: xPdf - 2,
+                                        y: yPdf - (fontSizePdf * 0.15),
+                                        width: textWidthPdf + 4,
+                                        height: fontSizePdf * 1.15,
+                                        color: hlRgb,
+                                        opacity: 0.75
+                                    });
+                                } catch(eIgn) {}
+                            }
                             
                             page.drawText(annot.text, {
                                 x: xPdf,
                                 y: yPdf,
-                                size: (annot.size - 2) * scaleY, // slight offset for font metrics
-                                font: helveticaFont,
+                                size: fontSizePdf,
+                                font: fontToUse,
                                 color: rgb,
                             });
                         } else if (annot.type === 'redact' || annot.type === 'whiteout') {
@@ -3677,8 +3990,8 @@
                                 color: fillRgb,
                             });
                         } else if (annot.type === 'replace-text') {
-                            const paddingX = 2; // PDF points horizontal padding
-                            const paddingY = 3; // PDF points vertical padding
+                            const paddingX = 2;
+                            const paddingY = 3;
                             page.drawRectangle({
                                 x: annot.pdfX - paddingX,
                                 y: annot.pdfY - paddingY,
@@ -3687,12 +4000,41 @@
                                 color: PDFLib.rgb(1, 1, 1),
                             });
 
+                            const fontToUse = annot.isBold ? helveticaBoldFont : helveticaFont;
+                            const fontSizePdf = annot.size || 16;
+                            
+                            let rgb = PDFLib.rgb(0, 0, 0);
+                            if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
+                            else if (annot.color === 'blue') rgb = PDFLib.rgb(0, 0.6, 1);
+                            else if (annot.color === 'green') rgb = PDFLib.rgb(0, 0.8, 0.3);
+                            else if (annot.color === 'white') rgb = PDFLib.rgb(1, 1, 1);
+
+                            if (annot.highlight && annot.highlight !== 'none') {
+                                let hlRgb = PDFLib.rgb(1, 0.95, 0.2);
+                                if (annot.highlight === 'green') hlRgb = PDFLib.rgb(0.4, 0.95, 0.4);
+                                else if (annot.highlight === 'cyan') hlRgb = PDFLib.rgb(0.3, 0.9, 1);
+                                else if (annot.highlight === 'pink') hlRgb = PDFLib.rgb(1, 0.4, 0.7);
+                                else if (annot.highlight === 'orange') hlRgb = PDFLib.rgb(1, 0.6, 0.2);
+
+                                try {
+                                    const textWidthPdf = fontToUse.widthOfTextAtSize(annot.text, fontSizePdf);
+                                    page.drawRectangle({
+                                        x: annot.pdfX - 2,
+                                        y: annot.pdfY - (fontSizePdf * 0.15),
+                                        width: textWidthPdf + 4,
+                                        height: fontSizePdf * 1.15,
+                                        color: hlRgb,
+                                        opacity: 0.75
+                                    });
+                                } catch(eIgn) {}
+                            }
+
                             page.drawText(annot.text, {
                                 x: annot.pdfX,
                                 y: annot.pdfY,
-                                size: annot.size,
-                                font: helveticaFont,
-                                color: PDFLib.rgb(0, 0, 0),
+                                size: fontSizePdf,
+                                font: fontToUse,
+                                color: rgb,
                             });
 
                             // For whiteout, we can draw a thin gray border in the actual PDF if they want, but typically borderless is preferred for clean edits.
