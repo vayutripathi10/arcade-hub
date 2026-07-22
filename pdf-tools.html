@@ -3071,14 +3071,15 @@
             let mapped = items.map(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
-                const fontSize = item.transform[3];
+                const fontSize = Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12;
                 return {
                     str: item.str || '',
+                    fontName: item.fontName || '',
                     fontSize: fontSize,
                     pdfX: tx,
                     pdfY: ty,
                     pdfW: item.width,
-                    pdfH: item.height
+                    pdfH: item.height || fontSize
                 };
             });
             
@@ -3153,10 +3154,21 @@
                 const cy = pageHeight - (ty * scale);
                 const cw = totalPdfW * scale;
                 const ch = maxPdfH * scale;
+                const canvasFontSize = Math.max(8, Math.round(maxFontSize * scale));
+
+                let detectedFamily = 'Arial, Helvetica, sans-serif';
+                const lowerFont = (first.fontName || '').toLowerCase();
+                if (lowerFont.includes('mono') || lowerFont.includes('courier') || lowerFont.includes('code')) {
+                    detectedFamily = "'Share Tech Mono', 'Courier New', monospace";
+                } else if (lowerFont.includes('serif') || lowerFont.includes('times') || lowerFont.includes('georgia')) {
+                    detectedFamily = "'Times New Roman', 'Georgia', serif";
+                }
                 
                 return {
                     str: mergedStr,
                     fontSize: maxFontSize,
+                    canvasFontSize: canvasFontSize,
+                    fontFamily: detectedFamily,
                     x: cx,
                     y: cy,
                     w: cw,
@@ -3350,7 +3362,8 @@
                 posX = targetObj.x;
                 posY = targetObj.y - targetObj.h;
                 initText = targetObj.str || '';
-                fontSz = Math.round(targetObj.fontSize) || 16;
+                fontSz = targetObj.canvasFontSize || Math.round(targetObj.fontSize * (editorCurrentScale || 1.0)) || 16;
+                fontFamilyVal = targetObj.fontFamily || 'Arial, Helvetica, sans-serif';
                 colorVal = 'black';
                 hlVal = 'none';
                 isBld = false;
