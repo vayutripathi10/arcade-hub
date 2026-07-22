@@ -3105,25 +3105,11 @@
                 groups.push(currentGroup);
             }
             
-            // Step 3: Sort each baseline group horizontally, and split by X gap
+            // Step 3: Sort each baseline group horizontally into full line rows
             let finalLines = [];
             groups.forEach(group => {
                 group.sort((a, b) => a.pdfX - b.pdfX);
-                
-                let currentLine = [group[0]];
-                for (let i = 1; i < group.length; i++) {
-                    let last = currentLine[currentLine.length - 1];
-                    let curr = group[i];
-                    
-                    const adjacentX = (curr.pdfX - (last.pdfX + last.pdfW)) <= 35;
-                    if (adjacentX) {
-                        currentLine.push(curr);
-                    } else {
-                        finalLines.push(currentLine);
-                        currentLine = [curr];
-                    }
-                }
-                finalLines.push(currentLine);
+                finalLines.push(group);
             });
             
             return finalLines.map(group => {
@@ -3577,10 +3563,10 @@
 
                     // Cover original text background if replace-text or coverBg is true
                     if (annot.type === 'replace-text' || annot.coverBg) {
-                        const padX = 3;
-                        const boxW = Math.max(textWidth, annot.origW || 0) + (2 * padX);
-                        const boxH = Math.max(fontSize * 1.15, annot.origH || 0, annot.h || 0) + 4;
-                        const boxY = annot.y - (fontSize * 0.82) - 2;
+                        const padX = 4;
+                        const boxW = Math.max(textWidth, annot.origW || 0, annot.w || 0, 80) + (2 * padX);
+                        const boxH = Math.max(fontSize * 1.2, annot.origH || 0, annot.h || 0) + 4;
+                        const boxY = annot.y - (fontSize * 0.85) - 2;
                         ctx.fillStyle = '#ffffff';
                         ctx.fillRect(annot.x - padX, boxY, boxW, boxH);
                     }
@@ -3740,9 +3726,11 @@
             );
             if (existingAnnot) return { type: 'annot', target: existingAnnot };
 
-            // 2. Check original PDF text items
+            // 2. Check original PDF text items with Y & X proximity tolerance
             for (let line of editorTextItems) {
-                if (coords.x >= line.x && coords.x <= line.x + line.w && coords.y >= line.y - line.h && coords.y <= line.y) {
+                const padY = 8;
+                const padX = 20;
+                if (coords.x >= line.x - padX && coords.x <= line.x + line.w + padX && coords.y >= line.y - line.h - padY && coords.y <= line.y + padY) {
                     return { type: 'line', target: line };
                 }
             }
