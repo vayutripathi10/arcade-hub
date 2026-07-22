@@ -1414,7 +1414,12 @@
                                                             <div class="popover-tool-group">
                                                                 <label>SIZE</label>
                                                                 <select id="popover-font-size" class="cyber-select popover-select">
+                                                                    <option value="4">4px</option>
+                                                                    <option value="6">6px</option>
+                                                                    <option value="8">8px</option>
+                                                                    <option value="9">9px</option>
                                                                     <option value="10">10px</option>
+                                                                    <option value="11">11px</option>
                                                                     <option value="12">12px</option>
                                                                     <option value="14">14px</option>
                                                                     <option value="16" selected>16px</option>
@@ -1426,6 +1431,7 @@
                                                                     <option value="36">36px</option>
                                                                     <option value="48">48px</option>
                                                                     <option value="64">64px</option>
+                                                                    <option value="72">72px</option>
                                                                 </select>
                                                             </div>
 
@@ -3457,9 +3463,11 @@
                 addAnnotation({
                     type: 'replace-text',
                     x: line.x,
-                    y: line.y - line.h,
+                    y: line.y,
                     w: line.w,
                     h: line.h,
+                    origW: line.w,
+                    origH: line.h,
                     text: textVal,
                     size: sizeVal,
                     pdfX: line.pdfX,
@@ -3504,17 +3512,16 @@
                     
                     const textMetrics = ctx.measureText(annot.text);
                     const textWidth = textMetrics.width;
-                    annot.w = Math.max(annot.w || 0, textWidth);
-                    annot.h = fontSize;
+                    annot.w = Math.max(textWidth, annot.origW || 0);
 
                     // Cover original text background if replace-text or coverBg is true
                     if (annot.type === 'replace-text' || annot.coverBg) {
-                        const scaleX = annot.pdfW ? (annot.w / annot.pdfW) : 1;
-                        const scaleY = annot.pdfH ? (annot.h / annot.pdfH) : 1;
-                        const padX = 3 * scaleX;
-                        const padY = 3 * scaleY;
+                        const padX = 3;
+                        const boxW = Math.max(textWidth, annot.origW || 0) + (2 * padX);
+                        const boxH = Math.max(fontSize * 1.15, annot.origH || 0, annot.h || 0) + 4;
+                        const boxY = annot.y - (fontSize * 0.82) - 2;
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(annot.x - padX, annot.y - (fontSize * 0.85), annot.w + (2 * padX), fontSize * 1.15);
+                        ctx.fillRect(annot.x - padX, boxY, boxW, boxH);
                     }
 
                     // Highlight background if set
@@ -3541,7 +3548,7 @@
                         black: '#000000'
                     };
                     ctx.fillStyle = colorMap[annot.color] || annot.color || '#000000';
-                    ctx.fillText(annot.text, annot.x, annot.type === 'replace-text' ? annot.y + annot.h - 2 : annot.y);
+                    ctx.fillText(annot.text, annot.x, annot.y);
                 } else if (annot.type === 'redact') {
                     ctx.fillStyle = '#000000';
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
@@ -3950,18 +3957,43 @@
 
                     const annots = editorAnnotations[pageNum] || [];
                     for (let annot of annots) {
-                        if (annot.type === 'text') {
-                            const xPdf = annot.x * scaleX;
-                            const yPdf = (canvasSize.h - annot.y) * scaleY;
-                            const fontSizePdf = Math.max(8, (annot.size - 2) * scaleY);
+                        if (annot.type === 'text' || annot.type === 'replace-text') {
                             const fontToUse = annot.isBold ? helveticaBoldFont : helveticaFont;
                             
+                            const xPdf = (annot.pdfX !== undefined) ? annot.pdfX : (annot.x * scaleX);
+                            const yPdf = (annot.pdfY !== undefined) ? annot.pdfY : ((canvasSize.h - annot.y) * scaleY);
+                            const fontSizePdf = Math.max(4, (annot.size || 16) * scaleY);
+                            
+                            let textWidthPdf = 0;
+                            try {
+                                textWidthPdf = fontToUse.widthOfTextAtSize(annot.text, fontSizePdf);
+                            } catch(eW) {
+                                textWidthPdf = annot.text.length * fontSizePdf * 0.5;
+                            }
+
                             let rgb = PDFLib.rgb(0, 0, 0);
                             if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
                             else if (annot.color === 'blue') rgb = PDFLib.rgb(0, 0.6, 1);
                             else if (annot.color === 'green') rgb = PDFLib.rgb(0, 0.8, 0.3);
                             else if (annot.color === 'white') rgb = PDFLib.rgb(1, 1, 1);
 
+                            // Draw Whiteout Cover Box if replace-text or coverBg is true
+                            if (annot.type === 'replace-text' || annot.coverBg) {
+                                const padX = 3;
+                                const boxPdfW = Math.max(textWidthPdf, annot.pdfW || 0) + (2 * padX);
+                                const boxPdfH = Math.max(fontSizePdf * 1.15, (annot.pdfH || 0)) + 4;
+                                const boxPdfY = yPdf - (fontSizePdf * 0.25) - 2;
+
+                                page.drawRectangle({
+                                    x: xPdf - padX,
+                                    y: boxPdfY,
+                                    width: boxPdfW,
+                                    height: boxPdfH,
+                                    color: PDFLib.rgb(1, 1, 1),
+                                });
+                            }
+
+                            // Highlight background if set
                             if (annot.highlight && annot.highlight !== 'none') {
                                 let hlRgb = PDFLib.rgb(1, 0.95, 0.2);
                                 if (annot.highlight === 'green') hlRgb = PDFLib.rgb(0.4, 0.95, 0.4);
@@ -3970,7 +4002,6 @@
                                 else if (annot.highlight === 'orange') hlRgb = PDFLib.rgb(1, 0.6, 0.2);
 
                                 try {
-                                    const textWidthPdf = fontToUse.widthOfTextAtSize(annot.text, fontSizePdf);
                                     page.drawRectangle({
                                         x: xPdf - 2,
                                         y: yPdf - (fontSizePdf * 0.15),
@@ -4003,55 +4034,6 @@
                                 height: hPdf,
                                 color: fillRgb,
                             });
-                        } else if (annot.type === 'replace-text') {
-                            const paddingX = 2;
-                            const paddingY = 3;
-                            page.drawRectangle({
-                                x: annot.pdfX - paddingX,
-                                y: annot.pdfY - paddingY,
-                                width: annot.pdfW + (2 * paddingX),
-                                height: annot.pdfH + (2 * paddingY),
-                                color: PDFLib.rgb(1, 1, 1),
-                            });
-
-                            const fontToUse = annot.isBold ? helveticaBoldFont : helveticaFont;
-                            const fontSizePdf = annot.size || 16;
-                            
-                            let rgb = PDFLib.rgb(0, 0, 0);
-                            if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
-                            else if (annot.color === 'blue') rgb = PDFLib.rgb(0, 0.6, 1);
-                            else if (annot.color === 'green') rgb = PDFLib.rgb(0, 0.8, 0.3);
-                            else if (annot.color === 'white') rgb = PDFLib.rgb(1, 1, 1);
-
-                            if (annot.highlight && annot.highlight !== 'none') {
-                                let hlRgb = PDFLib.rgb(1, 0.95, 0.2);
-                                if (annot.highlight === 'green') hlRgb = PDFLib.rgb(0.4, 0.95, 0.4);
-                                else if (annot.highlight === 'cyan') hlRgb = PDFLib.rgb(0.3, 0.9, 1);
-                                else if (annot.highlight === 'pink') hlRgb = PDFLib.rgb(1, 0.4, 0.7);
-                                else if (annot.highlight === 'orange') hlRgb = PDFLib.rgb(1, 0.6, 0.2);
-
-                                try {
-                                    const textWidthPdf = fontToUse.widthOfTextAtSize(annot.text, fontSizePdf);
-                                    page.drawRectangle({
-                                        x: annot.pdfX - 2,
-                                        y: annot.pdfY - (fontSizePdf * 0.15),
-                                        width: textWidthPdf + 4,
-                                        height: fontSizePdf * 1.15,
-                                        color: hlRgb,
-                                        opacity: 0.75
-                                    });
-                                } catch(eIgn) {}
-                            }
-
-                            page.drawText(annot.text, {
-                                x: annot.pdfX,
-                                y: annot.pdfY,
-                                size: fontSizePdf,
-                                font: fontToUse,
-                                color: rgb,
-                            });
-
-                            // For whiteout, we can draw a thin gray border in the actual PDF if they want, but typically borderless is preferred for clean edits.
                         } else if (annot.type === 'draw') {
                             const rgb = annot.color === 'red' ? PDFLib.rgb(0.9, 0.1, 0.1) : annot.color === 'blue' ? PDFLib.rgb(0.1, 0.1, 0.9) : PDFLib.rgb(0, 0, 0);
                             
