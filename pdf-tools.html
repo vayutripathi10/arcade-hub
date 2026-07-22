@@ -1455,6 +1455,12 @@
                                                             </div>
                                                         </div>
 
+                                                        <!-- Cover Background Checkbox for Scanned/Image PDFs -->
+                                                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px;">
+                                                            <input type="checkbox" id="popover-cover-bg" checked style="accent-color: var(--neon-pink); cursor: pointer;">
+                                                            <label for="popover-cover-bg" style="font-size: 0.72rem; color: #fff; cursor: pointer; user-select: none;">Cover Old Background Text (Whiteout)</label>
+                                                        </div>
+
                                                         <div class="popover-footer">
                                                             <button type="button" id="popover-btn-delete" class="file-btn danger" style="display: none; padding: 5px 10px; font-size: 0.75rem; color: #ff0055; border-color: #ff0055;">🗑️ DELETE</button>
                                                             <div style="flex: 1;"></div>
@@ -3322,6 +3328,7 @@
             const highlightSelect = document.getElementById('popover-highlight-color');
             const boldBtn = document.getElementById('popover-btn-bold');
             const deleteBtn = document.getElementById('popover-btn-delete');
+            const coverBgCheckbox = document.getElementById('popover-cover-bg');
             
             editorEditingCoords = coords;
 
@@ -3335,6 +3342,7 @@
                 colorSelect.value = targetObj.color || 'black';
                 highlightSelect.value = targetObj.highlight || 'none';
                 boldBtn.classList.toggle('active', !!targetObj.isBold);
+                coverBgCheckbox.checked = targetObj.coverBg !== false;
                 deleteBtn.style.display = 'inline-block';
             } else if (targetObj && targetObj.str !== undefined) {
                 editorEditingTarget = 'line';
@@ -3346,6 +3354,7 @@
                 colorSelect.value = 'black';
                 highlightSelect.value = 'none';
                 boldBtn.classList.remove('active');
+                coverBgCheckbox.checked = true;
                 deleteBtn.style.display = 'none';
             } else {
                 editorEditingTarget = 'new';
@@ -3357,6 +3366,7 @@
                 colorSelect.value = 'black';
                 highlightSelect.value = 'none';
                 boldBtn.classList.remove('active');
+                coverBgCheckbox.checked = true;
                 deleteBtn.style.display = 'none';
             }
 
@@ -3431,6 +3441,7 @@
             const colorVal = document.getElementById('popover-text-color').value || 'black';
             const highlightVal = document.getElementById('popover-highlight-color').value || 'none';
             const isBold = document.getElementById('popover-btn-bold').classList.contains('active');
+            const coverBg = document.getElementById('popover-cover-bg').checked;
 
             saveEditorState();
 
@@ -3440,6 +3451,7 @@
                 editorEditingAnnot.color = colorVal;
                 editorEditingAnnot.highlight = highlightVal;
                 editorEditingAnnot.isBold = isBold;
+                editorEditingAnnot.coverBg = coverBg;
             } else if (editorEditingTarget === 'line' && editorEditingLine) {
                 const line = editorEditingLine;
                 addAnnotation({
@@ -3456,7 +3468,8 @@
                     pdfH: line.pdfH,
                     color: colorVal,
                     highlight: highlightVal,
-                    isBold: isBold
+                    isBold: isBold,
+                    coverBg: coverBg
                 });
             } else {
                 addAnnotation({
@@ -3467,7 +3480,8 @@
                     size: sizeVal,
                     color: colorVal,
                     highlight: highlightVal,
-                    isBold: isBold
+                    isBold: isBold,
+                    coverBg: coverBg
                 });
             }
 
@@ -3493,14 +3507,14 @@
                     annot.w = Math.max(annot.w || 0, textWidth);
                     annot.h = fontSize;
 
-                    // Cover original text background if replace-text
-                    if (annot.type === 'replace-text') {
+                    // Cover original text background if replace-text or coverBg is true
+                    if (annot.type === 'replace-text' || annot.coverBg) {
                         const scaleX = annot.pdfW ? (annot.w / annot.pdfW) : 1;
                         const scaleY = annot.pdfH ? (annot.h / annot.pdfH) : 1;
-                        const padX = 2 * scaleX;
+                        const padX = 3 * scaleX;
                         const padY = 3 * scaleY;
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(annot.x - padX, annot.y - padY, annot.w + (2 * padX), annot.h + (2 * padY));
+                        ctx.fillRect(annot.x - padX, annot.y - (fontSize * 0.85), annot.w + (2 * padX), fontSize * 1.15);
                     }
 
                     // Highlight background if set
