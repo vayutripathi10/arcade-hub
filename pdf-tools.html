@@ -3358,6 +3358,7 @@
         let activeInlineTargetType = null; // 'annot', 'line', 'new'
         let activeInlineLine = null;
         let activeInlineCoords = { x: 0, y: 0 };
+        let fontFamilyVal = 'Arial, Helvetica, sans-serif';
 
         function openCanvasInlineEditor(coords, targetObj) {
             commitCanvasInlineEditor();
@@ -3392,6 +3393,7 @@
                 posY = targetObj.y - (targetObj.size || 16);
                 initText = targetObj.text || '';
                 fontSz = targetObj.size || 16;
+                fontFamilyVal = targetObj.fontFamily || 'Arial, Helvetica, sans-serif';
                 colorVal = targetObj.color || 'black';
                 hlVal = targetObj.highlight || 'none';
                 isBld = !!targetObj.isBold;
@@ -3423,6 +3425,7 @@
                 posY = coords.y - 12;
                 initText = '';
                 fontSz = 16;
+                fontFamilyVal = 'Arial, Helvetica, sans-serif';
                 colorVal = 'black';
                 hlVal = 'none';
                 isBld = false;
@@ -3448,6 +3451,7 @@
 
             input.value = initText;
             input.style.fontSize = `${fontSz}px`;
+            input.style.fontFamily = fontFamilyVal;
             input.style.fontWeight = isBld ? 'bold' : 'normal';
             input.style.color = colorVal === 'white' ? '#ffffff' : colorVal === 'red' ? '#ff007f' : colorVal === 'blue' ? '#00f0ff' : '#000000';
             input.style.background = isCvr ? '#ffffff' : 'transparent';
@@ -3529,6 +3533,7 @@
             if (activeInlineTargetType === 'annot' && activeInlineAnnot) {
                 activeInlineAnnot.text = textVal;
                 activeInlineAnnot.size = fontSz;
+                activeInlineAnnot.fontFamily = fontFamilyVal || activeInlineAnnot.fontFamily || 'Arial, Helvetica, sans-serif';
                 activeInlineAnnot.color = colorVal;
                 activeInlineAnnot.highlight = hlVal;
                 activeInlineAnnot.isBold = isBld;
@@ -3545,6 +3550,7 @@
                     origH: line.h,
                     text: textVal,
                     size: fontSz,
+                    fontFamily: line.fontFamily || fontFamilyVal || 'Arial, Helvetica, sans-serif',
                     pdfX: line.pdfX,
                     pdfY: line.pdfY,
                     pdfW: line.pdfW,
@@ -3561,6 +3567,7 @@
                     y: activeInlineCoords.y,
                     text: textVal,
                     size: fontSz,
+                    fontFamily: fontFamilyVal || 'Arial, Helvetica, sans-serif',
                     color: colorVal,
                     highlight: hlVal,
                     isBold: isBld,
@@ -3631,7 +3638,8 @@
                 if (annot.type === 'text' || annot.type === 'replace-text') {
                     const fontWeight = annot.isBold ? 'bold' : 'normal';
                     const fontSize = annot.size || 16;
-                    ctx.font = `${fontWeight} ${fontSize}px 'Outfit', sans-serif`;
+                    const fontFam = annot.fontFamily || 'Arial, Helvetica, sans-serif';
+                    ctx.font = `${fontWeight} ${fontSize}px ${fontFam}`;
                     
                     const textMetrics = ctx.measureText(annot.text);
                     const textWidth = textMetrics.width;
