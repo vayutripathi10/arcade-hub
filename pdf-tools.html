@@ -3677,10 +3677,7 @@
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
                 } else if (annot.type === 'whiteout') {
                     ctx.fillStyle = '#ffffff';
-                    ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = 1;
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
-                    ctx.strokeRect(annot.x, annot.y, annot.w, annot.h);
                 } else if (annot.type === 'draw') {
                     const colorMap = { red: '#ff007f', blue: '#00f0ff', green: '#00e676', white: '#ffffff', black: '#000000' };
                     ctx.strokeStyle = colorMap[annot.color] || annot.color || '#000000';
@@ -4000,33 +3997,13 @@
                 const w = coords.x - dragStartX;
                 const h = coords.y - dragStartY;
                 if (Math.abs(w) > 4 && Math.abs(h) > 4) {
-                    const rectX = Math.min(dragStartX, coords.x);
-                    const rectY = Math.min(dragStartY, coords.y);
-                    const absW = Math.abs(w);
-                    const absH = Math.abs(h);
-
-                    if (editorActiveTool === 'whiteout') {
-                        openCanvasInlineEditor({ x: rectX, y: rectY + absH }, {
-                            type: 'replace-text',
-                            x: rectX,
-                            y: rectY + absH - 2,
-                            w: absW,
-                            h: absH,
-                            origW: absW,
-                            origH: absH,
-                            text: '',
-                            size: Math.max(10, Math.round(absH * 0.75)),
-                            coverBg: true
-                        });
-                    } else {
-                        addAnnotation({
-                            type: 'redact',
-                            x: rectX,
-                            y: rectY,
-                            w: absW,
-                            h: absH
-                        });
-                    }
+                    addAnnotation({
+                        type: editorActiveTool,
+                        x: Math.min(dragStartX, coords.x),
+                        y: Math.min(dragStartY, coords.y),
+                        w: Math.abs(w),
+                        h: Math.abs(h)
+                    });
                 }
             }
             drawOverlayAnnotations();
