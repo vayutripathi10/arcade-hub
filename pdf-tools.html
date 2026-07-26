@@ -1333,6 +1333,7 @@
                                     <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Share Tech Mono', monospace; margin-right: 8px;">TOOL:</label>
                                     <button class="cyber-btn active" id="tool-text" style="padding: 8px 14px; font-size: 0.8rem;">💬 TEXT</button>
                                     <button class="cyber-btn" id="tool-draw" style="padding: 8px 14px; font-size: 0.8rem;">🖋️ DRAW</button>
+                                    <button class="cyber-btn" id="tool-highlight" style="padding: 8px 14px; font-size: 0.8rem;">🖍️ HIGHLIGHT</button>
                                     <button class="cyber-btn" id="tool-redact" style="padding: 8px 14px; font-size: 0.8rem;">⬛ REDACT</button>
                                     <button class="cyber-btn" id="tool-whiteout" style="padding: 8px 14px; font-size: 0.8rem;">⬜ ERASE</button>
                                     <button class="cyber-btn" id="tool-sign" style="padding: 8px 14px; font-size: 0.8rem;">✍️ SIGN</button>
@@ -1346,10 +1347,47 @@
                                 <div class="editor-sidebar-panel">
                                     <!-- Tool Context Settings -->
                                     <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;">
-                                        <div style="font-size: 0.8rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">💡 DIRECT TEXT EDITING</div>
+                                        <div style="font-size: 0.8rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">💡 TOOL SETTINGS & EDITING</div>
                                         <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
-                                            Click anywhere on blank space or double-click existing text to write, format (Bold/Highlight/Size/Color), and edit directly on the PDF canvas.
+                                            Click anywhere on blank space or double-click existing text to write, format, and edit directly on the PDF canvas.
                                         </div>
+
+                                        <!-- Draw Settings Panel -->
+                                        <div class="option-field" id="editor-draw-settings" style="display: none; flex-direction: column; gap: 6px; margin-bottom: 0;">
+                                            <label style="font-size: 0.75rem;">PEN COLOR & SIZE</label>
+                                            <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
+                                                <select id="editor-draw-color" class="cyber-select" style="padding: 4px 8px; font-size: 0.78rem; flex: 1;">
+                                                    <option value="black" selected>⚫ BLACK</option>
+                                                    <option value="red">🔴 RED</option>
+                                                    <option value="blue">🔵 BLUE</option>
+                                                    <option value="green">🟢 GREEN</option>
+                                                    <option value="yellow">🟡 YELLOW</option>
+                                                    <option value="white">⚪ WHITE</option>
+                                                </select>
+                                                <select id="editor-draw-size" class="cyber-select" style="padding: 4px 8px; font-size: 0.78rem; width: 110px;">
+                                                    <option value="2">2px (THIN)</option>
+                                                    <option value="4" selected>4px (MEDIUM)</option>
+                                                    <option value="8">8px (THICK)</option>
+                                                    <option value="12">12px (BRUSH)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- Highlight Settings Panel -->
+                                        <div class="option-field" id="editor-highlight-settings" style="display: none; flex-direction: column; gap: 6px; margin-bottom: 0;">
+                                            <label style="font-size: 0.75rem;">HIGHLIGHTER COLOR</label>
+                                            <select id="editor-highlight-color-sel" class="cyber-select" style="padding: 4px 8px; font-size: 0.78rem; width: 100%;">
+                                                <option value="yellow" selected>💛 YELLOW</option>
+                                                <option value="green">💚 GREEN</option>
+                                                <option value="cyan">🩵 CYAN</option>
+                                                <option value="pink">🩷 PINK</option>
+                                                <option value="orange">🧡 ORANGE</option>
+                                            </select>
+                                            <div style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4;">
+                                                Drag a box over any text or region to highlight it with translucent color.
+                                            </div>
+                                        </div>
+
                                         <div class="option-field" id="editor-sign-settings" style="display: none;">
                                             <label>SIGNATURE PREVIEW</label>
                                             <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; width: 100%;">
@@ -3686,10 +3724,22 @@
                 } else if (annot.type === 'whiteout') {
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
+                } else if (annot.type === 'box-highlight') {
+                    ctx.save();
+                    const hlColors = {
+                        yellow: 'rgba(255, 235, 59, 0.45)',
+                        green: 'rgba(105, 240, 174, 0.45)',
+                        cyan: 'rgba(0, 229, 255, 0.45)',
+                        pink: 'rgba(255, 64, 129, 0.45)',
+                        orange: 'rgba(255, 152, 0, 0.45)'
+                    };
+                    ctx.fillStyle = hlColors[annot.color] || 'rgba(255, 235, 59, 0.45)';
+                    ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
+                    ctx.restore();
                 } else if (annot.type === 'draw') {
-                    const colorMap = { red: '#ff007f', blue: '#00f0ff', green: '#00e676', white: '#ffffff', black: '#000000' };
+                    const colorMap = { red: '#ff007f', blue: '#00f0ff', green: '#00e676', white: '#ffffff', black: '#000000', yellow: '#ffeb3b' };
                     ctx.strokeStyle = colorMap[annot.color] || annot.color || '#000000';
-                    ctx.lineWidth = annot.size;
+                    ctx.lineWidth = annot.size || 4;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
                     ctx.beginPath();
@@ -3738,14 +3788,44 @@
             appendLog(`Placed ${annot.type.toUpperCase()} annotation on Page ${editorCurrentPage}`);
         }
 
+        let editorDrawColor = 'black';
+        let editorDrawSize = 4;
+        let editorHighlightColor = 'yellow';
+
+        const drawColorSel = document.getElementById('editor-draw-color');
+        if (drawColorSel) {
+            drawColorSel.addEventListener('change', (e) => {
+                editorDrawColor = e.target.value;
+            });
+        }
+
+        const drawSizeSel = document.getElementById('editor-draw-size');
+        if (drawSizeSel) {
+            drawSizeSel.addEventListener('change', (e) => {
+                editorDrawSize = parseInt(e.target.value) || 4;
+            });
+        }
+
+        const highlightColorSel = document.getElementById('editor-highlight-color-sel');
+        if (highlightColorSel) {
+            highlightColorSel.addEventListener('change', (e) => {
+                editorHighlightColor = e.target.value;
+            });
+        }
+
         // Toolbar Selection
-        const tools = ['text', 'draw', 'redact', 'whiteout', 'sign'];
+        const tools = ['text', 'draw', 'highlight', 'redact', 'whiteout', 'sign'];
         tools.forEach(tool => {
-            document.getElementById(`tool-${tool}`).addEventListener('click', () => {
+            const btn = document.getElementById(`tool-${tool}`);
+            if (!btn) return;
+            btn.addEventListener('click', () => {
                 playBeep(700, 0.05, 'sine');
                 editorActiveTool = tool;
-                tools.forEach(t => document.getElementById(`tool-${t}`).classList.remove('active'));
-                document.getElementById(`tool-${tool}`).classList.add('active');
+                tools.forEach(t => {
+                    const b = document.getElementById(`tool-${t}`);
+                    if (b) b.classList.remove('active');
+                });
+                btn.classList.add('active');
 
                 // Commit inline text editor if open when switching tools
                 if (tool !== 'text') {
@@ -3753,15 +3833,17 @@
                 }
 
                 // Adjust setting displays
-                if (tool === 'draw') {
-                    document.getElementById('editor-sign-settings').style.display = 'none';
-                } else if (tool === 'sign') {
-                    document.getElementById('editor-sign-settings').style.display = 'block';
-                    if (!editorSignatureDataUrl) {
-                        openSignatureModal();
-                    }
-                } else {
-                    document.getElementById('editor-sign-settings').style.display = 'none';
+                const drawSet = document.getElementById('editor-draw-settings');
+                if (drawSet) drawSet.style.display = (tool === 'draw') ? 'flex' : 'none';
+
+                const hlSet = document.getElementById('editor-highlight-settings');
+                if (hlSet) hlSet.style.display = (tool === 'highlight') ? 'flex' : 'none';
+
+                const signSet = document.getElementById('editor-sign-settings');
+                if (signSet) signSet.style.display = (tool === 'sign') ? 'block' : 'none';
+
+                if (tool === 'sign' && !editorSignatureDataUrl) {
+                    openSignatureModal();
                 }
             });
         });
@@ -3870,7 +3952,7 @@
             } else if (editorActiveTool === 'draw') {
                 editorIsDrawing = true;
                 editorDrawPoints = [coords];
-            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
+            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout' || editorActiveTool === 'highlight') {
                 editorIsDrawing = true;
                 dragStartX = coords.x;
                 dragStartY = coords.y;
@@ -3960,8 +4042,9 @@
                 drawOverlayAnnotations();
                 
                 const ctx = overlay.getContext('2d');
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 3;
+                const colorMap = { red: '#ff007f', blue: '#00f0ff', green: '#00e676', white: '#ffffff', black: '#000000', yellow: '#ffeb3b' };
+                ctx.strokeStyle = colorMap[editorDrawColor] || editorDrawColor || '#000000';
+                ctx.lineWidth = editorDrawSize || 4;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.beginPath();
@@ -3970,11 +4053,23 @@
                     else ctx.lineTo(pt.x, pt.y);
                 });
                 ctx.stroke();
-            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
+            } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout' || editorActiveTool === 'highlight') {
                 drawOverlayAnnotations();
                 const ctx = overlay.getContext('2d');
-                ctx.fillStyle = editorActiveTool === 'redact' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
-                ctx.strokeStyle = '#00ffcc';
+                if (editorActiveTool === 'highlight') {
+                    const hlColors = {
+                        yellow: 'rgba(255, 235, 59, 0.45)',
+                        green: 'rgba(105, 240, 174, 0.45)',
+                        cyan: 'rgba(0, 229, 255, 0.45)',
+                        pink: 'rgba(255, 64, 129, 0.45)',
+                        orange: 'rgba(255, 152, 0, 0.45)'
+                    };
+                    ctx.fillStyle = hlColors[editorHighlightColor] || 'rgba(255, 235, 59, 0.45)';
+                    ctx.strokeStyle = 'rgba(255, 235, 59, 0.8)';
+                } else {
+                    ctx.fillStyle = editorActiveTool === 'redact' ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+                    ctx.strokeStyle = '#00ffcc';
+                }
                 ctx.lineWidth = 1;
                 const w = coords.x - dragStartX;
                 const h = coords.y - dragStartY;
@@ -3998,9 +4093,22 @@
                 addAnnotation({
                     type: 'draw',
                     points: editorDrawPoints,
-                    color: 'black',
-                    size: 3
+                    color: editorDrawColor,
+                    size: editorDrawSize
                 });
+            } else if (editorActiveTool === 'highlight') {
+                const w = coords.x - dragStartX;
+                const h = coords.y - dragStartY;
+                if (Math.abs(w) > 4 && Math.abs(h) > 4) {
+                    addAnnotation({
+                        type: 'box-highlight',
+                        x: Math.min(dragStartX, coords.x),
+                        y: Math.min(dragStartY, coords.y),
+                        w: Math.abs(w),
+                        h: Math.abs(h),
+                        color: editorHighlightColor
+                    });
+                }
             } else if (editorActiveTool === 'redact' || editorActiveTool === 'whiteout') {
                 const w = coords.x - dragStartX;
                 const h = coords.y - dragStartY;
@@ -4165,9 +4273,14 @@
                                 color: fillRgb,
                             });
                         } else if (annot.type === 'draw') {
-                            const rgb = annot.color === 'red' ? PDFLib.rgb(0.9, 0.1, 0.1) : annot.color === 'blue' ? PDFLib.rgb(0.1, 0.1, 0.9) : PDFLib.rgb(0, 0, 0);
-                            
-                            // Draw lines between consecutive points
+                            let rgb = PDFLib.rgb(0, 0, 0);
+                            if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
+                            else if (annot.color === 'blue') rgb = PDFLib.rgb(0, 0.6, 1);
+                            else if (annot.color === 'green') rgb = PDFLib.rgb(0, 0.8, 0.3);
+                            else if (annot.color === 'yellow') rgb = PDFLib.rgb(1, 0.9, 0.1);
+                            else if (annot.color === 'white') rgb = PDFLib.rgb(1, 1, 1);
+
+                            const penSize = (annot.size || 4) * scaleY;
                             for (let i = 0; i < annot.points.length - 1; i++) {
                                 const pt1 = annot.points[i];
                                 const pt2 = annot.points[i + 1];
@@ -4175,10 +4288,32 @@
                                 page.drawLine({
                                     start: { x: pt1.x * scaleX, y: (canvasSize.h - pt1.y) * scaleY },
                                     end: { x: pt2.x * scaleX, y: (canvasSize.h - pt2.y) * scaleY },
-                                    thickness: annot.size * scaleY,
+                                    thickness: penSize,
                                     color: rgb,
                                 });
                             }
+                        } else if (annot.type === 'box-highlight') {
+                            const xPdf = annot.x * scaleX;
+                            const yPdf = (canvasSize.h - (annot.y + annot.h)) * scaleY;
+                            const wPdf = annot.w * scaleX;
+                            const hPdf = annot.h * scaleY;
+                            
+                            let hlRgb = PDFLib.rgb(1, 0.95, 0.2);
+                            if (annot.color === 'green') hlRgb = PDFLib.rgb(0.4, 0.95, 0.4);
+                            else if (annot.color === 'cyan') hlRgb = PDFLib.rgb(0.3, 0.9, 1);
+                            else if (annot.color === 'pink') hlRgb = PDFLib.rgb(1, 0.4, 0.7);
+                            else if (annot.color === 'orange') hlRgb = PDFLib.rgb(1, 0.6, 0.2);
+
+                            try {
+                                page.drawRectangle({
+                                    x: xPdf,
+                                    y: yPdf,
+                                    width: wPdf,
+                                    height: hPdf,
+                                    color: hlRgb,
+                                    opacity: 0.5
+                                });
+                            } catch(eIgn) {}
                         } else if (annot.type === 'signature') {
                             const xPdf = annot.x * scaleX;
                             const yPdf = (canvasSize.h - (annot.y + annot.h)) * scaleY;
