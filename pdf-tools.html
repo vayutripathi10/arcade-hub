@@ -3123,17 +3123,60 @@
             clearSharedPdf();
         };
 
-        function groupTextItemsIntoLines(items, scale, pageHeight) {
-            if (items.length === 0) return [];
+        function isFontBoldItem(item, styles, commonObjs) {
+            if (!item) return false;
+            const fontName = item.fontName || '';
+            const fLower = fontName.toLowerCase();
+
+            // 1. Direct fontName string search
+            if (fLower.includes('bold') || fLower.includes('bld') || fLower.includes('heavy') || fLower.includes('black') || fLower.includes('-b') || fLower.includes('_b') || fLower.includes(',b') || fLower.includes('700') || fLower.includes('800') || fLower.includes('900') || fLower.includes('bd')) {
+                return true;
+            }
+
+            // 2. Check PDF.js commonObjs font dictionary if available
+            if (commonObjs && typeof commonObjs.has === 'function' && commonObjs.has(fontName)) {
+                try {
+                    const fObj = commonObjs.get(fontName);
+                    if (fObj) {
+                        if (fObj.bold === true || fObj.weight === 'bold' || fObj.weight >= 600) return true;
+                        const realName = ((fObj.loadedName || fObj.name || '') + '').toLowerCase();
+                        if (realName.includes('bold') || realName.includes('bld') || realName.includes('heavy') || realName.includes('black') || realName.includes('-b') || realName.includes('_b') || realName.includes(',b') || realName.includes('700') || realName.includes('800') || realName.includes('900') || realName.includes('bd')) {
+                            return true;
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // 3. Check PDF.js styles object if available
+            if (styles && styles[fontName]) {
+                const sObj = styles[fontName];
+                const sFamily = ((sObj.fontFamily || '') + '').toLowerCase();
+                if (sFamily.includes('bold') || sFamily.includes('bld') || sFamily.includes('heavy') || sFamily.includes('700') || sFamily.includes('800')) {
+                    return true;
+                }
+            }
+
+            // 4. Header title colon heuristic (e.g. "Languages:", "Core Expertise:")
+            if (item.str && item.str.trim().endsWith(':')) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function groupTextItemsIntoLines(items, scale, pageHeight, styles, commonObjs) {
+            if (!items || items.length === 0) return [];
             
             let mapped = items.map(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
                 const fontSize = Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12;
+                const isBold = isFontBoldItem(item, styles, commonObjs);
                 return {
                     str: item.str || '',
                     fontName: item.fontName || '',
                     fontSize: fontSize,
+                    isBold: isBold,
                     pdfX: tx,
                     pdfY: ty,
                     pdfW: item.width,
@@ -3144,8 +3187,8 @@
             // Step 1: Sort strictly by Y descending (top of page first)
             mapped.sort((a, b) => b.pdfY - a.pdfY);
             
-            // Step 2: Group into baseline rows based on Y proximity
-            let groups = [];
+            // Step 2: Group into baseline rows based on Y proximity (within 5px)
+            let baselineGroups = [];
             if (mapped.length > 0) {
                 let currentGroup = [mapped[0]];
                 let baselineY = mapped[0].pdfY;
@@ -3155,22 +3198,41 @@
                     if (Math.abs(curr.pdfY - baselineY) <= 5) {
                         currentGroup.push(curr);
                     } else {
-                        groups.push(currentGroup);
+                        baselineGroups.push(currentGroup);
                         currentGroup = [curr];
                         baselineY = curr.pdfY;
                     }
                 }
-                groups.push(currentGroup);
+                baselineGroups.push(currentGroup);
             }
             
-            // Step 3: Sort each baseline group horizontally into full line rows
-            let finalLines = [];
-            groups.forEach(group => {
-                group.sort((a, b) => a.pdfX - b.pdfX);
-                finalLines.push(group);
+            // Step 3: Within each baseline row, sort horizontally and split into distinct style segments
+            let segments = [];
+            baselineGroups.forEach(bGroup => {
+                bGroup.sort((a, b) => a.pdfX - b.pdfX);
+                
+                if (bGroup.length === 0) return;
+                
+                let currSegment = [bGroup[0]];
+                for (let i = 1; i < bGroup.length; i++) {
+                    const prevItem = bGroup[i - 1];
+                    const currItem = bGroup[i];
+                    const spaceBetween = currItem.pdfX - (prevItem.pdfX + prevItem.pdfW);
+                    
+                    // Break segment if font weight/size changes OR if horizontal space is large (> 25px)
+                    const styleMatches = (currItem.isBold === prevItem.isBold) && (Math.abs(currItem.fontSize - prevItem.fontSize) <= 1.5);
+                    if (styleMatches && spaceBetween <= 25) {
+                        currSegment.push(currItem);
+                    } else {
+                        segments.push(currSegment);
+                        currSegment = [currItem];
+                    }
+                }
+                segments.push(currSegment);
             });
             
-            return finalLines.map(group => {
+            // Step 4: Map segments into distinct, style-preserved editable line targets
+            return segments.map(group => {
                 let mergedStr = '';
                 group.forEach((item, idx) => {
                     if (idx === 0) {
@@ -3190,7 +3252,7 @@
                 
                 const tx = first.pdfX;
                 const ty = first.pdfY;
-                const totalPdfW = (last.pdfX + last.pdfW) - first.pdfX;
+                const totalPdfW = Math.max(last.pdfW || 10, (last.pdfX + last.pdfW) - first.pdfX);
                 const maxFontSize = Math.max(...group.map(item => item.fontSize));
                 const maxPdfH = Math.max(Math.max(...group.map(item => item.pdfH || 0)), maxFontSize);
                 
@@ -3207,24 +3269,13 @@
                 } else if (lowerFont.includes('serif') || lowerFont.includes('times') || lowerFont.includes('georgia')) {
                     detectedFamily = "'Times New Roman', 'Georgia', serif";
                 }
-                
-                let isLineBold = group.some(item => {
-                    const f = (item.fontName || '').toLowerCase();
-                    return f.includes('bold') || f.includes('bld') || f.includes('heavy') || f.includes('black') || f.includes('-b') || f.includes('_b') || f.includes(',b') || f.includes('700') || f.includes('800') || f.includes('900') || f.includes('bd');
-                });
-
-                if (!isLineBold && mergedStr && (mergedStr.includes(':') || mergedStr.trim().startsWith('•') || mergedStr.trim().startsWith('-'))) {
-                    if (lowerFont.includes('b') || lowerFont.includes('f2') || lowerFont.includes('f1')) {
-                        isLineBold = true;
-                    }
-                }
 
                 return {
                     str: mergedStr,
                     fontSize: maxFontSize,
                     canvasFontSize: canvasFontSize,
                     fontFamily: detectedFamily,
-                    isBold: isLineBold,
+                    isBold: first.isBold,
                     x: cx,
                     y: cy,
                     w: cw,
@@ -3234,7 +3285,7 @@
                     pdfW: totalPdfW,
                     pdfH: maxPdfH
                 };
-            });
+            }).filter(seg => seg.str && seg.str.trim().length > 0);
         }
 
         async function renderEditorPage() {
@@ -3265,7 +3316,7 @@
 
                 // Fetch page text structure and group into collinear lines for full-line editing
                 const textContent = await page.getTextContent();
-                editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height);
+                editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height, textContent.styles, page.commonObjs);
                 
                 if (textContent.items.length < 5 && !editorWarnedVectorPages[editorCurrentPage]) {
                     editorWarnedVectorPages[editorCurrentPage] = true;
