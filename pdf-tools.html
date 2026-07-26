@@ -3161,6 +3161,14 @@
                 return true;
             }
 
+            // 5. Short All-Caps Label / Header Heuristic (e.g. "REPORT", "FIXED UP", "CONSIGNMENT")
+            if (item.str) {
+                const trimmed = item.str.trim();
+                if (trimmed.length >= 2 && trimmed.length <= 30 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -3736,10 +3744,10 @@
 
                     // Cover original text background if replace-text or coverBg is true
                     if (annot.type === 'replace-text' || annot.coverBg) {
-                        const padX = 4;
-                        const boxW = Math.max(textWidth, annot.origW || 0, annot.w || 0, 80) + (2 * padX);
-                        const boxH = Math.max(fontSize * 1.2, annot.origH || 0, annot.h || 0) + 4;
-                        const boxY = annot.y - (fontSize * 0.85) - 2;
+                        const padX = 2;
+                        const boxW = Math.max(textWidth, annot.origW || 0, annot.w || 0, 30) + (2 * padX);
+                        const boxH = fontSize * 0.94;
+                        const boxY = annot.y - (fontSize * 0.76);
                         ctx.fillStyle = '#ffffff';
                         ctx.fillRect(annot.x - padX, boxY, boxW, boxH);
                     }
@@ -4268,10 +4276,10 @@
 
                             // Draw Whiteout Cover Box if replace-text or coverBg is true
                             if (annot.type === 'replace-text' || annot.coverBg) {
-                                const padX = 3;
+                                const padX = 2;
                                 const boxPdfW = Math.max(textWidthPdf, annot.pdfW || 0) + (2 * padX);
-                                const boxPdfH = Math.max(fontSizePdf * 1.15, (annot.pdfH || 0)) + 4;
-                                const boxPdfY = yPdf - (fontSizePdf * 0.25) - 2;
+                                const boxPdfH = fontSizePdf * 0.94;
+                                const boxPdfY = yPdf - (fontSizePdf * 0.18);
 
                                 page.drawRectangle({
                                     x: xPdf - padX,
