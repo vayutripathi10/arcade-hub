@@ -3220,11 +3220,23 @@
                     detectedFamily = "'Times New Roman', 'Georgia', serif";
                 }
                 
+                let isLineBold = group.some(item => {
+                    const f = (item.fontName || '').toLowerCase();
+                    return f.includes('bold') || f.includes('bld') || f.includes('heavy') || f.includes('black') || f.includes('-b') || f.includes('_b') || f.includes(',b') || f.includes('700') || f.includes('800') || f.includes('900') || f.includes('bd');
+                });
+
+                if (!isLineBold && mergedStr && (mergedStr.includes(':') || mergedStr.trim().startsWith('•') || mergedStr.trim().startsWith('-'))) {
+                    if (lowerFont.includes('b') || lowerFont.includes('f2') || lowerFont.includes('f1')) {
+                        isLineBold = true;
+                    }
+                }
+
                 return {
                     str: mergedStr,
                     fontSize: maxFontSize,
                     canvasFontSize: canvasFontSize,
                     fontFamily: detectedFamily,
+                    isBold: isLineBold,
                     x: cx,
                     y: cy,
                     w: cw,
@@ -3450,7 +3462,7 @@
                 fontFamilyVal = targetObj.fontFamily || 'Arial, Helvetica, sans-serif';
                 colorVal = 'black';
                 hlVal = 'none';
-                isBld = false;
+                isBld = !!targetObj.isBold;
                 isCvr = true;
                 boxW = Math.max(targetObj.w || 0, 180);
                 deleteBtn.style.display = 'none';
