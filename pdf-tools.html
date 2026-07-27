@@ -1438,59 +1438,55 @@
                                                 <!-- On-Canvas Direct In-Situ Text Editor Wrapper -->
                                                 <div id="canvas-inline-editor-wrapper" style="position: absolute; display: none; z-index: 1000; flex-direction: column; align-items: flex-start;">
                                                     <!-- Compact Floating Formatting Toolbar Strip directly above the active text cursor -->
-                                                    <div id="canvas-inline-toolbar" style="display: flex; align-items: center; gap: 6px; background: #0c0d14; border: 1px solid var(--neon-pink); border-radius: 6px; padding: 4px 8px; margin-bottom: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); white-space: nowrap; font-size: 0.75rem; user-select: none;">
-                                                        <button type="button" id="inline-btn-bold" class="popover-tool-btn" style="padding: 2px 8px; height: 26px; border-radius: 4px; font-weight: bold;" title="Toggle Bold">B</button>
-                                                        
-                                                        <select id="inline-font-size" class="cyber-select" style="padding: 2px 6px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Font Size">
-                                                            <option value="4">4px</option>
-                                                            <option value="6">6px</option>
-                                                            <option value="8">8px</option>
-                                                            <option value="9">9px</option>
-                                                            <option value="10">10px</option>
-                                                            <option value="11">11px</option>
-                                                            <option value="12">12px</option>
-                                                            <option value="14">14px</option>
-                                                            <option value="16" selected>16px</option>
-                                                            <option value="18">18px</option>
-                                                            <option value="20">20px</option>
-                                                            <option value="24">24px</option>
-                                                            <option value="28">28px</option>
-                                                            <option value="32">32px</option>
-                                                            <option value="36">36px</option>
-                                                            <option value="48">48px</option>
-                                                            <option value="64">64px</option>
-                                                            <option value="72">72px</option>
-                                                        </select>
+                                                     <div id="canvas-inline-toolbar" style="display: flex; align-items: center; gap: 4px; background: #0c0d14; border: 1px solid var(--neon-pink); border-radius: 6px; padding: 4px 6px; margin-bottom: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.9); flex-wrap: wrap; max-width: calc(100vw - 30px); font-size: 0.75rem; user-select: none; z-index: 1000;">
+                                                         <button type="button" id="inline-btn-done" class="cyber-btn" style="padding: 2px 10px; font-size: 0.75rem; height: 26px; background: #00e676; color: #000; font-weight: bold; border: none; cursor: pointer; border-radius: 4px; box-shadow: 0 0 8px rgba(0,230,118,0.5);" title="Apply & Close (Ctrl+Enter)">✓ DONE</button>
 
-                                                        <select id="inline-text-color" class="cyber-select" style="padding: 2px 6px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Text Color">
-                                                            <option value="black">BLACK</option>
-                                                            <option value="red">RED</option>
-                                                            <option value="blue">BLUE</option>
-                                                            <option value="green">GREEN</option>
-                                                            <option value="white">WHITE</option>
-                                                        </select>
+                                                         <button type="button" id="inline-btn-bold" class="popover-tool-btn" style="padding: 2px 8px; height: 26px; border-radius: 4px; font-weight: bold;" title="Toggle Bold">B</button>
+                                                         
+                                                         <select id="inline-font-size" class="cyber-select" style="padding: 2px 4px; font-size: 0.75rem; height: 26px; border-radius: 4px; min-width: 50px;" title="Font Size">
+                                                             <option value="4">4px</option>
+                                                             <option value="6">6px</option>
+                                                             <option value="8">8px</option>
+                                                             <option value="9">9px</option>
+                                                             <option value="10">10px</option>
+                                                             <option value="11">11px</option>
+                                                             <option value="12">12px</option>
+                                                             <option value="14">14px</option>
+                                                             <option value="16" selected>16px</option>
+                                                             <option value="18">18px</option>
+                                                             <option value="20">20px</option>
+                                                             <option value="24">24px</option>
+                                                             <option value="28">28px</option>
+                                                             <option value="32">32px</option>
+                                                             <option value="36">36px</option>
+                                                             <option value="48">48px</option>
+                                                             <option value="64">64px</option>
+                                                             <option value="72">72px</option>
+                                                         </select>
 
-                                                        <select id="inline-highlight-color" class="cyber-select" style="padding: 2px 6px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Highlight Background">
-                                                            <option value="none">HL: NONE</option>
-                                                            <option value="yellow">💛 YELLOW</option>
-                                                            <option value="green">💚 GREEN</option>
-                                                            <option value="cyan">🩵 CYAN</option>
-                                                            <option value="pink">🩷 PINK</option>
-                                                            <option value="orange">🧡 ORANGE</option>
-                                                        </select>
+                                                         <select id="inline-text-color" class="cyber-select" style="padding: 2px 4px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Text Color">
+                                                             <option value="black">⚫ BLK</option>
+                                                             <option value="red">🔴 RED</option>
+                                                             <option value="blue">🔵 BLU</option>
+                                                             <option value="green">🟢 GRN</option>
+                                                             <option value="white">⚪ WHT</option>
+                                                         </select>
 
-                                                        <label style="display: flex; align-items: center; gap: 4px; font-size: 0.70rem; color: #fff; cursor: pointer; user-select: none;" title="Erase original text background">
-                                                            <input type="checkbox" id="inline-cover-bg" checked style="accent-color: var(--neon-pink);"> Whiteout
-                                                        </label>
+                                                         <select id="inline-highlight-color" class="cyber-select" style="padding: 2px 4px; font-size: 0.75rem; height: 26px; border-radius: 4px;" title="Highlight Background">
+                                                             <option value="none">HL: OFF</option>
+                                                             <option value="yellow">💛 YEL</option>
+                                                             <option value="green">💚 GRN</option>
+                                                             <option value="cyan">🩵 CYN</option>
+                                                             <option value="pink">🩷 PNK</option>
+                                                             <option value="orange">🧡 ORG</option>
+                                                         </select>
 
-                                                        <div style="display: flex; align-items: center; gap: 3px; font-size: 0.68rem; color: #aaa;" title="Drag slider to adjust whiteout erase width">
-                                                            <span>W:</span>
-                                                            <input type="range" id="inline-cover-width" min="30" max="650" value="220" style="width: 55px; accent-color: var(--neon-pink); vertical-align: middle;">
-                                                        </div>
+                                                         <label style="display: flex; align-items: center; gap: 3px; font-size: 0.70rem; color: #fff; cursor: pointer; user-select: none;" title="Erase original text background">
+                                                             <input type="checkbox" id="inline-cover-bg" checked style="accent-color: var(--neon-pink);"> Cover
+                                                         </label>
 
-                                                        <button type="button" id="inline-btn-delete" class="file-btn danger" style="padding: 2px 8px; font-size: 0.75rem; height: 26px; display: none;" title="Delete Text Line">🗑️</button>
-                                                        <button type="button" id="inline-btn-done" class="cyber-btn" style="padding: 2px 10px; font-size: 0.75rem; height: 26px;" title="Apply & Close">✓ DONE</button>
-                                                    </div>
+                                                         <button type="button" id="inline-btn-delete" class="file-btn danger" style="padding: 2px 8px; font-size: 0.75rem; height: 26px; display: none;" title="Delete Text Line">🗑️</button>
+                                                     </div>
 
                                                     <!-- Live On-Page Editable Input Box directly over canvas text line -->
                                                     <textarea id="canvas-inline-input" style="outline: 2px dashed var(--neon-pink); border: none; background: #ffffff; color: #000000; font-family: 'Outfit', sans-serif; resize: none; overflow: hidden; white-space: pre-wrap; padding: 2px 4px; box-sizing: border-box; display: block; border-radius: 2px; line-height: 1.15; box-shadow: 0 0 10px rgba(255,0,127,0.3);"></textarea>
@@ -3191,21 +3187,46 @@
         function groupTextItemsIntoLines(items, scale, pageHeight, styles, commonObjs) {
             if (!items || items.length === 0) return [];
             
-            let mapped = items.map(item => {
+            let mapped = [];
+            items.forEach(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
                 const fontSize = Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12;
                 const isBold = isFontBoldItem(item, styles, commonObjs);
-                return {
-                    str: item.str || '',
-                    fontName: item.fontName || '',
-                    fontSize: fontSize,
-                    isBold: isBold,
-                    pdfX: tx,
-                    pdfY: ty,
-                    pdfW: item.width,
-                    pdfH: item.height || fontSize
-                };
+                const rawStr = item.str || '';
+
+                // Pre-split strings that pack multiple columns separated by multi-space gaps (>= 2 spaces)
+                if (rawStr.includes('  ')) {
+                    const parts = rawStr.split(/\s{2,}/);
+                    let currX = tx;
+                    parts.forEach(part => {
+                        if (!part.trim()) return;
+                        const pW = part.length * fontSize * 0.52;
+                        mapped.push({
+                            str: part.trim(),
+                            fontName: item.fontName || '',
+                            fontSize: fontSize,
+                            isBold: isBold,
+                            pdfX: currX,
+                            pdfY: ty,
+                            pdfW: pW,
+                            pdfH: item.height || fontSize
+                        });
+                        currX += pW + (fontSize * 1.5);
+                    });
+                } else {
+                    const estimatedW = (item.width && item.width > 0) ? item.width : (rawStr.length * fontSize * 0.52);
+                    mapped.push({
+                        str: rawStr,
+                        fontName: item.fontName || '',
+                        fontSize: fontSize,
+                        isBold: isBold,
+                        pdfX: tx,
+                        pdfY: ty,
+                        pdfW: estimatedW,
+                        pdfH: item.height || fontSize
+                    });
+                }
             });
             
             // Step 1: Sort strictly by Y descending (top of page first)
@@ -3230,7 +3251,7 @@
                 baselineGroups.push(currentGroup);
             }
             
-            // Step 3: Within each baseline row, sort horizontally and split into distinct column/field segments when gap > 20px
+            // Step 3: Within each baseline row, sort horizontally and split into distinct column/field segments when gap > 12px
             let segments = [];
             baselineGroups.forEach(bGroup => {
                 bGroup.sort((a, b) => a.pdfX - b.pdfX);
@@ -3242,8 +3263,8 @@
                     const currItem = bGroup[i];
                     const spaceBetween = currItem.pdfX - (prevItem.pdfX + prevItem.pdfW);
                     
-                    // If horizontal gap between items is large (> 20px), split into separate column segment!
-                    if (spaceBetween <= 20) {
+                    // If horizontal gap between items is large (> 12px), split into separate column segment!
+                    if (spaceBetween <= 12) {
                         currSegment.push(currItem);
                     } else {
                         segments.push(currSegment);
@@ -3577,9 +3598,15 @@
             coverBgCheckbox.checked = isCvr;
 
             const container = document.getElementById('editor-canvas-container');
-            const maxRight = (container.clientWidth || 600) - 20;
-            const finalLeft = Math.max(5, Math.min(posX, maxRight - boxW));
-            const finalTop = Math.max(5, posY - 38);
+            const containerW = container ? (container.clientWidth || 600) : 600;
+            const toolbarW = 320;
+            const calcBoxW = Math.min(boxW, containerW - 30);
+
+            const finalLeft = Math.max(5, Math.min(posX, containerW - toolbarW - 10));
+            let finalTop = posY - 42;
+            if (finalTop < 5) {
+                finalTop = posY + (targetObj ? (targetObj.h || 20) : 20) + 8;
+            }
 
             wrapper.style.left = `${finalLeft}px`;
             wrapper.style.top = `${finalTop}px`;
