@@ -3288,7 +3288,7 @@
                 baselineGroups.push(currentGroup);
             }
             
-            // Step 3: Within each baseline row, sort horizontally and split into distinct column/field segments when gap > 12px
+            // Step 3: Within each baseline row, sort horizontally and split into distinct column/field segments when gap > 4px
             let segments = [];
             baselineGroups.forEach(bGroup => {
                 bGroup.sort((a, b) => a.pdfX - b.pdfX);
@@ -3300,8 +3300,8 @@
                     const currItem = bGroup[i];
                     const spaceBetween = currItem.pdfX - (prevItem.pdfX + prevItem.pdfW);
                     
-                    // If horizontal gap between items is large (> 12px), split into separate column segment!
-                    if (spaceBetween <= 12) {
+                    // If horizontal gap between items is > 4px, split into separate field/column segment!
+                    if (spaceBetween <= 4) {
                         currSegment.push(currItem);
                     } else {
                         segments.push(currSegment);
@@ -3654,7 +3654,8 @@
             input.style.fontFamily = fontFamilyVal;
             input.style.fontWeight = isBld ? 'bold' : 'normal';
             input.style.color = colorVal === 'white' ? '#ffffff' : colorVal === 'red' ? '#ff007f' : colorVal === 'blue' ? '#00f0ff' : '#000000';
-            input.style.background = isCvr ? '#ffffff' : 'transparent';
+            const bgSample = sampleBackgroundAtCoords(posX, posY);
+            input.style.background = isCvr ? (bgSample ? bgSample.hex : '#ffffff') : 'transparent';
             input.style.minWidth = `${boxW}px`;
             input.style.minHeight = `${Math.max(26, fontSz * 1.3)}px`;
 
@@ -3846,6 +3847,31 @@
             playBeep(600, 0.05, 'sine');
         });
 
+        function sampleBackgroundAtCoords(cx, cy) {
+            try {
+                const pageCanvas = document.getElementById('editor-pdf-canvas');
+                if (!pageCanvas) return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
+                
+                const ctx = pageCanvas.getContext('2d');
+                const sX = Math.max(0, Math.min(pageCanvas.width - 1, Math.round(cx - 6)));
+                const sY = Math.max(0, Math.min(pageCanvas.height - 1, Math.round(cy - 6)));
+                const p = ctx.getImageData(sX, sY, 1, 1).data;
+                const r = p[0], g = p[1], b = p[2], a = p[3];
+                
+                if (a < 50 || (r > 248 && g > 248 && b > 248)) {
+                    return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
+                }
+                
+                const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                return {
+                    hex: hex,
+                    rgbNorm: [r / 255, g / 255, b / 255]
+                };
+            } catch(e) {
+                return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
+            }
+        }
+
         function drawOverlayAnnotations() {
             const overlay = document.getElementById('editor-overlay-canvas');
             const ctx = overlay.getContext('2d');
@@ -3883,13 +3909,20 @@
 
                     annot.w = Math.max(textWidth, annot.origW || 0);
 
+                    // Sample underlying canvas background color if not already cached
+                    if ((annot.type === 'replace-text' || annot.coverBg) && !annot.bgColor) {
+                        const sampledBg = sampleBackgroundAtCoords(annot.x, annot.y);
+                        annot.bgColor = sampledBg.hex;
+                        annot.bgRgbNorm = sampledBg.rgbNorm;
+                    }
+
                     // Cover original text background if replace-text or coverBg is true
                     if (annot.type === 'replace-text' || annot.coverBg) {
                         const padX = 2;
                         const boxW = Math.max(textWidth, annot.origW || 0, annot.w || 0, 30) + (2 * padX);
                         const boxH = effectiveFontSize * 0.94;
                         const boxY = annot.y - (effectiveFontSize * 0.76);
-                        ctx.fillStyle = '#ffffff';
+                        ctx.fillStyle = annot.bgColor || '#ffffff';
                         ctx.fillRect(annot.x - padX, boxY, boxW, boxH);
                     }
 
@@ -4442,19 +4475,24 @@
                             else if (annot.color === 'green') rgb = PDFLib.rgb(0, 0.8, 0.3);
                             else if (annot.color === 'white') rgb = PDFLib.rgb(1, 1, 1);
 
-                            // Draw Whiteout Cover Box if replace-text or coverBg is true
+                            // Draw Cover Box if replace-text or coverBg is true
                             if (annot.type === 'replace-text' || annot.coverBg) {
                                 const padX = 2;
                                 const boxPdfW = Math.max(textWidthPdf, annot.pdfW || 0) + (2 * padX);
                                 const boxPdfH = effectiveFontSizePdf * 0.94;
                                 const boxPdfY = yPdf - (effectiveFontSizePdf * 0.18);
 
+                                let bgRgb = PDFLib.rgb(1, 1, 1);
+                                if (annot.bgRgbNorm) {
+                                    bgRgb = PDFLib.rgb(annot.bgRgbNorm[0], annot.bgRgbNorm[1], annot.bgRgbNorm[2]);
+                                }
+
                                 page.drawRectangle({
-                                    x: xPdf - padX,
-                                    y: boxPdfY,
+                                    x: Math.max(0, xPdf - padX),
+                                    y: Math.max(0, boxPdfY),
                                     width: boxPdfW,
                                     height: boxPdfH,
-                                    color: PDFLib.rgb(1, 1, 1),
+                                    color: bgRgb,
                                 });
                             }
 
