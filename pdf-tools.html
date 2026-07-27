@@ -3654,7 +3654,7 @@
             input.style.fontFamily = fontFamilyVal;
             input.style.fontWeight = isBld ? 'bold' : 'normal';
             input.style.color = colorVal === 'white' ? '#ffffff' : colorVal === 'red' ? '#ff007f' : colorVal === 'blue' ? '#00f0ff' : '#000000';
-            const bgSample = sampleBackgroundAtCoords(posX, posY);
+            const bgSample = sampleBackgroundAtCoords(posX, posY, boxW, fontSz);
             input.style.background = isCvr ? (bgSample ? bgSample.hex : '#ffffff') : 'transparent';
             input.style.minWidth = `${boxW}px`;
             input.style.minHeight = `${Math.max(26, fontSz * 1.3)}px`;
@@ -3847,25 +3847,60 @@
             playBeep(600, 0.05, 'sine');
         });
 
-        function sampleBackgroundAtCoords(cx, cy) {
+        function sampleBackgroundAtCoords(cx, cy, cw, ch) {
             try {
                 const pageCanvas = document.getElementById('editor-pdf-canvas');
                 if (!pageCanvas) return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
                 
                 const ctx = pageCanvas.getContext('2d');
-                const sX = Math.max(0, Math.min(pageCanvas.width - 1, Math.round(cx - 6)));
-                const sY = Math.max(0, Math.min(pageCanvas.height - 1, Math.round(cy - 6)));
-                const p = ctx.getImageData(sX, sY, 1, 1).data;
-                const r = p[0], g = p[1], b = p[2], a = p[3];
-                
-                if (a < 50 || (r > 248 && g > 248 && b > 248)) {
+                const w = pageCanvas.width;
+                const h = pageCanvas.height;
+
+                const wBox = Math.max(cw || 50, 40);
+                const hBox = Math.max(ch || 15, 12);
+
+                // Sample 4 points in clean empty space around the text line
+                const points = [
+                    { x: Math.round(cx - 12), y: Math.round(cy + hBox / 2) },
+                    { x: Math.round(cx + wBox + 12), y: Math.round(cy + hBox / 2) },
+                    { x: Math.round(cx + wBox / 2), y: Math.round(cy - 8) },
+                    { x: Math.round(cx + wBox / 2), y: Math.round(cy + hBox + 8) }
+                ];
+
+                let validCount = 0;
+                let sumR = 0, sumG = 0, sumB = 0;
+
+                points.forEach(pt => {
+                    const sX = Math.max(0, Math.min(w - 1, pt.x));
+                    const sY = Math.max(0, Math.min(h - 1, pt.y));
+                    const p = ctx.getImageData(sX, sY, 1, 1).data;
+                    const r = p[0], g = p[1], b = p[2], a = p[3];
+
+                    // Ignore transparent pixels or dark text stroke pixels
+                    if (a >= 50 && (r > 30 || g > 30 || b > 30)) {
+                        sumR += r;
+                        sumG += g;
+                        sumB += b;
+                        validCount++;
+                    }
+                });
+
+                if (validCount === 0) return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
+
+                const avgR = Math.round(sumR / validCount);
+                const avgG = Math.round(sumG / validCount);
+                const avgB = Math.round(sumB / validCount);
+
+                // If average background color is white or near-white (R >= 238, G >= 238, B >= 238), return pure white!
+                if (avgR >= 238 && avgG >= 238 && avgB >= 238) {
                     return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
                 }
-                
-                const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+
+                // Real shaded background detected!
+                const hex = `#${((1 << 24) + (avgR << 16) + (avgG << 8) + avgB).toString(16).slice(1)}`;
                 return {
                     hex: hex,
-                    rgbNorm: [r / 255, g / 255, b / 255]
+                    rgbNorm: [avgR / 255, avgG / 255, avgB / 255]
                 };
             } catch(e) {
                 return { hex: '#ffffff', rgbNorm: [1, 1, 1] };
@@ -3911,7 +3946,7 @@
 
                     // Sample underlying canvas background color if not already cached
                     if ((annot.type === 'replace-text' || annot.coverBg) && !annot.bgColor) {
-                        const sampledBg = sampleBackgroundAtCoords(annot.x, annot.y);
+                        const sampledBg = sampleBackgroundAtCoords(annot.x, annot.y, annot.w, effectiveFontSize);
                         annot.bgColor = sampledBg.hex;
                         annot.bgRgbNorm = sampledBg.rgbNorm;
                     }
