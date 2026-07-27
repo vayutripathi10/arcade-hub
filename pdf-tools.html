@@ -3123,6 +3123,22 @@
             clearSharedPdf();
         };
 
+        function parseFormattedSegments(text, defaultIsBold) {
+            if (!text) return [];
+            if (text.includes('**')) {
+                const parts = text.split('**');
+                const segments = [];
+                for (let i = 0; i < parts.length; i++) {
+                    const str = parts[i];
+                    if (!str) continue;
+                    const isBold = (i % 2 === 1) ? true : !!defaultIsBold;
+                    segments.push({ text: str, isBold: isBold });
+                }
+                return segments;
+            }
+            return [{ text: text, isBold: !!defaultIsBold }];
+        }
+
         function isFontBoldItem(item, styles, commonObjs) {
             if (!item) return false;
             const fontName = item.fontName || '';
@@ -3214,46 +3230,37 @@
                 baselineGroups.push(currentGroup);
             }
             
-            // Step 3: Within each baseline row, sort horizontally and split into distinct style segments
-            let segments = [];
-            baselineGroups.forEach(bGroup => {
-                bGroup.sort((a, b) => a.pdfX - b.pdfX);
+            // Step 3: Within each baseline row, sort horizontally and build formatted line strings
+            return baselineGroups.map(group => {
+                group.sort((a, b) => a.pdfX - b.pdfX);
                 
-                if (bGroup.length === 0) return;
+                let formattedStr = '';
+                let inBold = false;
                 
-                let currSegment = [bGroup[0]];
-                for (let i = 1; i < bGroup.length; i++) {
-                    const prevItem = bGroup[i - 1];
-                    const currItem = bGroup[i];
-                    const spaceBetween = currItem.pdfX - (prevItem.pdfX + prevItem.pdfW);
-                    
-                    // Break segment if font weight/size changes OR if horizontal space is large (> 25px)
-                    const styleMatches = (currItem.isBold === prevItem.isBold) && (Math.abs(currItem.fontSize - prevItem.fontSize) <= 1.5);
-                    if (styleMatches && spaceBetween <= 25) {
-                        currSegment.push(currItem);
-                    } else {
-                        segments.push(currSegment);
-                        currSegment = [currItem];
-                    }
-                }
-                segments.push(currSegment);
-            });
-            
-            // Step 4: Map segments into distinct, style-preserved editable line targets
-            return segments.map(group => {
-                let mergedStr = '';
                 group.forEach((item, idx) => {
-                    if (idx === 0) {
-                        mergedStr = item.str;
-                    } else {
+                    let itemText = item.str;
+                    if (idx > 0) {
                         const last = group[idx - 1];
                         const spaceBetween = item.pdfX - (last.pdfX + last.pdfW);
-                        if (spaceBetween > 2 && !mergedStr.endsWith(' ') && !item.str.startsWith(' ')) {
-                            mergedStr += ' ';
+                        if (spaceBetween > 2 && !formattedStr.endsWith(' ') && !itemText.startsWith(' ')) {
+                            formattedStr += ' ';
                         }
-                        mergedStr += item.str;
                     }
+                    
+                    if (item.isBold && !inBold) {
+                        formattedStr += '**';
+                        inBold = true;
+                    } else if (!item.isBold && inBold) {
+                        formattedStr = formattedStr.trimEnd() + '** ';
+                        inBold = false;
+                    }
+                    
+                    formattedStr += itemText;
                 });
+                
+                if (inBold) {
+                    formattedStr += '**';
+                }
                 
                 const first = group[0];
                 const last = group[group.length - 1];
@@ -3278,12 +3285,14 @@
                     detectedFamily = "'Times New Roman', 'Georgia', serif";
                 }
 
+                const lineHasBold = group.some(it => it.isBold);
+
                 return {
-                    str: mergedStr,
+                    str: formattedStr,
                     fontSize: maxFontSize,
                     canvasFontSize: canvasFontSize,
                     fontFamily: detectedFamily,
-                    isBold: first.isBold,
+                    isBold: lineHasBold,
                     x: cx,
                     y: cy,
                     w: cw,
@@ -3691,8 +3700,28 @@
 
         document.getElementById('inline-btn-bold').addEventListener('click', () => {
             const boldBtn = document.getElementById('inline-btn-bold');
+            const input = document.getElementById('canvas-inline-input');
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+
+            if (start !== undefined && end !== undefined && start !== end) {
+                const selectedText = input.value.substring(start, end);
+                let replacement = '';
+                if (selectedText.startsWith('**') && selectedText.endsWith('**') && selectedText.length >= 4) {
+                    replacement = selectedText.substring(2, selectedText.length - 2);
+                } else {
+                    replacement = `**${selectedText}**`;
+                }
+                input.value = input.value.substring(0, start) + replacement + input.value.substring(end);
+                input.focus();
+                input.setSelectionRange(start, start + replacement.length);
+                autoResizeInlineInput();
+                playBeep(780, 0.03, 'sine');
+                return;
+            }
+
             boldBtn.classList.toggle('active');
-            document.getElementById('canvas-inline-input').style.fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
+            input.style.fontWeight = boldBtn.classList.contains('active') ? 'bold' : 'normal';
             playBeep(750, 0.03, 'sine');
         });
 
@@ -3733,13 +3762,17 @@
                 if (annot._editing) return;
 
                 if (annot.type === 'text' || annot.type === 'replace-text') {
-                    const fontWeight = annot.isBold ? 'bold' : 'normal';
                     const fontSize = annot.size || 16;
                     const fontFam = annot.fontFamily || 'Arial, Helvetica, sans-serif';
-                    ctx.font = `${fontWeight} ${fontSize}px ${fontFam}`;
+                    const segments = parseFormattedSegments(annot.text, annot.isBold);
                     
-                    const textMetrics = ctx.measureText(annot.text);
-                    const textWidth = textMetrics.width;
+                    let textWidth = 0;
+                    segments.forEach(seg => {
+                        const weight = seg.isBold ? 'bold' : 'normal';
+                        ctx.font = `${weight} ${fontSize}px ${fontFam}`;
+                        textWidth += ctx.measureText(seg.text).width;
+                    });
+                    
                     annot.w = Math.max(textWidth, annot.origW || 0);
 
                     // Cover original text background if replace-text or coverBg is true
@@ -3767,7 +3800,7 @@
                         ctx.restore();
                     }
 
-                    // Draw Text
+                    // Draw Formatted Text Segments Sequentially
                     const colorMap = {
                         red: '#ff007f',
                         blue: '#00f0ff',
@@ -3775,8 +3808,16 @@
                         white: '#ffffff',
                         black: '#000000'
                     };
-                    ctx.fillStyle = colorMap[annot.color] || annot.color || '#000000';
-                    ctx.fillText(annot.text, annot.x, annot.y);
+                    const textColor = colorMap[annot.color] || annot.color || '#000000';
+                    let currentX = annot.x;
+
+                    segments.forEach(seg => {
+                        const weight = seg.isBold ? 'bold' : 'normal';
+                        ctx.font = `${weight} ${fontSize}px ${fontFam}`;
+                        ctx.fillStyle = textColor;
+                        ctx.fillText(seg.text, currentX, annot.y);
+                        currentX += ctx.measureText(seg.text).width;
+                    });
                 } else if (annot.type === 'redact') {
                     ctx.fillStyle = '#000000';
                     ctx.fillRect(annot.x, annot.y, annot.w, annot.h);
@@ -4255,18 +4296,20 @@
                     const annots = editorAnnotations[pageNum] || [];
                     for (let annot of annots) {
                         if (annot.type === 'text' || annot.type === 'replace-text') {
-                            const fontToUse = annot.isBold ? helveticaBoldFont : helveticaFont;
-                            
                             const xPdf = (annot.pdfX !== undefined) ? annot.pdfX : (annot.x * scaleX);
                             const yPdf = (annot.pdfY !== undefined) ? annot.pdfY : ((canvasSize.h - annot.y) * scaleY);
                             const fontSizePdf = Math.max(4, (annot.size || 16) * scaleY);
+                            const segments = parseFormattedSegments(annot.text, annot.isBold);
                             
                             let textWidthPdf = 0;
-                            try {
-                                textWidthPdf = fontToUse.widthOfTextAtSize(annot.text, fontSizePdf);
-                            } catch(eW) {
-                                textWidthPdf = annot.text.length * fontSizePdf * 0.5;
-                            }
+                            segments.forEach(seg => {
+                                const fontToUse = seg.isBold ? helveticaBoldFont : helveticaFont;
+                                try {
+                                    textWidthPdf += fontToUse.widthOfTextAtSize(seg.text, fontSizePdf);
+                                } catch(eW) {
+                                    textWidthPdf += seg.text.length * fontSizePdf * 0.5;
+                                }
+                            });
 
                             let rgb = PDFLib.rgb(0, 0, 0);
                             if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
@@ -4309,13 +4352,24 @@
                                     });
                                 } catch(eIgn) {}
                             }
-                            
-                            page.drawText(annot.text, {
-                                x: xPdf,
-                                y: yPdf,
-                                size: fontSizePdf,
-                                font: fontToUse,
-                                color: rgb,
+
+                            // Draw Formatted Segments Sequentially onto PDF Page
+                            let currentX = xPdf;
+                            segments.forEach(seg => {
+                                const fontToUse = seg.isBold ? helveticaBoldFont : helveticaFont;
+                                page.drawText(seg.text, {
+                                    x: currentX,
+                                    y: yPdf,
+                                    size: fontSizePdf,
+                                    font: fontToUse,
+                                    color: rgb,
+                                });
+
+                                try {
+                                    currentX += fontToUse.widthOfTextAtSize(seg.text, fontSizePdf);
+                                } catch(eW) {
+                                    currentX += seg.text.length * fontSizePdf * 0.5;
+                                }
                             });
                         } else if (annot.type === 'redact' || annot.type === 'whiteout') {
                             const xPdf = annot.x * scaleX;
