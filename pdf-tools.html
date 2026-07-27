@@ -3135,47 +3135,60 @@
             return [{ text: text, isBold: !!defaultIsBold }];
         }
 
-        function isFontBoldItem(item, styles, commonObjs) {
+        function isFontBoldItem(item, styles, commonObjs, fontBoldMap) {
             if (!item) return false;
             const fontName = item.fontName || '';
+            
+            // 1. Check cached page fontBoldMap
+            if (fontName && fontBoldMap && fontBoldMap[fontName] !== undefined) {
+                if (fontBoldMap[fontName] === true) return true;
+            }
+
             const fLower = fontName.toLowerCase();
 
-            // 1. Direct fontName string search
-            if (fLower.includes('bold') || fLower.includes('bld') || fLower.includes('heavy') || fLower.includes('black') || fLower.includes('-b') || fLower.includes('_b') || fLower.includes(',b') || fLower.includes('700') || fLower.includes('800') || fLower.includes('900') || fLower.includes('bd')) {
+            // 2. Direct fontName string search
+            if (fLower.includes('bold') || fLower.includes('bld') || fLower.includes('heavy') || fLower.includes('black') || fLower.includes('-b') || fLower.includes('_b') || fLower.includes(',b') || fLower.includes('700') || fLower.includes('800') || fLower.includes('900') || fLower.includes('bd') || fLower.includes('sb') || fLower.includes('semibold') || fLower.includes('medium')) {
+                if (fontName && fontBoldMap) fontBoldMap[fontName] = true;
                 return true;
             }
 
-            // 2. Check PDF.js commonObjs font dictionary if available
+            // 3. Check PDF.js commonObjs font dictionary if available
             if (commonObjs && typeof commonObjs.has === 'function' && commonObjs.has(fontName)) {
                 try {
                     const fObj = commonObjs.get(fontName);
                     if (fObj) {
-                        if (fObj.bold === true || fObj.weight === 'bold' || fObj.weight >= 600) return true;
-                        const realName = ((fObj.loadedName || fObj.name || '') + '').toLowerCase();
+                        if (fObj.bold === true || fObj.weight === 'bold' || fObj.weight >= 600) {
+                            if (fontName && fontBoldMap) fontBoldMap[fontName] = true;
+                            return true;
+                        }
+                        const realName = ((fObj.loadedName || fObj.name || fObj.fallbackName || '') + '').toLowerCase();
                         if (realName.includes('bold') || realName.includes('bld') || realName.includes('heavy') || realName.includes('black') || realName.includes('-b') || realName.includes('_b') || realName.includes(',b') || realName.includes('700') || realName.includes('800') || realName.includes('900') || realName.includes('bd')) {
+                            if (fontName && fontBoldMap) fontBoldMap[fontName] = true;
                             return true;
                         }
                     }
                 } catch(e) {}
             }
 
-            // 3. Check PDF.js styles object if available
+            // 4. Check PDF.js styles object if available
             if (styles && styles[fontName]) {
                 const sObj = styles[fontName];
                 const sFamily = ((sObj.fontFamily || '') + '').toLowerCase();
                 if (sFamily.includes('bold') || sFamily.includes('bld') || sFamily.includes('heavy') || sFamily.includes('700') || sFamily.includes('800')) {
+                    if (fontName && fontBoldMap) fontBoldMap[fontName] = true;
                     return true;
                 }
             }
 
-            // 4. Header title colon heuristic (e.g. "Languages:", "Core Expertise:")
-            if (item.str && item.str.trim().endsWith(':')) {
-                return true;
-            }
-
-            // 5. Short All-Caps Label / Header Heuristic (e.g. "REPORT", "FIXED UP", "CONSIGNMENT")
+            // 5. Text Structure Heuristics (Quoted phrases, Headers ending with ':', All-Caps Labels)
             if (item.str) {
                 const trimmed = item.str.trim();
+                if (trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 4) {
+                    return true;
+                }
+                if (trimmed.endsWith(':')) {
+                    return true;
+                }
                 if (trimmed.length >= 2 && trimmed.length <= 30 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed)) {
                     return true;
                 }
@@ -3187,12 +3200,36 @@
         function groupTextItemsIntoLines(items, scale, pageHeight, styles, commonObjs) {
             if (!items || items.length === 0) return [];
             
+            // Build Page Font Frequency Map to detect secondary emphasis/bold fonts
+            const fontCounts = {};
+            items.forEach(it => {
+                if (it.fontName) {
+                    fontCounts[it.fontName] = (fontCounts[it.fontName] || 0) + 1;
+                }
+            });
+
+            let maxCount = 0;
+            let primaryFont = '';
+            Object.keys(fontCounts).forEach(fn => {
+                if (fontCounts[fn] > maxCount) {
+                    maxCount = fontCounts[fn];
+                    primaryFont = fn;
+                }
+            });
+
+            const fontBoldMap = {};
+            Object.keys(fontCounts).forEach(fn => {
+                if (fn !== primaryFont && fontCounts[fn] < maxCount * 0.45) {
+                    fontBoldMap[fn] = true;
+                }
+            });
+
             let mapped = [];
             items.forEach(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
                 const fontSize = Math.abs(item.transform[3]) || Math.abs(item.transform[0]) || 12;
-                const isBold = isFontBoldItem(item, styles, commonObjs);
+                const isBold = isFontBoldItem(item, styles, commonObjs, fontBoldMap);
                 const rawStr = item.str || '';
 
                 // Pre-split strings that pack multiple columns separated by multi-space gaps (>= 2 spaces)
