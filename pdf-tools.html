@@ -3540,7 +3540,16 @@
                 deleteBtn.style.display = 'none';
             }
 
-            fontSizeSel.value = fontSz.toString();
+            const fontSzStr = fontSz.toString();
+            let optionExists = Array.from(fontSizeSel.options).some(opt => opt.value === fontSzStr);
+            if (!optionExists) {
+                const newOpt = document.createElement('option');
+                newOpt.value = fontSzStr;
+                newOpt.textContent = `${fontSz}px`;
+                fontSizeSel.appendChild(newOpt);
+            }
+
+            fontSizeSel.value = fontSzStr;
             textColorSel.value = colorVal;
             highlightSel.value = hlVal;
             boldBtn.classList.toggle('active', isBld);
@@ -3773,14 +3782,28 @@
                         textWidth += ctx.measureText(seg.text).width;
                     });
                     
+                    // Auto-fit font size if text exceeds original line width boundary
+                    let effectiveFontSize = fontSize;
+                    if (annot.type === 'replace-text' && annot.origW > 0 && textWidth > (annot.origW + 6)) {
+                        const scaleFactor = Math.max(0.65, (annot.origW + 4) / textWidth);
+                        effectiveFontSize = Math.max(7, Math.floor(fontSize * scaleFactor));
+                        
+                        textWidth = 0;
+                        segments.forEach(seg => {
+                            const weight = seg.isBold ? 'bold' : 'normal';
+                            ctx.font = `${weight} ${effectiveFontSize}px ${fontFam}`;
+                            textWidth += ctx.measureText(seg.text).width;
+                        });
+                    }
+
                     annot.w = Math.max(textWidth, annot.origW || 0);
 
                     // Cover original text background if replace-text or coverBg is true
                     if (annot.type === 'replace-text' || annot.coverBg) {
                         const padX = 2;
                         const boxW = Math.max(textWidth, annot.origW || 0, annot.w || 0, 30) + (2 * padX);
-                        const boxH = fontSize * 0.94;
-                        const boxY = annot.y - (fontSize * 0.76);
+                        const boxH = effectiveFontSize * 0.94;
+                        const boxY = annot.y - (effectiveFontSize * 0.76);
                         ctx.fillStyle = '#ffffff';
                         ctx.fillRect(annot.x - padX, boxY, boxW, boxH);
                     }
@@ -3796,7 +3819,7 @@
                             orange: 'rgba(255, 152, 0, 0.55)'
                         };
                         ctx.fillStyle = hlColors[annot.highlight] || 'rgba(255, 235, 59, 0.55)';
-                        ctx.fillRect(annot.x - 2, annot.y - (fontSize * 0.8), textWidth + 4, fontSize * 1.15);
+                        ctx.fillRect(annot.x - 2, annot.y - (effectiveFontSize * 0.8), textWidth + 4, effectiveFontSize * 1.15);
                         ctx.restore();
                     }
 
@@ -3813,7 +3836,7 @@
 
                     segments.forEach(seg => {
                         const weight = seg.isBold ? 'bold' : 'normal';
-                        ctx.font = `${weight} ${fontSize}px ${fontFam}`;
+                        ctx.font = `${weight} ${effectiveFontSize}px ${fontFam}`;
                         ctx.fillStyle = textColor;
                         ctx.fillText(seg.text, currentX, annot.y);
                         currentX += ctx.measureText(seg.text).width;
@@ -4311,6 +4334,23 @@
                                 }
                             });
 
+                            // Auto-fit font size if text exceeds original line width on PDF export
+                            let effectiveFontSizePdf = fontSizePdf;
+                            if (annot.type === 'replace-text' && annot.pdfW > 0 && textWidthPdf > (annot.pdfW + 6)) {
+                                const scaleFactor = Math.max(0.65, (annot.pdfW + 4) / textWidthPdf);
+                                effectiveFontSizePdf = Math.max(5, fontSizePdf * scaleFactor);
+                                
+                                textWidthPdf = 0;
+                                segments.forEach(seg => {
+                                    const fontToUse = seg.isBold ? helveticaBoldFont : helveticaFont;
+                                    try {
+                                        textWidthPdf += fontToUse.widthOfTextAtSize(seg.text, effectiveFontSizePdf);
+                                    } catch(eW) {
+                                        textWidthPdf += seg.text.length * effectiveFontSizePdf * 0.5;
+                                    }
+                                });
+                            }
+
                             let rgb = PDFLib.rgb(0, 0, 0);
                             if (annot.color === 'red') rgb = PDFLib.rgb(0.95, 0, 0.4);
                             else if (annot.color === 'blue') rgb = PDFLib.rgb(0, 0.6, 1);
@@ -4321,8 +4361,8 @@
                             if (annot.type === 'replace-text' || annot.coverBg) {
                                 const padX = 2;
                                 const boxPdfW = Math.max(textWidthPdf, annot.pdfW || 0) + (2 * padX);
-                                const boxPdfH = fontSizePdf * 0.94;
-                                const boxPdfY = yPdf - (fontSizePdf * 0.18);
+                                const boxPdfH = effectiveFontSizePdf * 0.94;
+                                const boxPdfY = yPdf - (effectiveFontSizePdf * 0.18);
 
                                 page.drawRectangle({
                                     x: xPdf - padX,
@@ -4344,9 +4384,9 @@
                                 try {
                                     page.drawRectangle({
                                         x: xPdf - 2,
-                                        y: yPdf - (fontSizePdf * 0.15),
+                                        y: yPdf - (effectiveFontSizePdf * 0.15),
                                         width: textWidthPdf + 4,
-                                        height: fontSizePdf * 1.15,
+                                        height: effectiveFontSizePdf * 1.15,
                                         color: hlRgb,
                                         opacity: 0.75
                                     });
@@ -4360,15 +4400,15 @@
                                 page.drawText(seg.text, {
                                     x: currentX,
                                     y: yPdf,
-                                    size: fontSizePdf,
+                                    size: effectiveFontSizePdf,
                                     font: fontToUse,
                                     color: rgb,
                                 });
 
                                 try {
-                                    currentX += fontToUse.widthOfTextAtSize(seg.text, fontSizePdf);
+                                    currentX += fontToUse.widthOfTextAtSize(seg.text, effectiveFontSizePdf);
                                 } catch(eW) {
-                                    currentX += seg.text.length * fontSizePdf * 0.5;
+                                    currentX += seg.text.length * effectiveFontSizePdf * 0.5;
                                 }
                             });
                         } else if (annot.type === 'redact' || annot.type === 'whiteout') {
