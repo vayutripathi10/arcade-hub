@@ -3230,10 +3230,31 @@
                 baselineGroups.push(currentGroup);
             }
             
-            // Step 3: Within each baseline row, sort horizontally and build formatted line strings
-            return baselineGroups.map(group => {
-                group.sort((a, b) => a.pdfX - b.pdfX);
+            // Step 3: Within each baseline row, sort horizontally and split into distinct column/field segments when gap > 20px
+            let segments = [];
+            baselineGroups.forEach(bGroup => {
+                bGroup.sort((a, b) => a.pdfX - b.pdfX);
+                if (bGroup.length === 0) return;
                 
+                let currSegment = [bGroup[0]];
+                for (let i = 1; i < bGroup.length; i++) {
+                    const prevItem = bGroup[i - 1];
+                    const currItem = bGroup[i];
+                    const spaceBetween = currItem.pdfX - (prevItem.pdfX + prevItem.pdfW);
+                    
+                    // If horizontal gap between items is large (> 20px), split into separate column segment!
+                    if (spaceBetween <= 20) {
+                        currSegment.push(currItem);
+                    } else {
+                        segments.push(currSegment);
+                        currSegment = [currItem];
+                    }
+                }
+                segments.push(currSegment);
+            });
+
+            // Step 4: Map segments into distinct column-aligned editable targets
+            return segments.map(group => {
                 let formattedStr = '';
                 let inBold = false;
                 
