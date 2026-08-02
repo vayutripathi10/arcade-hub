@@ -1,5 +1,10 @@
 HELP.md
 target/
+node_modules/
+package.json
+package-lock.json
+scratch/*.png
+scratch/*.pdf
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
