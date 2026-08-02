@@ -1327,93 +1327,81 @@
 
                         <!-- Editor Stage Area (visible when file is loaded) -->
                         <div id="editor-stage-container" style="display: none; flex-direction: column; gap: 16px;">
-                            <!-- Header / Toolbar row -->
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px;">
-                                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1;">
-                                    <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Share Tech Mono', monospace; margin-right: 8px;">TOOL:</label>
-                                    <button class="cyber-btn active" id="tool-text" style="padding: 8px 14px; font-size: 0.8rem;">💬 TEXT</button>
-                                    <button class="cyber-btn" id="tool-draw" style="padding: 8px 14px; font-size: 0.8rem;">🖋️ DRAW</button>
-                                    <button class="cyber-btn" id="tool-highlight" style="padding: 8px 14px; font-size: 0.8rem;">🖍️ HIGHLIGHT</button>
-                                    <button class="cyber-btn" id="tool-redact" style="padding: 8px 14px; font-size: 0.8rem;">⬛ REDACT</button>
-                                    <button class="cyber-btn" id="tool-whiteout" style="padding: 8px 14px; font-size: 0.8rem;">⬜ ERASE</button>
-                                    <button class="cyber-btn" id="tool-sign" style="padding: 8px 14px; font-size: 0.8rem;">✍️ SIGN</button>
-                                    <button class="cyber-btn" id="btn-editor-undo" style="padding: 8px 14px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
+                            <!-- Top Control Toolbar Row -->
+                            <div style="display: flex; flex-direction: column; gap: 10px; background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 8px;">
+                                <!-- Row 1: Main Tool Mode Selector Buttons -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex: 1;">
+                                        <label style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Share Tech Mono', monospace; margin-right: 8px;">TOOL:</label>
+                                        <button class="cyber-btn active" id="tool-text" style="padding: 7px 13px; font-size: 0.8rem;">💬 TEXT EDIT</button>
+                                        <button class="cyber-btn" id="tool-draw" style="padding: 7px 13px; font-size: 0.8rem;">🖋️ DRAW</button>
+                                        <button class="cyber-btn" id="tool-highlight" style="padding: 7px 13px; font-size: 0.8rem;">🖍️ HIGHLIGHT</button>
+                                        <button class="cyber-btn" id="tool-redact" style="padding: 7px 13px; font-size: 0.8rem;">⬛ REDACT</button>
+                                        <button class="cyber-btn" id="tool-whiteout" style="padding: 7px 13px; font-size: 0.8rem;">⬜ ERASE</button>
+                                        <button class="cyber-btn" id="tool-sign" style="padding: 7px 13px; font-size: 0.8rem;">✍️ SIGN</button>
+                                        <button class="cyber-btn" id="btn-editor-undo" style="padding: 7px 13px; font-size: 0.8rem;" disabled>↩️ UNDO</button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- Workspace body split row -->
-                            <div class="editor-workspace-row">
-                                <!-- Left Sidebar option panel -->
-                                <div class="editor-sidebar-panel">
-                                    <!-- Tool Context Settings -->
-                                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;">
-                                        <div style="font-size: 0.8rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">💡 TOOL SETTINGS & EDITING</div>
-                                        <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
-                                            Click anywhere on blank space or double-click existing text to write, format, and edit directly on the PDF canvas.
+                                <!-- Row 2: Find & Replace Bar + Active Tool Context Options -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+                                    <!-- Find & Replace Form Row -->
+                                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1;">
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <label for="editor-find-text" style="font-size: 0.75rem; color: var(--neon-cyan); font-weight: bold; font-family: 'Share Tech Mono', monospace;">FIND:</label>
+                                            <input type="text" id="editor-find-text" class="cyber-input" placeholder="Text to find..." style="padding: 5px 8px; font-size: 0.82rem; width: 170px;">
+                                        </div>
+                                        <div style="display: flex; gap: 6px; align-items: center;">
+                                            <label for="editor-replace-text" style="font-size: 0.75rem; color: var(--neon-cyan); font-weight: bold; font-family: 'Share Tech Mono', monospace;">REPLACE WITH:</label>
+                                            <input type="text" id="editor-replace-text" class="cyber-input" placeholder="Replacement text..." style="padding: 5px 8px; font-size: 0.82rem; width: 170px;">
+                                        </div>
+                                        <button class="cyber-btn" id="btn-editor-find-replace" style="height: 32px; padding: 0 14px; font-size: 0.78rem;">🔄 REPLACE ALL</button>
+                                    </div>
+
+                                    <!-- Tool Context Settings (Draw / Highlight / Signature) -->
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <div class="option-field" id="editor-draw-settings" style="display: none; align-items: center; gap: 6px; margin-bottom: 0;">
+                                            <label style="font-size: 0.72rem;">COLOR & SIZE:</label>
+                                            <select id="editor-draw-color" class="cyber-select" style="padding: 3px 6px; font-size: 0.75rem;">
+                                                <option value="black" selected>⚫ BLACK</option>
+                                                <option value="red">🔴 RED</option>
+                                                <option value="blue">🔵 BLUE</option>
+                                                <option value="green">🟢 GREEN</option>
+                                                <option value="yellow">🟡 YELLOW</option>
+                                                <option value="white">⚪ WHITE</option>
+                                            </select>
+                                            <select id="editor-draw-size" class="cyber-select" style="padding: 3px 6px; font-size: 0.75rem;">
+                                                <option value="2">2px (THIN)</option>
+                                                <option value="4" selected>4px (MEDIUM)</option>
+                                                <option value="8">8px (THICK)</option>
+                                                <option value="12">12px (BRUSH)</option>
+                                            </select>
                                         </div>
 
-                                        <!-- Draw Settings Panel -->
-                                        <div class="option-field" id="editor-draw-settings" style="display: none; flex-direction: column; gap: 6px; margin-bottom: 0;">
-                                            <label style="font-size: 0.75rem;">PEN COLOR & SIZE</label>
-                                            <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
-                                                <select id="editor-draw-color" class="cyber-select" style="padding: 4px 8px; font-size: 0.78rem; flex: 1;">
-                                                    <option value="black" selected>⚫ BLACK</option>
-                                                    <option value="red">🔴 RED</option>
-                                                    <option value="blue">🔵 BLUE</option>
-                                                    <option value="green">🟢 GREEN</option>
-                                                    <option value="yellow">🟡 YELLOW</option>
-                                                    <option value="white">⚪ WHITE</option>
-                                                </select>
-                                                <select id="editor-draw-size" class="cyber-select" style="padding: 4px 8px; font-size: 0.78rem; width: 110px;">
-                                                    <option value="2">2px (THIN)</option>
-                                                    <option value="4" selected>4px (MEDIUM)</option>
-                                                    <option value="8">8px (THICK)</option>
-                                                    <option value="12">12px (BRUSH)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <!-- Highlight Settings Panel -->
-                                        <div class="option-field" id="editor-highlight-settings" style="display: none; flex-direction: column; gap: 6px; margin-bottom: 0;">
-                                            <label style="font-size: 0.75rem;">HIGHLIGHTER COLOR</label>
-                                            <select id="editor-highlight-color-sel" class="cyber-select" style="padding: 4px 8px; font-size: 0.78rem; width: 100%;">
+                                        <div class="option-field" id="editor-highlight-settings" style="display: none; align-items: center; gap: 6px; margin-bottom: 0;">
+                                            <label style="font-size: 0.72rem;">HIGHLIGHTER:</label>
+                                            <select id="editor-highlight-color-sel" class="cyber-select" style="padding: 3px 6px; font-size: 0.75rem;">
                                                 <option value="yellow" selected>💛 YELLOW</option>
                                                 <option value="green">💚 GREEN</option>
                                                 <option value="cyan">🩵 CYAN</option>
                                                 <option value="pink">🩷 PINK</option>
                                                 <option value="orange">🧡 ORANGE</option>
                                             </select>
-                                            <div style="font-size: 0.7rem; color: var(--text-secondary); line-height: 1.4;">
-                                                Drag a box over any text or region to highlight it with translucent color.
-                                            </div>
                                         </div>
 
-                                        <div class="option-field" id="editor-sign-settings" style="display: none;">
-                                            <label>SIGNATURE PREVIEW</label>
-                                            <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px; width: 100%;">
-                                                <div id="editor-sig-preview-img-container" style="height: 34px; flex: 1; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
-                                                    <span style="font-size: 0.65rem; color: #888;">NONE</span>
-                                                </div>
-                                                <button id="btn-editor-sig-configure" class="file-btn" style="padding: 4px 12px; font-size: 0.80rem; white-space: nowrap; height: 34px;">✍️ CHANGE</button>
+                                        <div class="option-field" id="editor-sign-settings" style="display: none; align-items: center; gap: 6px; margin-bottom: 0;">
+                                            <div id="editor-sig-preview-img-container" style="height: 28px; width: 70px; background: #fff; border-radius: 4px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px;">
+                                                <span style="font-size: 0.65rem; color: #888;">NONE</span>
                                             </div>
+                                            <button id="btn-editor-sig-configure" class="file-btn" style="padding: 3px 8px; font-size: 0.75rem; white-space: nowrap; height: 28px;">✍️ CHANGE</button>
                                         </div>
-                                    </div>
-
-                                    <!-- Find & Replace panel -->
-                                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px;">
-                                        <div class="option-field" style="margin-bottom: 0;">
-                                            <label for="editor-find-text">FIND TEXT</label>
-                                            <input type="text" id="editor-find-text" class="cyber-input" placeholder="Text to find..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                        </div>
-                                        <div class="option-field" style="margin-bottom: 0;">
-                                            <label for="editor-replace-text">REPLACE WITH</label>
-                                            <input type="text" id="editor-replace-text" class="cyber-input" placeholder="Replacement text..." style="margin-top: 4px; padding: 6px 10px; font-size: 0.85rem; width: 100%;">
-                                        </div>
-                                        <button class="cyber-btn" id="btn-editor-find-replace" style="height: 36px; padding: 0 16px; font-size: 0.8rem; width: 100%;">🔄 GLOBAL REPLACE</button>
                                     </div>
                                 </div>
+                            </div>
 
-                                <!-- Right Workspace Area -->
+                            <!-- Full Width PDF Stage Workspace Row -->
+                            <div class="editor-workspace-row">
+                                <!-- Workspace Area -->
                                 <div class="editor-canvas-workspace">
                                     <!-- Page Navigation -->
                                     <div class="editor-nav-container" style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
@@ -3366,10 +3354,13 @@
 
             try {
                 const page = await editorPdf.getPage(editorCurrentPage);
-                const containerWidth = 550;
+                const containerElem = document.getElementById('editor-canvas-container');
+                const availableW = containerElem ? (containerElem.clientWidth || 750) : 750;
+                const targetWidth = Math.max(550, Math.min(1050, availableW - 24));
                 const viewport = page.getViewport({ scale: 1.0 });
-                const scale = containerWidth / viewport.width;
+                const scale = targetWidth / viewport.width;
                 const scaledViewport = page.getViewport({ scale: scale });
+                editorCurrentScale = scale;
 
                 const canvas = document.getElementById('editor-pdf-canvas');
                 const context = canvas.getContext('2d');
@@ -3833,7 +3824,7 @@
         function sampleTextAndBackgroundColorsAtCoords(cx, cy, cw, ch) {
             try {
                 const pageCanvas = document.getElementById('editor-pdf-canvas');
-                if (!pageCanvas) return { bgHex: '#ffffff', bgRgbNorm: [1, 1, 1], textHex: '#000000', isWhiteText: false };
+                if (!pageCanvas) return { hex: '#ffffff', rgbNorm: [1, 1, 1], textHex: 'black', isWhiteText: false };
                 
                 const ctx = pageCanvas.getContext('2d');
                 const w = pageCanvas.width;
@@ -3841,14 +3832,32 @@
 
                 const wBox = Math.max(cw || 50, 40);
                 const hBox = Math.max(ch || 15, 12);
-
-                // Sample 4 background points in clean empty margins around text box
+                const midX = Math.round(cx + wBox / 2);
                 const midY = Math.round(cy + hBox / 2);
+
+                // Sample points 8px above and 8px below the text box
+                const topP = ctx.getImageData(Math.max(0, Math.min(w - 1, midX)), Math.max(0, Math.min(h - 1, Math.round(cy - 8))), 1, 1).data;
+                const botP = ctx.getImageData(Math.max(0, Math.min(w - 1, midX)), Math.max(0, Math.min(h - 1, Math.round(cy + hBox + 8))), 1, 1).data;
+
+                const isTopWhite = (topP[0] >= 235 && topP[1] >= 235 && topP[2] >= 235);
+                const isBotWhite = (botP[0] >= 235 && botP[1] >= 235 && botP[2] >= 235);
+
+                // If either top or bottom margin is white paper, the text resides on white paper!
+                if (isTopWhite || isBotWhite) {
+                    const textGlyphP = ctx.getImageData(Math.max(0, Math.min(w - 1, Math.round(cx + 8))), Math.max(0, Math.min(h - 1, midY)), 1, 1).data;
+                    const isWhiteTextGlyph = (textGlyphP[0] > 210 && textGlyphP[1] > 210 && textGlyphP[2] > 210);
+                    return {
+                        hex: '#ffffff',
+                        rgbNorm: [1, 1, 1],
+                        textHex: isWhiteTextGlyph ? 'white' : 'black',
+                        isWhiteText: isWhiteTextGlyph
+                    };
+                }
+
+                // Both top and bottom are non-white (Inside a real colored button, header bar, or container)
                 const bgPoints = [
-                    { x: Math.round(cx - 12), y: midY },
-                    { x: Math.round(cx - 20), y: midY },
-                    { x: Math.round(cx + wBox + 12), y: midY },
-                    { x: Math.round(cx + wBox + 20), y: midY }
+                    { x: Math.round(cx + 4), y: midY },
+                    { x: Math.round(cx + wBox - 4), y: midY }
                 ];
 
                 let bgCount = 0;
@@ -3878,24 +3887,13 @@
                     finalBgNorm = [avgBgR / 255, avgBgG / 255, avgBgB / 255];
                 }
 
-                // Sample text glyph stroke color at text box center
-                let textHex = 'black';
-                let isWhiteText = false;
-                
-                const sampleTextPoint = ctx.getImageData(Math.max(0, Math.min(w - 1, Math.round(cx + wBox / 3))), Math.max(0, Math.min(h - 1, midY)), 1, 1).data;
-                const tR = sampleTextPoint[0], tG = sampleTextPoint[1], tB = sampleTextPoint[2];
-
-                // If background is dark (R+G+B < 380) or text glyph measures white/light (R+G+B > 500)
                 const bgLuminance = (avgBgR * 299 + avgBgG * 587 + avgBgB * 114) / 1000;
-                if (bgLuminance < 160 || (tR > 200 && tG > 200 && tB > 200)) {
-                    textHex = 'white';
-                    isWhiteText = true;
-                }
+                const isWhiteText = (bgLuminance < 165);
 
                 return {
                     hex: finalBgHex,
                     rgbNorm: finalBgNorm,
-                    textHex: textHex,
+                    textHex: isWhiteText ? 'white' : 'black',
                     isWhiteText: isWhiteText
                 };
             } catch(e) {
