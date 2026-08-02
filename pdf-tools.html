@@ -3252,7 +3252,8 @@
                         currX += pW + (fontSize * 1.5);
                     });
                 } else {
-                    const estimatedW = (item.width && item.width > 0) ? item.width : (rawStr.length * fontSize * 0.52);
+                    const charCountW = rawStr.length * fontSize * 0.55;
+                    const estimatedW = (item.width && item.width > 0 && item.width <= charCountW * 1.2) ? item.width : charCountW;
                     mapped.push({
                         str: rawStr,
                         fontName: item.fontName || '',
@@ -3412,7 +3413,9 @@
 
                 // Fetch page text structure and group into collinear lines for full-line editing
                 const textContent = await page.getTextContent();
-                editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height, textContent.styles, page.commonObjs);
+                const safeCommonObjs = (page && page.commonObjs) ? page.commonObjs : ((editorPdf && editorPdf.commonObjs) ? editorPdf.commonObjs : null);
+                editorTextItems = groupTextItemsIntoLines(textContent.items, scale, scaledViewport.height, textContent.styles, safeCommonObjs);
+                window.editorTextItems = editorTextItems;
                 
                 if (textContent.items.length < 5 && !editorWarnedVectorPages[editorCurrentPage]) {
                     editorWarnedVectorPages[editorCurrentPage] = true;
@@ -3859,12 +3862,11 @@
                 const wBox = Math.max(cw || 50, 40);
                 const hBox = Math.max(ch || 15, 12);
 
-                // Sample 4 points in clean empty space around the text line
+                // Sample horizontal points in clean padding space immediately adjacent to text
+                const sampleY = Math.round(cy + Math.min(4, hBox / 3));
                 const points = [
-                    { x: Math.round(cx - 12), y: Math.round(cy + hBox / 2) },
-                    { x: Math.round(cx + wBox + 12), y: Math.round(cy + hBox / 2) },
-                    { x: Math.round(cx + wBox / 2), y: Math.round(cy - 8) },
-                    { x: Math.round(cx + wBox / 2), y: Math.round(cy + hBox + 8) }
+                    { x: Math.round(cx - 4), y: sampleY },
+                    { x: Math.round(cx + wBox + 4), y: sampleY }
                 ];
 
                 let validCount = 0;
