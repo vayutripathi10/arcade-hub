@@ -3832,32 +3832,14 @@
 
                 const wBox = Math.max(cw || 50, 40);
                 const hBox = Math.max(ch || 15, 12);
-                const midX = Math.round(cx + wBox / 2);
                 const midY = Math.round(cy + hBox / 2);
 
-                // Sample points 8px above and 8px below the text box
-                const topP = ctx.getImageData(Math.max(0, Math.min(w - 1, midX)), Math.max(0, Math.min(h - 1, Math.round(cy - 8))), 1, 1).data;
-                const botP = ctx.getImageData(Math.max(0, Math.min(w - 1, midX)), Math.max(0, Math.min(h - 1, Math.round(cy + hBox + 8))), 1, 1).data;
-
-                const isTopWhite = (topP[0] >= 235 && topP[1] >= 235 && topP[2] >= 235);
-                const isBotWhite = (botP[0] >= 235 && botP[1] >= 235 && botP[2] >= 235);
-
-                // If either top or bottom margin is white paper, the text resides on white paper!
-                if (isTopWhite || isBotWhite) {
-                    const textGlyphP = ctx.getImageData(Math.max(0, Math.min(w - 1, Math.round(cx + 8))), Math.max(0, Math.min(h - 1, midY)), 1, 1).data;
-                    const isWhiteTextGlyph = (textGlyphP[0] > 210 && textGlyphP[1] > 210 && textGlyphP[2] > 210);
-                    return {
-                        hex: '#ffffff',
-                        rgbNorm: [1, 1, 1],
-                        textHex: isWhiteTextGlyph ? 'white' : 'black',
-                        isWhiteText: isWhiteTextGlyph
-                    };
-                }
-
-                // Both top and bottom are non-white (Inside a real colored button, header bar, or container)
+                // Sample adjacent padding points immediately surrounding the text box
                 const bgPoints = [
-                    { x: Math.round(cx + 4), y: midY },
-                    { x: Math.round(cx + wBox - 4), y: midY }
+                    { x: Math.round(cx - 3), y: midY },
+                    { x: Math.round(cx + wBox + 3), y: midY },
+                    { x: Math.round(cx + 4), y: Math.round(cy - 2) },
+                    { x: Math.round(cx + 4), y: Math.round(cy + hBox + 2) }
                 ];
 
                 let bgCount = 0;
