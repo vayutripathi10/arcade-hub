@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v271';
+const CACHE_NAME = 'arcade-hub-cache-v272';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -6,13 +6,16 @@ const CORE_ASSETS = [
     'blog/beyond-audio-tag-retro-synthesis.html',
     'blog/classic-snake-grid-control.html',
     'blog/evolution-of-cyberpunk-web-games.html',
+    'blog/future-of-browser-gaming-webgpu-pwa.html',
     'blog/game-physics-hitbox-collision.html',
     'blog/glowing-gradients-cyberpunk-web-design.html',
     'blog/grid-mainframes-spatial-puzzle-design.html',
     'blog/html5-canvas-rendering-performance.html',
+    'blog/mastering-vector-pdf-reconstruction.html',
     'blog/math-of-luck-3d-webgl-physics.html',
     'blog/pwa-html5-mobile-gaming-revolution.html',
     'blog/retro-arcade-game-strategy-guide.html',
+    'blog/secure-client-side-pdf-editor.html',
     'blog/tic-tac-toe-game-theory.html',
     'blog/top-free-retro-arcade-games.html',
     'blog/vibe-coding-with-antigravity.html',

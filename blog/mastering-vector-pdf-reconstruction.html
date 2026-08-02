@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover how client-side vector reconstruction, subpixel canvas sampling, and multi-point region algorithms preserve original document layouts when editing PDFs in the browser.">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/blog/mastering-vector-pdf-reconstruction">
+    <title>Mastering Vector PDF Editing: Subpixel Sampling & Layout Preservation — Arcade Hub Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../hub-style.css">
+    <style>
+        .article-container { max-width: 800px; margin: 0 auto; padding: 40px 16px; font-family: 'Outfit', sans-serif; color: #cbd5e1; line-height: 1.8; }
+        .article-header { border-bottom: 1px solid rgba(0, 255, 204, 0.15); padding-bottom: 24px; margin-bottom: 30px; }
+        .article-meta { color: #00ffcc; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 8px; }
+        .article-title { font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1.3; }
+        .article-date { font-size: 0.9rem; color: #64748b; margin-top: 10px; }
+        .article-body h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 36px; margin-bottom: 16px; }
+        .article-body p { margin-bottom: 20px; font-size: 1.05rem; }
+        .article-body ul { padding-left: 20px; margin-bottom: 20px; }
+        .article-body li { margin-bottom: 8px; font-size: 1.02rem; }
+        .article-quote { border-left: 4px solid #00ffcc; padding-left: 20px; font-style: italic; color: #94a3b8; background: rgba(0,255,204,0.02); padding: 15px 20px; border-radius: 0 12px 12px 0; margin: 24px 0; }
+    </style>
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+
+    <!-- Open Graph & Social Sharing -->
+    <meta property="og:title" content="Mastering Vector PDF Editing: Subpixel Sampling & Layout Preservation — Arcade Hub Blog">
+    <meta property="og:description" content="Discover how client-side vector reconstruction, subpixel canvas sampling, and multi-point region algorithms preserve original document layouts when editing PDFs in the browser.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://arcadehubplay.com/blog/mastering-vector-pdf-reconstruction">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BlogPosting",
+          "headline": "Mastering Vector PDF Editing: Subpixel Sampling & Layout Preservation — Arcade Hub Blog",
+          "description": "Discover how client-side vector reconstruction, subpixel canvas sampling, and multi-point region algorithms preserve original document layouts when editing PDFs in the browser.",
+          "url": "https://arcadehubplay.com/blog/mastering-vector-pdf-reconstruction",
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://arcadehubplay.com/blog/mastering-vector-pdf-reconstruction"
+          },
+          "datePublished": "2026-08-02",
+          "dateModified": "2026-08-02",
+          "author": {
+            "@type": "Organization",
+            "name": "Arcade Hub",
+            "url": "https://arcadehubplay.com/"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Arcade Hub",
+            "url": "https://arcadehubplay.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://arcadehubplay.com/icon-512.png"
+            }
+          },
+          "image": "https://arcadehubplay.com/favicon.png"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://arcadehubplay.com/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Blog",
+              "item": "https://arcadehubplay.com/blog"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Mastering Vector PDF Editing",
+              "item": "https://arcadehubplay.com/blog/mastering-vector-pdf-reconstruction"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="../retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="../achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="../pdf-tools" class="sidebar-link">🛠️ PDF Tools</a>
+            <a href="../utility-hub" class="sidebar-link">⚙️ Utility Hub</a>
+            <a href="../blog" class="sidebar-link active-hub">📝 Blog & Guides</a>
+            <a href="../about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="../contact" class="sidebar-link">✉️ Contact Us</a>
+        </div>
+    </nav>
+
+    <div class="article-container">
+        <div class="article-header">
+            <div class="article-meta">Engineering & Document Tech</div>
+            <h1 class="article-title">Mastering Vector PDF Editing: Subpixel Canvas Sampling & Layout Preservation</h1>
+            <div class="article-date">Published on August 2, 2026 by Arcade Hub Engineering</div>
+        </div>
+        
+        <div class="article-body">
+            <p>Editing a PDF document seems like a simple task on the surface: click on a line of text, type a new word, and save the file. However, anyone who has used traditional PDF tools knows the frustration when editing a single word destroys table alignment, shifts column margins, or leaves white box patches over shaded header bars.</p>
+            
+            <p>PDFs were never designed to be editable documents. A PDF file is essentially a print stream of vector drawing operations—placing individual glyphs at absolute X/Y coordinates on a fixed canvas. There are no native paragraph elements, table grid lines, or text reflow rules inside a raw PDF.</p>
+            
+            <p>At <strong>Arcade Hub PDF Tools</strong>, we engineered a client-side reconstruction engine designed to edit PDFs with 100% layout preservation. Here is a technical breakdown of how it works.</p>
+
+            <h2>1. Collinear Baseline & Field Gap Segmentation</h2>
+            <p>When a browser loads a PDF, PDF.js extracts hundreds of raw text chunks. If multiple table columns sit on the same vertical baseline (`pdfY`), naive editors merge them into a single string. When you edit Column 1, Column 2 and Column 3 get pulled to the left, destroying the entire table grid.</p>
+
+            <p>Our engine applies a strict <strong>Collinear Segment Gap Algorithm (`spaceBetween > 4pt`)</strong>. Items on the same horizontal baseline separated by more than 4 points are split into independent, isolated text targets. Editing a label on the left leaves adjacent table fields in their exact vector positions.</p>
+
+            <h2>2. Multi-Point Region Background Color Sampling</h2>
+            <p>Replacing text on a shaded background (such as grey invoice table headers or colored banner bars) often leaves an ugly white rectangular box over the background.</p>
+
+            <div class="article-quote">
+                "By sampling 4 distinct points in the clean empty margins surrounding a text target, our engine accurately distinguishes pure white paper from shaded background bars."
+            </div>
+
+            <p>Our <strong>Multi-Point Region Sampling Algorithm</strong> samples the canvas coordinates outside the text bounding box:
+                <ul>
+                    <li>If the surrounding region measures pure white paper (`RGB ≥ 238`), the whiteout box fills with pure white (`#ffffff`).</li>
+                    <li>If the target sits inside a shaded header bar, the sampled RGB color (e.g., `#dcdcdc`) is used for the replacement box both on-screen and inside the compiled PDF download.</li>
+                </ul>
+            </p>
+
+            <h2>3. Document Font Frequency & Structural Bold Detection</h2>
+            <p>PDF generators frequently embed subsetted fonts with cryptic font names (like `BCDEEE+F2`). When replacing text, standard tools lose bold formatting and revert to standard body weight.</p>
+
+            <p>Our engine calculates a <strong>Page Font Frequency Map</strong> to identify primary body fonts versus secondary emphasis fonts. Combined with quoted text heuristics, key headings and bold phrases retain their exact weight and style upon edit.</p>
+
+            <h2>Conclusion: Privacy Meets Precision</h2>
+            <p>By executing all font parsing, subpixel canvas sampling, and PDF-lib vector compilation directly inside your browser's local memory, you get fast, layout-accurate PDF editing without sacrificing document privacy.</p>
+
+            <p>Try out our client-side editor today on <a href="../pdf-tools" style="color: #00ffcc; text-decoration: underline;">Arcade Hub PDF Tools</a>!</p>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="../privacy">Privacy Policy</a> | <a href="../tos">Terms of Service</a> | <a href="../contact">Contact Us</a> | <a href="../blog">Blog &amp; Guides</a></p>
+    </footer>
+
+    <script src="../shared/achievements.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+</body>
+</html>
