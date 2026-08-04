@@ -3928,9 +3928,10 @@
                     // Cover original text background if replace-text or coverBg is true
                     if (annot.type === 'replace-text' || annot.coverBg) {
                         const padX = 2;
+                        const fontForBox = Math.max(fontSize, annot.origH || 0);
                         const boxW = Math.max(textWidth, annot.origW || 0, annot.w || 0, 30) + (2 * padX);
-                        const boxH = effectiveFontSize * 0.94;
-                        const boxY = annot.y - (effectiveFontSize * 0.76);
+                        const boxH = fontForBox * 1.18;
+                        const boxY = annot.y - (fontForBox * 0.85);
                         ctx.fillStyle = annot.bgColor || '#ffffff';
                         ctx.fillRect(annot.x - padX, boxY, boxW, boxH);
                     }
@@ -4487,9 +4488,10 @@
                             // Draw Cover Box if replace-text or coverBg is true
                             if (annot.type === 'replace-text' || annot.coverBg) {
                                 const padX = 2;
+                                const fontForBoxPdf = Math.max(fontSizePdf, (annot.pdfH || 0) * scaleY);
                                 const boxPdfW = Math.max(textWidthPdf, annot.pdfW || 0) + (2 * padX);
-                                const boxPdfH = effectiveFontSizePdf * 0.94;
-                                const boxPdfY = yPdf - (effectiveFontSizePdf * 0.18);
+                                const boxPdfH = fontForBoxPdf * 1.18;
+                                const boxPdfY = yPdf - (fontForBoxPdf * 0.25);
 
                                 let bgRgb = PDFLib.rgb(1, 1, 1);
                                 if (annot.bgRgbNorm) {
