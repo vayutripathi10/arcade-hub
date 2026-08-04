@@ -3832,45 +3832,36 @@
 
                 const wBox = Math.max(cw || 50, 40);
                 const hBox = Math.max(ch || 15, 12);
-                const midY = Math.round(cy + hBox / 2);
-                const midX = Math.round(cx + wBox / 2);
+                
+                // cy is BASELINE. Vertical center of text line is cy - hBox * 0.35
+                const midY = Math.round(cy - hBox * 0.35);
+                const leftX = Math.max(0, Math.round(cx - 8));
+                const rightX = Math.min(w - 1, Math.round(cx + wBox + 8));
 
-                const bgPoints = [
-                    { x: Math.round(cx - 10), y: midY },
-                    { x: Math.round(cx + wBox + 10), y: midY },
-                    { x: midX, y: Math.max(0, Math.round(cy - 6)) },
-                    { x: midX, y: Math.min(h - 1, Math.round(cy + hBox + 6)) }
-                ];
+                // Sample points 8px to left and 8px to right at text line vertical center
+                const pLeft = ctx.getImageData(leftX, Math.max(0, Math.min(h - 1, midY)), 1, 1).data;
+                const pRight = ctx.getImageData(rightX, Math.max(0, Math.min(h - 1, midY)), 1, 1).data;
 
-                let maxR = 0, maxG = 0, maxB = 0;
-                let valid = 0;
+                const r1 = pLeft[0], g1 = pLeft[1], b1 = pLeft[2];
+                const r2 = pRight[0], g2 = pRight[1], b2 = pRight[2];
 
-                bgPoints.forEach(pt => {
-                    const sX = Math.max(0, Math.min(w - 1, pt.x));
-                    const sY = Math.max(0, Math.min(h - 1, pt.y));
-                    const p = ctx.getImageData(sX, sY, 1, 1).data;
-                    const r = p[0], g = p[1], b = p[2];
-                    if (r > 35 || g > 35 || b > 35) {
-                        if (r > maxR) maxR = r;
-                        if (g > maxG) maxG = g;
-                        if (b > maxB) maxB = b;
-                        valid++;
-                    }
-                });
-
-                if (valid === 0 || (maxR >= 215 && maxG >= 215 && maxB >= 215)) {
+                // If either left or right margin pixel is white paper (RGB >= 220), return white paper!
+                if ((r1 >= 220 && g1 >= 220 && b1 >= 220) || (r2 >= 220 && g2 >= 220 && b2 >= 220)) {
                     return { hex: '#ffffff', rgbNorm: [1, 1, 1], textHex: 'black', isWhiteText: false };
                 }
 
-                const hex = `#${((1 << 24) + (maxR << 16) + (maxG << 8) + maxB).toString(16).slice(1)}`;
-                const bgLuminance = (maxR * 299 + maxG * 587 + maxB * 114) / 1000;
-                const isWhiteText = (bgLuminance < 165);
+                // Both left and right margins are non-white (inside a dark blue button or dark header)
+                const avgR = Math.round((r1 + r2) / 2);
+                const avgG = Math.round((g1 + g2) / 2);
+                const avgB = Math.round((b1 + b2) / 2);
+                const hex = `#${((1 << 24) + (avgR << 16) + (avgG << 8) + avgB).toString(16).slice(1)}`;
+                const bgLuminance = (avgR * 299 + avgG * 587 + avgB * 114) / 1000;
 
                 return {
                     hex: hex,
-                    rgbNorm: [maxR / 255, maxG / 255, maxB / 255],
-                    textHex: isWhiteText ? 'white' : 'black',
-                    isWhiteText: isWhiteText
+                    rgbNorm: [avgR / 255, avgG / 255, avgB / 255],
+                    textHex: bgLuminance < 165 ? 'white' : 'black',
+                    isWhiteText: bgLuminance < 165
                 };
             } catch(e) {
                 return { hex: '#ffffff', rgbNorm: [1, 1, 1], textHex: 'black', isWhiteText: false };
