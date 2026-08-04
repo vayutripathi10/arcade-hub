@@ -3833,48 +3833,42 @@
                 const wBox = Math.max(cw || 50, 40);
                 const hBox = Math.max(ch || 15, 12);
                 const midY = Math.round(cy + hBox / 2);
+                const midX = Math.round(cx + wBox / 2);
 
-                // Sample adjacent padding points immediately surrounding the text box
                 const bgPoints = [
-                    { x: Math.round(cx - 3), y: midY },
-                    { x: Math.round(cx + wBox + 3), y: midY },
-                    { x: Math.round(cx + 4), y: Math.round(cy - 2) },
-                    { x: Math.round(cx + 4), y: Math.round(cy + hBox + 2) }
+                    { x: Math.round(cx - 10), y: midY },
+                    { x: Math.round(cx + wBox + 10), y: midY },
+                    { x: midX, y: Math.max(0, Math.round(cy - 6)) },
+                    { x: midX, y: Math.min(h - 1, Math.round(cy + hBox + 6)) }
                 ];
 
-                let bgCount = 0;
-                let bgR = 0, bgG = 0, bgB = 0;
+                let maxR = 0, maxG = 0, maxB = 0;
+                let valid = 0;
 
                 bgPoints.forEach(pt => {
                     const sX = Math.max(0, Math.min(w - 1, pt.x));
                     const sY = Math.max(0, Math.min(h - 1, pt.y));
                     const p = ctx.getImageData(sX, sY, 1, 1).data;
-                    if (p[3] >= 50) {
-                        bgR += p[0]; bgG += p[1]; bgB += p[2];
-                        bgCount++;
+                    const r = p[0], g = p[1], b = p[2];
+                    if (r > 35 || g > 35 || b > 35) {
+                        if (r > maxR) maxR = r;
+                        if (g > maxG) maxG = g;
+                        if (b > maxB) maxB = b;
+                        valid++;
                     }
                 });
 
-                let avgBgR = 255, avgBgG = 255, avgBgB = 255;
-                if (bgCount > 0) {
-                    avgBgR = Math.round(bgR / bgCount);
-                    avgBgG = Math.round(bgG / bgCount);
-                    avgBgB = Math.round(bgB / bgCount);
+                if (valid === 0 || (maxR >= 215 && maxG >= 215 && maxB >= 215)) {
+                    return { hex: '#ffffff', rgbNorm: [1, 1, 1], textHex: 'black', isWhiteText: false };
                 }
 
-                let finalBgHex = '#ffffff';
-                let finalBgNorm = [1, 1, 1];
-                if (avgBgR < 238 || avgBgG < 238 || avgBgB < 238) {
-                    finalBgHex = `#${((1 << 24) + (avgBgR << 16) + (avgBgG << 8) + avgBgB).toString(16).slice(1)}`;
-                    finalBgNorm = [avgBgR / 255, avgBgG / 255, avgBgB / 255];
-                }
-
-                const bgLuminance = (avgBgR * 299 + avgBgG * 587 + avgBgB * 114) / 1000;
+                const hex = `#${((1 << 24) + (maxR << 16) + (maxG << 8) + maxB).toString(16).slice(1)}`;
+                const bgLuminance = (maxR * 299 + maxG * 587 + maxB * 114) / 1000;
                 const isWhiteText = (bgLuminance < 165);
 
                 return {
-                    hex: finalBgHex,
-                    rgbNorm: finalBgNorm,
+                    hex: hex,
+                    rgbNorm: [maxR / 255, maxG / 255, maxB / 255],
                     textHex: isWhiteText ? 'white' : 'black',
                     isWhiteText: isWhiteText
                 };
