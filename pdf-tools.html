@@ -1655,11 +1655,14 @@
                                 </div>
                                 <textarea id="pdf-to-word-text-preview" class="text-output-area" readonly style="min-height: 250px; font-size: 0.88rem; background: rgba(0,0,0,0.5); font-family: 'Outfit', sans-serif;" placeholder="Extracted Word document content will appear here..."></textarea>
                             </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                            <button class="neon-action-btn pink" id="btn-pdf-to-docx" disabled>
+                                📝 DOWNLOAD WORD (.DOCX)
+                            </button>
+                            <button class="neon-action-btn" id="btn-pdf-to-doc" disabled style="background: rgba(138,43,226,0.15); border: 1px solid var(--neon-purple);">
+                                📄 DOWNLOAD WORD (.DOC)
+                            </button>
                         </div>
-
-                        <button class="neon-action-btn pink" id="btn-pdf-to-word" disabled>
-                            📝 CONVERT & DOWNLOAD WORD DOCUMENT (.DOCX)
-                        </button>
                     </div>
 
                 </div>
@@ -5893,10 +5896,11 @@
         });
 
 
-        // --- MODULE 10: PDF TO WORD (.DOCX) CONVERTER ---
+        // --- MODULE 10: PDF TO WORD CONVERTER ---
         let pdfToWordFile = null;
         let pdfToWordHtmlContent = "";
         let pdfToWordPlainText = "";
+        let pdfToWordExtractedLines = [];
 
         setupDropZone('drop-zone-pdf-to-word', 'input-pdf-to-word', (files) => {
             if (files.length > 0) {
@@ -5908,6 +5912,10 @@
             const queueContainer = document.getElementById('queue-pdf-to-word');
             if (!queueContainer) return;
             queueContainer.innerHTML = '';
+            
+            const btnDocx = document.getElementById('btn-pdf-to-docx');
+            const btnDoc = document.getElementById('btn-pdf-to-doc');
+
             if (pdfToWordFile) {
                 const sizeMB = (pdfToWordFile.size / (1024 * 1024)).toFixed(2);
                 const item = document.createElement('div');
@@ -5923,11 +5931,11 @@
                     </div>
                 `;
                 queueContainer.appendChild(item);
-                const convertBtn = document.getElementById('btn-pdf-to-word');
-                if (convertBtn) convertBtn.disabled = false;
+                if (btnDocx) btnDocx.disabled = false;
+                if (btnDoc) btnDoc.disabled = false;
             } else {
-                const convertBtn = document.getElementById('btn-pdf-to-word');
-                if (convertBtn) convertBtn.disabled = true;
+                if (btnDocx) btnDocx.disabled = true;
+                if (btnDoc) btnDoc.disabled = true;
             }
         }
 
@@ -5950,6 +5958,7 @@
                 
                 let htmlBody = "";
                 let fullPlainText = "";
+                let allLines = [];
                 const numPages = pdf.numPages;
 
                 for (let p = 1; p <= numPages; p++) {
@@ -5963,6 +5972,7 @@
                     const textContent = await page.getTextContent();
                     
                     const lines = groupTextItemsIntoLines(textContent.items, 1.0, viewport.height, textContent.styles, page.commonObjs);
+                    allLines.push(...lines);
 
                     if (p > 1) {
                         htmlBody += `<div style="page-break-before: always; mso-break-type: page-break;"></div>\n`;
@@ -6003,6 +6013,7 @@
 
                 pdfToWordHtmlContent = htmlBody;
                 pdfToWordPlainText = fullPlainText;
+                pdfToWordExtractedLines = allLines;
 
                 const previewTextArea = document.getElementById('pdf-to-word-text-preview');
                 if (previewTextArea) previewTextArea.value = fullPlainText;
@@ -6013,8 +6024,10 @@
                 const workspace = document.getElementById('pdf-to-word-workspace');
                 if (workspace) workspace.style.display = 'flex';
 
-                const convertBtn = document.getElementById('btn-pdf-to-word');
-                if (convertBtn) convertBtn.disabled = false;
+                const btnDocx = document.getElementById('btn-pdf-to-docx');
+                const btnDoc = document.getElementById('btn-pdf-to-doc');
+                if (btnDocx) btnDocx.disabled = false;
+                if (btnDoc) btnDoc.disabled = false;
 
                 progressBarFill.style.width = '100%';
                 progressPercent.textContent = '100%';
@@ -6031,17 +6044,129 @@
             }
         }
 
-        document.getElementById('btn-pdf-to-word').addEventListener('click', async () => {
+        document.getElementById('btn-pdf-to-docx').addEventListener('click', async () => {
+            if (!pdfToWordFile || !pdfToWordExtractedLines || pdfToWordExtractedLines.length === 0) {
+                appendLog("No PDF document loaded for Word conversion.", "warning");
+                return;
+            }
+
+            playBeep(900, 0.05, "sine");
+            appendLog("Packaging genuine Microsoft Word OpenXML (.docx)...");
+
+            const fontChoice = document.getElementById('word-font-family').value || 'Calibri';
+
+            try {
+                const zip = new JSZip();
+
+                zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>`);
+
+                zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`);
+
+                zip.folder("word").file("_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`);
+
+                zip.folder("word").file("styles.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:docDefaults>
+    <w:rPrDefault>
+      <w:rPr>
+        <w:rFonts w:ascii="${fontChoice}" w:hAnsi="${fontChoice}"/>
+        <w:sz w:val="22"/>
+      </w:rPr>
+    </w:rPrDefault>
+  </w:docDefaults>
+</w:styles>`);
+
+                let docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>`;
+
+                pdfToWordExtractedLines.forEach(l => {
+                    const trimmed = (l.str || '').trim();
+                    if (!trimmed) return;
+
+                    const fontSize = l.fontSize || 12;
+                    const isBold = !!l.isBold;
+                    const isHeader = fontSize >= 14 || (isBold && fontSize >= 13);
+                    const cleanText = trimmed.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+                    let rPr = `<w:rFonts w:ascii="${fontChoice}" w:hAnsi="${fontChoice}"/>`;
+                    if (isHeader) {
+                        const szVal = Math.round(fontSize * 2);
+                        rPr += `<w:b/><w:sz w:val="${szVal}"/><w:szCs w:val="${szVal}"/><w:color w:val="1F406A"/>`;
+                    } else if (isBold) {
+                        rPr += `<w:b/>`;
+                    }
+
+                    if (trimmed.startsWith('•') || trimmed.startsWith('➔') || trimmed.startsWith('▪') || trimmed.startsWith('- ')) {
+                        const bulletText = cleanText.replace(/^[•➔▪\-]\s*/, '');
+                        docXml += `
+    <w:p>
+      <w:pPr>
+        <w:ind w:left="360" w:hanging="180"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>${rPr}</w:rPr>
+        <w:t>• ${bulletText}</w:t>
+      </w:r>
+    </w:p>`;
+                    } else {
+                        docXml += `
+    <w:p>
+      <w:pPr>
+        <w:spacing w:after="${isHeader ? '120' : '80'}"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr>${rPr}</w:rPr>
+        <w:t>${cleanText}</w:t>
+      </w:r>
+    </w:p>`;
+                    }
+                });
+
+                docXml += `
+  </w:body>
+</w:document>`;
+
+                zip.folder("word").file("document.xml", docXml);
+                const docxBlob = await zip.generateAsync({ type: "blob" });
+                
+                const fileName = pdfToWordFile.name.replace(/\.[^/.]+$/, "") + ".docx";
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(docxBlob);
+                link.download = fileName;
+                link.click();
+
+                appendLog(`Successfully generated OpenXML Word document: ${fileName}`, "success");
+                playSuccessChord();
+            } catch(err) {
+                console.error("OpenXML DOCX generation failed:", err);
+                appendLog(`OpenXML DOCX generation failed: ${err.message}`, "error");
+                playErrorBuzz();
+            }
+        });
+
+        document.getElementById('btn-pdf-to-doc').addEventListener('click', async () => {
             if (!pdfToWordFile || !pdfToWordHtmlContent) {
                 appendLog("No PDF document loaded for Word conversion.", "warning");
                 return;
             }
 
             playBeep(900, 0.05, "sine");
-            appendLog("Packaging editable Word document (.docx)...");
+            appendLog("Packaging Word document (.doc)...");
 
             const fontChoice = document.getElementById('word-font-family').value || 'Calibri';
-            const layoutChoice = document.getElementById('word-layout-mode').value || 'flow';
 
             const wordDocXml = `
 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -6076,14 +6201,14 @@
             `;
 
             const blob = new Blob(['\ufeff', wordDocXml], { type: 'application/msword;charset=utf-8' });
-            const fileName = pdfToWordFile.name.replace(/\.[^/.]+$/, "") + ".docx";
+            const fileName = pdfToWordFile.name.replace(/\.[^/.]+$/, "") + ".doc";
             
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
             link.click();
 
-            appendLog(`Successfully generated editable Word document: ${fileName}`, "success");
+            appendLog(`Successfully generated Word .doc: ${fileName}`, "success");
             playSuccessChord();
         });
 
