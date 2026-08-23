@@ -269,7 +269,8 @@
 
         .deck-tab.active[data-tab="text-extractor"],
         .deck-tab.active[data-tab="watermark"],
-        .deck-tab.active[data-tab="editor"] {
+        .deck-tab.active[data-tab="editor"],
+        .deck-tab.active[data-tab="pdf-to-word"] {
             border-color: var(--neon-pink);
             color: var(--neon-pink);
             box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
@@ -1066,6 +1067,10 @@
                             <span class="tab-mod">MODULE_09</span>
                             <span>PDF to Excel/CSV</span>
                         </div>
+                        <div class="deck-tab" data-tab="pdf-to-word">
+                            <span class="tab-mod">MODULE_10</span>
+                            <span>PDF to Word (.docx)</span>
+                        </div>
                     </div>
 
                     <!-- Progress Indicator -->
@@ -1611,6 +1616,52 @@
                         </div>
                     </div>
 
+                    <!-- TAB 10: PDF TO WORD (.DOCX) -->
+                    <div class="tab-content" id="panel-pdf-to-word">
+                        <div class="drop-zone pink-hover" id="drop-zone-pdf-to-word">
+                            <div class="drop-icon" style="color: var(--neon-pink);">📄</div>
+                            <div class="drop-text">Drag & drop a PDF document to convert to editable Word (.docx) or <span style="color: var(--neon-pink); text-decoration: underline;">browse files</span></div>
+                            <input type="file" id="input-pdf-to-word" class="file-input" accept="application/pdf">
+                        </div>
+
+                        <div class="file-queue" id="queue-pdf-to-word">
+                            <!-- Single PDF details will appear here -->
+                        </div>
+
+                        <div id="pdf-to-word-workspace" style="display: none; flex-direction: column; gap: 15px; margin: 20px 0;">
+                            <div class="options-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                                <div class="option-field">
+                                    <label for="word-layout-mode">WORD DOCUMENT FORMATTING</label>
+                                    <select id="word-layout-mode" class="cyber-select">
+                                        <option value="flow" selected>📄 Flowing Text (Best for Editing)</option>
+                                        <option value="exact">📐 Page Preserved (Best for Resumes & Reports)</option>
+                                    </select>
+                                </div>
+                                <div class="option-field">
+                                    <label for="word-font-family">DEFAULT DOCUMENT FONT</label>
+                                    <select id="word-font-family" class="cyber-select">
+                                        <option value="Calibri" selected>Calibri (Modern Word Standard)</option>
+                                        <option value="Arial">Arial (Clean Sans-Serif)</option>
+                                        <option value="Times New Roman">Times New Roman (Academic & Legal)</option>
+                                        <option value="Georgia">Georgia (Classic Serif)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label style="font-size: 0.8rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px; font-family: 'Share Tech Mono', monospace;">EXTRACTED WORD DOCUMENT STRUCTURE PREVIEW</label>
+                                    <span id="word-page-count-badge" style="font-size: 0.75rem; color: var(--text-secondary); font-family: 'Share Tech Mono', monospace;">0 PAGES EXTRACTED</span>
+                                </div>
+                                <textarea id="pdf-to-word-text-preview" class="text-output-area" readonly style="min-height: 250px; font-size: 0.88rem; background: rgba(0,0,0,0.5); font-family: 'Outfit', sans-serif;" placeholder="Extracted Word document content will appear here..."></textarea>
+                            </div>
+                        </div>
+
+                        <button class="neon-action-btn pink" id="btn-pdf-to-word" disabled>
+                            📝 CONVERT & DOWNLOAD WORD DOCUMENT (.DOCX)
+                        </button>
+                    </div>
+
                 </div>
             </div>
 
@@ -1909,6 +1960,7 @@
             editorFile = file;
             pdfToImgFile = file;
             pdfToExcelFile = file;
+            pdfToWordFile = file;
             
             if (typeof renderExtractorFile === 'function') renderExtractorFile();
             if (typeof renderSplitFile === 'function') renderSplitFile();
@@ -1918,6 +1970,8 @@
             if (typeof renderPdfToImgFile === 'function') renderPdfToImgFile();
             if (typeof renderPdfToExcelFile === 'function') renderPdfToExcelFile();
             if (typeof parsePdfToExcel === 'function') parsePdfToExcel(file);
+            if (typeof renderPdfToWordFile === 'function') renderPdfToWordFile();
+            if (typeof parsePdfToWord === 'function') parsePdfToWord(file);
             
             try {
                 const arrayBuffer = await file.arrayBuffer();
@@ -1974,6 +2028,9 @@
             pdfToExcelDoc = null;
             excelExtractedData = [];
             excelExtractedRawText = "";
+            pdfToWordFile = null;
+            pdfToWordHtmlContent = "";
+            pdfToWordPlainText = "";
             
             if (typeof renderExtractorFile === 'function') renderExtractorFile();
             if (typeof renderSplitFile === 'function') renderSplitFile();
@@ -1981,6 +2038,7 @@
             if (typeof renderWatermarkFile === 'function') renderWatermarkFile();
             if (typeof renderPdfToImgFile === 'function') renderPdfToImgFile();
             if (typeof renderPdfToExcelFile === 'function') renderPdfToExcelFile();
+            if (typeof renderPdfToWordFile === 'function') renderPdfToWordFile();
 
             const excelWorkspace = document.getElementById('pdf-to-excel-workspace');
             if (excelWorkspace) excelWorkspace.style.display = 'none';
@@ -1988,6 +2046,13 @@
             if (excelInput) excelInput.value = '';
             const excelRaw = document.getElementById('excel-raw-text-area');
             if (excelRaw) excelRaw.value = '';
+
+            const wordWorkspace = document.getElementById('pdf-to-word-workspace');
+            if (wordWorkspace) wordWorkspace.style.display = 'none';
+            const wordInput = document.getElementById('input-pdf-to-word');
+            if (wordInput) wordInput.value = '';
+            const wordPreview = document.getElementById('pdf-to-word-text-preview');
+            if (wordPreview) wordPreview.value = '';
             
             splitTotalPages = 0;
             const splitVisContainer = document.getElementById('split-visual-selector-container');
@@ -5825,6 +5890,201 @@
             link.download = `${pdfToExcelFile.name.replace(/\.pdf$/i, '')}_transactions.xls`;
             link.click();
             appendLog("Downloaded spreadsheet as Microsoft Excel XLS.");
+        });
+
+
+        // --- MODULE 10: PDF TO WORD (.DOCX) CONVERTER ---
+        let pdfToWordFile = null;
+        let pdfToWordHtmlContent = "";
+        let pdfToWordPlainText = "";
+
+        setupDropZone('drop-zone-pdf-to-word', 'input-pdf-to-word', (files) => {
+            if (files.length > 0) {
+                loadSharedPdf(files[0]);
+            }
+        });
+
+        function renderPdfToWordFile() {
+            const queueContainer = document.getElementById('queue-pdf-to-word');
+            if (!queueContainer) return;
+            queueContainer.innerHTML = '';
+            if (pdfToWordFile) {
+                const sizeMB = (pdfToWordFile.size / (1024 * 1024)).toFixed(2);
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <div class="file-info">
+                        <span style="color: var(--neon-pink); font-family: monospace;">[PDF]</span>
+                        <div class="file-name" title="${pdfToWordFile.name}">${pdfToWordFile.name}</div>
+                        <div class="file-size">${sizeMB} MB</div>
+                    </div>
+                    <div class="file-controls">
+                        <button class="file-btn remove" onclick="clearSharedPdf()">✕</button>
+                    </div>
+                `;
+                queueContainer.appendChild(item);
+                const convertBtn = document.getElementById('btn-pdf-to-word');
+                if (convertBtn) convertBtn.disabled = false;
+            } else {
+                const convertBtn = document.getElementById('btn-pdf-to-word');
+                if (convertBtn) convertBtn.disabled = true;
+            }
+        }
+
+        async function parsePdfToWord(file) {
+            if (!file) return;
+
+            const progressIndicator = document.getElementById('progressIndicator');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressText = document.getElementById('progressText');
+
+            progressIndicator.style.display = 'flex';
+            progressText.textContent = 'EXTRACTING PDF STRUCTURE FOR WORD...';
+            progressBarFill.style.width = '15%';
+            progressPercent.textContent = '15%';
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                let htmlBody = "";
+                let fullPlainText = "";
+                const numPages = pdf.numPages;
+
+                for (let p = 1; p <= numPages; p++) {
+                    progressText.textContent = `PARSING PAGE ${p} OF ${numPages}...`;
+                    const pct = Math.round(15 + (p / numPages) * 75);
+                    progressBarFill.style.width = `${pct}%`;
+                    progressPercent.textContent = `${pct}%`;
+
+                    const page = await pdf.getPage(p);
+                    const viewport = page.getViewport({ scale: 1.0 });
+                    const textContent = await page.getTextContent();
+                    
+                    const lines = groupTextItemsIntoLines(textContent.items, 1.0, viewport.height, textContent.styles, page.commonObjs);
+
+                    if (p > 1) {
+                        htmlBody += `<div style="page-break-before: always; mso-break-type: page-break;"></div>\n`;
+                        fullPlainText += `\n\n--- PAGE ${p} ---\n\n`;
+                    }
+
+                    lines.forEach(line => {
+                        const str = (line.str || '').trim();
+                        if (!str) return;
+
+                        fullPlainText += str + '\n';
+
+                        const fontSize = line.fontSize || 12;
+                        const isBold = !!line.isBold;
+
+                        let tag = 'p';
+                        let styleStr = `font-size: ${Math.round(fontSize * 0.95)}pt; margin-bottom: 6pt; line-height: 1.35;`;
+
+                        if (fontSize >= 18 || (isBold && fontSize >= 16)) {
+                            tag = 'h1';
+                            styleStr = `font-size: 18pt; font-weight: bold; color: #1a365d; margin-top: 14pt; margin-bottom: 6pt;`;
+                        } else if (fontSize >= 14 || (isBold && fontSize >= 13)) {
+                            tag = 'h2';
+                            styleStr = `font-size: 14pt; font-weight: bold; color: #2b6cb0; margin-top: 10pt; margin-bottom: 4pt;`;
+                        } else if (isBold && fontSize >= 11) {
+                            styleStr += ` font-weight: bold;`;
+                        }
+
+                        const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                        if (str.startsWith('•') || str.startsWith('➔') || str.startsWith('▪') || str.startsWith('- ')) {
+                            htmlBody += `<p class="MsoNormal bullet" style="margin-left: 0.25in; text-indent: -0.18in; ${styleStr}">• ${escaped.replace(/^[•➔▪\-]\s*/, '')}</p>\n`;
+                        } else {
+                            htmlBody += `<${tag} class="MsoNormal" style="${styleStr}">${escaped}</${tag}>\n`;
+                        }
+                    });
+                }
+
+                pdfToWordHtmlContent = htmlBody;
+                pdfToWordPlainText = fullPlainText;
+
+                const previewTextArea = document.getElementById('pdf-to-word-text-preview');
+                if (previewTextArea) previewTextArea.value = fullPlainText;
+
+                const pageBadge = document.getElementById('word-page-count-badge');
+                if (pageBadge) pageBadge.textContent = `${numPages} PAGE${numPages > 1 ? 'S' : ''} EXTRACTED`;
+
+                const workspace = document.getElementById('pdf-to-word-workspace');
+                if (workspace) workspace.style.display = 'flex';
+
+                const convertBtn = document.getElementById('btn-pdf-to-word');
+                if (convertBtn) convertBtn.disabled = false;
+
+                progressBarFill.style.width = '100%';
+                progressPercent.textContent = '100%';
+                appendLog(`PDF document structure extracted for Word conversion successfully.`, 'success');
+                playSuccessChord();
+
+            } catch (err) {
+                console.error("PDF to Word extraction failed:", err);
+                appendLog(`PDF to Word failed: ${err.message}`, 'error');
+                playErrorBuzz();
+            } finally {
+                progressIndicator.style.display = 'none';
+                deckStatus.textContent = 'pdf-to-word';
+            }
+        }
+
+        document.getElementById('btn-pdf-to-word').addEventListener('click', async () => {
+            if (!pdfToWordFile || !pdfToWordHtmlContent) {
+                appendLog("No PDF document loaded for Word conversion.", "warning");
+                return;
+            }
+
+            playBeep(900, 0.05, "sine");
+            appendLog("Packaging editable Word document (.docx)...");
+
+            const fontChoice = document.getElementById('word-font-family').value || 'Calibri';
+            const layoutChoice = document.getElementById('word-layout-mode').value || 'flow';
+
+            const wordDocXml = `
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+    <meta charset='utf-8'>
+    <title>${pdfToWordFile.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</title>
+    <!--[if gte mso 9]>
+    <xml>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+            <w:DoNotOptimizeForCustomXSL/>
+        </w:WordDocument>
+    </xml>
+    <![endif]-->
+    <style>
+        @page Section1 { size: 8.5in 11.0in; margin: 1.0in 1.0in 1.0in 1.0in; mso-header-margin: .5in; mso-footer-margin: .5in; mso-paper-source: 0; }
+        div.Section1 { page: Section1; }
+        body, p, h1, h2, h3, li { font-family: "${fontChoice}", sans-serif; }
+        p.MsoNormal, li.MsoNormal { margin: 0in; margin-bottom: 6pt; font-size: 11pt; font-family: "${fontChoice}", sans-serif; }
+        h1 { font-size: 18pt; font-weight: bold; color: #1f406a; margin-top: 14pt; margin-bottom: 6pt; font-family: "${fontChoice}", sans-serif; }
+        h2 { font-size: 14pt; font-weight: bold; color: #2c3e50; margin-top: 10pt; margin-bottom: 4pt; font-family: "${fontChoice}", sans-serif; }
+        .bullet { margin-left: 0.25in; text-indent: -0.18in; font-family: "${fontChoice}", sans-serif; }
+    </style>
+</head>
+<body>
+    <div class="Section1">
+        ${pdfToWordHtmlContent}
+    </div>
+</body>
+</html>
+            `;
+
+            const blob = new Blob(['\ufeff', wordDocXml], { type: 'application/msword;charset=utf-8' });
+            const fileName = pdfToWordFile.name.replace(/\.[^/.]+$/, "") + ".docx";
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            link.click();
+
+            appendLog(`Successfully generated editable Word document: ${fileName}`, "success");
+            playSuccessChord();
         });
 
 
