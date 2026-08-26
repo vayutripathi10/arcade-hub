@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bengaluru Traffic & Optimal Departure Time Optimizer | E-City to Amadeus ORR</title>
+    <meta name="description" content="Predict optimal commute departure times for Bengaluru tech corridors. Calculate travel duration, avoid Silk Board & ORR traffic, save fuel, and optimize your office commute.">
+    <meta name="keywords" content="Bengaluru traffic predictor, Electronic City to Bellandur traffic, Amadeus office commute, Silk Board traffic calculator, optimal departure time, ORR traffic status, commute fuel calculator">
+    <link rel="canonical" href="https://arcadehubplay.com/traffic-assumption-frontend/">
+    <link rel="icon" type="image/png" href="../favicon.png">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Bengaluru Traffic & Optimal Departure Time Optimizer">
+    <meta property="og:description" content="Find the best time to leave for office or home. Save 45+ minutes on the Electronic City to Outer Ring Road commute.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/traffic-assumption-frontend/">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="../utility-hub.html" class="back-link">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                <span>Utility Hub</span>
+            </a>
+            
+            <div class="brand">
+                <span class="brand-badge">BETA MVP</span>
+                <h1>BLR Commute Optimizer</h1>
+            </div>
+
+            <div class="header-actions">
+                <button id="apiSettingsBtn" class="icon-btn" title="API Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                    <span>API Config</span>
+                </button>
+                <button id="shareBtn" class="icon-btn glow-btn" title="Share Commute Plan">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+                    <span>Share</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-layout">
+        <!-- Control Sidebar -->
+        <aside class="control-panel card">
+            <div class="panel-header">
+                <h2>Route Parameters</h2>
+                <div class="live-status-pill" id="liveStatusPill">
+                    <span class="pulse-dot"></span>
+                    <span id="liveStatusText">Engine Active</span>
+                </div>
+            </div>
+
+            <!-- Direction Selector -->
+            <div class="form-group">
+                <label>Commute Direction</label>
+                <div class="direction-toggle" id="directionToggle">
+                    <button class="dir-btn active" data-dir="HOME_TO_OFFICE">
+                        <span class="dir-icon">🏠 ➔ 🏢</span>
+                        <span class="dir-label">Home to Office</span>
+                        <span class="dir-route">E-City Phase 1 ➔ Amadeus ORR</span>
+                    </button>
+                    <button class="dir-btn" data-dir="OFFICE_TO_HOME">
+                        <span class="dir-icon">🏢 ➔ 🏠</span>
+                        <span class="dir-label">Office to Home</span>
+                        <span class="dir-route">Amadeus ORR ➔ E-City Phase 1</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="form-group">
+                <label>Planning Mode</label>
+                <div class="tab-group" id="planningModeTabs">
+                    <button class="tab-btn active" data-mode="DEPARTURE">Preferred Departure Time</button>
+                    <button class="tab-btn" data-mode="ARRIVAL">Target Arrival Time</button>
+                </div>
+            </div>
+
+            <!-- Time Input Control -->
+            <div class="form-group" id="timeInputGroup">
+                <div class="label-with-val">
+                    <label id="timeLabel">Departure Time</label>
+                    <span class="time-display" id="selectedTimeDisplay">07:30 AM</span>
+                </div>
+                <input type="range" id="timeSlider" min="360" max="1380" step="15" value="450" class="custom-slider">
+                <div class="slider-ticks">
+                    <span>6 AM</span>
+                    <span>9 AM</span>
+                    <span>12 PM</span>
+                    <span>3 PM</span>
+                    <span>6 PM</span>
+                    <span>9 PM</span>
+                    <span>11 PM</span>
+                </div>
+            </div>
+
+            <!-- Day of Week Selector -->
+            <div class="form-group">
+                <label>Day of the Week</label>
+                <div class="day-picker" id="dayPicker">
+                    <button class="day-btn" data-day="Monday">Mon</button>
+                    <button class="day-btn active" data-day="Tuesday">Tue</button>
+                    <button class="day-btn" data-day="Wednesday">Wed</button>
+                    <button class="day-btn" data-day="Thursday">Thu</button>
+                    <button class="day-btn" data-day="Friday">Fri</button>
+                    <button class="day-btn weekend" data-day="Saturday">Sat</button>
+                    <button class="day-btn weekend" data-day="Sunday">Sun</button>
+                </div>
+                <p class="field-hint" id="dayHint">Tue-Thu: Peak mandatory Work-From-Office days on ORR.</p>
+            </div>
+
+            <!-- Weather Modifier -->
+            <div class="form-group">
+                <label>Weather Condition</label>
+                <div class="weather-picker" id="weatherPicker">
+                    <button class="weather-btn active" data-weather="CLEAR">
+                        <span class="weather-icon">☀️</span>
+                        <span>Clear</span>
+                    </button>
+                    <button class="weather-btn" data-weather="DRIZZLE">
+                        <span class="weather-icon">🌦️</span>
+                        <span>Light Rain</span>
+                    </button>
+                    <button class="weather-btn" data-weather="MONSOON">
+                        <span class="weather-icon">⛈️</span>
+                        <span>Monsoon Flood</span>
+                    </button>
+                </div>
+                <p class="field-hint" id="weatherHint">Clear weather baseline model.</p>
+            </div>
+
+            <!-- Route Customizer -->
+            <div class="form-group">
+                <label>Corridor Path</label>
+                <select id="routeSelect" class="custom-select">
+                    <option value="MAIN_SILKBOARD">Main: Hosur Rd ➔ Silk Board ➔ Agara ➔ EcoSpace (21.5 km)</option>
+                    <option value="NICE_SARJAPUR">Bypass 1: NICE Rd ➔ Bannerghatta ➔ Sarjapur Bypass (26.2 km)</option>
+                    <option value="ELEVATED_OUTER">Bypass 2: E-City Flyover ➔ HSR 27th Main ➔ Bellandur (23.1 km)</option>
+                </select>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard View -->
+        <section class="dashboard-panel">
+            <!-- Hero Golden Window Advisor Card -->
+            <div class="hero-advisor-card card highlight-card" id="advisorHero">
+                <div class="advisor-top">
+                    <div class="advisor-badge">
+                        <span class="sparkle">✨</span> RECOMMENDED GOLDEN WINDOW
+                    </div>
+                    <div class="confidence-badge" id="confidenceBadge">
+                        <span>94% Confidence</span>
+                    </div>
+                </div>
+
+                <div class="advisor-main-grid">
+                    <div class="golden-window-box">
+                        <span class="box-label">Best Departure Window</span>
+                        <div class="golden-time" id="goldenTimeText">07:15 AM - 07:25 AM</div>
+                        <span class="sub-detail" id="goldenSubText">Leave before 07:25 AM to bypass Silk Board bottleneck.</span>
+                    </div>
+
+                    <div class="metric-box">
+                        <span class="box-label">Expected Commute Time</span>
+                        <div class="metric-val" id="goldenDurationText">38 Mins</div>
+                        <span class="sub-detail" id="arrivalEstText">Arrival ~07:53 AM</span>
+                    </div>
+
+                    <div class="metric-box highlight-metric">
+                        <span class="box-label">Time Saved vs Peak</span>
+                        <div class="metric-val text-success" id="timeSavedText">47 Mins Saved</div>
+                        <span class="sub-detail" id="peakCompareText">vs 85 mins at 8:30 AM peak</span>
+                    </div>
+                </div>
+
+                <!-- Acceleration Warning Alert -->
+                <div class="alert-banner warning-alert" id="accelerationAlert">
+                    <span class="alert-icon">⚠️</span>
+                    <div class="alert-content">
+                        <strong id="alertTitle">Traffic Acceleration Alert!</strong>
+                        <span id="alertDesc">Leaving just 15 minutes later (07:45 AM) will add +24 mins extra driving time due to Silk Board backup.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Scorecard Grid -->
+            <div class="scorecard-grid">
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Selected Slot</span>
+                        <span class="stat-icon">🕒</span>
+                    </div>
+                    <div class="stat-value" id="selectedSlotVal">44 Mins</div>
+                    <div class="stat-sub" id="selectedSlotSub">Departure at 07:30 AM</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Peak Congestion</span>
+                        <span class="stat-icon">🔥</span>
+                    </div>
+                    <div class="stat-value text-danger" id="peakSlotVal">85 Mins</div>
+                    <div class="stat-sub" id="peakSlotSub">Peak window at 08:30 AM</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Monthly Fuel Waste</span>
+                        <span class="stat-icon">⛽</span>
+                    </div>
+                    <div class="stat-value text-warning" id="fuelWasteVal">₹ 2,420</div>
+                    <div class="stat-sub" id="fuelWasteSub">22.5 Litres wasted in idling</div>
+                </div>
+
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Monthly Hours Saved</span>
+                        <span class="stat-icon">⌛</span>
+                    </div>
+                    <div class="stat-value text-emerald" id="monthlyHoursVal">17.2 Hrs</div>
+                    <div class="stat-sub">Productivity time regained</div>
+                </div>
+            </div>
+
+            <!-- Interactive 24-Hour Traffic Chart -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <div>
+                        <h3>24-Hour Commute Duration & Traffic Congestion Curve</h3>
+                        <p class="card-subtitle">Click or drag along the curve to analyze any departure time (15-minute resolution)</p>
+                    </div>
+                    <div class="chart-legend">
+                        <span class="legend-item"><span class="color-dot smooth"></span> Smooth (&lt;40m)</span>
+                        <span class="legend-item"><span class="color-dot moderate"></span> Moderate (40-60m)</span>
+                        <span class="legend-item"><span class="color-dot heavy"></span> Heavy (60-80m)</span>
+                        <span class="legend-item"><span class="color-dot severe"></span> Severe Gridlock (&gt;80m)</span>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="trafficCanvas"></canvas>
+                    <div class="canvas-tooltip" id="canvasTooltip"></div>
+                </div>
+            </div>
+
+            <!-- Bottleneck Node Inspector -->
+            <div class="card bottleneck-card">
+                <div class="card-header">
+                    <div>
+                        <h3>Corridor Transit Node Inspector</h3>
+                        <p class="card-subtitle">Segment delay breakdown for current selected departure (<span id="nodeInspectorTime">07:30 AM</span>)</p>
+                    </div>
+                </div>
+
+                <div class="nodes-timeline" id="nodesTimeline">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- API Settings Modal -->
+    <div class="modal-backdrop" id="apiModalBackdrop">
+        <div class="modal-card card">
+            <div class="modal-header">
+                <h3>Google Maps API Configuration</h3>
+                <button class="close-btn" id="closeApiModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">
+                    The app is currently running on the built-in <strong>Bengaluru Corridor Traffic Dataset</strong> (Zero-Setup). 
+                    If you wish to fetch real-time live traffic directly from Google Maps Distance Matrix API in production, enter your key below.
+                </p>
+                <div class="form-group">
+                    <label>Google Maps API Key</label>
+                    <input type="text" id="apiKeyInput" placeholder="AIzaSy..." class="custom-input">
+                </div>
+                <div class="form-group">
+                    <label>API Refresh Rate</label>
+                    <select id="apiRefreshSelect" class="custom-select">
+                        <option value="0">Manual / On Demand</option>
+                        <option value="5">Every 5 Minutes</option>
+                        <option value="15">Every 15 Minutes</option>
+                    </select>
+                </div>
+                <div class="api-status-box" id="apiStatusBox">
+                    <span class="status-indicator offline"></span>
+                    <span id="apiStatusText">Using Pre-compiled Bengaluru Dataset (Free / Offline)</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="clearApiKeyBtn">Clear Key & Reset</button>
+                <button class="btn btn-primary" id="saveApiKeyBtn">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
