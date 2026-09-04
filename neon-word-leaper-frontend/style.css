@@ -168,28 +168,33 @@ canvas#gameCanvas {
     box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
 }
 
-/* --- TARGET WORD CARD HUD --- */
+/* --- TARGET WORD CARD HUD (Positioned at Top under Header) --- */
 #word-hud-container {
     position: absolute;
-    bottom: 45px;
+    top: 72px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 15;
     pointer-events: none;
+    width: 90%;
+    max-width: 580px;
+    display: flex;
+    justify-content: center;
 }
 
 .word-card {
-    background: rgba(9, 12, 20, 0.92);
+    background: rgba(9, 12, 20, 0.88);
     border: 2px solid var(--neon-cyan);
-    border-radius: 16px;
-    padding: 14px 28px;
+    border-radius: 14px;
+    padding: 10px 22px;
     box-shadow: 0 0 25px rgba(0, 255, 204, 0.35), inset 0 0 15px rgba(0, 255, 204, 0.1);
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    min-width: 260px;
+    gap: 6px;
+    width: 100%;
+    max-width: 540px;
 }
 
 .word-card.glitch-shake {
@@ -601,17 +606,52 @@ canvas#gameCanvas {
 }
 
 @media (max-width: 768px) {
+    #game-hud {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+    .hud-stage {
+        min-width: 100px;
+    }
+    .hud-val {
+        font-size: 1.1rem;
+    }
+    #word-hud-container {
+        top: 60px;
+        width: 94%;
+    }
+    .word-card {
+        padding: 8px 14px;
+        gap: 4px;
+        border-radius: 12px;
+    }
+    .target-word {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
     .mobile-kb-btn {
         display: block;
     }
+    .stage-cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+        gap: 6px;
+    }
+}
+
+@media (max-height: 560px) {
+    #game-hud {
+        padding: 4px 10px;
+    }
+    #word-hud-container {
+        top: 46px;
+        width: 90%;
+    }
     .word-card {
-        padding: 10px 18px;
-        min-width: 220px;
+        padding: 6px 14px;
+        gap: 3px;
     }
     .target-word {
-        font-size: 1.6rem;
-    }
-    .stage-cards-grid {
-        grid-template-columns: 1fr;
+        font-size: 1.3rem;
+        letter-spacing: 1.5px;
     }
 }
