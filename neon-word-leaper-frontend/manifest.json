@@ -1,0 +1,21 @@
+{
+  "name": "Neon Word Leaper | Arcade Hub",
+  "short_name": "Word Leaper",
+  "description": "Fast-paced cyber typing parkour arcade game. Leap across skyscraper walls by typing words correctly.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#08090d",
+  "theme_color": "#00ffcc",
+  "icons": [
+    {
+      "src": "../icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

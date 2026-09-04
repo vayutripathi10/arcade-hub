@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Word Leaper | Arcade Hub</title>
+    <meta name="description" content="Type fast, jump far! Leap between futuristic neon skyscraper walls by typing words correctly. Survive with 3 lives and beat the highest WPM. Play free on Arcade Hub.">
+    <meta name="keywords" content="neon word leaper, typing game, parkour typing, wall jumper, word jumper, typing test game, cyber arcade game, arcade hub">
+    <link rel="canonical" href="https://arcadehubplay.com/neon-word-leaper-frontend/index.html">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Social Meta -->
+    <meta property="og:title" content="Neon Word Leaper | Arcade Hub">
+    <meta property="og:description" content="Type words correctly to leap across neon skyscraper walls! Avoid falling between gaps in this high-speed typing arcade game.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-word-leaper-frontend/index.html">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Canvas Rendering Area -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Top In-Game HUD -->
+        <header id="game-hud">
+            <div class="hud-item hud-lives" id="hudLives">
+                <span class="heart active">❤️</span>
+                <span class="heart active">❤️</span>
+                <span class="heart active">❤️</span>
+            </div>
+
+            <div class="hud-item hud-score">
+                <span class="hud-label">SCORE</span>
+                <span class="hud-val" id="scoreVal">0</span>
+            </div>
+
+            <div class="hud-item hud-combo">
+                <span class="hud-label">COMBO</span>
+                <span class="hud-val" id="comboVal">1x</span>
+            </div>
+
+            <div class="hud-item hud-wpm">
+                <span class="hud-label">WPM</span>
+                <span class="hud-val" id="wpmVal">0</span>
+            </div>
+
+            <div class="hud-controls">
+                <button id="soundBtn" class="hud-btn" title="Toggle Audio" aria-label="Toggle Sound">🔊</button>
+                <button id="pauseBtn" class="hud-btn" title="Pause Game" aria-label="Pause Game">⏸️</button>
+            </div>
+        </header>
+
+        <!-- Word Prompt Display (Overhead Target HUD) -->
+        <div id="word-hud-container">
+            <div class="word-card" id="wordCard">
+                <div class="target-word" id="targetWordDisplay">
+                    <span class="typed"></span><span class="current-letter"></span><span class="remaining">NEON</span>
+                </div>
+                <div class="word-timer-bar">
+                    <div class="timer-fill" id="timerFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Overlay Screen -->
+        <div id="startScreen" class="overlay active">
+            <div class="menu-card">
+                <div class="cyber-badge">NEW CYBER TYPING ARCADE</div>
+                <h1 class="game-title">NEON WORD<br><span class="highlight">LEAPER</span></h1>
+                <p class="game-tagline">Type correct words to power parkour wall jumps. Make a mistake or mistype, and you plunge into the abyss!</p>
+
+                <div class="how-to-box">
+                    <div class="step-item">
+                        <span class="step-icon">⌨️</span>
+                        <div>
+                            <strong>Type the Glowing Word</strong>
+                            <span>Type every letter correctly to charge the jump thruster.</span>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-icon">🏃‍♂️</span>
+                        <div>
+                            <strong>Leap Across the Skyscraper Gap</strong>
+                            <span>Completing the word launches your runner safely to the next wall.</span>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <span class="step-icon">❤️</span>
+                        <div>
+                            <strong>3 Lives & Retry Same Word</strong>
+                            <span>Mistakes cost 1 life. You respawn on the same wall to try the same word again!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="difficulty-select">
+                    <button class="diff-btn active" data-diff="easy">NOVICE (3-5 Letters)</button>
+                    <button class="diff-btn" data-diff="medium">CYBER (5-7 Letters)</button>
+                    <button class="diff-btn" data-diff="hard">OVERDRIVE (7+ Letters)</button>
+                </div>
+
+                <button id="startBtn" class="primary-btn pulse-glow">
+                    <span>START RUNNING [ SPACE ]</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseScreen" class="overlay">
+            <div class="menu-card small-card">
+                <h2>SYSTEM PAUSED</h2>
+                <p>Catch your breath, runner.</p>
+                <div class="btn-group">
+                    <button id="resumeBtn" class="primary-btn">RESUME [ ESC ]</button>
+                    <button id="restartFromPauseBtn" class="secondary-btn">RESTART</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOverScreen" class="overlay">
+            <div class="menu-card">
+                <div class="cyber-badge alert-badge">CRITICAL SYSTEM FAILURE</div>
+                <h2 class="game-over-title">RUN TERMINATED</h2>
+                <p class="game-over-sub" id="deathReason">All 3 cybernetic lives depleted in the abyss.</p>
+
+                <div class="stats-grid">
+                    <div class="stat-box highlight-stat">
+                        <span class="stat-lbl">FINAL SCORE</span>
+                        <span class="stat-val" id="finalScoreVal">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">HIGH SCORE</span>
+                        <span class="stat-val text-cyan" id="highScoreVal">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">AVERAGE WPM</span>
+                        <span class="stat-val text-emerald" id="finalWpmVal">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">ACCURACY</span>
+                        <span class="stat-val text-amber" id="finalAccVal">100%</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">WALLS LEAPED</span>
+                        <span class="stat-val" id="finalWallsVal">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">MAX COMBO</span>
+                        <span class="stat-val text-purple" id="finalComboVal">0x</span>
+                    </div>
+                </div>
+
+                <button id="restartBtn" class="primary-btn pulse-glow">
+                    <span>LEAP AGAIN [ SPACE ]</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Touch Keyboard Toggle / Hidden Input for Mobile Soft Keyboard -->
+        <input type="text" id="mobileInput" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
+        <button id="mobileKbBtn" class="mobile-kb-btn" title="Open Keyboard">⌨️ Touch to Type</button>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

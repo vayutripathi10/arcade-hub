@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Play Neon Word Leaper unblocked for free on Arcade Hub. High-speed cyberpunk typing parkour game where typing words correctly powers wall-jumps across neon skyscraper rooftops.">
+    <meta name="keywords" content="neon word leaper, play neon word leaper, typing games online, typing speed test game, cyber parkour game, wall jump typing game, unblocked typing game, arcade hub">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/play-neon-word-leaper">
+    <title>Play Neon Word Leaper Unblocked - Cyber Typing Parkour Game | Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0 !important;
+            width: 100%;
+            height: 100%;
+            overflow: hidden !important;
+            display: block !important;
+        }
+        .play-root { background-color: #06070a; color: #cbd5e1; font-family: 'Outfit', sans-serif; height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 20px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
+        .play-console-holder { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 12px; }
+        .play-console { 
+            width: 100%; 
+            height: 750px; 
+            height: min(750px, calc(100vh - 180px)); 
+            height: min(750px, calc(100dvh - 180px)); 
+            background: #0d0e12; 
+            border: 3px solid #00ffcc; 
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.25); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
+        .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .play-iframe { width: 100%; height: 100%; border: none; display: block; }
+        .console-actions { display: flex; justify-content: flex-end; }
+        .fullscreen-btn {
+            background: rgba(13, 14, 18, 0.7);
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            transition: all 0.25s ease;
+        }
+        .fullscreen-btn:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-sizing: border-box; }
+        .play-info-section h1, .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
+        .play-info-section h3 { color: #00ffcc; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+        .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
+        .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
+        .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
+        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .faq-accordion { margin-top: 20px; }
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0; }
+        .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
+        .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+        @media (max-width: 768px) {
+            .play-main-container { padding: 10px 0; gap: 16px; }
+            .play-console { height: 70dvh; border-left: none; border-right: none; border-radius: 0; }
+            .play-info-section { padding: 20px; margin: 0 10px; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        body, .play-root, .play-console-wrapper, .play-console-holder, .play-console, .play-iframe, .fullscreen-btn, .menu-toggle-btn, .sidebar-nav {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .play-info-section, .play-info-section * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+    </style>
+    
+    <!-- Open Graph & Social Sharing -->
+    <meta property="og:title" content="Play Neon Word Leaper Unblocked - Free Cyber Typing Parkour Game | Arcade Hub">
+    <meta property="og:description" content="Type fast, leap far! Powered by your typing accuracy, jump across skyscraper walls in this fast-paced neon arcade game. Free with zero downloads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/play-neon-word-leaper">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Play Neon Word Leaper Unblocked | Arcade Hub">
+    <meta name="twitter:description" content="Type words to leap between skyscraper walls. 3 lives retry system, WPM counter, combo boosts.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "VideoGame",
+                "name": "Neon Word Leaper",
+                "url": "https://arcadehubplay.com/play-neon-word-leaper",
+                "description": "Fast-paced cyber typing parkour game where typing words correctly powers wall-jumps across futuristic skyscraper rooftops.",
+                "image": "https://arcadehubplay.com/favicon.png",
+                "genre": ["Typing", "Arcade", "Action", "Educational"],
+                "gamePlatform": ["Web Browser", "Desktop", "Mobile"],
+                "applicationCategory": "Game",
+                "operatingSystem": "Any",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                }
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://arcadehubplay.com/"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "Neon Word Leaper",
+                        "item": "https://arcadehubplay.com/play-neon-word-leaper"
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <div class="play-root">
+        <!-- Site Navigation Bar -->
+        <header class="navbar" style="position: relative; z-index: 100;">
+            <div class="nav-left">
+                <button id="menu-toggle" class="menu-toggle-btn" aria-label="Open Navigation">☰</button>
+                <a href="/" class="logo-link" style="text-decoration: none;">
+                    <span class="logo-text">ARCADE<span class="logo-accent">HUB</span></span>
+                </a>
+            </div>
+            <nav class="nav-right">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/utility-hub" class="nav-link">Utility Hub</a>
+                <a href="/achievements" class="nav-link">Trophies</a>
+                <a href="/updates" class="nav-link">News</a>
+            </nav>
+        </header>
+
+        <!-- Sidebar Drawer Navigation -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+        <aside id="sidebar" class="sidebar-nav">
+            <div class="sidebar-header">
+                <span class="sidebar-title">Menu</span>
+                <button id="menu-close" class="menu-close-btn" aria-label="Close Navigation">✕</button>
+            </div>
+            <div class="sidebar-links">
+                <a href="/" class="sidebar-link">🏠 Home</a>
+                <a href="/retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+                <a href="/achievements" class="sidebar-link">🏆 Trophy Room</a>
+                <a href="/utility-hub" class="sidebar-link">⚙️ Utility Hub</a>
+                <a href="/updates" class="sidebar-link">📰 News & Updates</a>
+                <a href="/about" class="sidebar-link">ℹ️ About Us</a>
+            </div>
+        </aside>
+
+        <!-- Main Game Area -->
+        <main class="play-main-container">
+            <div class="play-console-wrapper">
+                <div class="play-console-holder">
+                    <div class="play-console" id="play-console">
+                        <iframe src="neon-word-leaper-frontend/index.html" class="play-iframe" id="game-frame" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
+                    </div>
+                    <div class="console-actions">
+                        <button class="fullscreen-btn" id="fullscreen-btn" aria-label="Toggle Fullscreen Mode">
+                            <span>⛶ Fullscreen</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO & How to Play Info Section -->
+            <article class="play-info-section">
+                <h1>Neon Word Leaper – Fast-Paced Cyberpunk Typing Parkour</h1>
+                <p><strong>Neon Word Leaper</strong> is an exhilarating, high-velocity typing game that transforms your keyboard typing speed and accuracy into high-flying parkour acrobatics! Perched on towering neon skyscraper walls above an endless sci-fi abyss, you must type the holographic words appearing on the next platform to power your jump thrusters and leap across the gap.</p>
+
+                <div class="play-grid-2">
+                    <div>
+                        <h3>🎮 How to Play</h3>
+                        <ul>
+                            <li><strong>Type the Target Word:</strong> Look at the target word above the next wall. Press each key on your keyboard in order.</li>
+                            <li><strong>Execute the Leap:</strong> Finishing the word instantly launches your cyber runner in an acrobatic 360° parkour leap to land safely on the next wall!</li>
+                            <li><strong>3-Life Retry System:</strong> If you mistype a letter or the timer runs out, your runner falls into the gap and loses 1 life (❤️❤️❤️). You respawn on the same wall with the <em>same word</em> to conquer it!</li>
+                            <li><strong>Build Combos:</strong> String together consecutive words without errors to rack up huge $2\times, 3\times, 4\times$ combo multipliers!</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3>⚡ Game Features</h3>
+                        <ul>
+                            <li><strong>Real-time WPM & Accuracy:</strong> Track your Words Per Minute (WPM) and typing accuracy live as you play.</li>
+                            <li><strong>3 Difficulty Tiers:</strong> Choose Novice (3-5 letter words), Cyber (5-7 letter words), or Overdrive (7-10+ letter tech words).</li>
+                            <li><strong>Full Synthesizer Audio:</strong> Procedural sound effects for mechanical keyboard clicks, acrobatic whooshes, landing impacts, and glitch alerts.</li>
+                            <li><strong>Zero Downloads:</strong> 100% free, runs client-side in any desktop or mobile browser with offline PWA support.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Frequently Asked Questions (FAQ)</h3>
+                <div class="faq-accordion">
+                    <div class="faq-item">
+                        <div class="faq-question">How does the 3-life retry system work in Neon Word Leaper?</div>
+                        <div class="faq-answer">You start each run with 3 Cyber Lives. If you mistype a letter or run out of time, you lose 1 life and plunge down the gap, but you immediately respawn on the exact same wall with the same word so you can master difficult words without losing your level progress. Once all 3 lives are depleted, your run ends.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Can I play Neon Word Leaper on mobile phones or tablets?</div>
+                        <div class="faq-answer">Yes! Neon Word Leaper features an on-screen touch keyboard toggle button that opens your device's virtual keyboard, allowing you to practice fast mobile typing on iOS, iPadOS, and Android.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Does Neon Word Leaper save high scores?</div>
+                        <div class="faq-answer">Yes, your personal best score, peak combo streak, and average WPM are saved automatically in your browser's local storage so you can continually challenge yourself to beat your records.</div>
+                    </div>
+                </div>
+            </article>
+        </main>
+    </div>
+
+    <script>
+        // Fullscreen Toggle
+        const consoleEl = document.getElementById('play-console');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (consoleEl.requestFullscreen) {
+                    consoleEl.requestFullscreen();
+                } else if (consoleEl.webkitRequestFullscreen) {
+                    consoleEl.webkitRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Sidebar Navigation Toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            sidebarOverlay.classList.toggle('active');
+        }
+
+        menuToggle.addEventListener('click', toggleSidebar);
+        menuClose.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    </script>
+</body>
+</html>
