@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=ArcadeHub_WordLeaper_v3">
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_WordLeaper_v4">
 </head>
 <body>
     <div id="game-container">
@@ -31,10 +31,18 @@
 
         <!-- Top In-Game HUD -->
         <header id="game-hud">
-            <div class="hud-item hud-lives" id="hudLives">
+            <div class="hud-item hud-lives" id="hudLives" title="Cyber Lives">
                 <span class="heart active">❤️</span>
                 <span class="heart active">❤️</span>
                 <span class="heart active">❤️</span>
+            </div>
+
+            <div class="hud-item hud-stage">
+                <span class="hud-label" id="stageLabel">STAGE 1</span>
+                <div class="stage-progress-bar">
+                    <div class="stage-fill" id="stageFill"></div>
+                </div>
+                <span class="stage-count" id="stageWordCount">0/10 Words</span>
             </div>
 
             <div class="hud-item hud-score">
@@ -70,45 +78,55 @@
             </div>
         </div>
 
-        <!-- Start Overlay Screen -->
+        <!-- Stage Selection / Main Menu Screen -->
         <div id="startScreen" class="overlay active">
             <div class="menu-card">
-                <div class="cyber-badge">NEW CYBER TYPING ARCADE</div>
+                <div class="cyber-badge">NEW CYBERPARKOUR ARCADE</div>
                 <h1 class="game-title">NEON WORD<br><span class="highlight">LEAPER</span></h1>
-                <p class="game-tagline">Type correct words to power parkour wall jumps. Make a mistake or mistype, and you plunge into the abyss!</p>
+                <p class="game-tagline">Type glowing target words to jump across towering skyscraper walls. Conquer each stage to advance!</p>
+
+                <!-- Stage Selection Cards -->
+                <div class="stage-select-header">SELECT STAGE</div>
+                <div class="stage-cards-grid">
+                    <div class="stage-card active" data-stage="1">
+                        <div class="stage-badge">STAGE 1</div>
+                        <div class="stage-name">Cyber Rooftops</div>
+                        <div class="stage-info">10 Words • 3-5 Letters</div>
+                        <div class="stage-req">Goal: 10 Words</div>
+                    </div>
+                    <div class="stage-card" data-stage="2">
+                        <div class="stage-badge">STAGE 2</div>
+                        <div class="stage-name">Neon Megacity</div>
+                        <div class="stage-info">15 Words • 5-7 Letters</div>
+                        <div class="stage-req">Goal: 15 Words</div>
+                    </div>
+                    <div class="stage-card" data-stage="3">
+                        <div class="stage-badge">STAGE 3</div>
+                        <div class="stage-name">Quantum Orbit</div>
+                        <div class="stage-info">20 Words • 7+ Letters</div>
+                        <div class="stage-req">Goal: 20 Words</div>
+                    </div>
+                </div>
 
                 <div class="how-to-box">
                     <div class="step-item">
                         <span class="step-icon">⌨️</span>
                         <div>
-                            <strong>Type the Glowing Word</strong>
-                            <span>Type every letter correctly to charge the jump thruster.</span>
-                        </div>
-                    </div>
-                    <div class="step-item">
-                        <span class="step-icon">🏃‍♂️</span>
-                        <div>
-                            <strong>Leap Across the Skyscraper Gap</strong>
-                            <span>Completing the word launches your runner safely to the next wall.</span>
+                            <strong>Type the Glowing Target Word</strong>
+                            <span>Press letters sequentially on your keyboard to power the leap thrusters.</span>
                         </div>
                     </div>
                     <div class="step-item">
                         <span class="step-icon">❤️</span>
                         <div>
-                            <strong>3 Lives & Retry Same Word</strong>
-                            <span>Mistakes cost 1 life. You respawn on the same wall to try the same word again!</span>
+                            <strong>3 Lives & Same-Word Retry</strong>
+                            <span>Mistakes deduct 1 life and plunge you into the gap, respawning on the same word!</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="difficulty-select">
-                    <button class="diff-btn active" data-diff="easy">NOVICE (3-5 Letters)</button>
-                    <button class="diff-btn" data-diff="medium">CYBER (5-7 Letters)</button>
-                    <button class="diff-btn" data-diff="hard">OVERDRIVE (7+ Letters)</button>
-                </div>
-
                 <button id="startBtn" class="primary-btn pulse-glow">
-                    <span>START RUNNING [ SPACE ]</span>
+                    <span>START STAGE 1 [ SPACE ]</span>
                 </button>
             </div>
         </div>
@@ -120,7 +138,37 @@
                 <p>Catch your breath, runner.</p>
                 <div class="btn-group">
                     <button id="resumeBtn" class="primary-btn">RESUME [ ESC ]</button>
-                    <button id="restartFromPauseBtn" class="secondary-btn">RESTART</button>
+                    <button id="restartFromPauseBtn" class="secondary-btn">RESTART STAGE</button>
+                    <button id="stageSelectFromPauseBtn" class="secondary-btn btn-amber">STAGE SELECTION ☰</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stage Complete Overlay -->
+        <div id="stageCompleteScreen" class="overlay">
+            <div class="menu-card">
+                <div class="cyber-badge victory-badge">MISSION ACCOMPLISHED</div>
+                <h2 class="victory-title" id="stageClearedTitle">STAGE 1 CLEARED!</h2>
+                <div class="star-rating" id="starRating">⭐⭐⭐</div>
+
+                <div class="stats-grid">
+                    <div class="stat-box highlight-stat">
+                        <span class="stat-lbl">STAGE SCORE</span>
+                        <span class="stat-val text-cyan" id="stageScoreVal">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">AVERAGE WPM</span>
+                        <span class="stat-val text-emerald" id="stageWpmVal">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-lbl">ACCURACY</span>
+                        <span class="stat-val text-amber" id="stageAccVal">100%</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="nextStageBtn" class="primary-btn pulse-glow">NEXT STAGE ▶</button>
+                    <button id="stageSelectFromVictoryBtn" class="secondary-btn">STAGE SELECTION ☰</button>
                 </div>
             </div>
         </div>
@@ -150,7 +198,7 @@
                         <span class="stat-val text-amber" id="finalAccVal">100%</span>
                     </div>
                     <div class="stat-box">
-                        <span class="stat-lbl">WALLS LEAPED</span>
+                        <span class="stat-lbl">WORDS LEAPED</span>
                         <span class="stat-val" id="finalWallsVal">0</span>
                     </div>
                     <div class="stat-box">
@@ -159,17 +207,18 @@
                     </div>
                 </div>
 
-                <button id="restartBtn" class="primary-btn pulse-glow">
-                    <span>LEAP AGAIN [ SPACE ]</span>
-                </button>
+                <div class="btn-group">
+                    <button id="restartBtn" class="primary-btn pulse-glow">RETRY STAGE [ SPACE ]</button>
+                    <button id="stageSelectFromGameOverBtn" class="secondary-btn btn-amber">STAGE SELECTION ☰</button>
+                </div>
             </div>
         </div>
 
-        <!-- Mobile Touch Keyboard Toggle / Hidden Input for Mobile Soft Keyboard -->
+        <!-- Mobile Soft Keyboard Trigger -->
         <input type="text" id="mobileInput" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
         <button id="mobileKbBtn" class="mobile-kb-btn" title="Open Keyboard">⌨️ Touch to Type</button>
     </div>
 
-    <script src="game.js?v=ArcadeHub_WordLeaper_v3"></script>
+    <script src="game.js?v=ArcadeHub_WordLeaper_v4"></script>
 </body>
 </html>
