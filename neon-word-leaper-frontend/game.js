@@ -12,6 +12,7 @@
         1: {
             name: "Cyber Rooftops",
             targetWords: 10,
+            caseSensitive: false,
             pool: [
                 "NEON", "CYBER", "GRID", "SYNC", "JUMP", "RUN", "DASH", "LEAP", "WALL",
                 "DATA", "CHIP", "CORE", "FAST", "FLOW", "CODE", "GLOW", "BEAM", "VOLT",
@@ -30,6 +31,7 @@
         2: {
             name: "Neon Megacity",
             targetWords: 15,
+            caseSensitive: false,
             pool: [
                 "MATRIX", "SIGNAL", "VECTOR", "RUNNER", "CHROME", "CIRCUIT", "SHADOW", "CYBORG",
                 "ROUTER", "SYNTH", "ENERGY", "THRUST", "SYSTEM", "VELOCITY", "ENGINE", "FLIGHT",
@@ -48,6 +50,7 @@
         3: {
             name: "Quantum Orbit",
             targetWords: 20,
+            caseSensitive: false,
             pool: [
                 "QUANTUM", "OVERDRIVE", "MAINFRAME", "CYBERSPACE", "HYPERDRIVE", "ACCELERATE",
                 "ALGORITHM", "ENCRYPTION", "BANDWIDTH", "MICROPROCESSOR", "SUPERCONDUCTOR",
@@ -61,6 +64,54 @@
                 skyTop: "#120703",
                 skyMid: "#2b0f06",
                 skyBot: "#0a0301"
+            }
+        },
+        4: {
+            name: "Title Case Protocol",
+            targetWords: 15,
+            caseSensitive: true,
+            pool: [
+                "Apple", "Matrix", "Cyber", "Quantum", "Neon", "Voltage", "Galaxy", "Shadow",
+                "Laser", "Pulse", "Runner", "Titan", "Beacon", "Circuit", "Shield", "Rocket",
+                "Plasma", "Velocity", "Cosmos", "Engine", "Future", "System", "Network", "Vector",
+                "Digital", "Gravity", "Stream", "Horizon", "Dynamic", "Reflex", "Orbital", "Vortex"
+            ],
+            theme: {
+                primary: "#8b5cf6",
+                secondary: "#ec4899",
+                scarf: "#a78bfa",
+                skyTop: "#0f051d",
+                skyMid: "#1e0b38",
+                skyBot: "#090214"
+            }
+        },
+        5: {
+            name: "Sentence Overdrive",
+            targetWords: 10,
+            caseSensitive: true,
+            pool: [
+                "This is a boy",
+                "The cyber runner leaps",
+                "Code powers the future",
+                "Master the neon skyline",
+                "Type fast to survive",
+                "Speed and precision win",
+                "A quick leap saves you",
+                "Jump through neon rain",
+                "Run across skyscrapers",
+                "Defy gravity with speed",
+                "Never miss a single step",
+                "Keep your focus sharp",
+                "Sprint towards victory",
+                "The future is now"
+            ],
+            theme: {
+                primary: "#ef4444",
+                secondary: "#f97316",
+                scarf: "#fb923c",
+                skyTop: "#1a0505",
+                skyMid: "#2e0b0b",
+                skyBot: "#0d0202"
             }
         }
     };
@@ -485,13 +536,14 @@
         }
         typedIndex = 0;
         wordTimer = 1.0;
-        wordTimeLimit = 20.0;
+        wordTimeLimit = currentStage >= 5 ? 30.0 : 20.0;
 
         updateWordDisplay();
         updateStageProgressHUD();
     }
 
     function updateWordDisplay() {
+        const wordDisplay = document.getElementById('targetWordDisplay');
         const typedSpan = document.querySelector('#targetWordDisplay .typed');
         const currSpan = document.querySelector('#targetWordDisplay .current-letter');
         const remSpan = document.querySelector('#targetWordDisplay .remaining');
@@ -501,8 +553,28 @@
         const remaining = targetWord.substring(typedIndex + 1);
 
         typedSpan.innerText = typed;
-        currSpan.innerText = current;
+
+        if (current === ' ') {
+            currSpan.className = 'current-letter is-space';
+            currSpan.innerText = '␣';
+        } else {
+            currSpan.className = 'current-letter';
+            currSpan.innerText = current;
+        }
+
         remSpan.innerText = remaining;
+
+        // Dynamic font sizing for long phrases/sentences
+        if (targetWord.length > 22) {
+            wordDisplay.style.fontSize = '1.45rem';
+            wordDisplay.style.letterSpacing = '1px';
+        } else if (targetWord.length > 13) {
+            wordDisplay.style.fontSize = '1.75rem';
+            wordDisplay.style.letterSpacing = '2px';
+        } else {
+            wordDisplay.style.fontSize = '2.1rem';
+            wordDisplay.style.letterSpacing = '3px';
+        }
 
         const timerFill = document.getElementById('timerFill');
         timerFill.style.width = `${Math.max(0, wordTimer * 100)}%`;
@@ -516,7 +588,8 @@
     function updateStageProgressHUD() {
         const cfg = STAGE_CONFIGS[currentStage];
         document.getElementById('stageLabel').innerText = `STAGE ${currentStage}`;
-        document.getElementById('stageWordCount').innerText = `${stageWordsCompleted}/${cfg.targetWords} Words`;
+        const unit = currentStage >= 5 ? 'Lines' : 'Words';
+        document.getElementById('stageWordCount').innerText = `${stageWordsCompleted}/${cfg.targetWords} ${unit}`;
         const pct = Math.min(100, (stageWordsCompleted / cfg.targetWords) * 100);
         document.getElementById('stageFill').style.width = `${pct}%`;
     }
@@ -526,12 +599,16 @@
 
         totalKeystrokes++;
         const expectedChar = targetWord.charAt(typedIndex);
+        const cfg = STAGE_CONFIGS[currentStage];
+        const isCaseSensitive = !!cfg.caseSensitive;
 
-        if (char.toUpperCase() === expectedChar.toUpperCase()) {
+        const isMatch = isCaseSensitive ? (char === expectedChar) : (char.toUpperCase() === expectedChar.toUpperCase());
+
+        if (isMatch) {
             correctKeystrokes++;
             typedIndex++;
             sound.playKeyClick();
-            createSparks(runner.x, runner.y - 35, STAGE_CONFIGS[currentStage].theme.primary, 8);
+            createSparks(runner.x, runner.y - 35, cfg.theme.primary, 8);
 
             if (typedIndex >= targetWord.length) {
                 onWordCompleted();
@@ -1503,7 +1580,7 @@
         document.getElementById('stageAccVal').innerText = `${accuracy}%`;
 
         const nextBtn = document.getElementById('nextStageBtn');
-        if (currentStage >= 3) {
+        if (currentStage >= 5) {
             nextBtn.innerText = "PLAY AGAIN [ STAGE 1 ]";
         } else {
             nextBtn.innerText = `NEXT STAGE (STAGE ${currentStage + 1}) ▶`;
@@ -1613,7 +1690,7 @@
             if (gameState === 'STAGE_COMPLETE') {
                 if (e.code === 'Space' || e.key === 'Enter') {
                     e.preventDefault();
-                    const nextStage = currentStage >= 3 ? 1 : currentStage + 1;
+                    const nextStage = currentStage >= 5 ? 1 : currentStage + 1;
                     startGame(nextStage);
                 }
                 return;
@@ -1625,7 +1702,8 @@
                     return;
                 }
 
-                if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+                // Handle all printable characters (letters, numbers, space, punctuation)
+                if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
                     e.preventDefault();
                     handleTypingInput(e.key);
                 }
@@ -1662,7 +1740,7 @@
         document.getElementById('stageSelectFromGameOverBtn').addEventListener('click', returnToStageSelect);
 
         document.getElementById('nextStageBtn').addEventListener('click', () => {
-            const nextStage = currentStage >= 3 ? 1 : currentStage + 1;
+            const nextStage = currentStage >= 5 ? 1 : currentStage + 1;
             startGame(nextStage);
         });
 
@@ -1683,7 +1761,7 @@
             });
 
             mobileInput.addEventListener('beforeinput', (e) => {
-                if (e.data && /[a-zA-Z]/.test(e.data)) {
+                if (e.data && e.data.length === 1) {
                     e.preventDefault();
                     handleTypingInput(e.data);
                 }
