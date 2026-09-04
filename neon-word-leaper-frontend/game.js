@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NEON WORD LEAPER - CYBERPARKOUR TYPING GAME ENGINE (FIXED & POLISHED)
+   NEON WORD LEAPER - CYBERPARKOUR TYPING GAME ENGINE (STABLE V3)
    ========================================================================== */
 
 (function () {
@@ -13,7 +13,7 @@
             "NEON", "CYBER", "GRID", "SYNC", "JUMP", "RUN", "DASH", "LEAP", "WALL",
             "DATA", "CHIP", "CORE", "FAST", "FLOW", "CODE", "GLOW", "BEAM", "VOLT",
             "BYTE", "PIXEL", "NODE", "HACK", "LASER", "PULSE", "SHIFT", "POWER", "SPARK",
-            "CITY", "WAVE", "SURGE", "BLADE", "LINK", "EDGE", "WARP", "LOCK", "PATH"
+            "CITY", "WAVE", "SURGE", "BLADE", "LINK", "EDGE", "WARP", "LOCK", "PATH", "WATER"
         ],
         cyber: [
             "MATRIX", "SIGNAL", "VECTOR", "RUNNER", "CHROME", "CIRCUIT", "SHADOW", "CYBORG",
@@ -30,13 +30,12 @@
     };
 
     // -------------------------------------------------------------------------
-    // 2. AUDIO SYNTHESIZER (WEB AUDIO API - CLEAN & SAFE)
+    // 2. AUDIO SYNTHESIZER (WEB AUDIO API - BULLETPROOF & CLEAN)
     // -------------------------------------------------------------------------
     class SoundEngine {
         constructor() {
             this.ctx = null;
             this.muted = false;
-            this.activeOscillators = [];
         }
 
         init() {
@@ -51,22 +50,12 @@
             }
         }
 
-        stopAll() {
-            this.activeOscillators.forEach(osc => {
-                try {
-                    osc.stop();
-                    osc.disconnect();
-                } catch (e) {}
-            });
-            this.activeOscillators = [];
-        }
-
         playKeyClick() {
             if (this.muted || !this.ctx) return;
             try {
+                const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                const now = this.ctx.currentTime;
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(650 + Math.random() * 150, now);
                 osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
@@ -82,9 +71,9 @@
         playJump() {
             if (this.muted || !this.ctx) return;
             try {
+                const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                const now = this.ctx.currentTime;
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(240, now);
                 osc.frequency.exponentialRampToValueAtTime(750, now + 0.22);
@@ -100,9 +89,9 @@
         playLand() {
             if (this.muted || !this.ctx) return;
             try {
+                const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                const now = this.ctx.currentTime;
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(160, now);
                 osc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
@@ -118,9 +107,9 @@
         playMistake() {
             if (this.muted || !this.ctx) return;
             try {
+                const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                const now = this.ctx.currentTime;
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, now);
                 osc.frequency.linearRampToValueAtTime(70, now + 0.25);
@@ -136,9 +125,9 @@
         playRespawn() {
             if (this.muted || !this.ctx) return;
             try {
+                const now = this.ctx.currentTime;
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
-                const now = this.ctx.currentTime;
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(280, now);
                 osc.frequency.exponentialRampToValueAtTime(550, now + 0.18);
@@ -153,7 +142,6 @@
 
         playGameOver() {
             if (this.muted || !this.ctx) return;
-            this.stopAll();
             try {
                 const notes = [300, 260, 220, 160];
                 notes.forEach((freq, idx) => {
@@ -206,7 +194,7 @@
     let targetWord = "";
     let typedIndex = 0;
     let wordTimer = 1.0; // 1.0 -> 0.0
-    let wordTimeLimit = 16.0; // Generous 16 seconds per word so players can type comfortably
+    let wordTimeLimit = 20.0; // Very generous 20 seconds so players never feel rushed
 
     // Camera & World Coordinates
     let cameraX = 0;
@@ -329,7 +317,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 5. WORD GENERATOR & TYPING HANDLER
+    // 5. WORD GENERATOR & TYPING HANDLER (FIXED)
     // -------------------------------------------------------------------------
     function getRandomWord() {
         let pool = WORD_POOLS[difficulty] || WORD_POOLS.novice;
@@ -342,10 +330,7 @@
         }
         typedIndex = 0;
         wordTimer = 1.0;
-        
-        // Generous time limit (16+ seconds per word) so typing feels fun, not punishing
-        const baseSeconds = Math.max(16, targetWord.length * 2.5);
-        wordTimeLimit = baseSeconds;
+        wordTimeLimit = 20.0;
 
         updateWordDisplay();
     }
@@ -372,6 +357,7 @@
         }
     }
 
+    // PURE SINGLE-POINT TYPING HANDLER
     function handleTypingInput(char) {
         if (gameState !== 'PLAYING') return;
 
@@ -392,7 +378,7 @@
                 updateWordDisplay();
             }
         } else {
-            // Typo / Wrong Letter -> Trigger Fall & Lose 1 Life on Same Word!
+            // Typo / Wrong Letter
             onTypingMistake();
         }
     }
@@ -464,7 +450,6 @@
     // 6. RUNNER PHYSICS & PARTICLES
     // -------------------------------------------------------------------------
     function updateRunner(dt) {
-        // Particle trails
         if (runner.state === 'JUMPING' || runner.state === 'FALLING') {
             runner.trail.push({ x: runner.x, y: runner.y, alpha: 1.0, color: runner.state === 'JUMPING' ? '#00ffcc' : '#ef4444' });
         }
@@ -476,7 +461,7 @@
         }
 
         if (runner.state === 'JUMPING') {
-            runner.jumpProgress += dt * 1.8; // Leap duration ~0.55s
+            runner.jumpProgress += dt * 1.8;
             if (runner.jumpProgress >= 1.0) {
                 // Land on next wall!
                 runner.jumpProgress = 1.0;
@@ -509,7 +494,7 @@
         } else if (runner.state === 'FALLING') {
             runner.x += runner.vx;
             runner.y += runner.vy;
-            runner.vy += 22 * dt; // Gravity
+            runner.vy += 22 * dt;
             runner.angle += 6 * dt;
 
             // Check if fallen below screen
@@ -601,7 +586,6 @@
         const drawX = runner.x - camX;
         const drawY = runner.y;
 
-        // Draw Trail
         for (const t of runner.trail) {
             ctx.fillStyle = t.color;
             ctx.globalAlpha = t.alpha * 0.4;
@@ -613,12 +597,11 @@
         ctx.translate(drawX, drawY - 24);
         ctx.rotate(runner.angle);
 
-        // Cyberpunk Ninja / Runner Sprite Drawing
         if (runner.state === 'RESPAWNING') {
             ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.02) * 0.5;
         }
 
-        // Glowing Thruster Pack / Scarf
+        // Glowing Thruster Pack
         ctx.fillStyle = '#00ffcc';
         ctx.shadowColor = '#00ffcc';
         ctx.shadowBlur = 12;
@@ -802,11 +785,6 @@
 
         initWalls();
         setNextWord(false);
-
-        const mobileInput = document.getElementById('mobileInput');
-        if (mobileInput) {
-            mobileInput.focus();
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -822,14 +800,12 @@
         canvas.width = width;
         canvas.height = height;
 
-        // Auto-focus window & mobile input on game click
+        // Auto focus window on click
         document.getElementById('game-container').addEventListener('click', () => {
             window.focus();
-            const mobileInput = document.getElementById('mobileInput');
-            if (mobileInput) mobileInput.focus();
         });
 
-        // Physical Keyboard Listener
+        // PHYSICAL KEYBOARD LISTENER - SINGLE SOURCE OF TRUTH
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') e.preventDefault();
 
@@ -859,7 +835,7 @@
             }
         });
 
-        // Mobile Soft Input Support
+        // Mobile Soft Input Button
         const mobileInput = document.getElementById('mobileInput');
         const mobileKbBtn = document.getElementById('mobileKbBtn');
 
@@ -869,14 +845,12 @@
                 mobileInput.focus();
             });
 
-            mobileInput.addEventListener('input', (e) => {
-                if (e.data && e.data.length > 0) {
-                    const lastChar = e.data.charAt(e.data.length - 1);
-                    if (/[a-zA-Z]/.test(lastChar)) {
-                        handleTypingInput(lastChar);
-                    }
+            // Only on mobile soft keyboards
+            mobileInput.addEventListener('beforeinput', (e) => {
+                if (e.data && /[a-zA-Z]/.test(e.data)) {
+                    e.preventDefault();
+                    handleTypingInput(e.data);
                 }
-                mobileInput.value = '';
             });
         }
 
