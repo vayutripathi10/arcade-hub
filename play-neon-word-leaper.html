@@ -94,6 +94,27 @@
             -ms-user-select: text;
             user-select: text;
         }
+
+        /* iOS Fullscreen fallback */
+        .play-console.css-fullscreen-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06070a !important;
+        }
+        body.css-fullscreen-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+        }
     </style>
     
     <!-- Open Graph & Social Sharing -->
@@ -152,49 +173,46 @@
     </script>
 </head>
 <body>
+    <!-- Floating Hamburger Menu Button (Standard Arcade Hub pattern) -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer (Full Menu) -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="pdf-tools" class="sidebar-link">🛠️ PDF Tools</a>
+            <a href="utility-hub" class="sidebar-link">⚙️ Utility Hub</a>
+            <a href="traffic-assumption-frontend/index.html" class="sidebar-link">🚦 Traffic Optimizer</a>
+            <a href="blog" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="updates" class="sidebar-link">📰 News & Updates</a>
+            <a href="about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
+        </div>
+    </nav>
+
     <div class="play-root">
-        <!-- Site Navigation Bar -->
-        <header class="navbar" style="position: relative; z-index: 100;">
-            <div class="nav-left">
-                <button id="menu-toggle" class="menu-toggle-btn" aria-label="Open Navigation">☰</button>
-                <a href="/" class="logo-link" style="text-decoration: none;">
-                    <span class="logo-text">ARCADE<span class="logo-accent">HUB</span></span>
-                </a>
-            </div>
-            <nav class="nav-right">
-                <a href="/" class="nav-link">Home</a>
-                <a href="/utility-hub" class="nav-link">Utility Hub</a>
-                <a href="/achievements" class="nav-link">Trophies</a>
-                <a href="/updates" class="nav-link">News</a>
-            </nav>
-        </header>
-
-        <!-- Sidebar Drawer Navigation -->
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
-        <aside id="sidebar" class="sidebar-nav">
-            <div class="sidebar-header">
-                <span class="sidebar-title">Menu</span>
-                <button id="menu-close" class="menu-close-btn" aria-label="Close Navigation">✕</button>
-            </div>
-            <div class="sidebar-links">
-                <a href="/" class="sidebar-link">🏠 Home</a>
-                <a href="/retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
-                <a href="/achievements" class="sidebar-link">🏆 Trophy Room</a>
-                <a href="/utility-hub" class="sidebar-link">⚙️ Utility Hub</a>
-                <a href="/updates" class="sidebar-link">📰 News & Updates</a>
-                <a href="/about" class="sidebar-link">ℹ️ About Us</a>
-            </div>
-        </aside>
-
         <!-- Main Game Area -->
         <main class="play-main-container">
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
-                    <div class="play-console" id="play-console">
-                        <iframe src="neon-word-leaper-frontend/index.html" class="play-iframe" id="game-frame" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
+                    <div class="play-console" id="playConsoleContainer">
+                        <iframe src="neon-word-leaper-frontend/index.html" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
                     </div>
                     <div class="console-actions">
-                        <button class="fullscreen-btn" id="fullscreen-btn" aria-label="Toggle Fullscreen Mode">
+                        <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle Fullscreen Mode">
                             <span>⛶ Fullscreen</span>
                         </button>
                     </div>
@@ -213,7 +231,7 @@
                             <li><strong>Type the Target Word:</strong> Look at the target word above the next wall. Press each key on your keyboard in order.</li>
                             <li><strong>Execute the Leap:</strong> Finishing the word instantly launches your cyber runner in an acrobatic 360° parkour leap to land safely on the next wall!</li>
                             <li><strong>3-Life Retry System:</strong> If you mistype a letter or the timer runs out, your runner falls into the gap and loses 1 life (❤️❤️❤️). You respawn on the same wall with the <em>same word</em> to conquer it!</li>
-                            <li><strong>Build Combos:</strong> String together consecutive words without errors to rack up huge $2\times, 3\times, 4\times$ combo multipliers!</li>
+                            <li><strong>Build Combos:</strong> String together consecutive words without errors to rack up huge 2x, 3x, 4x combo multipliers!</li>
                         </ul>
                     </div>
 
@@ -249,37 +267,62 @@
 
     <script>
         // Fullscreen Toggle
-        const consoleEl = document.getElementById('play-console');
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
-
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                if (consoleEl.requestFullscreen) {
-                    consoleEl.requestFullscreen();
-                } else if (consoleEl.webkitRequestFullscreen) {
-                    consoleEl.webkitRequestFullscreen();
+        function toggleFullscreen() {
+            const container = document.getElementById('playConsoleContainer');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else {
+                    toggleCssFullscreen(container);
                 }
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
                 }
             }
-        });
-
-        // Sidebar Navigation Toggle
-        const menuToggle = document.getElementById('menu-toggle');
-        const menuClose = document.getElementById('menu-close');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            sidebarOverlay.classList.toggle('active');
         }
 
-        menuToggle.addEventListener('click', toggleSidebar);
-        menuClose.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
+        function toggleCssFullscreen(container) {
+            container.classList.toggle('css-fullscreen-active');
+            document.body.classList.toggle('css-fullscreen-open');
+        }
+
+        // Sidebar Navigation Toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+
+            // Automatically focus iframe so keyboard events work immediately
+            const iframe = document.getElementById('gameIframe');
+            if (iframe) {
+                const focusIframe = () => {
+                    try {
+                        iframe.contentWindow.focus();
+                    } catch(e) {}
+                };
+                iframe.addEventListener('load', focusIframe);
+                document.getElementById('playConsoleContainer').addEventListener('click', focusIframe);
+            }
+        });
     </script>
+    <script src="shared/pwa-setup.js"></script>
 </body>
 </html>

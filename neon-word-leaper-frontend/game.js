@@ -1,5 +1,5 @@
 /* ==========================================================================
-   NEON WORD LEAPER - CYBERPARKOUR TYPING GAME ENGINE
+   NEON WORD LEAPER - CYBERPARKOUR TYPING GAME ENGINE (FIXED & POLISHED)
    ========================================================================== */
 
 (function () {
@@ -9,19 +9,19 @@
     // 1. DICTIONARIES & WORD POOLS
     // -------------------------------------------------------------------------
     const WORD_POOLS = {
-        easy: [
+        novice: [
             "NEON", "CYBER", "GRID", "SYNC", "JUMP", "RUN", "DASH", "LEAP", "WALL",
             "DATA", "CHIP", "CORE", "FAST", "FLOW", "CODE", "GLOW", "BEAM", "VOLT",
             "BYTE", "PIXEL", "NODE", "HACK", "LASER", "PULSE", "SHIFT", "POWER", "SPARK",
             "CITY", "WAVE", "SURGE", "BLADE", "LINK", "EDGE", "WARP", "LOCK", "PATH"
         ],
-        medium: [
+        cyber: [
             "MATRIX", "SIGNAL", "VECTOR", "RUNNER", "CHROME", "CIRCUIT", "SHADOW", "CYBORG",
             "ROUTER", "SYNTH", "ENERGY", "THRUST", "SYSTEM", "VELOCITY", "ENGINE", "FLIGHT",
             "SHIELD", "BINARY", "PROTOCOL", "ORBIT", "DYNAMIC", "NEURON", "SOCKET", "TERMINAL",
             "HORIZON", "NETWORK", "VORTEX", "STATION", "REFLEX", "PLASMA", "STREAM", "BOOSTER"
         ],
-        hard: [
+        overdrive: [
             "QUANTUM", "OVERDRIVE", "MAINFRAME", "CYBERSPACE", "HYPERDRIVE", "ACCELERATE",
             "ALGORITHM", "ENCRYPTION", "BANDWIDTH", "MICROPROCESSOR", "SUPERCONDUCTOR",
             "NANOTECHNOLOGY", "ELECTROMAGNETIC", "TELECOMMUNICATION", "PARALLELISM",
@@ -30,12 +30,13 @@
     };
 
     // -------------------------------------------------------------------------
-    // 2. AUDIO SYNTHESIZER (WEB AUDIO API)
+    // 2. AUDIO SYNTHESIZER (WEB AUDIO API - CLEAN & SAFE)
     // -------------------------------------------------------------------------
     class SoundEngine {
         constructor() {
             this.ctx = null;
             this.muted = false;
+            this.activeOscillators = [];
         }
 
         init() {
@@ -50,20 +51,31 @@
             }
         }
 
+        stopAll() {
+            this.activeOscillators.forEach(osc => {
+                try {
+                    osc.stop();
+                    osc.disconnect();
+                } catch (e) {}
+            });
+            this.activeOscillators = [];
+        }
+
         playKeyClick() {
             if (this.muted || !this.ctx) return;
             try {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(600 + Math.random() * 200, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.04);
-                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+                osc.frequency.setValueAtTime(650 + Math.random() * 150, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.05);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.04);
+                osc.start(now);
+                osc.stop(now + 0.05);
             } catch (e) {}
         }
 
@@ -72,15 +84,16 @@
             try {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.25);
-                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(750, now + 0.22);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.22);
             } catch (e) {}
         }
 
@@ -89,15 +102,16 @@
             try {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(140, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
             } catch (e) {}
         }
 
@@ -106,15 +120,16 @@
             try {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.3);
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(70, now + 0.25);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.25);
             } catch (e) {}
         }
 
@@ -123,36 +138,39 @@
             try {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
+                const now = this.ctx.currentTime;
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(280, now);
+                osc.frequency.exponentialRampToValueAtTime(550, now + 0.18);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.18);
             } catch (e) {}
         }
 
         playGameOver() {
             if (this.muted || !this.ctx) return;
+            this.stopAll();
             try {
-                const notes = [330, 293, 246, 185];
+                const notes = [300, 260, 220, 160];
                 notes.forEach((freq, idx) => {
                     setTimeout(() => {
-                        if (!this.ctx) return;
+                        if (!this.ctx || gameState !== 'GAME_OVER') return;
+                        const now = this.ctx.currentTime;
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
                         osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+                        osc.frequency.setValueAtTime(freq, now);
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
                         osc.connect(gain);
                         gain.connect(this.ctx.destination);
-                        osc.start();
-                        osc.stop(this.ctx.currentTime + 0.35);
-                    }, idx * 120);
+                        osc.start(now);
+                        osc.stop(now + 0.25);
+                    }, idx * 100);
                 });
             } catch (e) {}
         }
@@ -188,7 +206,7 @@
     let targetWord = "";
     let typedIndex = 0;
     let wordTimer = 1.0; // 1.0 -> 0.0
-    let wordTimeLimit = 8.0; // seconds
+    let wordTimeLimit = 16.0; // Generous 16 seconds per word so players can type comfortably
 
     // Camera & World Coordinates
     let cameraX = 0;
@@ -207,8 +225,8 @@
         vx: 0,
         vy: 0,
         angle: 0,
-        state: 'IDLE', // IDLE, JUMPING, FALLING, LANDING, RESPAWNING
-        jumpProgress: 0, // 0 to 1
+        state: 'IDLE', // IDLE, JUMPING, FALLING, LANDING, RESPAWNING, DEAD
+        jumpProgress: 0,
         startX: 0,
         startY: 0,
         targetX: 0,
@@ -217,7 +235,6 @@
         trail: []
     };
 
-    // Visual Particles
     let particles = [];
     let screenShake = 0;
 
@@ -269,7 +286,7 @@
             }
 
             // Wall Number / Level Indicator
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
             ctx.font = '14px "Share Tech Mono", monospace';
             ctx.textAlign = 'center';
             ctx.fillText(`WALL ${this.index + 1}`, screenX + this.width / 2, this.topY + 30);
@@ -285,7 +302,7 @@
 
         for (let i = 0; i < 15; i++) {
             const wallW = 140 + Math.random() * 40;
-            const wallTopY = groundY + (Math.sin(i * 0.8) * 40);
+            const wallTopY = groundY + (Math.sin(i * 0.8) * 35);
             walls.push(new Wall(i, currentX, wallW, wallTopY));
             const gap = 180 + Math.random() * 80;
             currentX += wallW + gap;
@@ -306,7 +323,7 @@
             const nextX = lastWall.x + lastWall.width + gap;
             const wallW = 140 + Math.random() * 40;
             const groundY = height * 0.65;
-            const wallTopY = groundY + (Math.sin(i * 0.8) * 50);
+            const wallTopY = groundY + (Math.sin(i * 0.8) * 45);
             walls.push(new Wall(i, nextX, wallW, wallTopY));
         }
     }
@@ -315,14 +332,7 @@
     // 5. WORD GENERATOR & TYPING HANDLER
     // -------------------------------------------------------------------------
     function getRandomWord() {
-        let pool;
-        if (difficulty === 'novice') {
-            pool = wallsCleared > 12 ? WORD_POOLS.medium : WORD_POOLS.easy;
-        } else if (difficulty === 'cyber') {
-            pool = wallsCleared > 15 ? WORD_POOLS.hard : WORD_POOLS.medium;
-        } else {
-            pool = WORD_POOLS.hard;
-        }
+        let pool = WORD_POOLS[difficulty] || WORD_POOLS.novice;
         return pool[Math.floor(Math.random() * pool.length)];
     }
 
@@ -333,9 +343,9 @@
         typedIndex = 0;
         wordTimer = 1.0;
         
-        // Dynamic time limit based on word length & difficulty
-        const baseSeconds = targetWord.length * 1.3;
-        wordTimeLimit = Math.max(3.5, baseSeconds);
+        // Generous time limit (16+ seconds per word) so typing feels fun, not punishing
+        const baseSeconds = Math.max(16, targetWord.length * 2.5);
+        wordTimeLimit = baseSeconds;
 
         updateWordDisplay();
     }
@@ -373,7 +383,7 @@
             correctKeystrokes++;
             typedIndex++;
             sound.playKeyClick();
-            createSparks(runner.x, runner.y - 30, '#00ffcc', 4);
+            createSparks(runner.x, runner.y - 30, '#00ffcc', 6);
 
             // Check if entire word is completed
             if (typedIndex >= targetWord.length) {
@@ -382,7 +392,7 @@
                 updateWordDisplay();
             }
         } else {
-            // WRONG LETTER -> Mistake & Gap Fall!
+            // Typo / Wrong Letter -> Trigger Fall & Lose 1 Life on Same Word!
             onTypingMistake();
         }
     }
@@ -407,13 +417,15 @@
         runner.jumpProgress = 0;
         runner.startX = currentWall.x + currentWall.width - 20;
         runner.startY = currentWall.topY;
-        runner.targetX = nextWall.x + 30;
+        runner.targetX = nextWall.x + 35;
         runner.targetY = nextWall.topY;
 
         createSparks(runner.startX, runner.startY, '#00ffcc', 15);
     }
 
     function onTypingMistake() {
+        if (gameState !== 'PLAYING') return;
+
         sound.playMistake();
         combo = 1;
         document.getElementById('comboVal').innerText = '1x';
@@ -433,8 +445,8 @@
         // Trigger Fall into Gap
         gameState = 'FALLING';
         runner.state = 'FALLING';
-        runner.vx = 2.5;
-        runner.vy = -3;
+        runner.vx = 2.0;
+        runner.vy = -2.5;
     }
 
     function updateLivesHUD() {
@@ -501,12 +513,13 @@
             runner.angle += 6 * dt;
 
             // Check if fallen below screen
-            if (runner.y > height + 100) {
+            if (runner.y > height + 80) {
                 if (lives > 0) {
                     // Respawn on current wall with the SAME WORD!
                     respawnRunnerOnSameWall();
                 } else {
-                    // Game Over
+                    // Game Over - only trigger ONCE
+                    runner.state = 'DEAD';
                     triggerGameOver();
                 }
             }
@@ -528,7 +541,7 @@
         runner.vy = 0;
         runner.angle = 0;
         runner.state = 'RESPAWNING';
-        runner.respawnTimer = 0.5;
+        runner.respawnTimer = 0.4;
 
         createSparks(runner.x, runner.y - 20, '#00ffcc', 25);
         screenShake = 8;
@@ -559,7 +572,7 @@
             const p = particles[i];
             p.x += p.vx;
             p.y += p.vy;
-            p.vy += 8 * dt; // Gravity on particles
+            p.vy += 8 * dt;
             p.life -= p.decay * dt;
             if (p.life <= 0) {
                 particles.splice(i, 1);
@@ -582,6 +595,8 @@
     }
 
     function drawRunner(ctx, camX) {
+        if (runner.state === 'DEAD') return;
+
         ctx.save();
         const drawX = runner.x - camX;
         const drawY = runner.y;
@@ -623,7 +638,6 @@
         ctx.strokeStyle = '#00ffcc';
         ctx.lineWidth = 3;
         ctx.beginPath();
-        // Legs
         ctx.moveTo(-4, 14);
         ctx.lineTo(-6, 24);
         ctx.moveTo(4, 14);
@@ -637,7 +651,6 @@
     // 7. BACKGROUND & PARALLAX CITYSCAPE
     // -------------------------------------------------------------------------
     function drawBackground(ctx, camX) {
-        // Deep Space Gradient
         const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
         bgGrad.addColorStop(0, '#06070a');
         bgGrad.addColorStop(0.6, '#0f172a');
@@ -693,35 +706,28 @@
         const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
         lastTime = timestamp;
 
-        // Screen shake decay
         if (screenShake > 0) {
             screenShake = Math.max(0, screenShake - dt * 25);
         }
 
-        // Camera smooth easing
         cameraX += (targetCameraX - cameraX) * (1 - Math.pow(0.001, dt));
 
-        // Update In-Game Word Timer
         if (gameState === 'PLAYING') {
             wordTimer -= dt / wordTimeLimit;
             updateWordDisplay();
 
             if (wordTimer <= 0) {
-                // Word Timeout -> Count as Mistake & Fall!
                 onTypingMistake();
             }
 
-            // Real-time WPM Calculation
             const elapsedMins = Math.max((Date.now() - startTime) / 60000, 0.05);
             currentWpm = Math.round((correctKeystrokes / 5) / elapsedMins);
             document.getElementById('wpmVal').innerText = currentWpm;
         }
 
-        // Physics Updates
         updateRunner(dt);
         updateParticles(dt);
 
-        // Render Canvas
         ctx.clearRect(0, 0, width, height);
 
         ctx.save();
@@ -733,7 +739,6 @@
 
         drawBackground(ctx, cameraX);
 
-        // Draw Walls
         for (const wall of walls) {
             wall.draw(ctx, cameraX);
         }
@@ -750,6 +755,7 @@
     // 9. GAME OVER & RESTART
     // -------------------------------------------------------------------------
     function triggerGameOver() {
+        if (gameState === 'GAME_OVER') return;
         gameState = 'GAME_OVER';
         sound.playGameOver();
 
@@ -797,15 +803,16 @@
         initWalls();
         setNextWord(false);
 
-        // Focus mobile input if touch
-        document.getElementById('mobileInput').focus();
+        const mobileInput = document.getElementById('mobileInput');
+        if (mobileInput) {
+            mobileInput.focus();
+        }
     }
 
     // -------------------------------------------------------------------------
     // 10. INPUT & EVENT LISTENERS
     // -------------------------------------------------------------------------
     function initListeners() {
-        // Window Resize
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
@@ -814,6 +821,13 @@
         });
         canvas.width = width;
         canvas.height = height;
+
+        // Auto-focus window & mobile input on game click
+        document.getElementById('game-container').addEventListener('click', () => {
+            window.focus();
+            const mobileInput = document.getElementById('mobileInput');
+            if (mobileInput) mobileInput.focus();
+        });
 
         // Physical Keyboard Listener
         window.addEventListener('keydown', (e) => {
@@ -833,8 +847,9 @@
                     return;
                 }
 
-                // Handle valid alphabet characters (A-Z)
+                // Handle alphabet keys (A-Z)
                 if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+                    e.preventDefault();
                     handleTypingInput(e.key);
                 }
             } else if (gameState === 'PAUSED') {
@@ -848,19 +863,22 @@
         const mobileInput = document.getElementById('mobileInput');
         const mobileKbBtn = document.getElementById('mobileKbBtn');
 
-        mobileKbBtn.addEventListener('click', () => {
-            mobileInput.focus();
-        });
+        if (mobileKbBtn && mobileInput) {
+            mobileKbBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileInput.focus();
+            });
 
-        mobileInput.addEventListener('input', (e) => {
-            if (e.data && e.data.length > 0) {
-                const lastChar = e.data.charAt(e.data.length - 1);
-                if (/[a-zA-Z]/.test(lastChar)) {
-                    handleTypingInput(lastChar);
+            mobileInput.addEventListener('input', (e) => {
+                if (e.data && e.data.length > 0) {
+                    const lastChar = e.data.charAt(e.data.length - 1);
+                    if (/[a-zA-Z]/.test(lastChar)) {
+                        handleTypingInput(lastChar);
+                    }
                 }
-            }
-            mobileInput.value = '';
-        });
+                mobileInput.value = '';
+            });
+        }
 
         // UI Buttons
         document.getElementById('startBtn').addEventListener('click', startGame);
@@ -873,7 +891,6 @@
 
         document.getElementById('pauseBtn').addEventListener('click', togglePause);
 
-        // Sound Toggle Button
         const soundBtn = document.getElementById('soundBtn');
         soundBtn.addEventListener('click', () => {
             sound.init();
@@ -881,7 +898,6 @@
             soundBtn.innerText = sound.muted ? '🔇' : '🔊';
         });
 
-        // Difficulty Buttons
         document.querySelectorAll('.diff-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
