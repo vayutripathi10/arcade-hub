@@ -108,17 +108,31 @@
             if (this.muted || !this.ctx) return;
             try {
                 const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.exponentialRampToValueAtTime(800, now + 0.35);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.35);
+                // Layer 1: Sub-bass takeoff thump
+                const subOsc = this.ctx.createOscillator();
+                const subGain = this.ctx.createGain();
+                subOsc.type = 'sine';
+                subOsc.frequency.setValueAtTime(160, now);
+                subOsc.frequency.exponentialRampToValueAtTime(45, now + 0.3);
+                subGain.gain.setValueAtTime(0.25, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                subOsc.connect(subGain);
+                subGain.connect(this.ctx.destination);
+                subOsc.start(now);
+                subOsc.stop(now + 0.3);
+
+                // Layer 2: High-energy cyber thruster whoosh
+                const thrusterOsc = this.ctx.createOscillator();
+                const thrusterGain = this.ctx.createGain();
+                thrusterOsc.type = 'sawtooth';
+                thrusterOsc.frequency.setValueAtTime(260, now);
+                thrusterOsc.frequency.exponentialRampToValueAtTime(850, now + 0.45);
+                thrusterGain.gain.setValueAtTime(0.12, now);
+                thrusterGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+                thrusterOsc.connect(thrusterGain);
+                thrusterGain.connect(this.ctx.destination);
+                thrusterOsc.start(now);
+                thrusterOsc.stop(now + 0.45);
             } catch (e) {}
         }
 
@@ -126,17 +140,18 @@
             if (this.muted || !this.ctx) return;
             try {
                 const now = this.ctx.currentTime;
+                // Heavy metallic/cyber impact
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(160, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.2);
+                osc.stop(now + 0.25);
             } catch (e) {}
         }
 
@@ -147,14 +162,14 @@
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.linearRampToValueAtTime(70, now + 0.25);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.28);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.25);
+                osc.stop(now + 0.28);
             } catch (e) {}
         }
 
@@ -258,16 +273,20 @@
     let targetCameraX = 0;
     let cameraY = 0;
     let targetCameraY = 0;
+    let cameraZoom = 1.0;
+    let targetCameraZoom = 1.0;
+    let cameraRoll = 0;
+    let targetCameraRoll = 0;
 
     let walls = [];
     let currentWallIndex = 0;
 
-    // High-Resolution Character Model
+    // Ultra-Realistic Articulated Cyber Hero Model
     const runner = {
         x: 150,
         y: 0,
-        width: 44,
-        height: 64,
+        width: 48,
+        height: 72,
         vx: 0,
         vy: 0,
         angle: 0,
@@ -280,11 +299,21 @@
         respawnTimer: 0,
         landingTimer: 0,
         breathTime: 0,
+        visorPulse: 0,
         trail: [],
-        scarfPoints: []
+        scarf: [
+            { x: 0, y: 0, vx: 0, vy: 0 },
+            { x: 0, y: 0, vx: 0, vy: 0 },
+            { x: 0, y: 0, vx: 0, vy: 0 },
+            { x: 0, y: 0, vx: 0, vy: 0 },
+            { x: 0, y: 0, vx: 0, vy: 0 },
+            { x: 0, y: 0, vx: 0, vy: 0 }
+        ]
     };
 
     let shockwaves = [];
+    let sonicRings = [];
+    let speedLines = [];
     let particles = [];
     let screenShake = 0;
 
@@ -332,46 +361,62 @@
             this.height = height;
         }
 
-        draw(ctx, camX, camY) {
-            const screenX = this.x - camX;
-            const screenY = this.topY - camY;
-            if (screenX + this.width < -120 || screenX > width + 120) return;
+        draw(ctx) {
+            const screenX = this.x;
+            const screenY = this.topY;
 
             ctx.save();
 
-            // Skyscraper Wall Base Gradient
-            const grad = ctx.createLinearGradient(screenX, screenY, screenX + this.width, height);
-            grad.addColorStop(0, 'rgba(15, 23, 42, 0.96)');
-            grad.addColorStop(1, 'rgba(6, 9, 16, 0.98)');
+            // Skyscraper Wall Base Gradient with 3D Depth
+            const grad = ctx.createLinearGradient(screenX, screenY, screenX + this.width, screenY);
+            grad.addColorStop(0, '#0a0f1d');
+            grad.addColorStop(0.5, '#131d33');
+            grad.addColorStop(1, '#080c17');
             ctx.fillStyle = grad;
-            ctx.fillRect(screenX, screenY, this.width, height - screenY + 200);
+            ctx.fillRect(screenX, screenY, this.width, height * 2);
+
+            // Wall Edge Shading
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillRect(screenX, screenY, 8, height * 2);
+            ctx.fillRect(screenX + this.width - 8, screenY, 8, height * 2);
 
             // Glowing Neon Top Platform Surface
-            ctx.fillStyle = this.color;
+            const topGrad = ctx.createLinearGradient(screenX, screenY, screenX + this.width, screenY);
+            topGrad.addColorStop(0, '#ffffff');
+            topGrad.addColorStop(0.3, this.color);
+            topGrad.addColorStop(0.7, this.color);
+            topGrad.addColorStop(1, '#ffffff');
+            ctx.fillStyle = topGrad;
             ctx.shadowColor = this.color;
-            ctx.shadowBlur = 18;
+            ctx.shadowBlur = 20;
             ctx.fillRect(screenX, screenY, this.width, 10);
+
+            // High-Tech Platform Grip Pads
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            for (let px = screenX + 16; px < screenX + this.width - 16; px += 24) {
+                ctx.fillRect(px, screenY + 2, 14, 6);
+            }
 
             // Wall Neon Edge Borders
             ctx.strokeStyle = this.color;
             ctx.lineWidth = 2.5;
-            ctx.strokeRect(screenX, screenY, this.width, height - screenY + 200);
+            ctx.strokeRect(screenX, screenY, this.width, height * 2);
 
-            // Tech Circuit Grid
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            // Tech Circuit Grid & Hazard Warning Marks
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
-            for (let cy = screenY + 30; cy < height; cy += 32) {
+            for (let cy = screenY + 32; cy < screenY + 450; cy += 36) {
                 ctx.beginPath();
                 ctx.moveTo(screenX + 8, cy);
                 ctx.lineTo(screenX + this.width - 8, cy);
                 ctx.stroke();
             }
 
-            // Wall Level Plate
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.font = '14px "Share Tech Mono", monospace';
+            // Platform Number Hologram Plate
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = 'bold 13px "Share Tech Mono", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(`WALL ${this.index + 1}`, screenX + this.width / 2, screenY + 32);
+            ctx.fillText(`ZONE // 0${this.index + 1}`, screenX + this.width / 2, screenY + 34);
 
             ctx.restore();
         }
@@ -384,29 +429,41 @@
         const stageTheme = STAGE_CONFIGS[currentStage].theme;
 
         for (let i = 0; i < 20; i++) {
-            const wallW = 150 + Math.random() * 40;
+            const wallW = 160 + Math.random() * 40;
             const wallTopY = groundY + (Math.sin(i * 0.8) * 35);
             walls.push(new Wall(i, currentX, wallW, wallTopY, stageTheme));
-            const gap = 200 + Math.random() * 80;
+            const gap = 220 + Math.random() * 80;
             currentX += wallW + gap;
         }
 
         currentWallIndex = 0;
         runner.x = walls[0].x + walls[0].width / 2;
         runner.y = walls[0].topY;
-        cameraX = runner.x - width * 0.3;
+        cameraX = runner.x - width * 0.35;
         targetCameraX = cameraX;
-        cameraY = 0;
-        targetCameraY = 0;
+        cameraY = runner.y - height * 0.6;
+        targetCameraY = cameraY;
+        cameraZoom = 1.0;
+        targetCameraZoom = 1.0;
+        cameraRoll = 0;
+        targetCameraRoll = 0;
+
+        // Initialize scarf nodes
+        for (let i = 0; i < runner.scarf.length; i++) {
+            runner.scarf[i].x = runner.x - i * 8;
+            runner.scarf[i].y = runner.y - 45;
+            runner.scarf[i].vx = 0;
+            runner.scarf[i].vy = 0;
+        }
     }
 
     function spawnNextWallIfNeeded() {
         if (currentWallIndex >= walls.length - 6) {
             const lastWall = walls[walls.length - 1];
             const i = lastWall.index + 1;
-            const gap = 200 + Math.random() * 90;
+            const gap = 220 + Math.random() * 90;
             const nextX = lastWall.x + lastWall.width + gap;
-            const wallW = 150 + Math.random() * 40;
+            const wallW = 160 + Math.random() * 40;
             const groundY = height * 0.65;
             const wallTopY = groundY + (Math.sin(i * 0.8) * 45);
             const stageTheme = STAGE_CONFIGS[currentStage].theme;
@@ -499,7 +556,7 @@
         const currentWall = walls[currentWallIndex];
         const nextWall = walls[currentWallIndex + 1];
 
-        // Launch spectacular acrobatic jump!
+        // Launch cinematic blockbuster acrobatic leap!
         gameState = 'JUMPING';
         sound.playJump();
 
@@ -507,11 +564,16 @@
         runner.jumpProgress = 0;
         runner.startX = currentWall.x + currentWall.width - 25;
         runner.startY = currentWall.topY;
-        runner.targetX = nextWall.x + 40;
+        runner.targetX = nextWall.x + 45;
         runner.targetY = nextWall.topY;
 
-        // Blast thruster fire on takeoff
-        createThrusterBurst(runner.startX, runner.startY, STAGE_CONFIGS[currentStage].theme.primary, 25);
+        // Takeoff supersonic sonic ring + thruster burst
+        createSonicRing(runner.startX, runner.startY, STAGE_CONFIGS[currentStage].theme.primary);
+        createThrusterBurst(runner.startX, runner.startY - 10, STAGE_CONFIGS[currentStage].theme.primary, 35);
+        screenShake = 6;
+
+        // Spawn cinematic speed lines
+        spawnSpeedLines();
 
         // Check if stage goal is completed
         const targetReq = STAGE_CONFIGS[currentStage].targetWords;
@@ -519,7 +581,7 @@
             gameState = 'STAGE_COMPLETE';
             setTimeout(() => {
                 triggerStageComplete();
-            }, 800);
+            }, 900);
         }
     }
 
@@ -534,16 +596,16 @@
         wordCard.classList.add('glitch-shake');
         setTimeout(() => wordCard.classList.remove('glitch-shake'), 400);
 
-        screenShake = 12;
-        createSparks(runner.x, runner.y - 25, '#ef4444', 22);
+        screenShake = 14;
+        createSparks(runner.x, runner.y - 30, '#ef4444', 26);
 
         lives--;
         updateLivesHUD();
 
         gameState = 'FALLING';
         runner.state = 'FALLING';
-        runner.vx = 2.2;
-        runner.vy = -3.0;
+        runner.vx = 2.4;
+        runner.vy = -3.8;
     }
 
     function updateLivesHUD() {
@@ -558,93 +620,167 @@
     }
 
     // -------------------------------------------------------------------------
-    // 6. RUNNER PHYSICS, SHOCKWAVES & PARTICLES
+    // 6. RUNNER PHYSICS, CINEMATIC CAMERA, SONIC RINGS & PARTICLES
     // -------------------------------------------------------------------------
     function createThrusterBurst(x, y, color, count) {
         for (let i = 0; i < count; i++) {
-            const angle = Math.PI * 0.7 + Math.random() * Math.PI * 0.6;
-            const speed = 4 + Math.random() * 7;
+            const angle = Math.PI * 0.75 + Math.random() * Math.PI * 0.5;
+            const speed = 5 + Math.random() * 9;
             particles.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed + 2,
                 color: color,
-                size: 3 + Math.random() * 3.5,
+                size: 3.5 + Math.random() * 4,
                 life: 1.0,
-                decay: 2.0 + Math.random() * 2
+                decay: 2.2 + Math.random() * 2
             });
         }
+    }
+
+    function createSonicRing(x, y, color) {
+        sonicRings.push({
+            x: x,
+            y: y,
+            radius: 8,
+            maxRadius: 85,
+            color: color,
+            alpha: 1.0,
+            lineWidth: 4
+        });
     }
 
     function createShockwave(x, y, color) {
         shockwaves.push({
             x: x,
             y: y,
-            radius: 5,
-            maxRadius: 65,
+            radius: 6,
+            maxRadius: 80,
             color: color,
             alpha: 1.0
         });
     }
 
-    function updateRunner(dt) {
-        runner.breathTime += dt * 4;
+    function spawnSpeedLines() {
+        speedLines = [];
+        for (let i = 0; i < 18; i++) {
+            speedLines.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                length: 120 + Math.random() * 200,
+                speed: 800 + Math.random() * 600,
+                alpha: 0.15 + Math.random() * 0.35
+            });
+        }
+    }
 
+    function updateRunner(dt) {
+        runner.breathTime += dt * 3.5;
+        runner.visorPulse += dt * 5;
+
+        // Scarf / Cape Multi-Node Cloth Simulation
+        const neckX = runner.x - Math.cos(runner.angle) * 12;
+        const neckY = runner.y - 48 - Math.sin(runner.angle) * 12;
+        runner.scarf[0].x = neckX;
+        runner.scarf[0].y = neckY;
+
+        for (let i = 1; i < runner.scarf.length; i++) {
+            const node = runner.scarf[i];
+            const prev = runner.scarf[i - 1];
+
+            // Wind & gravity forces
+            let windX = -25 - Math.abs(runner.vx) * 8;
+            let windY = 12 + Math.sin(runner.breathTime * 2 + i * 0.8) * 8;
+            if (runner.state === 'JUMPING') {
+                windX = -Math.cos(runner.angle) * 60 - 40;
+                windY = -Math.sin(runner.angle) * 40 - 20;
+            }
+
+            node.vx += (windX - node.vx) * dt * 8;
+            node.vy += (windY - node.vy) * dt * 8;
+            node.x += node.vx * dt;
+            node.y += node.vy * dt;
+
+            // Distance constraint to previous node
+            const dx = node.x - prev.x;
+            const dy = node.y - prev.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const targetDist = 9;
+            if (dist > targetDist) {
+                const angle = Math.atan2(dy, dx);
+                node.x = prev.x + Math.cos(angle) * targetDist;
+                node.y = prev.y + Math.sin(angle) * targetDist;
+            }
+        }
+
+        // Motion Trails (Holographic Echo Clones)
         if (runner.state === 'JUMPING' || runner.state === 'FALLING') {
             runner.trail.push({
                 x: runner.x,
                 y: runner.y,
-                alpha: 1.0,
+                alpha: 0.7,
                 angle: runner.angle,
                 color: runner.state === 'JUMPING' ? STAGE_CONFIGS[currentStage].theme.primary : '#ef4444'
             });
 
-            // Emit thruster flame particles while in mid-air
-            if (runner.state === 'JUMPING' && Math.random() > 0.3) {
+            // Mid-air dual thruster exhaust particles
+            if (runner.state === 'JUMPING') {
+                const bootBackAngle = runner.angle + Math.PI * 0.9;
+                const bx = runner.x + Math.cos(bootBackAngle) * 22;
+                const by = runner.y + Math.sin(bootBackAngle) * 22;
                 particles.push({
-                    x: runner.x - Math.cos(runner.angle) * 20,
-                    y: runner.y - Math.sin(runner.angle) * 20,
-                    vx: (Math.random() - 0.5) * 2 - 2,
-                    vy: (Math.random() - 0.5) * 2 + 3,
+                    x: bx + (Math.random() - 0.5) * 6,
+                    y: by + (Math.random() - 0.5) * 6,
+                    vx: -Math.cos(runner.angle) * (5 + Math.random() * 4) + (Math.random() - 0.5) * 2,
+                    vy: -Math.sin(runner.angle) * (5 + Math.random() * 4) + (Math.random() - 0.5) * 2,
                     color: STAGE_CONFIGS[currentStage].theme.primary,
-                    size: 2.5 + Math.random() * 2,
-                    life: 0.8,
-                    decay: 3.5
+                    size: 3.5 + Math.random() * 3,
+                    life: 0.7,
+                    decay: 3.2
                 });
             }
         }
 
         for (let i = runner.trail.length - 1; i >= 0; i--) {
-            runner.trail[i].alpha -= dt * 3.0;
+            runner.trail[i].alpha -= dt * 3.2;
             if (runner.trail[i].alpha <= 0) {
                 runner.trail.splice(i, 1);
             }
         }
 
+        // --- JUMPING STATE ---
         if (runner.state === 'JUMPING') {
-            // Generous 0.82s jump duration so the acrobatic dive is prominent and cinematic!
-            runner.jumpProgress += dt * 1.22;
+            // Apex Bullet-Time / Time-Dilation
+            let stepRate = 1.25;
+            if (runner.jumpProgress >= 0.35 && runner.jumpProgress <= 0.65) {
+                stepRate = 0.82; // Cinematic slow-mo at peak
+            }
+            runner.jumpProgress += dt * stepRate;
 
             if (runner.jumpProgress >= 1.0) {
                 runner.jumpProgress = 1.0;
                 runner.state = 'LANDING';
-                runner.landingTimer = 0.18;
+                runner.landingTimer = 0.22;
                 currentWallIndex++;
                 spawnNextWallIfNeeded();
 
                 const landWall = walls[currentWallIndex];
-                runner.x = landWall.x + 40;
+                runner.x = landWall.x + 45;
                 runner.y = landWall.topY;
                 runner.angle = 0;
 
                 sound.playLand();
-                screenShake = 8;
+                screenShake = 11;
+                createSonicRing(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary);
                 createShockwave(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary);
-                createSparks(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary, 24);
+                createSparks(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary, 32);
 
-                targetCameraX = runner.x - width * 0.3;
-                targetCameraY = 0;
+                targetCameraX = runner.x - width * 0.35;
+                targetCameraY = runner.y - height * 0.6;
+                targetCameraZoom = 1.0;
+                targetCameraRoll = 0;
+                speedLines = [];
 
                 if (gameState !== 'STAGE_COMPLETE') {
                     gameState = 'PLAYING';
@@ -655,27 +791,36 @@
                 runner.x = runner.startX + (runner.targetX - runner.startX) * p;
 
                 // Cinematic Parabolic Jump Arc with dynamic peak
-                const arcH = 155;
+                const arcH = 175;
                 const heightOffset = 4 * arcH * p * (1 - p);
                 const linearY = runner.startY + (runner.targetY - runner.startY) * p;
                 runner.y = linearY - heightOffset;
 
-                // Smooth full 360° parkour acrobatic roll
+                // 3-Phase Kinematic Acrobatic Rotation:
+                // Phase 1 (0 -> 0.4): Launch & tuck rotation
+                // Phase 2 (0.4 -> 0.65): Superman layout dive at apex
+                // Phase 3 (0.65 -> 1.0): Pre-landing landing prep
                 runner.angle = p * Math.PI * 2;
 
-                // Dynamic camera tracking height during leap
-                targetCameraY = -heightOffset * 0.35;
+                // Cinematic Dynamic Camera: Zoom into runner at apex & follow height
+                targetCameraX = runner.x - width * 0.35;
+                targetCameraY = runner.y - height * 0.55;
+                targetCameraZoom = 1.0 + Math.sin(p * Math.PI) * 0.14; // Dramatic 1.14x zoom at apex
+                targetCameraRoll = Math.sin(p * Math.PI * 2) * 0.035; // Subtle action tilt
             }
         } else if (runner.state === 'LANDING') {
             runner.landingTimer -= dt;
+            targetCameraZoom = 1.0;
+            targetCameraRoll = 0;
             if (runner.landingTimer <= 0) {
                 runner.state = 'IDLE';
             }
         } else if (runner.state === 'FALLING') {
             runner.x += runner.vx;
             runner.y += runner.vy;
-            runner.vy += 24 * dt;
-            runner.angle += 7 * dt;
+            runner.vy += 26 * dt;
+            runner.angle += 8 * dt;
+            targetCameraZoom = 0.95;
 
             if (runner.y > height + 80) {
                 if (lives > 0) {
@@ -691,6 +836,11 @@
                 runner.state = 'IDLE';
                 gameState = 'PLAYING';
             }
+        } else if (runner.state === 'IDLE') {
+            targetCameraZoom = 1.0;
+            targetCameraRoll = 0;
+            targetCameraX = runner.x - width * 0.35;
+            targetCameraY = runner.y - height * 0.6;
         }
     }
 
@@ -705,9 +855,18 @@
         runner.state = 'RESPAWNING';
         runner.respawnTimer = 0.45;
 
+        createSonicRing(runner.x, runner.y - 20, STAGE_CONFIGS[currentStage].theme.primary);
         createSparks(runner.x, runner.y - 25, STAGE_CONFIGS[currentStage].theme.primary, 30);
         screenShake = 8;
-        targetCameraY = 0;
+        targetCameraY = runner.y - height * 0.6;
+        targetCameraZoom = 1.0;
+        targetCameraRoll = 0;
+
+        // Reset scarf
+        for (let i = 0; i < runner.scarf.length; i++) {
+            runner.scarf[i].x = runner.x - i * 8;
+            runner.scarf[i].y = runner.y - 45;
+        }
 
         setNextWord(true);
     }
@@ -715,30 +874,51 @@
     function createSparks(x, y, color, count) {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = 2.5 + Math.random() * 6;
+            const speed = 3 + Math.random() * 7;
             particles.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 1.8,
+                vy: Math.sin(angle) * speed - 2,
                 color: color,
-                size: 2.5 + Math.random() * 3,
+                size: 2.5 + Math.random() * 3.5,
                 life: 1.0,
-                decay: 1.8 + Math.random() * 2
+                decay: 2.0 + Math.random() * 2
             });
         }
     }
 
     function updateParticles(dt) {
+        // Sonic rings
+        for (let i = sonicRings.length - 1; i >= 0; i--) {
+            const r = sonicRings[i];
+            r.radius += dt * 180;
+            r.alpha -= dt * 2.6;
+            if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+                sonicRings.splice(i, 1);
+            }
+        }
+
+        // Shockwaves
         for (let i = shockwaves.length - 1; i >= 0; i--) {
             const s = shockwaves[i];
-            s.radius += dt * 140;
-            s.alpha -= dt * 2.5;
+            s.radius += dt * 150;
+            s.alpha -= dt * 2.8;
             if (s.alpha <= 0 || s.radius >= s.maxRadius) {
                 shockwaves.splice(i, 1);
             }
         }
 
+        // Speed lines
+        for (const line of speedLines) {
+            line.x -= line.speed * dt;
+            if (line.x < -line.length) {
+                line.x = width + 50;
+                line.y = Math.random() * height;
+            }
+        }
+
+        // Sparks
         for (let i = particles.length - 1; i >= 0; i--) {
             const p = particles[i];
             p.x += p.vx;
@@ -750,6 +930,7 @@
             }
         }
 
+        // Hover cars
         for (const car of hoverCars) {
             car.x += car.speed * dt;
             if (car.speed > 0 && car.x > width + 200) {
@@ -761,6 +942,7 @@
             }
         }
 
+        // Embers
         for (const e of embers) {
             e.y += e.vy * dt;
             e.x += e.vx * dt;
@@ -771,9 +953,24 @@
         }
     }
 
-    function drawParticles(ctx, camX, camY) {
+    function drawParticles(ctx) {
         ctx.save();
-        // Draw expanding shockwaves on landing
+
+        // Draw Sonic Rings
+        for (const r of sonicRings) {
+            ctx.save();
+            ctx.strokeStyle = r.color;
+            ctx.shadowColor = r.color;
+            ctx.shadowBlur = 18;
+            ctx.lineWidth = r.lineWidth;
+            ctx.globalAlpha = Math.max(0, r.alpha);
+            ctx.beginPath();
+            ctx.ellipse(r.x, r.y, r.radius, r.radius * 0.38, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Draw Shockwaves
         for (const s of shockwaves) {
             ctx.save();
             ctx.strokeStyle = s.color;
@@ -782,209 +979,351 @@
             ctx.lineWidth = 3;
             ctx.globalAlpha = Math.max(0, s.alpha);
             ctx.beginPath();
-            ctx.ellipse(s.x - camX, s.y - camY, s.radius, s.radius * 0.35, 0, 0, Math.PI * 2);
+            ctx.ellipse(s.x, s.y, s.radius, s.radius * 0.35, 0, 0, Math.PI * 2);
             ctx.stroke();
             ctx.restore();
         }
 
-        // Draw sparks
+        // Draw Sparks
         for (const p of particles) {
             ctx.fillStyle = p.color;
             ctx.shadowColor = p.color;
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = 10;
             ctx.globalAlpha = Math.max(0, p.life);
             ctx.beginPath();
-            ctx.arc(p.x - camX, p.y - camY, p.size, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
             ctx.fill();
         }
         ctx.restore();
     }
 
+    function drawSpeedLines(ctx) {
+        if (speedLines.length === 0) return;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        for (const l of speedLines) {
+            ctx.globalAlpha = l.alpha;
+            ctx.beginPath();
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(l.x + l.length, l.y);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     // -------------------------------------------------------------------------
-    // 7. HIGH-RESOLUTION REALISTIC CYBER RUNNER DRAWING
+    // 7. ULTRA-REALISTIC ARTICULATED CYBERPARKOUR HERO DRAWING
     // -------------------------------------------------------------------------
-    function drawRunner(ctx, camX, camY) {
+    function drawRunner(ctx) {
         if (runner.state === 'DEAD') return;
 
-        ctx.save();
-        const drawX = runner.x - camX;
-        const drawY = runner.y - camY;
+        const stageTheme = STAGE_CONFIGS[currentStage].theme;
 
-        // Draw Motion Trails
+        // 1. Motion Trail Holographic Silhouettes
         for (let i = 0; i < runner.trail.length; i++) {
             const t = runner.trail[i];
             ctx.save();
+            ctx.translate(t.x, t.y);
+            ctx.rotate(t.angle);
             ctx.fillStyle = t.color;
             ctx.shadowColor = t.color;
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 16;
             ctx.globalAlpha = t.alpha * 0.35;
+            // Ghost body silhouette
             ctx.beginPath();
-            ctx.arc(t.x - camX, t.y - camY - 28, 14, 0, Math.PI * 2);
+            ctx.roundRect(-14, -62, 28, 54, 8);
             ctx.fill();
             ctx.restore();
         }
 
-        ctx.translate(drawX, drawY);
+        // 2. Multi-Node Cloth Simulation Scarf (Dynamic Flowing Wave Ribbon)
+        ctx.save();
+        ctx.strokeStyle = stageTheme.scarf;
+        ctx.shadowColor = stageTheme.scarf;
+        ctx.shadowBlur = 14;
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(runner.scarf[0].x, runner.scarf[0].y);
+        for (let i = 1; i < runner.scarf.length; i++) {
+            const xc = (runner.scarf[i].x + runner.scarf[i - 1].x) / 2;
+            const yc = (runner.scarf[i].y + runner.scarf[i - 1].y) / 2;
+            ctx.quadraticCurveTo(runner.scarf[i - 1].x, runner.scarf[i - 1].y, xc, yc);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(runner.x, runner.y);
 
         if (runner.state === 'RESPAWNING') {
             ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.02) * 0.5;
         }
 
-        const stageTheme = STAGE_CONFIGS[currentStage].theme;
-
-        // Dynamic crouch / bounce offsets
+        // Kinematic Stance Offsets
         let crouchY = 0;
         let legSpread = 0;
-        let breathOffset = Math.sin(runner.breathTime) * 1.5;
+        let breathOffset = Math.sin(runner.breathTime) * 1.8;
 
         if (runner.state === 'LANDING') {
-            crouchY = 8;
-            legSpread = 6;
+            // Superhero 3-point impact crouch
+            crouchY = 16;
+            legSpread = 12;
+            breathOffset = 0;
+        } else if (runner.state === 'IDLE') {
+            // Tactical ready crouch
+            crouchY = 2;
+            legSpread = 3;
         }
 
         ctx.rotate(runner.angle);
 
-        // --- CYBER SCARF / ENERGY CAPE (Dynamic Flowing Wave) ---
+        // --- CYBER-KATANA / ENERGY BLADE ON BACK ---
         ctx.save();
-        ctx.strokeStyle = stageTheme.scarf;
-        ctx.shadowColor = stageTheme.scarf;
+        ctx.rotate(-0.45);
+        // Scabbard / Blade Spine
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-6, -65 + crouchY, 5, 46);
+        // Glowing Plasma Edge
+        ctx.fillStyle = stageTheme.primary;
+        ctx.shadowColor = stageTheme.primary;
         ctx.shadowBlur = 12;
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        const scarfWave = Math.sin(runner.breathTime * 1.5) * 6;
-        ctx.moveTo(-10, -42 + crouchY);
-        ctx.quadraticCurveTo(-24, -36 + scarfWave + crouchY, -40 - Math.abs(runner.vx * 3), -30 + scarfWave * 1.5 + crouchY);
-        ctx.stroke();
+        ctx.fillRect(-7, -65 + crouchY, 2, 46);
+        // Katana Hilt
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-8, -75 + crouchY, 8, 10);
         ctx.restore();
 
-        // --- JET THRUSTER PACK ---
+        // --- JETPACK & DUAL ION THRUSTERS ---
         ctx.save();
-        ctx.fillStyle = '#1e293b';
+        const packGrad = ctx.createLinearGradient(-18, -50, 0, -20);
+        packGrad.addColorStop(0, '#334155');
+        packGrad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = packGrad;
         ctx.strokeStyle = stageTheme.primary;
         ctx.lineWidth = 1.5;
-        ctx.fillRect(-16, -42 + crouchY, 8, 22);
-        ctx.strokeRect(-16, -42 + crouchY, 8, 22);
+        ctx.beginPath();
+        ctx.roundRect(-20, -52 + crouchY, 12, 26, 3);
+        ctx.fill();
+        ctx.stroke();
 
-        // Thruster Core Light
+        // Thruster Exhaust Plumes in Mid-Air or Takeoff
+        if (runner.state === 'JUMPING' || runner.state === 'FALLING') {
+            // Dual rocket plasma flames
+            const flameLen = 22 + Math.random() * 14;
+            const flameGrad = ctx.createLinearGradient(-14, -26 + crouchY, -14, -26 + crouchY + flameLen);
+            flameGrad.addColorStop(0, '#ffffff');
+            flameGrad.addColorStop(0.3, stageTheme.primary);
+            flameGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = flameGrad;
+            ctx.shadowColor = stageTheme.primary;
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.moveTo(-18, -26 + crouchY);
+            ctx.lineTo(-14, -26 + crouchY + flameLen);
+            ctx.lineTo(-10, -26 + crouchY);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // --- ARTICULATED LEGS & HIGH-TECH MAGNETIC BOOTS ---
+        ctx.save();
+        // Left Leg (Back Leg)
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-6, -22 + crouchY);
+        ctx.lineTo(-10 - legSpread, -10 + crouchY * 0.6);
+        ctx.lineTo(-12 - legSpread, 0);
+        ctx.stroke();
+
+        // Right Leg (Front Leg)
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 7.5;
+        ctx.beginPath();
+        ctx.moveTo(6, -22 + crouchY);
+        ctx.lineTo(10 + legSpread, -10 + crouchY * 0.6);
+        ctx.lineTo(12 + legSpread, 0);
+        ctx.stroke();
+
+        // Metallic Armor Knee-Pads with Specular Bevel
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = stageTheme.secondary;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(-10 - legSpread, -10 + crouchY * 0.6, 5, 0, Math.PI * 2);
+        ctx.arc(10 + legSpread, -10 + crouchY * 0.6, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Magnetic Power Boots with Glowing Soles
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-18 - legSpread, -4, 12, 6);
+        ctx.fillRect(6 + legSpread, -4, 14, 6);
+
+        // Glowing Boot Sole Lights
         ctx.fillStyle = stageTheme.primary;
         ctx.shadowColor = stageTheme.primary;
         ctx.shadowBlur = 10;
-        ctx.fillRect(-15, -34 + crouchY, 6, 6);
+        ctx.fillRect(-17 - legSpread, 0, 10, 2.5);
+        ctx.fillRect(7 + legSpread, 0, 12, 2.5);
         ctx.restore();
 
-        // --- LEGS & JET BOOTS ---
+        // --- TORSO & 3D LAYERED CYBER ARMOR ---
         ctx.save();
-        ctx.strokeStyle = '#0f172a';
+        // Base suit
+        ctx.fillStyle = '#090d16';
+        ctx.beginPath();
+        ctx.roundRect(-12, -52 + crouchY + breathOffset, 24, 32, 6);
+        ctx.fill();
+
+        // Metallic Chest Armor Plates with Gradient
+        const chestGrad = ctx.createLinearGradient(-12, -52, 12, -26);
+        chestGrad.addColorStop(0, '#334155');
+        chestGrad.addColorStop(0.5, '#1e293b');
+        chestGrad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = chestGrad;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(-11, -50 + crouchY + breathOffset, 22, 18, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Glowing Arc Reactor Core with Rotating Holographic Ring
+        ctx.save();
+        ctx.fillStyle = stageTheme.primary;
+        ctx.shadowColor = stageTheme.primary;
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(0, -38 + crouchY + breathOffset, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rotating Core Energy Aperture
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(0, -38 + crouchY + breathOffset, 2.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Segmented Abdominal Armor Plates
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-8, -30 + crouchY + breathOffset, 16, 3);
+        ctx.fillRect(-7, -25 + crouchY + breathOffset, 14, 3);
+
+        // Utility Belt with Glowing Energy Cells
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-11, -21 + crouchY + breathOffset, 22, 4);
+        ctx.fillStyle = stageTheme.secondary;
+        ctx.shadowColor = stageTheme.secondary;
+        ctx.shadowBlur = 8;
+        ctx.fillRect(-7, -20.5 + crouchY + breathOffset, 3, 3);
+        ctx.fillRect(4, -20.5 + crouchY + breathOffset, 3, 3);
+        ctx.restore();
+
+        // --- ARTICULATED ARMS & CYBER GAUNTLETS ---
+        ctx.save();
+        ctx.strokeStyle = '#334155';
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        // Left Leg
-        ctx.beginPath();
-        ctx.moveTo(-6, -18 + crouchY);
-        ctx.lineTo(-8 - legSpread, -6 + crouchY * 0.5);
-        ctx.lineTo(-10 - legSpread, 0);
-        ctx.stroke();
-
-        // Right Leg
-        ctx.beginPath();
-        ctx.moveTo(6, -18 + crouchY);
-        ctx.lineTo(8 + legSpread, -6 + crouchY * 0.5);
-        ctx.lineTo(10 + legSpread, 0);
-        ctx.stroke();
-
-        // Glowing Armor Trim on Shins & Boots
-        ctx.strokeStyle = stageTheme.primary;
-        ctx.shadowColor = stageTheme.primary;
-        ctx.shadowBlur = 8;
-        ctx.lineWidth = 2.5;
-
-        ctx.beginPath();
-        ctx.moveTo(-12 - legSpread, -2);
-        ctx.lineTo(-4 - legSpread, 0);
-        ctx.moveTo(4 + legSpread, 0);
-        ctx.lineTo(12 + legSpread, -2);
-        ctx.stroke();
-        ctx.restore();
-
-        // --- TORSO & CYBER ARMOR ---
-        ctx.save();
-        ctx.fillStyle = '#0f172a';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 1.5;
-
-        // Chest Armor
-        ctx.beginPath();
-        ctx.roundRect(-10, -44 + crouchY + breathOffset, 20, 26, 4);
-        ctx.fill();
-        ctx.stroke();
-
-        // Glowing Arc Reactor Core in Chest
-        ctx.fillStyle = stageTheme.primary;
-        ctx.shadowColor = stageTheme.primary;
-        ctx.shadowBlur = 14;
-        ctx.beginPath();
-        ctx.arc(0, -32 + crouchY + breathOffset, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Armor Accent Lines
-        ctx.strokeStyle = stageTheme.secondary;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(-6, -40 + crouchY + breathOffset);
-        ctx.lineTo(6, -40 + crouchY + breathOffset);
-        ctx.moveTo(-7, -24 + crouchY + breathOffset);
-        ctx.lineTo(7, -24 + crouchY + breathOffset);
-        ctx.stroke();
-        ctx.restore();
-
-        // --- ARMS ---
-        ctx.save();
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 5;
-        ctx.lineCap = 'round';
-
         if (runner.state === 'JUMPING') {
-            // Forward diving arms pose
+            // Aerodynamic forward dive Superman/Ninja pose
+            // Left Arm
             ctx.beginPath();
-            ctx.moveTo(-8, -38 + crouchY);
-            ctx.lineTo(-18, -26);
-            ctx.moveTo(8, -38 + crouchY);
-            ctx.lineTo(18, -48);
+            ctx.moveTo(-10, -46 + crouchY);
+            ctx.lineTo(-24, -32);
+            ctx.lineTo(-30, -22);
+            ctx.stroke();
+            // Right Arm
+            ctx.beginPath();
+            ctx.moveTo(10, -46 + crouchY);
+            ctx.lineTo(24, -58);
+            ctx.lineTo(34, -68);
+            ctx.stroke();
+        } else if (runner.state === 'LANDING') {
+            // Superhero 3-point landing: Right fist touching ground
+            ctx.beginPath();
+            ctx.moveTo(-10, -46 + crouchY);
+            ctx.lineTo(-20, -30 + crouchY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(10, -46 + crouchY);
+            ctx.lineTo(16, -20 + crouchY);
+            ctx.lineTo(14, 0);
             ctx.stroke();
         } else {
-            // Ready stance
+            // Tactical ready stance
             ctx.beginPath();
-            ctx.moveTo(-8, -38 + crouchY + breathOffset);
-            ctx.lineTo(-14, -28 + crouchY);
-            ctx.moveTo(8, -38 + crouchY + breathOffset);
-            ctx.lineTo(14, -28 + crouchY);
+            ctx.moveTo(-10, -46 + crouchY + breathOffset);
+            ctx.lineTo(-18, -34 + crouchY);
+            ctx.lineTo(-14, -22 + crouchY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(10, -46 + crouchY + breathOffset);
+            ctx.lineTo(18, -34 + crouchY);
+            ctx.lineTo(14, -22 + crouchY);
             ctx.stroke();
         }
+
+        // Gauntlet Holographic Wrist Displays
+        ctx.fillStyle = stageTheme.primary;
+        ctx.shadowColor = stageTheme.primary;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(-14, -24 + crouchY, 2.5, 0, Math.PI * 2);
+        ctx.arc(14, -24 + crouchY, 2.5, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
 
-        // --- HELMET & CYBER VISOR ---
+        // --- HELMET, CYBER VISOR & ANAMORPHIC LENS FLARE ---
         ctx.save();
-        ctx.fillStyle = '#1e293b';
+        // Aerodynamic Helmet Outer Shell
+        const helmGrad = ctx.createLinearGradient(-10, -70, 10, -50);
+        helmGrad.addColorStop(0, '#475569');
+        helmGrad.addColorStop(0.5, '#1e293b');
+        helmGrad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = helmGrad;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(0, -52 + crouchY + breathOffset, 10, 0, Math.PI * 2);
+        ctx.ellipse(0, -60 + crouchY + breathOffset, 12, 13, 0, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
 
-        // Glowing Neon Visor
-        ctx.fillStyle = stageTheme.secondary;
+        // Curved Glowing Cyber Visor
+        const visorGrad = ctx.createLinearGradient(-2, -62, 12, -58);
+        visorGrad.addColorStop(0, '#ffffff');
+        visorGrad.addColorStop(0.3, stageTheme.secondary);
+        visorGrad.addColorStop(1, stageTheme.primary);
+        ctx.fillStyle = visorGrad;
         ctx.shadowColor = stageTheme.secondary;
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 18;
         ctx.beginPath();
-        ctx.roundRect(-2, -54 + crouchY + breathOffset, 12, 5, 2);
+        ctx.roundRect(-2, -63 + crouchY + breathOffset, 14, 7, 3);
         ctx.fill();
 
-        // Antenna Ear Piece
+        // Anamorphic Visor Reflection Streak (Glass Sheen)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.roundRect(0, -62.5 + crouchY + breathOffset, 9, 2, 1);
+        ctx.fill();
+
+        // Tactical Ear Antenna
         ctx.strokeStyle = stageTheme.primary;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(-6, -55 + crouchY + breathOffset);
-        ctx.lineTo(-10, -62 + crouchY + breathOffset);
+        ctx.moveTo(-8, -63 + crouchY + breathOffset);
+        ctx.lineTo(-14, -72 + crouchY + breathOffset);
         ctx.stroke();
         ctx.restore();
 
@@ -994,7 +1333,7 @@
     // -------------------------------------------------------------------------
     // 8. HIGH-JUICE CYBERPUNK SKYLINE WALLPAPER
     // -------------------------------------------------------------------------
-    function drawBackground(ctx, camX, camY) {
+    function drawBackground(ctx) {
         const stageTheme = STAGE_CONFIGS[currentStage].theme;
 
         const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
@@ -1002,40 +1341,37 @@
         bgGrad.addColorStop(0.55, stageTheme.skyMid);
         bgGrad.addColorStop(1, stageTheme.skyBot);
         ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, width, height);
+        ctx.fillRect(-width, -height, width * 3, height * 3);
 
         // Distant Flying Hover-Cars (Layer 1)
         for (const car of hoverCars.filter(c => c.layer === 1)) {
             ctx.fillStyle = car.color;
             ctx.shadowColor = car.color;
             ctx.shadowBlur = 10;
-            ctx.fillRect(car.x, car.y - camY * 0.1, car.length, 3);
+            ctx.fillRect(car.x, car.y, car.length, 3);
         }
 
         // Distant Mega-Skyscrapers (Parallax Layer 1)
         ctx.fillStyle = 'rgba(20, 30, 50, 0.45)';
-        const p1 = camX * 0.08;
-        for (let x = -200; x < width + 200; x += 85) {
-            const h = 200 + Math.sin(x * 0.04) * 70;
-            ctx.fillRect(x - (p1 % 85), height * 0.65 - h - camY * 0.1, 65, h);
+        for (let x = -400; x < width * 2; x += 90) {
+            const h = 220 + Math.sin(x * 0.04) * 80;
+            ctx.fillRect(x, height * 0.65 - h, 70, h);
         }
 
         // Midground Cyber Skyline with Holographic Billboards (Parallax Layer 2)
-        ctx.fillStyle = 'rgba(12, 18, 35, 0.75)';
-        const p2 = camX * 0.25;
-        for (let x = -200; x < width + 200; x += 150) {
-            const h = 260 + Math.cos(x * 0.035) * 90;
-            const drawX = x - (p2 % 150);
-            ctx.fillRect(drawX, height * 0.65 - h - camY * 0.2, 120, h);
+        ctx.fillStyle = 'rgba(12, 18, 35, 0.78)';
+        for (let x = -400; x < width * 2; x += 160) {
+            const h = 280 + Math.cos(x * 0.035) * 95;
+            ctx.fillRect(x, height * 0.65 - h, 130, h);
 
             // Windows Matrix
             ctx.fillStyle = 'rgba(0, 255, 204, 0.15)';
             for (let wy = height * 0.65 - h + 25; wy < height * 0.65 - 20; wy += 28) {
-                ctx.fillRect(drawX + 15, wy - camY * 0.2, 8, 14);
-                ctx.fillRect(drawX + 50, wy - camY * 0.2, 8, 14);
-                ctx.fillRect(drawX + 85, wy - camY * 0.2, 8, 14);
+                ctx.fillRect(x + 15, wy, 9, 14);
+                ctx.fillRect(x + 55, wy, 9, 14);
+                ctx.fillRect(x + 95, wy, 9, 14);
             }
-            ctx.fillStyle = 'rgba(12, 18, 35, 0.75)';
+            ctx.fillStyle = 'rgba(12, 18, 35, 0.78)';
         }
 
         // Midground Hover-Cars (Layer 2)
@@ -1043,17 +1379,17 @@
             ctx.fillStyle = car.color;
             ctx.shadowColor = car.color;
             ctx.shadowBlur = 14;
-            ctx.fillRect(car.x, car.y - camY * 0.2, car.length + 12, 4);
+            ctx.fillRect(car.x, car.y, car.length + 14, 4.5);
         }
 
         // Floating Cyber Grid Horizon
         ctx.strokeStyle = `${stageTheme.primary}25`;
         ctx.lineWidth = 1;
-        const gridY = height * 0.72 - camY * 0.3;
-        for (let x = 0; x < width; x += 36) {
+        const gridY = height * 0.72;
+        for (let x = -width; x < width * 2; x += 40) {
             ctx.beginPath();
             ctx.moveTo(x, gridY);
-            ctx.lineTo((x - width / 2) * 2.4 + width / 2, height);
+            ctx.lineTo((x - width / 2) * 2.4 + width / 2, height * 1.5);
             ctx.stroke();
         }
 
@@ -1080,8 +1416,11 @@
             screenShake = Math.max(0, screenShake - dt * 25);
         }
 
+        // Smooth Action Camera Tracking with Zoom & Roll
         cameraX += (targetCameraX - cameraX) * (1 - Math.pow(0.001, dt));
         cameraY += (targetCameraY - cameraY) * (1 - Math.pow(0.001, dt));
+        cameraZoom += (targetCameraZoom - cameraZoom) * (1 - Math.pow(0.0005, dt));
+        cameraRoll += (targetCameraRoll - cameraRoll) * (1 - Math.pow(0.001, dt));
 
         if (gameState === 'PLAYING') {
             wordTimer -= dt / wordTimeLimit;
@@ -1101,21 +1440,41 @@
 
         ctx.clearRect(0, 0, width, height);
 
+        // --- RENDER PIPELINE WITH CINEMATIC ACTION CAMERA TRANSFORM ---
         ctx.save();
+
+        // Screen Shake
         if (screenShake > 0) {
             const shakeX = (Math.random() - 0.5) * screenShake;
             const shakeY = (Math.random() - 0.5) * screenShake;
             ctx.translate(shakeX, shakeY);
         }
 
-        drawBackground(ctx, cameraX, cameraY);
+        // Background (Parallax space)
+        ctx.save();
+        ctx.translate(-cameraX * 0.1, -cameraY * 0.1);
+        drawBackground(ctx);
+        ctx.restore();
+
+        // Speed Lines (Screen space)
+        drawSpeedLines(ctx);
+
+        // World-Space Camera View (Zoom & Roll Centered on Screen)
+        ctx.save();
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(cameraRoll);
+        ctx.scale(cameraZoom, cameraZoom);
+        ctx.translate(-width / 2, -height / 2);
+        ctx.translate(-cameraX, -cameraY);
 
         for (const wall of walls) {
-            wall.draw(ctx, cameraX, cameraY);
+            wall.draw(ctx);
         }
 
-        drawRunner(ctx, cameraX, cameraY);
-        drawParticles(ctx, cameraX, cameraY);
+        drawRunner(ctx);
+        drawParticles(ctx);
+
+        ctx.restore();
 
         ctx.restore();
 
