@@ -1,12 +1,12 @@
 /* ==========================================================================
-   NEON WORD LEAPER - CYBERPARKOUR TYPING GAME ENGINE (V4 - STAGE SYSTEM & JUICED VISUALS)
+   NEON WORD LEAPER - CYBERPARKOUR TYPING GAME ENGINE (V5 - REALISTIC RUNNER & CINEMATIC JUMP)
    ========================================================================== */
 
 (function () {
     'use strict';
 
     // -------------------------------------------------------------------------
-    // 1. DICTIONARIES & STAGE CONFIGURATIONS
+    // 1. STAGE CONFIGURATIONS & THEMES
     // -------------------------------------------------------------------------
     const STAGE_CONFIGS = {
         1: {
@@ -21,6 +21,7 @@
             theme: {
                 primary: "#00ffcc",
                 secondary: "#10b981",
+                scarf: "#00ffcc",
                 skyTop: "#06070a",
                 skyMid: "#0d1b2a",
                 skyBot: "#020617"
@@ -38,6 +39,7 @@
             theme: {
                 primary: "#ff00ea",
                 secondary: "#a855f7",
+                scarf: "#ff00ea",
                 skyTop: "#0d0614",
                 skyMid: "#1a0b2e",
                 skyBot: "#070210"
@@ -55,6 +57,7 @@
             theme: {
                 primary: "#f59e0b",
                 secondary: "#ef4444",
+                scarf: "#f59e0b",
                 skyTop: "#120703",
                 skyMid: "#2b0f06",
                 skyBot: "#0a0301"
@@ -63,7 +66,7 @@
     };
 
     // -------------------------------------------------------------------------
-    // 2. AUDIO SYNTHESIZER (WEB AUDIO API)
+    // 2. AUDIO SYNTHESIZER
     // -------------------------------------------------------------------------
     class SoundEngine {
         constructor() {
@@ -108,14 +111,14 @@
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(240, now);
-                osc.frequency.exponentialRampToValueAtTime(750, now + 0.22);
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.35);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.22);
+                osc.stop(now + 0.35);
             } catch (e) {}
         }
 
@@ -127,13 +130,13 @@
                 const gain = this.ctx.createGain();
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(160, now);
-                osc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.15);
+                osc.stop(now + 0.2);
             } catch (e) {}
         }
 
@@ -231,7 +234,7 @@
     let width = window.innerWidth;
     let height = window.innerHeight;
 
-    let gameState = 'START'; // START, PLAYING, PAUSED, GAME_OVER, STAGE_COMPLETE, FALLING, JUMPING, RESPAWNING
+    let gameState = 'START';
     let currentStage = 1;
 
     let score = 0;
@@ -253,60 +256,65 @@
 
     let cameraX = 0;
     let targetCameraX = 0;
+    let cameraY = 0;
+    let targetCameraY = 0;
 
     let walls = [];
     let currentWallIndex = 0;
 
-    // Runner character
+    // High-Resolution Character Model
     const runner = {
         x: 150,
         y: 0,
-        width: 32,
-        height: 48,
+        width: 44,
+        height: 64,
         vx: 0,
         vy: 0,
         angle: 0,
-        state: 'IDLE',
+        state: 'IDLE', // IDLE, JUMPING, FALLING, LANDING, RESPAWNING, DEAD
         jumpProgress: 0,
         startX: 0,
         startY: 0,
         targetX: 0,
         targetY: 0,
         respawnTimer: 0,
-        trail: []
+        landingTimer: 0,
+        breathTime: 0,
+        trail: [],
+        scarfPoints: []
     };
 
+    let shockwaves = [];
     let particles = [];
     let screenShake = 0;
 
-    // Hover-Cars for Background Skyways
+    // Hover-Cars for Background
     let hoverCars = [];
     function initHoverCars() {
         hoverCars = [];
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 8; i++) {
             hoverCars.push({
                 x: Math.random() * width * 2,
-                y: height * 0.15 + Math.random() * (height * 0.35),
-                speed: (Math.random() > 0.5 ? 1 : -1) * (60 + Math.random() * 90),
-                length: 30 + Math.random() * 20,
+                y: height * 0.12 + Math.random() * (height * 0.38),
+                speed: (Math.random() > 0.5 ? 1 : -1) * (70 + Math.random() * 100),
+                length: 35 + Math.random() * 25,
                 color: Math.random() > 0.5 ? '#00ffcc' : '#ff00ea',
                 layer: Math.random() > 0.5 ? 1 : 2
             });
         }
     }
 
-    // Floating Ambient Digital Embers
     let embers = [];
     function initEmbers() {
         embers = [];
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 30; i++) {
             embers.push({
                 x: Math.random() * width,
                 y: Math.random() * height,
                 vx: (Math.random() - 0.5) * 20,
-                vy: - (15 + Math.random() * 30),
-                size: 1.5 + Math.random() * 2,
-                alpha: 0.2 + Math.random() * 0.5
+                vy: -(18 + Math.random() * 35),
+                size: 1.5 + Math.random() * 2.5,
+                alpha: 0.2 + Math.random() * 0.6
             });
         }
     }
@@ -324,45 +332,46 @@
             this.height = height;
         }
 
-        draw(ctx, camX) {
+        draw(ctx, camX, camY) {
             const screenX = this.x - camX;
-            if (screenX + this.width < -100 || screenX > width + 100) return;
+            const screenY = this.topY - camY;
+            if (screenX + this.width < -120 || screenX > width + 120) return;
 
             ctx.save();
 
             // Skyscraper Wall Base Gradient
-            const grad = ctx.createLinearGradient(screenX, this.topY, screenX + this.width, height);
-            grad.addColorStop(0, 'rgba(15, 23, 42, 0.95)');
+            const grad = ctx.createLinearGradient(screenX, screenY, screenX + this.width, height);
+            grad.addColorStop(0, 'rgba(15, 23, 42, 0.96)');
             grad.addColorStop(1, 'rgba(6, 9, 16, 0.98)');
             ctx.fillStyle = grad;
-            ctx.fillRect(screenX, this.topY, this.width, height - this.topY);
+            ctx.fillRect(screenX, screenY, this.width, height - screenY + 200);
 
             // Glowing Neon Top Platform Surface
             ctx.fillStyle = this.color;
             ctx.shadowColor = this.color;
-            ctx.shadowBlur = 16;
-            ctx.fillRect(screenX, this.topY, this.width, 8);
+            ctx.shadowBlur = 18;
+            ctx.fillRect(screenX, screenY, this.width, 10);
 
             // Wall Neon Edge Borders
             ctx.strokeStyle = this.color;
-            ctx.lineWidth = 2;
-            ctx.strokeRect(screenX, this.topY, this.width, height - this.topY);
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(screenX, screenY, this.width, height - screenY + 200);
 
-            // Tech Circuit Grid on Wall
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            // Tech Circuit Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
             ctx.lineWidth = 1;
-            for (let cy = this.topY + 25; cy < height; cy += 30) {
+            for (let cy = screenY + 30; cy < height; cy += 32) {
                 ctx.beginPath();
-                ctx.moveTo(screenX + 5, cy);
-                ctx.lineTo(screenX + this.width - 5, cy);
+                ctx.moveTo(screenX + 8, cy);
+                ctx.lineTo(screenX + this.width - 8, cy);
                 ctx.stroke();
             }
 
-            // Wall Number / Level Indicator
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            // Wall Level Plate
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.font = '14px "Share Tech Mono", monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(`WALL ${this.index + 1}`, screenX + this.width / 2, this.topY + 30);
+            ctx.fillText(`WALL ${this.index + 1}`, screenX + this.width / 2, screenY + 32);
 
             ctx.restore();
         }
@@ -370,15 +379,15 @@
 
     function initWalls() {
         walls = [];
-        let currentX = 100;
+        let currentX = 120;
         const groundY = height * 0.65;
         const stageTheme = STAGE_CONFIGS[currentStage].theme;
 
         for (let i = 0; i < 20; i++) {
-            const wallW = 140 + Math.random() * 40;
+            const wallW = 150 + Math.random() * 40;
             const wallTopY = groundY + (Math.sin(i * 0.8) * 35);
             walls.push(new Wall(i, currentX, wallW, wallTopY, stageTheme));
-            const gap = 180 + Math.random() * 80;
+            const gap = 200 + Math.random() * 80;
             currentX += wallW + gap;
         }
 
@@ -387,15 +396,17 @@
         runner.y = walls[0].topY;
         cameraX = runner.x - width * 0.3;
         targetCameraX = cameraX;
+        cameraY = 0;
+        targetCameraY = 0;
     }
 
     function spawnNextWallIfNeeded() {
         if (currentWallIndex >= walls.length - 6) {
             const lastWall = walls[walls.length - 1];
             const i = lastWall.index + 1;
-            const gap = 190 + Math.random() * 90;
+            const gap = 200 + Math.random() * 90;
             const nextX = lastWall.x + lastWall.width + gap;
-            const wallW = 140 + Math.random() * 40;
+            const wallW = 150 + Math.random() * 40;
             const groundY = height * 0.65;
             const wallTopY = groundY + (Math.sin(i * 0.8) * 45);
             const stageTheme = STAGE_CONFIGS[currentStage].theme;
@@ -453,7 +464,6 @@
         document.getElementById('stageFill').style.width = `${pct}%`;
     }
 
-    // Single source of truth typing handler
     function handleTypingInput(char) {
         if (gameState !== 'PLAYING') return;
 
@@ -464,7 +474,7 @@
             correctKeystrokes++;
             typedIndex++;
             sound.playKeyClick();
-            createSparks(runner.x, runner.y - 30, STAGE_CONFIGS[currentStage].theme.primary, 6);
+            createSparks(runner.x, runner.y - 35, STAGE_CONFIGS[currentStage].theme.primary, 8);
 
             if (typedIndex >= targetWord.length) {
                 onWordCompleted();
@@ -486,47 +496,31 @@
         document.getElementById('comboVal').innerText = `${combo}x`;
         updateStageProgressHUD();
 
-        // Check if Stage Goal is completed!
-        const targetReq = STAGE_CONFIGS[currentStage].targetWords;
-        if (stageWordsCompleted >= targetReq) {
-            // Stage Cleared!
-            gameState = 'STAGE_COMPLETE';
-            sound.playJump();
-
-            // Acrobatic leap to last wall
-            const currentWall = walls[currentWallIndex];
-            const nextWall = walls[currentWallIndex + 1];
-
-            runner.state = 'JUMPING';
-            runner.jumpProgress = 0;
-            runner.startX = currentWall.x + currentWall.width - 20;
-            runner.startY = currentWall.topY;
-            runner.targetX = nextWall.x + 35;
-            runner.targetY = nextWall.topY;
-
-            createSparks(runner.startX, runner.startY, '#00ffcc', 20);
-
-            setTimeout(() => {
-                triggerStageComplete();
-            }, 600);
-            return;
-        }
-
-        // Standard Leap across gap
-        gameState = 'JUMPING';
-        sound.playJump();
-
         const currentWall = walls[currentWallIndex];
         const nextWall = walls[currentWallIndex + 1];
 
+        // Launch spectacular acrobatic jump!
+        gameState = 'JUMPING';
+        sound.playJump();
+
         runner.state = 'JUMPING';
         runner.jumpProgress = 0;
-        runner.startX = currentWall.x + currentWall.width - 20;
+        runner.startX = currentWall.x + currentWall.width - 25;
         runner.startY = currentWall.topY;
-        runner.targetX = nextWall.x + 35;
+        runner.targetX = nextWall.x + 40;
         runner.targetY = nextWall.topY;
 
-        createSparks(runner.startX, runner.startY, STAGE_CONFIGS[currentStage].theme.primary, 15);
+        // Blast thruster fire on takeoff
+        createThrusterBurst(runner.startX, runner.startY, STAGE_CONFIGS[currentStage].theme.primary, 25);
+
+        // Check if stage goal is completed
+        const targetReq = STAGE_CONFIGS[currentStage].targetWords;
+        if (stageWordsCompleted >= targetReq) {
+            gameState = 'STAGE_COMPLETE';
+            setTimeout(() => {
+                triggerStageComplete();
+            }, 800);
+        }
     }
 
     function onTypingMistake() {
@@ -541,15 +535,15 @@
         setTimeout(() => wordCard.classList.remove('glitch-shake'), 400);
 
         screenShake = 12;
-        createSparks(runner.x, runner.y - 20, '#ef4444', 20);
+        createSparks(runner.x, runner.y - 25, '#ef4444', 22);
 
         lives--;
         updateLivesHUD();
 
         gameState = 'FALLING';
         runner.state = 'FALLING';
-        runner.vx = 2.0;
-        runner.vy = -2.5;
+        runner.vx = 2.2;
+        runner.vy = -3.0;
     }
 
     function updateLivesHUD() {
@@ -564,37 +558,93 @@
     }
 
     // -------------------------------------------------------------------------
-    // 6. RUNNER PHYSICS & PARTICLES
+    // 6. RUNNER PHYSICS, SHOCKWAVES & PARTICLES
     // -------------------------------------------------------------------------
-    function updateRunner(dt) {
-        if (runner.state === 'JUMPING' || runner.state === 'FALLING') {
-            runner.trail.push({ x: runner.x, y: runner.y, alpha: 1.0, color: runner.state === 'JUMPING' ? STAGE_CONFIGS[currentStage].theme.primary : '#ef4444' });
+    function createThrusterBurst(x, y, color, count) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.PI * 0.7 + Math.random() * Math.PI * 0.6;
+            const speed = 4 + Math.random() * 7;
+            particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed + 2,
+                color: color,
+                size: 3 + Math.random() * 3.5,
+                life: 1.0,
+                decay: 2.0 + Math.random() * 2
+            });
         }
+    }
+
+    function createShockwave(x, y, color) {
+        shockwaves.push({
+            x: x,
+            y: y,
+            radius: 5,
+            maxRadius: 65,
+            color: color,
+            alpha: 1.0
+        });
+    }
+
+    function updateRunner(dt) {
+        runner.breathTime += dt * 4;
+
+        if (runner.state === 'JUMPING' || runner.state === 'FALLING') {
+            runner.trail.push({
+                x: runner.x,
+                y: runner.y,
+                alpha: 1.0,
+                angle: runner.angle,
+                color: runner.state === 'JUMPING' ? STAGE_CONFIGS[currentStage].theme.primary : '#ef4444'
+            });
+
+            // Emit thruster flame particles while in mid-air
+            if (runner.state === 'JUMPING' && Math.random() > 0.3) {
+                particles.push({
+                    x: runner.x - Math.cos(runner.angle) * 20,
+                    y: runner.y - Math.sin(runner.angle) * 20,
+                    vx: (Math.random() - 0.5) * 2 - 2,
+                    vy: (Math.random() - 0.5) * 2 + 3,
+                    color: STAGE_CONFIGS[currentStage].theme.primary,
+                    size: 2.5 + Math.random() * 2,
+                    life: 0.8,
+                    decay: 3.5
+                });
+            }
+        }
+
         for (let i = runner.trail.length - 1; i >= 0; i--) {
-            runner.trail[i].alpha -= dt * 3.5;
+            runner.trail[i].alpha -= dt * 3.0;
             if (runner.trail[i].alpha <= 0) {
                 runner.trail.splice(i, 1);
             }
         }
 
         if (runner.state === 'JUMPING') {
-            runner.jumpProgress += dt * 1.8;
+            // Generous 0.82s jump duration so the acrobatic dive is prominent and cinematic!
+            runner.jumpProgress += dt * 1.22;
+
             if (runner.jumpProgress >= 1.0) {
                 runner.jumpProgress = 1.0;
-                runner.state = 'IDLE';
+                runner.state = 'LANDING';
+                runner.landingTimer = 0.18;
                 currentWallIndex++;
                 spawnNextWallIfNeeded();
 
                 const landWall = walls[currentWallIndex];
-                runner.x = landWall.x + 35;
+                runner.x = landWall.x + 40;
                 runner.y = landWall.topY;
                 runner.angle = 0;
 
                 sound.playLand();
-                screenShake = 6;
-                createSparks(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary, 18);
+                screenShake = 8;
+                createShockwave(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary);
+                createSparks(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary, 24);
 
                 targetCameraX = runner.x - width * 0.3;
+                targetCameraY = 0;
 
                 if (gameState !== 'STAGE_COMPLETE') {
                     gameState = 'PLAYING';
@@ -603,17 +653,29 @@
             } else {
                 const p = runner.jumpProgress;
                 runner.x = runner.startX + (runner.targetX - runner.startX) * p;
-                const arcH = 120;
+
+                // Cinematic Parabolic Jump Arc with dynamic peak
+                const arcH = 155;
                 const heightOffset = 4 * arcH * p * (1 - p);
                 const linearY = runner.startY + (runner.targetY - runner.startY) * p;
                 runner.y = linearY - heightOffset;
+
+                // Smooth full 360° parkour acrobatic roll
                 runner.angle = p * Math.PI * 2;
+
+                // Dynamic camera tracking height during leap
+                targetCameraY = -heightOffset * 0.35;
+            }
+        } else if (runner.state === 'LANDING') {
+            runner.landingTimer -= dt;
+            if (runner.landingTimer <= 0) {
+                runner.state = 'IDLE';
             }
         } else if (runner.state === 'FALLING') {
             runner.x += runner.vx;
             runner.y += runner.vy;
-            runner.vy += 22 * dt;
-            runner.angle += 6 * dt;
+            runner.vy += 24 * dt;
+            runner.angle += 7 * dt;
 
             if (runner.y > height + 80) {
                 if (lives > 0) {
@@ -641,10 +703,11 @@
         runner.vy = 0;
         runner.angle = 0;
         runner.state = 'RESPAWNING';
-        runner.respawnTimer = 0.4;
+        runner.respawnTimer = 0.45;
 
-        createSparks(runner.x, runner.y - 20, STAGE_CONFIGS[currentStage].theme.primary, 25);
+        createSparks(runner.x, runner.y - 25, STAGE_CONFIGS[currentStage].theme.primary, 30);
         screenShake = 8;
+        targetCameraY = 0;
 
         setNextWord(true);
     }
@@ -652,14 +715,14 @@
     function createSparks(x, y, color, count) {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const speed = 2 + Math.random() * 5;
+            const speed = 2.5 + Math.random() * 6;
             particles.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 1.5,
+                vy: Math.sin(angle) * speed - 1.8,
                 color: color,
-                size: 2 + Math.random() * 3,
+                size: 2.5 + Math.random() * 3,
                 life: 1.0,
                 decay: 1.8 + Math.random() * 2
             });
@@ -667,6 +730,15 @@
     }
 
     function updateParticles(dt) {
+        for (let i = shockwaves.length - 1; i >= 0; i--) {
+            const s = shockwaves[i];
+            s.radius += dt * 140;
+            s.alpha -= dt * 2.5;
+            if (s.alpha <= 0 || s.radius >= s.maxRadius) {
+                shockwaves.splice(i, 1);
+            }
+        }
+
         for (let i = particles.length - 1; i >= 0; i--) {
             const p = particles[i];
             p.x += p.vx;
@@ -678,7 +750,6 @@
             }
         }
 
-        // Update hover-cars
         for (const car of hoverCars) {
             car.x += car.speed * dt;
             if (car.speed > 0 && car.x > width + 200) {
@@ -690,7 +761,6 @@
             }
         }
 
-        // Update embers
         for (const e of embers) {
             e.y += e.vy * dt;
             e.x += e.vx * dt;
@@ -701,37 +771,60 @@
         }
     }
 
-    function drawParticles(ctx, camX) {
+    function drawParticles(ctx, camX, camY) {
         ctx.save();
+        // Draw expanding shockwaves on landing
+        for (const s of shockwaves) {
+            ctx.save();
+            ctx.strokeStyle = s.color;
+            ctx.shadowColor = s.color;
+            ctx.shadowBlur = 15;
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = Math.max(0, s.alpha);
+            ctx.beginPath();
+            ctx.ellipse(s.x - camX, s.y - camY, s.radius, s.radius * 0.35, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Draw sparks
         for (const p of particles) {
             ctx.fillStyle = p.color;
             ctx.shadowColor = p.color;
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = 8;
             ctx.globalAlpha = Math.max(0, p.life);
             ctx.beginPath();
-            ctx.arc(p.x - camX, p.y, p.size, 0, Math.PI * 2);
+            ctx.arc(p.x - camX, p.y - camY, p.size, 0, Math.PI * 2);
             ctx.fill();
         }
         ctx.restore();
     }
 
-    function drawRunner(ctx, camX) {
+    // -------------------------------------------------------------------------
+    // 7. HIGH-RESOLUTION REALISTIC CYBER RUNNER DRAWING
+    // -------------------------------------------------------------------------
+    function drawRunner(ctx, camX, camY) {
         if (runner.state === 'DEAD') return;
 
         ctx.save();
         const drawX = runner.x - camX;
-        const drawY = runner.y;
+        const drawY = runner.y - camY;
 
-        for (const t of runner.trail) {
+        // Draw Motion Trails
+        for (let i = 0; i < runner.trail.length; i++) {
+            const t = runner.trail[i];
+            ctx.save();
             ctx.fillStyle = t.color;
-            ctx.globalAlpha = t.alpha * 0.4;
+            ctx.shadowColor = t.color;
+            ctx.shadowBlur = 10;
+            ctx.globalAlpha = t.alpha * 0.35;
             ctx.beginPath();
-            ctx.arc(t.x - camX, t.y - 24, 12, 0, Math.PI * 2);
+            ctx.arc(t.x - camX, t.y - camY - 28, 14, 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
         }
 
-        ctx.translate(drawX, drawY - 24);
-        ctx.rotate(runner.angle);
+        ctx.translate(drawX, drawY);
 
         if (runner.state === 'RESPAWNING') {
             ctx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.02) * 0.5;
@@ -739,42 +832,171 @@
 
         const stageTheme = STAGE_CONFIGS[currentStage].theme;
 
-        // Glowing Thruster Pack
+        // Dynamic crouch / bounce offsets
+        let crouchY = 0;
+        let legSpread = 0;
+        let breathOffset = Math.sin(runner.breathTime) * 1.5;
+
+        if (runner.state === 'LANDING') {
+            crouchY = 8;
+            legSpread = 6;
+        }
+
+        ctx.rotate(runner.angle);
+
+        // --- CYBER SCARF / ENERGY CAPE (Dynamic Flowing Wave) ---
+        ctx.save();
+        ctx.strokeStyle = stageTheme.scarf;
+        ctx.shadowColor = stageTheme.scarf;
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        const scarfWave = Math.sin(runner.breathTime * 1.5) * 6;
+        ctx.moveTo(-10, -42 + crouchY);
+        ctx.quadraticCurveTo(-24, -36 + scarfWave + crouchY, -40 - Math.abs(runner.vx * 3), -30 + scarfWave * 1.5 + crouchY);
+        ctx.stroke();
+        ctx.restore();
+
+        // --- JET THRUSTER PACK ---
+        ctx.save();
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = stageTheme.primary;
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(-16, -42 + crouchY, 8, 22);
+        ctx.strokeRect(-16, -42 + crouchY, 8, 22);
+
+        // Thruster Core Light
         ctx.fillStyle = stageTheme.primary;
         ctx.shadowColor = stageTheme.primary;
-        ctx.shadowBlur = 12;
-        ctx.fillRect(-12, -8, 6, 16);
+        ctx.shadowBlur = 10;
+        ctx.fillRect(-15, -34 + crouchY, 6, 6);
+        ctx.restore();
 
-        // Body Armor
+        // --- LEGS & JET BOOTS ---
+        ctx.save();
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Left Leg
+        ctx.beginPath();
+        ctx.moveTo(-6, -18 + crouchY);
+        ctx.lineTo(-8 - legSpread, -6 + crouchY * 0.5);
+        ctx.lineTo(-10 - legSpread, 0);
+        ctx.stroke();
+
+        // Right Leg
+        ctx.beginPath();
+        ctx.moveTo(6, -18 + crouchY);
+        ctx.lineTo(8 + legSpread, -6 + crouchY * 0.5);
+        ctx.lineTo(10 + legSpread, 0);
+        ctx.stroke();
+
+        // Glowing Armor Trim on Shins & Boots
+        ctx.strokeStyle = stageTheme.primary;
+        ctx.shadowColor = stageTheme.primary;
+        ctx.shadowBlur = 8;
+        ctx.lineWidth = 2.5;
+
+        ctx.beginPath();
+        ctx.moveTo(-12 - legSpread, -2);
+        ctx.lineTo(-4 - legSpread, 0);
+        ctx.moveTo(4 + legSpread, 0);
+        ctx.lineTo(12 + legSpread, -2);
+        ctx.stroke();
+        ctx.restore();
+
+        // --- TORSO & CYBER ARMOR ---
+        ctx.save();
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1.5;
+
+        // Chest Armor
+        ctx.beginPath();
+        ctx.roundRect(-10, -44 + crouchY + breathOffset, 20, 26, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Glowing Arc Reactor Core in Chest
+        ctx.fillStyle = stageTheme.primary;
+        ctx.shadowColor = stageTheme.primary;
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(0, -32 + crouchY + breathOffset, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Armor Accent Lines
+        ctx.strokeStyle = stageTheme.secondary;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-6, -40 + crouchY + breathOffset);
+        ctx.lineTo(6, -40 + crouchY + breathOffset);
+        ctx.moveTo(-7, -24 + crouchY + breathOffset);
+        ctx.lineTo(7, -24 + crouchY + breathOffset);
+        ctx.stroke();
+        ctx.restore();
+
+        // --- ARMS ---
+        ctx.save();
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+
+        if (runner.state === 'JUMPING') {
+            // Forward diving arms pose
+            ctx.beginPath();
+            ctx.moveTo(-8, -38 + crouchY);
+            ctx.lineTo(-18, -26);
+            ctx.moveTo(8, -38 + crouchY);
+            ctx.lineTo(18, -48);
+            ctx.stroke();
+        } else {
+            // Ready stance
+            ctx.beginPath();
+            ctx.moveTo(-8, -38 + crouchY + breathOffset);
+            ctx.lineTo(-14, -28 + crouchY);
+            ctx.moveTo(8, -38 + crouchY + breathOffset);
+            ctx.lineTo(14, -28 + crouchY);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // --- HELMET & CYBER VISOR ---
+        ctx.save();
         ctx.fillStyle = '#1e293b';
-        ctx.fillRect(-8, -14, 16, 28);
+        ctx.beginPath();
+        ctx.arc(0, -52 + crouchY + breathOffset, 10, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Neon Visor
+        // Glowing Neon Visor
         ctx.fillStyle = stageTheme.secondary;
         ctx.shadowColor = stageTheme.secondary;
-        ctx.shadowBlur = 10;
-        ctx.fillRect(-4, -22, 12, 6);
-
-        // Limbs
-        ctx.strokeStyle = stageTheme.primary;
-        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
         ctx.beginPath();
-        ctx.moveTo(-4, 14);
-        ctx.lineTo(-6, 24);
-        ctx.moveTo(4, 14);
-        ctx.lineTo(6, 24);
+        ctx.roundRect(-2, -54 + crouchY + breathOffset, 12, 5, 2);
+        ctx.fill();
+
+        // Antenna Ear Piece
+        ctx.strokeStyle = stageTheme.primary;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-6, -55 + crouchY + breathOffset);
+        ctx.lineTo(-10, -62 + crouchY + breathOffset);
         ctx.stroke();
+        ctx.restore();
 
         ctx.restore();
     }
 
     // -------------------------------------------------------------------------
-    // 7. HIGH-JUICE CYBERPUNK SKYLINE WALLPAPER
+    // 8. HIGH-JUICE CYBERPUNK SKYLINE WALLPAPER
     // -------------------------------------------------------------------------
-    function drawBackground(ctx, camX) {
+    function drawBackground(ctx, camX, camY) {
         const stageTheme = STAGE_CONFIGS[currentStage].theme;
 
-        // Atmospheric Sky Gradient
         const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
         bgGrad.addColorStop(0, stageTheme.skyTop);
         bgGrad.addColorStop(0.55, stageTheme.skyMid);
@@ -787,7 +1009,7 @@
             ctx.fillStyle = car.color;
             ctx.shadowColor = car.color;
             ctx.shadowBlur = 10;
-            ctx.fillRect(car.x, car.y, car.length, 3);
+            ctx.fillRect(car.x, car.y - camY * 0.1, car.length, 3);
         }
 
         // Distant Mega-Skyscrapers (Parallax Layer 1)
@@ -795,7 +1017,7 @@
         const p1 = camX * 0.08;
         for (let x = -200; x < width + 200; x += 85) {
             const h = 200 + Math.sin(x * 0.04) * 70;
-            ctx.fillRect(x - (p1 % 85), height * 0.65 - h, 65, h);
+            ctx.fillRect(x - (p1 % 85), height * 0.65 - h - camY * 0.1, 65, h);
         }
 
         // Midground Cyber Skyline with Holographic Billboards (Parallax Layer 2)
@@ -804,14 +1026,14 @@
         for (let x = -200; x < width + 200; x += 150) {
             const h = 260 + Math.cos(x * 0.035) * 90;
             const drawX = x - (p2 % 150);
-            ctx.fillRect(drawX, height * 0.65 - h, 120, h);
+            ctx.fillRect(drawX, height * 0.65 - h - camY * 0.2, 120, h);
 
             // Windows Matrix
             ctx.fillStyle = 'rgba(0, 255, 204, 0.15)';
             for (let wy = height * 0.65 - h + 25; wy < height * 0.65 - 20; wy += 28) {
-                ctx.fillRect(drawX + 15, wy, 8, 14);
-                ctx.fillRect(drawX + 50, wy, 8, 14);
-                ctx.fillRect(drawX + 85, wy, 8, 14);
+                ctx.fillRect(drawX + 15, wy - camY * 0.2, 8, 14);
+                ctx.fillRect(drawX + 50, wy - camY * 0.2, 8, 14);
+                ctx.fillRect(drawX + 85, wy - camY * 0.2, 8, 14);
             }
             ctx.fillStyle = 'rgba(12, 18, 35, 0.75)';
         }
@@ -820,14 +1042,14 @@
         for (const car of hoverCars.filter(c => c.layer === 2)) {
             ctx.fillStyle = car.color;
             ctx.shadowColor = car.color;
-            ctx.shadowBlur = 12;
-            ctx.fillRect(car.x, car.y, car.length + 10, 4);
+            ctx.shadowBlur = 14;
+            ctx.fillRect(car.x, car.y - camY * 0.2, car.length + 12, 4);
         }
 
         // Floating Cyber Grid Horizon
-        ctx.strokeStyle = `${stageTheme.primary}22`;
+        ctx.strokeStyle = `${stageTheme.primary}25`;
         ctx.lineWidth = 1;
-        const gridY = height * 0.72;
+        const gridY = height * 0.72 - camY * 0.3;
         for (let x = 0; x < width; x += 36) {
             ctx.beginPath();
             ctx.moveTo(x, gridY);
@@ -845,7 +1067,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 8. GAME LOOP & TIMERS
+    // 9. GAME LOOP & TIMERS
     // -------------------------------------------------------------------------
     let lastTime = 0;
 
@@ -859,6 +1081,7 @@
         }
 
         cameraX += (targetCameraX - cameraX) * (1 - Math.pow(0.001, dt));
+        cameraY += (targetCameraY - cameraY) * (1 - Math.pow(0.001, dt));
 
         if (gameState === 'PLAYING') {
             wordTimer -= dt / wordTimeLimit;
@@ -885,14 +1108,14 @@
             ctx.translate(shakeX, shakeY);
         }
 
-        drawBackground(ctx, cameraX);
+        drawBackground(ctx, cameraX, cameraY);
 
         for (const wall of walls) {
-            wall.draw(ctx, cameraX);
+            wall.draw(ctx, cameraX, cameraY);
         }
 
-        drawRunner(ctx, cameraX);
-        drawParticles(ctx, cameraX);
+        drawRunner(ctx, cameraX, cameraY);
+        drawParticles(ctx, cameraX, cameraY);
 
         ctx.restore();
 
@@ -900,7 +1123,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 9. STAGE COMPLETION, GAME OVER & MENU TRANSITIONS
+    // 10. STAGE COMPLETION, GAME OVER & MENU TRANSITIONS
     // -------------------------------------------------------------------------
     function triggerStageComplete() {
         gameState = 'STAGE_COMPLETE';
@@ -962,7 +1185,6 @@
         document.getElementById('startScreen').classList.add('active');
         document.getElementById('word-hud-container').style.display = 'none';
 
-        // Update active stage card
         document.querySelectorAll('.stage-card').forEach(card => {
             if (parseInt(card.dataset.stage, 10) === currentStage) {
                 card.classList.add('active');
@@ -1001,7 +1223,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 10. INPUT & EVENT LISTENERS
+    // 11. INPUT & EVENT LISTENERS
     // -------------------------------------------------------------------------
     function initListeners() {
         window.addEventListener('resize', () => {
@@ -1017,14 +1239,14 @@
             window.focus();
         });
 
-        // SINGLE-POINT KEYBOARD HANDLER
+        // Single-Point Keyboard Handler
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Tab') e.preventDefault();
 
             if (gameState === 'START' || gameState === 'GAME_OVER') {
                 if (e.code === 'Space' || e.key === 'Enter') {
                     e.preventDefault();
-                    startGame();
+                    startGame(currentStage);
                 }
                 return;
             }
@@ -1076,12 +1298,10 @@
 
         document.getElementById('pauseBtn').addEventListener('click', togglePause);
 
-        // Stage Selection Navigation Buttons
         document.getElementById('stageSelectFromPauseBtn').addEventListener('click', returnToStageSelect);
         document.getElementById('stageSelectFromVictoryBtn').addEventListener('click', returnToStageSelect);
         document.getElementById('stageSelectFromGameOverBtn').addEventListener('click', returnToStageSelect);
 
-        // Next Stage Button
         document.getElementById('nextStageBtn').addEventListener('click', () => {
             const nextStage = currentStage >= 3 ? 1 : currentStage + 1;
             startGame(nextStage);
@@ -1123,7 +1343,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // 11. INITIALIZATION
+    // 12. INITIALIZATION
     // -------------------------------------------------------------------------
     initHoverCars();
     initEmbers();
