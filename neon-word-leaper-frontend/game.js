@@ -473,6 +473,19 @@
         }
     }
 
+    function isMobileDevice() {
+        return width <= 768 || window.innerHeight < 600 || ('ontouchstart' in window);
+    }
+
+    function getIdealRunnerScreenY() {
+        // On mobile devices, position runner in upper-middle (36% of viewport height) so it stays completely above virtual keyboards
+        return isMobileDevice() ? height * 0.36 : height * 0.52;
+    }
+
+    function getIdealJumpArcHeight() {
+        return isMobileDevice() ? 105 : 170;
+    }
+
     function initWalls() {
         walls = [];
         let currentX = 120;
@@ -492,7 +505,7 @@
         runner.y = walls[0].topY;
         cameraX = runner.x - width * 0.35;
         targetCameraX = cameraX;
-        cameraY = runner.y - height * 0.6;
+        cameraY = runner.y - getIdealRunnerScreenY();
         targetCameraY = cameraY;
         cameraZoom = 1.0;
         targetCameraZoom = 1.0;
@@ -854,7 +867,7 @@
                 createSparks(runner.x, runner.y, STAGE_CONFIGS[currentStage].theme.primary, 32);
 
                 targetCameraX = runner.x - width * 0.35;
-                targetCameraY = runner.y - height * 0.6;
+                targetCameraY = runner.y - getIdealRunnerScreenY();
                 targetCameraZoom = 1.0;
                 targetCameraRoll = 0;
                 speedLines = [];
@@ -867,28 +880,26 @@
                 const p = runner.jumpProgress;
                 runner.x = runner.startX + (runner.targetX - runner.startX) * p;
 
-                // Cinematic Parabolic Jump Arc with dynamic peak
-                const arcH = 175;
+                // Parabolic Jump Arc with dynamic responsive height
+                const arcH = getIdealJumpArcHeight();
                 const heightOffset = 4 * arcH * p * (1 - p);
                 const linearY = runner.startY + (runner.targetY - runner.startY) * p;
                 runner.y = linearY - heightOffset;
 
-                // 3-Phase Kinematic Acrobatic Rotation:
-                // Phase 1 (0 -> 0.4): Launch & tuck rotation
-                // Phase 2 (0.4 -> 0.65): Superman layout dive at apex
-                // Phase 3 (0.65 -> 1.0): Pre-landing landing prep
+                // 3-Phase Kinematic Acrobatic Rotation
                 runner.angle = p * Math.PI * 2;
 
-                // Cinematic Dynamic Camera: Zoom into runner at apex & follow height
+                // Cinematic Dynamic Camera: Follow runner and peak altitude cleanly
                 targetCameraX = runner.x - width * 0.35;
-                targetCameraY = runner.y - height * 0.55;
-                targetCameraZoom = 1.0 + Math.sin(p * Math.PI) * 0.14; // Dramatic 1.14x zoom at apex
-                targetCameraRoll = Math.sin(p * Math.PI * 2) * 0.035; // Subtle action tilt
+                targetCameraY = runner.y - getIdealRunnerScreenY() - heightOffset * 0.22;
+                targetCameraZoom = 1.0 + Math.sin(p * Math.PI) * (isMobileDevice() ? 0.08 : 0.14);
+                targetCameraRoll = Math.sin(p * Math.PI * 2) * 0.03;
             }
         } else if (runner.state === 'LANDING') {
             runner.landingTimer -= dt;
             targetCameraZoom = 1.0;
             targetCameraRoll = 0;
+            targetCameraY = runner.y - getIdealRunnerScreenY();
             if (runner.landingTimer <= 0) {
                 runner.state = 'IDLE';
             }
@@ -909,6 +920,7 @@
             }
         } else if (runner.state === 'RESPAWNING') {
             runner.respawnTimer -= dt;
+            targetCameraY = runner.y - getIdealRunnerScreenY();
             if (runner.respawnTimer <= 0) {
                 runner.state = 'IDLE';
                 gameState = 'PLAYING';
@@ -917,7 +929,7 @@
             targetCameraZoom = 1.0;
             targetCameraRoll = 0;
             targetCameraX = runner.x - width * 0.35;
-            targetCameraY = runner.y - height * 0.6;
+            targetCameraY = runner.y - getIdealRunnerScreenY();
         }
     }
 
@@ -935,7 +947,7 @@
         createSonicRing(runner.x, runner.y - 20, STAGE_CONFIGS[currentStage].theme.primary);
         createSparks(runner.x, runner.y - 25, STAGE_CONFIGS[currentStage].theme.primary, 30);
         screenShake = 8;
-        targetCameraY = runner.y - height * 0.6;
+        targetCameraY = runner.y - getIdealRunnerScreenY();
         targetCameraZoom = 1.0;
         targetCameraRoll = 0;
 
@@ -1662,18 +1674,39 @@
     // 11. INPUT & EVENT LISTENERS
     // -------------------------------------------------------------------------
     function initListeners() {
+        function focusMobileKeyboard() {
+            if (mobileInput) {
+                mobileInput.focus();
+            }
+        }
+
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
+            targetCameraY = runner.y - getIdealRunnerScreenY();
+            targetCameraX = runner.x - width * 0.35;
         });
-        canvas.width = width;
-        canvas.height = height;
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                targetCameraY = runner.y - getIdealRunnerScreenY();
+            });
+        }
 
         document.getElementById('game-container').addEventListener('click', () => {
             window.focus();
+            if (gameState === 'PLAYING') {
+                focusMobileKeyboard();
+            }
         });
+
+        canvas.addEventListener('touchstart', () => {
+            if (gameState === 'PLAYING') {
+                focusMobileKeyboard();
+            }
+        }, { passive: true });
 
         // Single-Point Keyboard Handler
         window.addEventListener('keydown', (e) => {
@@ -1757,13 +1790,21 @@
         if (mobileKbBtn && mobileInput) {
             mobileKbBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                mobileInput.focus();
+                focusMobileKeyboard();
             });
 
             mobileInput.addEventListener('beforeinput', (e) => {
                 if (e.data && e.data.length === 1) {
                     e.preventDefault();
                     handleTypingInput(e.data);
+                }
+            });
+
+            mobileInput.addEventListener('input', (e) => {
+                if (e.target.value) {
+                    const char = e.target.value.slice(-1);
+                    e.target.value = '';
+                    handleTypingInput(char);
                 }
             });
         }

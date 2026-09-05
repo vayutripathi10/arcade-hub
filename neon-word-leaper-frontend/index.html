@@ -226,8 +226,8 @@
             </div>
         </div>
 
-        <!-- Mobile Soft Keyboard Trigger -->
-        <input type="text" id="mobileInput" autocomplete="off" autocapitalize="off" spellcheck="false" aria-hidden="true">
+        <!-- Mobile Soft Keyboard Trigger (Autofill disabled to prevent iOS keychain bars) -->
+        <input type="text" id="mobileInput" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="text" data-lpignore="true" data-form-type="other" aria-hidden="true">
         <button id="mobileKbBtn" class="mobile-kb-btn" title="Open Keyboard">⌨️ Touch to Type</button>
     </div>
 

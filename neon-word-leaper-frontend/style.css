@@ -58,7 +58,7 @@ canvas#gameCanvas {
 /* --- HUD HEADER --- */
 #game-hud {
     position: absolute;
-    top: 14px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     width: 94%;
@@ -66,11 +66,11 @@ canvas#gameCanvas {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(13, 16, 26, 0.82);
+    background: rgba(13, 16, 26, 0.88);
     border: 1px solid var(--border-neon);
     backdrop-filter: blur(12px);
-    border-radius: 14px;
-    padding: 8px 18px;
+    border-radius: 12px;
+    padding: 6px 14px;
     box-shadow: 0 4px 20px rgba(0, 255, 204, 0.15);
     z-index: 10;
 }
@@ -83,14 +83,14 @@ canvas#gameCanvas {
 
 .hud-label {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     letter-spacing: 1px;
     color: var(--text-dim);
 }
 
 .hud-val {
     font-family: var(--font-mono);
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--neon-cyan);
     text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
@@ -98,13 +98,13 @@ canvas#gameCanvas {
 
 /* Stage Progress Bar */
 .hud-stage {
-    min-width: 130px;
-    gap: 3px;
+    min-width: 110px;
+    gap: 2px;
 }
 
 .stage-progress-bar {
     width: 100%;
-    height: 6px;
+    height: 5px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
     overflow: hidden;
@@ -120,15 +120,15 @@ canvas#gameCanvas {
 
 .stage-count {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: var(--neon-cyan);
 }
 
 .hud-lives {
     display: flex;
     flex-direction: row;
-    gap: 4px;
-    font-size: 1.3rem;
+    gap: 3px;
+    font-size: 1.15rem;
 }
 
 .heart {
@@ -144,18 +144,18 @@ canvas#gameCanvas {
 
 .hud-controls {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .hud-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: var(--text-light);
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,33 +168,34 @@ canvas#gameCanvas {
     box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
 }
 
-/* --- TARGET WORD CARD HUD (Positioned at Top under Header) --- */
+/* --- TARGET WORD CARD HUD (Sleek Slim Overhead Cyber-Pill) --- */
 #word-hud-container {
     position: absolute;
-    top: 72px;
+    top: 56px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 15;
     pointer-events: none;
     width: 90%;
-    max-width: 580px;
+    max-width: 440px;
     display: flex;
     justify-content: center;
 }
 
 .word-card {
-    background: rgba(9, 12, 20, 0.88);
-    border: 2px solid var(--neon-cyan);
-    border-radius: 14px;
-    padding: 10px 22px;
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.35), inset 0 0 15px rgba(0, 255, 204, 0.1);
+    background: rgba(8, 11, 19, 0.90);
+    border: 1.5px solid var(--neon-cyan);
+    border-radius: 12px;
+    padding: 6px 18px;
+    box-shadow: 0 0 18px rgba(0, 255, 204, 0.25), inset 0 0 10px rgba(0, 255, 204, 0.08);
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    width: 100%;
-    max-width: 540px;
+    gap: 4px;
+    width: auto;
+    min-width: 160px;
+    max-width: 100%;
 }
 
 .word-card.glitch-shake {
@@ -213,13 +214,13 @@ canvas#gameCanvas {
 
 .target-word {
     font-family: var(--font-mono);
-    font-size: 2.1rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 2.5px;
     white-space: pre-wrap;
     text-align: center;
-    max-width: 90vw;
-    line-height: 1.25;
+    max-width: 88vw;
+    line-height: 1.15;
 }
 
 .target-word .typed {
@@ -239,10 +240,10 @@ canvas#gameCanvas {
     background: rgba(250, 204, 21, 0.25);
     border: 1px dashed var(--neon-yellow);
     border-radius: 4px;
-    padding: 0 6px;
+    padding: 0 5px;
     margin: 0 2px;
     text-decoration: none;
-    font-size: 0.85em;
+    font-size: 0.8em;
     vertical-align: middle;
 }
 
@@ -253,7 +254,7 @@ canvas#gameCanvas {
 
 .word-timer-bar {
     width: 100%;
-    height: 4px;
+    height: 3px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
     overflow: hidden;
@@ -582,52 +583,70 @@ canvas#gameCanvas {
 
 /* Hidden mobile keyboard trigger */
 #mobileInput {
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
     opacity: 0;
     pointer-events: none;
-    top: -100px;
+    z-index: -1;
+    border: none;
+    outline: none;
+    background: transparent;
 }
 
 .mobile-kb-btn {
     display: none;
     position: absolute;
-    bottom: 12px;
-    right: 16px;
+    bottom: 8px;
+    right: 12px;
     background: rgba(0, 255, 204, 0.2);
     border: 1px solid var(--neon-cyan);
     color: var(--neon-cyan);
-    padding: 6px 14px;
-    border-radius: 20px;
+    padding: 4px 10px;
+    border-radius: 16px;
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     font-weight: 700;
     cursor: pointer;
     z-index: 20;
+    backdrop-filter: blur(8px);
 }
 
 @media (max-width: 768px) {
     #game-hud {
-        padding: 8px 12px;
-        gap: 8px;
+        top: 6px;
+        padding: 4px 10px 4px 52px; /* 52px left padding leaves room for floating hamburger menu */
+        gap: 6px;
+        border-radius: 10px;
     }
     .hud-stage {
-        min-width: 100px;
+        min-width: 90px;
     }
     .hud-val {
-        font-size: 1.1rem;
+        font-size: 1.05rem;
+    }
+    .hud-label {
+        font-size: 0.55rem;
+    }
+    .hud-lives {
+        font-size: 1rem;
+        gap: 2px;
     }
     #word-hud-container {
-        top: 60px;
+        top: 48px;
         width: 94%;
+        max-width: 360px;
     }
     .word-card {
-        padding: 8px 14px;
-        gap: 4px;
-        border-radius: 12px;
+        padding: 4px 12px;
+        gap: 3px;
+        border-radius: 8px;
     }
     .target-word {
-        font-size: 1.5rem;
-        letter-spacing: 2px;
+        font-size: 1.15rem;
+        letter-spacing: 1.5px;
     }
     .mobile-kb-btn {
         display: block;
@@ -640,18 +659,20 @@ canvas#gameCanvas {
 
 @media (max-height: 560px) {
     #game-hud {
-        padding: 4px 10px;
+        top: 4px;
+        padding: 3px 8px 3px 48px;
     }
     #word-hud-container {
-        top: 46px;
-        width: 90%;
+        top: 40px;
+        width: 88%;
+        max-width: 340px;
     }
     .word-card {
-        padding: 6px 14px;
-        gap: 3px;
+        padding: 3px 10px;
+        gap: 2px;
     }
     .target-word {
-        font-size: 1.3rem;
+        font-size: 1.05rem;
         letter-spacing: 1.5px;
     }
 }
