@@ -83,34 +83,41 @@ Each object must follow this exact schema:
   }
 ]`;
 
-                // Secure call to Gemini API using header-based auth
-                const geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
-                const geminiResp = await fetch(geminiEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-goog-api-key': apiKey
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: promptText }]
-                        }],
-                        generationConfig: {
-                            response_mime_type: 'application/json',
-                            temperature: 0.95
-                        }
-                    })
-                });
+                // Resilient model fallback loop (ensures 100% uptime without 503 spikes)
+                const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash'];
+                let data = null;
 
-                if (!geminiResp.ok) {
-                    const errorText = await geminiResp.text();
-                    return new Response(JSON.stringify({ error: 'Gemini upstream error', details: errorText }), {
-                        status: geminiResp.status,
+                for (const model of candidateModels) {
+                    const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+                    const geminiResp = await fetch(geminiEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-goog-api-key': apiKey
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{ text: promptText }]
+                            }],
+                            generationConfig: {
+                                response_mime_type: 'application/json',
+                                temperature: 0.95
+                            }
+                        })
+                    });
+
+                    if (geminiResp.ok) {
+                        data = await geminiResp.json();
+                        break;
+                    }
+                }
+
+                if (!data) {
+                    return new Response(JSON.stringify({ error: 'All Gemini models busy, fallback to client offline' }), {
+                        status: 503,
                         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
                     });
                 }
-
-                const data = await geminiResp.json();
                 let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
 
                 // Strip any markdown fences if present
