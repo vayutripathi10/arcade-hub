@@ -22,7 +22,7 @@
             </div>
             <div class="header-right">
                 <div class="streak-pill" id="hud-streak-pill" title="Daily Streak">
-                    🔥 <span id="streak-count">0</span> DAY STREAK
+                    🔥 <span id="streak-count">0</span><span class="streak-text"> DAY STREAK</span>
                 </div>
                 <button id="sound-btn" class="icon-btn" aria-label="Toggle Sound" title="Toggle Sound">🔊</button>
                 <button id="settings-btn" class="icon-btn" aria-label="API Settings" title="Gemini AI Key Settings">⚙️</button>
@@ -138,6 +138,7 @@
             <div class="gameplay-container">
                 <!-- Question Progress & Telemetry -->
                 <div class="gameplay-header">
+                    <button id="back-to-lobby-btn" class="back-lobby-btn" aria-label="Back to categories">&#8592; Back</button>
                     <div class="question-tracker">
                         <span class="q-label">QUESTION</span>
                         <span class="q-numbers"><strong id="current-q-index">1</strong> / 5</span>

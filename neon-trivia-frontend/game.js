@@ -959,6 +959,18 @@ Each object must follow this exact schema:
             });
         }
 
+        // Back to Lobby Button (from gameplay screen)
+        const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
+        if (backToLobbyBtn) {
+            backToLobbyBtn.addEventListener('click', () => {
+                playSound('click');
+                clearInterval(STATE.timerInterval);
+                STATE.isAnswering = false;
+                showScreen('lobby');
+                checkDailyStreakStatus();
+            });
+        }
+
         // Play Again Button
         const playAgainBtn = document.getElementById('play-again-btn');
         if (playAgainBtn) {
