@@ -84,7 +84,7 @@ Each object must follow this exact schema:
 ]`;
 
                 // Secure call to Gemini API using header-based auth
-                const geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+                const geminiEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
                 const geminiResp = await fetch(geminiEndpoint, {
                     method: 'POST',
                     headers: {

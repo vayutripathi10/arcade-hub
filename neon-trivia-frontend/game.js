@@ -432,7 +432,7 @@ Each object must follow this exact schema:
 ]`;
 
             // Clean endpoint without exposing key in URL query string
-            const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+            const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 
             try {
                 const response = await fetch(endpoint, {
