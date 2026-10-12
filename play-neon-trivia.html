@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Play Neon AI Mind Sprint unblocked for free on Arcade Hub. Daily AI Trivia game generating 5 random multiple-choice questions across Cricket, Bollywood, Football, Current Affairs, History & Tech with zero stored data.">
+    <meta name="keywords" content="neon ai trivia, daily ai quiz, play ai trivia online, cricket quiz, bollywood trivia game, daily gk quiz, unblocked ai games, arcade hub">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/play-neon-trivia">
+    <title>Play Neon AI Mind Sprint - Daily AI Trivia &amp; Quiz Game | Arcade Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hub-style.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0 !important;
+            width: 100%;
+            height: 100%;
+            overflow: hidden !important;
+            display: block !important;
+        }
+        .play-root { 
+            background-color: #06070a; 
+            color: #cbd5e1; 
+            font-family: 'Outfit', sans-serif; 
+            height: 100%; 
+            width: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        .play-main-container { 
+            max-width: 1000px; 
+            width: 100%; 
+            margin: 0 auto; 
+            padding: 20px 16px; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            flex: 1; 
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .play-console-wrapper { 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+        }
+        .play-console-holder { 
+            width: 100%; 
+            max-width: 760px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+        }
+        .play-console { 
+            width: 100%; 
+            height: 760px; 
+            height: min(760px, calc(100vh - 180px)); 
+            height: min(760px, calc(100dvh - 180px)); 
+            background: #0d0e12; 
+            border: 3px solid #00ffcc; 
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.25); 
+            border-radius: 16px; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
+        .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .play-iframe { width: 100%; height: 100%; border: none; display: block; }
+        .console-actions { display: flex; justify-content: flex-end; }
+        .fullscreen-btn {
+            background: rgba(13, 14, 18, 0.7);
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            transition: all 0.25s ease;
+        }
+        .fullscreen-btn:hover {
+            background: #00ffcc;
+            color: #000;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        .play-info-section { 
+            background: rgba(13, 14, 18, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 16px; 
+            padding: 30px; 
+            box-sizing: border-box; 
+        }
+        .play-info-section h1, .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
+        .play-info-section h3 { color: #00ffcc; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
+        .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
+        .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
+        .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
+        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .faq-accordion { margin-top: 20px; }
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0; }
+        .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
+        .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+        
+        @media (max-width: 768px) {
+            .play-main-container { padding: 10px 0; gap: 16px; }
+            .play-console { height: 75dvh; border-left: none; border-right: none; border-radius: 0; }
+            .play-info-section { padding: 20px; margin: 0 10px; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+        }
+
+        body, .play-root, .play-console-wrapper, .play-console-holder, .play-console, .play-iframe, .fullscreen-btn, .menu-toggle-btn, .sidebar-nav {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .play-info-section, .play-info-section * {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        .play-console.css-fullscreen-active {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #06070a !important;
+        }
+        body.css-fullscreen-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+        }
+    </style>
+    
+    <!-- Open Graph & Social Sharing -->
+    <meta property="og:title" content="Play Neon AI Mind Sprint - Free Daily AI Trivia &amp; Quiz Game | Arcade Hub">
+    <meta property="og:description" content="5 AI-Generated Questions daily across Cricket, Bollywood, Football, Current Affairs, History & Tech with zero stored data. Test your wits now!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/play-neon-trivia">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Play Neon AI Mind Sprint Unblocked | Arcade Hub">
+    <meta name="twitter:description" content="Daily 5-question AI trivia game. Choose from Cricket, Bollywood, Football, History, GK & Tech. Fast, fun, and 100% free.">
+    <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+
+    <!-- Schema.org Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "VideoGame",
+                "name": "Neon AI Mind Sprint",
+                "url": "https://arcadehubplay.com/play-neon-trivia",
+                "description": "Daily AI-powered trivia game that generates 5 fresh multiple-choice questions on demand across Cricket, Bollywood, Football, History, Current Affairs, and Science with zero data storage.",
+                "image": "https://arcadehubplay.com/favicon.png",
+                "genre": ["Trivia", "Educational", "Puzzle", "AI"],
+                "gamePlatform": ["Web Browser", "Desktop", "Mobile"],
+                "applicationCategory": "Game",
+                "operatingSystem": "Any",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                }
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://arcadehubplay.com/"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "Neon AI Mind Sprint",
+                        "item": "https://arcadehubplay.com/play-neon-trivia"
+                    }
+                ]
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Floating Hamburger Menu Button -->
+    <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Sidebar Navigation Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    <nav id="sidebar" class="sidebar-nav">
+        <button id="menu-close" class="menu-close-btn" aria-label="Close Menu">✕</button>
+        <div class="sidebar-header">
+            <h2>Arcade Hub</h2>
+            <div class="sidebar-divider"></div>
+        </div>
+        <div class="sidebar-links">
+            <a href="/" class="sidebar-link">🏠 Arcade Hub</a>
+            <a href="retro-hub" class="sidebar-link">🕹️ Retro Hub</a>
+            <a href="achievements" class="sidebar-link">🏆 Trophy Room</a>
+            <a href="pdf-tools" class="sidebar-link">🛠️ PDF Tools</a>
+            <a href="utility-hub" class="sidebar-link">⚙️ Utility Hub</a>
+            <a href="traffic-assumption-frontend/index.html" class="sidebar-link">🚦 Traffic Optimizer</a>
+            <a href="blog" class="sidebar-link">📝 Blog & Guides</a>
+            <a href="updates" class="sidebar-link">📰 News & Updates</a>
+            <a href="about" class="sidebar-link">ℹ️ About Us</a>
+            <a href="contact" class="sidebar-link">✉️ Contact Us</a>
+            <button id="pwa-install-btn" class="pwa-install-btn hidden">📲 Install App</button>
+        </div>
+    </nav>
+
+    <div class="play-root">
+        <!-- Main Game Area -->
+        <main class="play-main-container">
+            <div class="play-console-wrapper">
+                <div class="play-console-holder">
+                    <div class="play-console" id="playConsoleContainer">
+                        <iframe src="neon-trivia-frontend/index.html?v=ArcadeHub_Trivia_v1" class="play-iframe" id="gameIframe" title="Neon AI Mind Sprint Game Frame" allow="autoplay; fullscreen"></iframe>
+                    </div>
+                    <div class="console-actions">
+                        <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle Fullscreen Mode">
+                            <span>⛶ Fullscreen</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO & How to Play Info Section -->
+            <article class="play-info-section">
+                <h1>Neon AI Mind Sprint – Daily AI Trivia &amp; Knowledge Arena</h1>
+                <p><strong>Neon AI Mind Sprint</strong> is a cutting-edge, real-time trivia game where artificial intelligence synthesizes 5 fresh, challenging questions directly on demand! Unlike traditional static quiz apps with stale question banks, every round is generated live in browser memory with zero database storage—ensuring infinite replayability, zero data footprint, and high-octane trivia thrills.</p>
+
+                <div class="play-grid-2">
+                    <div>
+                        <h3>🎮 How to Play</h3>
+                        <ul>
+                            <li><strong>Select Your Arena:</strong> Pick from 6 diverse fields: Cricket, Bollywood Cinema, World Football, Current Affairs &amp; GK, World History, Tech &amp; AI, or Surprise Mix!</li>
+                            <li><strong>Beat the 15-Second Timer:</strong> Each question gives you 15 seconds to evaluate the 4 options: <strong>[A]</strong>, <strong>[B]</strong>, <strong>[C]</strong>, or <strong>[D]</strong>. Speed boosts your final bonus score!</li>
+                            <li><strong>Instant Feedback &amp; AI Factoids:</strong> Discover immediately whether you scored a hit or missed the mark, accompanied by an AI-verified "Did You Know?" explanation fact.</li>
+                            <li><strong>Daily Streak Mode:</strong> Complete your daily sprint every day to build up your consecutive streak multiplier. Practice Arena is always open for unlimited training!</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3>⚡ Game Highlights</h3>
+                        <ul>
+                            <li><strong>Zero Database Footprint:</strong> Questions exist exclusively in client browser RAM during active play and disappear upon completion.</li>
+                            <li><strong>Dual Modes:</strong> Lock in your daily sprint once a day, or switch to Practice Arena for unlimited random 5-round blitzes.</li>
+                            <li><strong>Responsive Keyboard &amp; Touch Controls:</strong> Press <code>A</code>, <code>B</code>, <code>C</code>, <code>D</code> or <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code> on desktop, or tap smoothly on mobile.</li>
+                            <li><strong>Web Audio FX:</strong> Procedurally synthesized mechanical clicks, ticking countdown clocks, victory chimes, and score fanfare.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-accordion">
+                    <h3>❓ Frequently Asked Questions (FAQ)</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">Q: How are questions generated without storing them in a database?</div>
+                        <div class="faq-answer">A: When you click a category, our engine queries Google Gemini AI with a strict JSON format template. The 5 questions are streamed into your browser memory, played, and discarded after review—leaving zero database footprint.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Q: Can I use my own Google AI Studio Gemini API Key?</div>
+                        <div class="faq-answer">A: Yes! Tap the ⚙️ settings icon on the top right and paste your free Google AI Studio key. It is saved in your local browser only. If you don't have a key, our built-in dynamic generator operates seamlessly with zero setup.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">Q: How does the Daily Streak work without user accounts?</div>
+                        <div class="faq-answer">A: Your daily completion timestamp and streak count are stored safely in your browser's private local storage. No email, sign-up, or registration is required!</div>
+                    </div>
+                </div>
+            </article>
+        </main>
+    </div>
+
+    <!-- Fullscreen and Menu Script -->
+    <script>
+        function toggleFullscreen() {
+            const container = document.getElementById('playConsoleContainer');
+            if (!container) return;
+
+            const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!isFs) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => enableCssFullscreen(container));
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else {
+                    enableCssFullscreen(container);
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => disableCssFullscreen(container));
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else {
+                    disableCssFullscreen(container);
+                }
+            }
+        }
+
+        function enableCssFullscreen(container) {
+            container.classList.add('css-fullscreen-active');
+            document.body.classList.add('css-fullscreen-open');
+        }
+
+        function disableCssFullscreen(container) {
+            container.classList.remove('css-fullscreen-active');
+            document.body.classList.remove('css-fullscreen-open');
+        }
+
+        // Sidebar Navigation Handling
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuClose = document.getElementById('menu-close');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            if (menuToggle && menuClose && sidebar && sidebarOverlay) {
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                    document.body.classList.toggle('menu-open');
+                };
+
+                menuToggle.addEventListener('click', toggleSidebar);
+                menuClose.addEventListener('click', toggleSidebar);
+                sidebarOverlay.addEventListener('click', toggleSidebar);
+            }
+        });
+    </script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>

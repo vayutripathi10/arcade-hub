@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon AI Mind Sprint — Daily AI Trivia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="trivia-app">
+        <!-- Background Ambient Grid & Particles -->
+        <div class="cyber-grid-bg"></div>
+        <div class="ambient-glow glow-1"></div>
+        <div class="ambient-glow glow-2"></div>
+
+        <!-- TOP BAR HUD -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="game-logo">🧠 NEON AI TRIVIA</span>
+                <span class="mode-badge" id="hud-mode-badge">DAILY SPRINT</span>
+            </div>
+            <div class="header-right">
+                <div class="streak-pill" id="hud-streak-pill" title="Daily Streak">
+                    🔥 <span id="streak-count">0</span> DAY STREAK
+                </div>
+                <button id="sound-btn" class="icon-btn" aria-label="Toggle Sound" title="Toggle Sound">🔊</button>
+                <button id="settings-btn" class="icon-btn" aria-label="API Settings" title="Gemini AI Key Settings">⚙️</button>
+            </div>
+        </header>
+
+        <!-- SCREEN 1: CATEGORY SELECTION / LOBBY -->
+        <section id="screen-lobby" class="screen active">
+            <div class="lobby-content">
+                <div class="lobby-title-area">
+                    <div class="neon-pill">POWERED BY GOOGLE GEMINI AI</div>
+                    <h1 class="hero-title">MIND SPRINT</h1>
+                    <p class="hero-subtitle">5 AI-Generated Questions. Zero Stored Data. Test Your Real-Time Reflexes.</p>
+                </div>
+
+                <!-- Mode Selector -->
+                <div class="mode-selector">
+                    <button class="mode-tab active" data-mode="daily">
+                        <span class="mode-icon">🌟</span>
+                        <span class="mode-info">
+                            <strong>Daily Challenge</strong>
+                            <small>5 Fresh Questions Daily</small>
+                        </span>
+                    </button>
+                    <button class="mode-tab" data-mode="practice">
+                        <span class="mode-icon">⚡</span>
+                        <span class="mode-info">
+                            <strong>Practice Arena</strong>
+                            <small>Unlimited Instant Rounds</small>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Daily Completed Notice (hidden by default) -->
+                <div id="daily-completed-notice" class="daily-notice hidden">
+                    <div class="notice-icon">✅</div>
+                    <div class="notice-text">
+                        <strong>You completed today's Daily Sprint!</strong>
+                        <span>Your score is locked in. You can still test your wits anytime in <em>Practice Arena</em> below!</span>
+                    </div>
+                </div>
+
+                <!-- Category Grid -->
+                <div class="category-section">
+                    <h2 class="section-label">SELECT YOUR INTELLECT ARENA</h2>
+                    <div class="category-grid">
+                        <button class="category-card" data-category="cricket">
+                            <span class="cat-icon">🏏</span>
+                            <span class="cat-name">Cricket</span>
+                            <span class="cat-desc">IPL, World Cups &amp; Legends</span>
+                        </button>
+                        <button class="category-card" data-category="bollywood">
+                            <span class="cat-icon">🎬</span>
+                            <span class="cat-name">Bollywood</span>
+                            <span class="cat-desc">Blockbusters, Cinema &amp; Music</span>
+                        </button>
+                        <button class="category-card" data-category="football">
+                            <span class="cat-icon">⚽</span>
+                            <span class="cat-name">Football</span>
+                            <span class="cat-desc">FIFA, Champions League &amp; Stars</span>
+                        </button>
+                        <button class="category-card" data-category="current-affairs">
+                            <span class="cat-icon">📰</span>
+                            <span class="cat-name">Current Affairs</span>
+                            <span class="cat-desc">Global News &amp; Modern GK</span>
+                        </button>
+                        <button class="category-card" data-category="history">
+                            <span class="cat-icon">🏛️</span>
+                            <span class="cat-name">History</span>
+                            <span class="cat-desc">Empires, Revolutions &amp; Epochs</span>
+                        </button>
+                        <button class="category-card" data-category="tech-science">
+                            <span class="cat-icon">🚀</span>
+                            <span class="cat-name">Tech &amp; AI</span>
+                            <span class="cat-desc">Space, Silicon &amp; Discoveries</span>
+                        </button>
+                        <button class="category-card cat-random" data-category="random">
+                            <span class="cat-icon">🎲</span>
+                            <span class="cat-name">Surprise Mix</span>
+                            <span class="cat-desc">AI Curated Chaos</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lobby-footer">
+                    <div class="engine-status">
+                        <span class="status-dot" id="engine-status-dot"></span>
+                        <span id="engine-status-text">Gemini 1.5/2.0 Flash Active</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: AI GENERATING LOADING SCREEN -->
+        <section id="screen-loading" class="screen">
+            <div class="loading-container">
+                <div class="cyber-spinner">
+                    <div class="spinner-ring ring-1"></div>
+                    <div class="spinner-ring ring-2"></div>
+                    <div class="spinner-core">🧠</div>
+                </div>
+                <h2 class="loading-title">NEURAL COMPILATION</h2>
+                <p class="loading-desc" id="loading-desc">Generating 5 random questions for <span id="loading-category-name">Cricket</span> via Gemini AI...</p>
+                <div class="loading-bar-wrap">
+                    <div class="loading-bar" id="loading-bar"></div>
+                </div>
+                <div class="loading-fact" id="loading-fact">Zero databases used — synthesizing questions in browser memory.</div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: ACTIVE TRIVIA GAMEPLAY -->
+        <section id="screen-gameplay" class="screen">
+            <div class="gameplay-container">
+                <!-- Question Progress & Telemetry -->
+                <div class="gameplay-header">
+                    <div class="question-tracker">
+                        <span class="q-label">QUESTION</span>
+                        <span class="q-numbers"><strong id="current-q-index">1</strong> / 5</span>
+                    </div>
+                    
+                    <div class="timer-widget">
+                        <div class="timer-bar-wrap">
+                            <div class="timer-bar" id="timer-bar"></div>
+                        </div>
+                        <span class="timer-seconds" id="timer-text">15s</span>
+                    </div>
+
+                    <div class="score-tracker">
+                        <span class="s-label">SCORE</span>
+                        <span class="s-val" id="hud-current-score">0</span>
+                    </div>
+                </div>
+
+                <!-- Breadcrumb dots -->
+                <div class="step-dots" id="step-dots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+
+                <!-- Question Card -->
+                <div class="question-card" id="question-card">
+                    <div class="q-category-tag" id="q-category-badge">CRICKET</div>
+                    <h2 class="question-text" id="question-text">Loading question text...</h2>
+                </div>
+
+                <!-- 4 Options Grid -->
+                <div class="options-grid" id="options-grid">
+                    <button class="option-btn" data-opt="A">
+                        <span class="opt-key">A</span>
+                        <span class="opt-label" id="opt-text-A">Option A</span>
+                        <span class="opt-status-icon"></span>
+                    </button>
+                    <button class="option-btn" data-opt="B">
+                        <span class="opt-key">B</span>
+                        <span class="opt-label" id="opt-text-B">Option B</span>
+                        <span class="opt-status-icon"></span>
+                    </button>
+                    <button class="option-btn" data-opt="C">
+                        <span class="opt-key">C</span>
+                        <span class="opt-label" id="opt-text-C">Option B</span>
+                        <span class="opt-status-icon"></span>
+                    </button>
+                    <button class="option-btn" data-opt="D">
+                        <span class="opt-key">D</span>
+                        <span class="opt-label" id="opt-text-D">Option D</span>
+                        <span class="opt-status-icon"></span>
+                    </button>
+                </div>
+
+                <!-- Fact / Explanation Popout -->
+                <div class="explanation-box" id="explanation-box">
+                    <div class="exp-header">
+                        <span id="exp-status-icon">💡</span>
+                        <strong id="exp-headline">DID YOU KNOW?</strong>
+                    </div>
+                    <p class="exp-text" id="exp-text">Fact will appear here.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 4: RESULTS / SUMMARY -->
+        <section id="screen-results" class="screen">
+            <div class="results-container">
+                <div class="result-header">
+                    <div class="result-badge-icon" id="result-badge-icon">🏆</div>
+                    <div class="result-rating" id="result-rating">CYBERMIND MASTER</div>
+                    <h1 class="result-score-title"><span id="final-score">5</span> / 5</h1>
+                    <p class="result-subtext" id="result-subtext">Flawless execution! Your knowledge parameters are unmatched.</p>
+                </div>
+
+                <div class="results-stats-row">
+                    <div class="stat-box">
+                        <span class="stat-label">ACCURACY</span>
+                        <strong class="stat-val" id="stat-accuracy">100%</strong>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">SPEED PTS</span>
+                        <strong class="stat-val" id="stat-pts">4,850</strong>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">CURRENT STREAK</span>
+                        <strong class="stat-val" id="stat-streak">🔥 1 DAY</strong>
+                    </div>
+                </div>
+
+                <!-- Question Breakdown Accordion -->
+                <div class="review-section">
+                    <h3 class="review-title">ROUND TELEMETRY BREAKDOWN</h3>
+                    <div class="review-list" id="review-list">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="results-actions">
+                    <button id="share-score-btn" class="btn btn-secondary">
+                        <span>📤</span> Share Intel
+                    </button>
+                    <button id="play-again-btn" class="btn btn-primary">
+                        <span>⚡</span> Play Again
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODAL: GEMINI API KEY SETTINGS -->
+        <div id="settings-modal" class="modal-backdrop">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>⚙️ AI ENGINE SETTINGS</h3>
+                    <button id="modal-close-btn" class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Enter your <strong>Google AI Studio Gemini API Key</strong> to generate custom infinite questions via Gemini 1.5/2.0 Flash.</p>
+                    
+                    <div class="input-group">
+                        <label for="gemini-key-input">Gemini API Key (Free Tier)</label>
+                        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." autocomplete="off">
+                        <small>Key is saved securely in your browser's private <code>localStorage</code> only. Never transmitted to our servers.</small>
+                    </div>
+
+                    <div class="free-info-box">
+                        <strong>💡 How to get a free key:</strong>
+                        <ol>
+                            <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio (aistudio.google.com)</a>.</li>
+                            <li>Sign in with your Google account.</li>
+                            <li>Click <em>"Create API Key"</em> (100% Free, no credit card required).</li>
+                            <li>Paste the key above!</li>
+                        </ol>
+                        <p class="offline-note"><strong>Note:</strong> If no key is entered, the game seamlessly uses our built-in randomized offline question matrix!</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="clear-key-btn" class="btn btn-secondary btn-sm">Clear Key</button>
+                    <button id="save-key-btn" class="btn btn-primary btn-sm">Save &amp; Activate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION -->
+        <div id="toast-notify" class="toast-notify"></div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
