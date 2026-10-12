@@ -196,6 +196,11 @@
 
   <!-- Blog Pages -->
   <url>
+    <loc>https://arcadehubplay.com/blog/generative-ai-in-gaming-and-web-development</loc>
+    <lastmod>2026-10-12</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://arcadehubplay.com/blog/vibe-coding-with-antigravity</loc>
     <lastmod>2026-06-03</lastmod>
     <priority>0.7</priority>
