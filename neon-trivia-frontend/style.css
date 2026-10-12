@@ -320,6 +320,45 @@ html, body {
     line-height: 1.4;
 }
 
+/* Language Selector */
+.lang-selector-section {
+    margin-top: 4px;
+}
+
+.lang-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.lang-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-muted);
+    font-family: 'Outfit', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Bengali', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.3px;
+}
+
+.lang-btn:hover {
+    background: rgba(0, 255, 204, 0.08);
+    border-color: rgba(0, 255, 204, 0.4);
+    color: #fff;
+}
+
+.lang-btn.active {
+    background: rgba(0, 255, 204, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+    font-weight: 800;
+}
+
 /* Category Grid */
 .section-label {
     font-size: 0.82rem;
@@ -654,8 +693,9 @@ html, body {
 .question-text {
     font-size: 1.3rem;
     font-weight: 700;
-    line-height: 1.45;
+    line-height: 1.55;
     color: #fff;
+    font-family: 'Outfit', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Bengali', sans-serif;
 }
 
 /* Options Grid */
@@ -676,7 +716,7 @@ html, body {
     color: #fff;
     cursor: pointer;
     text-align: left;
-    font-family: var(--font-ui);
+    font-family: 'Outfit', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Bengali', sans-serif;
     font-size: 1.02rem;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }

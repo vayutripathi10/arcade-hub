@@ -43,12 +43,15 @@ export default {
         if (url.pathname === '/generate' || url.pathname === '/api/trivia' || url.pathname === '/') {
             try {
                 let category = 'cricket';
+                let language = 'en';
 
                 if (request.method === 'POST') {
                     const body = await request.json().catch(() => ({}));
                     if (body.category) category = body.category;
+                    if (body.language) language = body.language;
                 } else if (url.searchParams.has('category')) {
                     category = url.searchParams.get('category');
+                    language = url.searchParams.get('language') || 'en';
                 }
 
                 const catPrompt = CATEGORIES[category] || CATEGORIES['cricket'];
@@ -63,9 +66,14 @@ export default {
                     });
                 }
 
+                const langInstruction = language !== 'en'
+                    ? `IMPORTANT: Generate ALL question text, all 4 option texts, and the fact explanation in the language with code "${language}". Use the native script of that language (e.g. Devanagari for Hindi, Tamil script for Tamil). Only the JSON keys must remain in English.`
+                    : '';
+
                 const promptText = `You are the master trivia engine for Neon AI Trivia.
 Generate exactly 5 completely fresh, accurate, and engaging multiple-choice questions on the topic: "${catPrompt}".
 Include a mix of moderate and challenging questions.
+${langInstruction}
 Output STRICTLY a valid JSON array of 5 objects with no extra conversational text or markdown code fence blocks.
 Each object must follow this exact schema:
 [

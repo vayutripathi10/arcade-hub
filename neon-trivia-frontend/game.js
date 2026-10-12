@@ -13,6 +13,7 @@
     const STATE = {
         mode: 'daily', // 'daily' or 'practice'
         category: 'cricket',
+        language: 'en', // 'en' | 'hi' | 'ta' | 'bn' | 'es'
         questions: [],
         currentQIndex: 0,
         score: 0,
@@ -387,13 +388,14 @@
 
     async function fetchGeminiQuestions(category) {
         const catInfo = CATEGORIES[category] || CATEGORIES.cricket;
+        const lang = STATE.language || 'en';
 
         // TIER 1: Try Cloudflare Worker Proxy (100% Secret Backend Key)
         try {
             const workerResp = await fetch(CLOUDFLARE_WORKER_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ category: category })
+                body: JSON.stringify({ category: category, language: lang })
             });
 
             if (workerResp.ok) {
@@ -411,9 +413,13 @@
         // TIER 2: Direct Gemini API via secure HTTP header (if user added key in settings)
         const apiKey = STATE.apiKey.trim();
         if (apiKey) {
+            const langInstruction = lang !== 'en'
+                ? `IMPORTANT: Generate ALL question text, all 4 option texts, and the fact explanation in the language with code "${lang}". Use the native script of that language (e.g. Devanagari for Hindi, Tamil script for Tamil). Only the JSON keys must remain in English.`
+                : '';
             const promptText = `You are the master trivia engine for Neon AI Trivia.
 Generate exactly 5 completely fresh, accurate, and engaging multiple-choice questions on the topic: "${catInfo.prompt}".
 Include a mix of moderate and challenging questions.
+${langInstruction}
 Output STRICTLY a valid JSON array of 5 objects with no extra conversational text or markdown code fence blocks.
 Each object must follow this exact schema:
 [
@@ -870,6 +876,27 @@ Each object must follow this exact schema:
                 tab.classList.add('active');
                 STATE.mode = tab.getAttribute('data-mode') || 'daily';
                 checkDailyStreakStatus();
+            });
+        });
+
+        // Language Selector
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const savedLang = localStorage.getItem('neon_trivia_lang') || 'en';
+        STATE.language = savedLang;
+        langBtns.forEach(btn => {
+            // Restore saved active state
+            if (btn.getAttribute('data-lang') === savedLang) {
+                langBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            btn.addEventListener('click', () => {
+                playSound('click');
+                langBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                STATE.language = btn.getAttribute('data-lang') || 'en';
+                localStorage.setItem('neon_trivia_lang', STATE.language);
+                const label = btn.getAttribute('data-label') || 'English';
+                showToast(`🌐 Language set to ${label}`);
             });
         });
 
