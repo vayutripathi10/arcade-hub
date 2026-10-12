@@ -381,18 +381,37 @@
     }
 
     // -------------------------------------------------------------------------
-    // 4. GEMINI API QUESTION FETCHING
+    // 4. CLOUDFLARE WORKER & GEMINI QUESTION FETCHING
     // -------------------------------------------------------------------------
+    const CLOUDFLARE_WORKER_URL = 'https://neon-trivia-proxy.vayutripathi.workers.dev/generate';
+
     async function fetchGeminiQuestions(category) {
         const catInfo = CATEGORIES[category] || CATEGORIES.cricket;
-        const apiKey = STATE.apiKey.trim();
 
-        if (!apiKey) {
-            console.log('[Neon Trivia] No API key provided — using offline generator.');
-            return getOfflineQuestions(category);
+        // TIER 1: Try Cloudflare Worker Proxy (100% Secret Backend Key)
+        try {
+            const workerResp = await fetch(CLOUDFLARE_WORKER_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ category: category })
+            });
+
+            if (workerResp.ok) {
+                const workerData = await workerResp.json();
+                if (workerData && Array.isArray(workerData.questions) && workerData.questions.length >= 5) {
+                    console.log('[Neon Trivia] Live questions generated via Cloudflare Worker proxy.');
+                    return workerData.questions.slice(0, 5);
+                }
+            }
+        } catch (workerErr) {
+            // Worker not yet deployed or temporary network issue - proceed to next tier
+            console.log('[Neon Trivia] Worker proxy skipped or deploying:', workerErr.message);
         }
 
-        const promptText = `You are the master trivia engine for Neon AI Trivia.
+        // TIER 2: Direct Gemini API via secure HTTP header (if user added key in settings)
+        const apiKey = STATE.apiKey.trim();
+        if (apiKey) {
+            const promptText = `You are the master trivia engine for Neon AI Trivia.
 Generate exactly 5 completely fresh, accurate, and engaging multiple-choice questions on the topic: "${catInfo.prompt}".
 Include a mix of moderate and challenging questions.
 Output STRICTLY a valid JSON array of 5 objects with no extra conversational text or markdown code fence blocks.
@@ -407,62 +426,61 @@ Each object must follow this exact schema:
       "C": "Option text",
       "D": "Option text"
     },
-    "answer": "A", // Single uppercase letter A, B, C, or D
+    "answer": "A",
     "fact": "A one-sentence fascinating fact explaining why the answer is correct."
   }
 ]`;
 
-        // Support models: gemini-1.5-flash or gemini-2.0-flash
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+            // Clean endpoint without exposing key in URL query string
+            const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{ text: promptText }]
-                    }],
-                    generationConfig: {
-                        response_mime_type: 'application/json',
-                        temperature: 0.95
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey // Header-based auth (never in query params)
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: promptText }]
+                        }],
+                        generationConfig: {
+                            response_mime_type: 'application/json',
+                            temperature: 0.95
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const textResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (textResponse) {
+                        let cleaned = textResponse.trim();
+                        if (cleaned.startsWith('```json')) {
+                            cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                        } else if (cleaned.startsWith('```')) {
+                            cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+                        }
+
+                        const parsed = JSON.parse(cleaned);
+                        if (Array.isArray(parsed) && parsed.length >= 5) {
+                            return parsed.slice(0, 5);
+                        }
                     }
-                })
-            });
-
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                console.warn('[Neon Trivia] Gemini API HTTP error:', response.status, errData);
-                showToast('API quota limit or key issue — loaded backup generator');
-                return getOfflineQuestions(category);
+                } else {
+                    console.warn('[Neon Trivia] Direct Gemini API status:', response.status);
+                    showToast('API quota limit or key issue — loaded backup generator');
+                }
+            } catch (err) {
+                console.warn('[Neon Trivia] Direct Gemini API failed:', err);
             }
-
-            const data = await response.json();
-            const textResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-            if (!textResponse) {
-                throw new Error('Empty AI response');
-            }
-
-            // Clean potential markdown quotes
-            let cleaned = textResponse.trim();
-            if (cleaned.startsWith('```json')) {
-                cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-            } else if (cleaned.startsWith('```')) {
-                cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
-            }
-
-            const parsed = JSON.parse(cleaned);
-
-            if (Array.isArray(parsed) && parsed.length >= 5) {
-                return parsed.slice(0, 5);
-            } else {
-                throw new Error('Invalid JSON structure from AI');
-            }
-        } catch (err) {
-            console.warn('[Neon Trivia] Error parsing Gemini questions, falling back:', err);
-            return getOfflineQuestions(category);
         }
+
+        // TIER 3: Built-in Dynamic Fallback Generator
+        console.log('[Neon Trivia] Using built-in dynamic question matrix.');
+        return getOfflineQuestions(category);
     }
 
     // -------------------------------------------------------------------------
