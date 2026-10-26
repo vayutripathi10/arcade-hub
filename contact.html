@@ -133,23 +133,32 @@
             </div>
 
             <!-- Formspree Integration -->
-            <form action="https://formspree.io/f/mvzwyoev" method="POST">
+            <form action="https://formspree.io/f/mvzwyoev" method="POST" id="contact-form" novalidate>
+
+                <!-- Honeypot: hidden field — bots fill it, humans don't. Formspree ignores _gotcha -->
+                <input type="text" name="_gotcha" tabindex="-1" autocomplete="off"
+                    style="display:none!important;position:absolute;left:-9999px;opacity:0;" aria-hidden="true">
+
                 <div class="form-group">
                     <label for="name">Name</label>
-                    <input type="text" id="name" name="name" placeholder="Your Name" required>
+                    <input type="text" id="name" name="name" placeholder="Your Name" required
+                        maxlength="100" autocomplete="name">
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Your Email" required>
+                    <input type="email" id="email" name="email" placeholder="Your Email" required
+                        maxlength="150" autocomplete="email">
                 </div>
                 <div class="form-group">
                     <label for="subject">Subject</label>
-                    <input type="text" id="subject" name="subject" placeholder="Subject">
+                    <input type="text" id="subject" name="subject" placeholder="Subject" maxlength="150">
                 </div>
                 <div class="form-group">
                     <label for="message">Message</label>
-                    <textarea id="message" name="message" rows="5" placeholder="Your Message" required></textarea>
+                    <textarea id="message" name="message" rows="5" placeholder="Your Message" required
+                        maxlength="2000"></textarea>
                 </div>
+                <div id="form-error" style="color:#f87171;font-size:0.88rem;margin-bottom:10px;display:none;"></div>
                 <button type="submit" class="submit-btn" id="sendBtn">Send Message</button>
             </form>
         </div>
@@ -177,6 +186,89 @@
                 menuClose.addEventListener('click', toggleSidebar);
                 sidebarOverlay.addEventListener('click', toggleSidebar);
             }
+
+            // ---------------------------------------------------------------
+            // CONTACT FORM SPAM & INJECTION PROTECTION
+            // ---------------------------------------------------------------
+            const form = document.getElementById('contact-form');
+            const errorBox = document.getElementById('form-error');
+            const sendBtn = document.getElementById('sendBtn');
+            let lastSubmitTime = 0;
+
+            // Patterns that real users never type (SQL injection, XSS, PHP tags, etc.)
+            const SPAM_PATTERNS = [
+                /('|")\s*(union|select|insert|update|delete|drop|truncate|exec|execute|cast|convert|declare|xp_|sp_)\b/i,
+                /<\s*(script|iframe|object|embed|link|meta|style)[^>]*>/i,
+                /\b(union\s+all\s+select|select\s+\*\s+from|drop\s+table|insert\s+into)\b/i,
+                /\{\s*\$|%3Cscript|javascript\s*:/i,
+                /\beval\s*\(|document\.cookie|window\.location/i,
+            ];
+
+            function showError(msg) {
+                errorBox.textContent = msg;
+                errorBox.style.display = 'block';
+                errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            function clearError() {
+                errorBox.textContent = '';
+                errorBox.style.display = 'none';
+            }
+
+            function containsSpam(value) {
+                return SPAM_PATTERNS.some(re => re.test(value));
+            }
+
+            form.addEventListener('submit', (e) => {
+                clearError();
+
+                const name    = document.getElementById('name').value.trim();
+                const email   = document.getElementById('email').value.trim();
+                const subject = document.getElementById('subject').value.trim();
+                const message = document.getElementById('message').value.trim();
+
+                // 1. Basic required field check
+                if (!name || !email || !message) {
+                    e.preventDefault();
+                    showError('Please fill in your name, email, and message.');
+                    return;
+                }
+
+                // 2. Email format check
+                const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+                if (!emailRe.test(email)) {
+                    e.preventDefault();
+                    showError('Please enter a valid email address.');
+                    return;
+                }
+
+                // 3. Minimum message length (bots often send 0-char messages)
+                if (message.length < 10) {
+                    e.preventDefault();
+                    showError('Message must be at least 10 characters.');
+                    return;
+                }
+
+                // 4. Spam / injection pattern detection
+                const allFields = [name, email, subject, message].join(' ');
+                if (containsSpam(allFields)) {
+                    e.preventDefault();
+                    showError('⚠️ Your message was flagged as spam. Please remove any special characters or code and try again.');
+                    return;
+                }
+
+                // 5. Submit cooldown (prevent rapid re-submission)
+                const now = Date.now();
+                if (now - lastSubmitTime < 5000) {
+                    e.preventDefault();
+                    showError('Please wait a moment before submitting again.');
+                    return;
+                }
+                lastSubmitTime = now;
+
+                // All good — disable button to prevent double-submit
+                sendBtn.disabled = true;
+                sendBtn.textContent = 'Sending…';
+            });
         });
     </script>
     <!-- PWA Service Worker & Install Prompt Registration -->
