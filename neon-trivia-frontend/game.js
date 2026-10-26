@@ -13,7 +13,7 @@
     const STATE = {
         mode: 'daily', // 'daily' or 'practice'
         category: 'cricket',
-        language: 'en', // 'en' | 'hi' | 'ta' | 'bn' | 'es'
+        language: 'en', // 'en' | 'hi'
         questions: [],
         currentQIndex: 0,
         score: 0,
@@ -413,8 +413,8 @@
         // TIER 2: Direct Gemini API via secure HTTP header (if user added key in settings)
         const apiKey = STATE.apiKey.trim();
         if (apiKey) {
-            const langInstruction = lang !== 'en'
-                ? `IMPORTANT: Generate ALL question text, all 4 option texts, and the fact explanation in the language with code "${lang}". Use the native script of that language (e.g. Devanagari for Hindi, Tamil script for Tamil). Only the JSON keys must remain in English.`
+            const langInstruction = lang === 'hi'
+                ? `IMPORTANT: Generate ALL question text, all 4 option texts, and the fact explanation in HINDI using Devanagari script (हिन्दी). Only the JSON keys must remain in English.`
                 : '';
             const promptText = `You are the master trivia engine for Neon AI Trivia.
 Generate exactly 5 completely fresh, accurate, and engaging multiple-choice questions on the topic: "${catInfo.prompt}".
@@ -879,9 +879,10 @@ Each object must follow this exact schema:
             });
         });
 
-        // Language Selector
+        // Language Selector (English or Hindi)
         const langBtns = document.querySelectorAll('.lang-btn');
-        const savedLang = localStorage.getItem('neon_trivia_lang') || 'en';
+        const rawSavedLang = localStorage.getItem('neon_trivia_lang');
+        const savedLang = (rawSavedLang === 'hi' || rawSavedLang === 'en') ? rawSavedLang : 'en';
         STATE.language = savedLang;
         langBtns.forEach(btn => {
             // Restore saved active state

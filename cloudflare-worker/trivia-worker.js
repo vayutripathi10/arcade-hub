@@ -66,8 +66,8 @@ export default {
                     });
                 }
 
-                const langInstruction = language !== 'en'
-                    ? `IMPORTANT: Generate ALL question text, all 4 option texts, and the fact explanation in the language with code "${language}". Use the native script of that language (e.g. Devanagari for Hindi, Tamil script for Tamil). Only the JSON keys must remain in English.`
+                const langInstruction = language === 'hi'
+                    ? `IMPORTANT: Generate ALL question text, all 4 option texts, and the fact explanation in HINDI using Devanagari script (हिन्दी). Only the JSON keys ("id", "question", "options", "A", "B", "C", "D", "answer", "fact") must remain in English.`
                     : '';
 
                 const promptText = `You are the master trivia engine for Neon AI Trivia.
