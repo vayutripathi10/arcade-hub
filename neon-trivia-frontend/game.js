@@ -1015,11 +1015,11 @@ Each object must follow this exact schema:
             shareScoreBtn.addEventListener('click', () => {
                 playSound('click');
                 const catInfo = CATEGORIES[STATE.category] || CATEGORIES.cricket;
-                const shareText = `🧠 Neon AI Trivia Sprint [${catInfo.name}]: Scored ${STATE.score}/5 (${STATE.speedPoints.toLocaleString()} PTS)! Can you beat my score? Play free at https://arcadehubplay.com/play-neon-trivia`;
+                const shareText = `🧠 Daily Quiz [${catInfo.name}]: Scored ${STATE.score}/5 (${STATE.speedPoints.toLocaleString()} PTS)! Can you beat my score? Play free at https://arcadehubplay.com/play-neon-trivia`;
 
                 if (navigator.share) {
                     navigator.share({
-                        title: 'Neon AI Mind Sprint',
+                        title: 'Daily Quiz',
                         text: shareText,
                         url: 'https://arcadehubplay.com/play-neon-trivia'
                     }).catch(() => {});
