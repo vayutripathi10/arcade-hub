@@ -281,6 +281,16 @@ html, body {
     width: 100%;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.player-stage {
+    flex: 1 1 0%;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    position: relative;
 }
 
 .video-player-container iframe {
@@ -288,6 +298,92 @@ html, body {
     height: 100%;
     border: none;
     display: block;
+}
+
+/* UNIVERSAL FULLSCREEN MODE (Desktop, Android, iPad & iOS Safari/Chrome) */
+.fs-overlay-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    height: 44px;
+    padding: 0 14px;
+    background: rgba(10, 10, 18, 0.96);
+    border-bottom: 1px solid var(--sonora-border);
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.fs-now-playing {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fs-overlay-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.fs-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #fff;
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.fs-btn:hover {
+    background: rgba(139, 92, 246, 0.35);
+    border-color: var(--sonora-accent);
+}
+
+.fs-btn.fs-exit-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #fecaca;
+}
+
+.fs-btn.fs-exit-btn:hover {
+    background: rgba(239, 68, 68, 0.4);
+    color: #fff;
+}
+
+.video-player-container.is-fullscreen,
+.video-player-container:fullscreen,
+.video-player-container:-webkit-full-screen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100% !important;
+    max-height: 100dvh !important;
+    aspect-ratio: auto !important;
+    border-radius: 0 !important;
+    border: none !important;
+    z-index: 99999 !important;
+    background: #000 !important;
+    margin: 0 !important;
+}
+
+.video-player-container.is-fullscreen .fs-overlay-bar,
+.video-player-container:fullscreen .fs-overlay-bar,
+.video-player-container:-webkit-full-screen .fs-overlay-bar {
+    display: flex;
 }
 
 .player-empty-placeholder {
@@ -990,7 +1086,8 @@ html, body {
 }
 
 @media (max-width: 480px) {
-    #skip-btn span {
+    #skip-btn span,
+    #fullscreen-btn span {
         display: none;
     }
 }

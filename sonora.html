@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=4">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=5">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
@@ -82,10 +82,20 @@
 
                 <!-- Video Player Container (16:9 Aspect Ratio) -->
                 <div class="video-player-container" id="player-container">
-                    <div class="player-empty-placeholder">
-                        <span class="empty-icon">🎧</span>
-                        <h3 style="font-size: 1.1rem; color: #fff; font-weight: 700;">Sonora Ad-Free Player Ready</h3>
-                        <p style="font-size: 0.82rem; max-width: 320px;">Paste any YouTube link above or select a track from the library on the right to start listening.</p>
+                    <div class="fs-overlay-bar" id="fs-overlay-bar">
+                        <span class="fs-now-playing" id="fs-now-playing">Sonora Fullscreen</span>
+                        <div class="fs-overlay-actions">
+                            <button type="button" class="fs-btn" id="fs-next-btn" title="Play next in queue">⏭️ <span>Next</span></button>
+                            <button type="button" class="fs-btn" id="fs-reload-btn" title="Reload player">🔄</button>
+                            <button type="button" class="fs-btn fs-exit-btn" id="fs-exit-btn" title="Exit Fullscreen">✕ <span>Exit</span></button>
+                        </div>
+                    </div>
+                    <div class="player-stage" id="player-stage">
+                        <div class="player-empty-placeholder">
+                            <span class="empty-icon">🎧</span>
+                            <h3 style="font-size: 1.1rem; color: #fff; font-weight: 700;">Sonora Ad-Free Player Ready</h3>
+                            <p style="font-size: 0.82rem; max-width: 320px;">Paste any YouTube link above or select a track from the library on the right to start listening.</p>
+                        </div>
                     </div>
                 </div>
 
@@ -106,8 +116,8 @@
                         <button class="toolbar-btn" id="reload-btn" title="Reload player if stuck">
                             🔄
                         </button>
-                        <button class="toolbar-btn" id="fullscreen-btn" title="Toggle Fullscreen">
-                            ⛶
+                        <button class="toolbar-btn" id="fullscreen-btn" title="Play Fullscreen on any device">
+                            ⛶ <span>Full</span>
                         </button>
                     </div>
                 </div>
@@ -211,7 +221,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=4"></script>
+    <script src="sonora-frontend/sonora.js?v=5"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>

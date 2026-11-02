@@ -44,7 +44,8 @@
         searchTerm: '',
         activeTab: 'library',   // 'library' | 'queue' | 'saved' | 'favorites' | 'history'
         bgPlay: false,
-        bgAudio: null
+        bgAudio: null,
+        isFullscreen: false
     };
 
     // DOM Elements Cache
@@ -53,6 +54,11 @@
         addForm: document.getElementById('add-link-form'),
         addInput: document.getElementById('add-link-input'),
         playerContainer: document.getElementById('player-container'),
+        playerStage: document.getElementById('player-stage'),
+        fsNowPlaying: document.getElementById('fs-now-playing'),
+        fsNextBtn: document.getElementById('fs-next-btn'),
+        fsReloadBtn: document.getElementById('fs-reload-btn'),
+        fsExitBtn: document.getElementById('fs-exit-btn'),
         nowPlayingTitle: document.getElementById('now-playing-title'),
         nowPlayingSub: document.getElementById('now-playing-sub'),
         modeBtn: document.getElementById('mode-btn'),
@@ -181,9 +187,9 @@
         const startParam = startAt > 0 ? `&start=${Math.floor(startAt)}` : '';
 
         if (mode === 'official') {
-            return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&playsinline=1${startParam}`;
+            return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&playsinline=1&fs=1&enablejsapi=1${startParam}`;
         }
-        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&playsinline=1&iv_load_policy=3${startParam}`;
+        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&playsinline=1&iv_load_policy=3&fs=1&enablejsapi=1${startParam}`;
     }
 
     function escapeHtml(str) {
@@ -370,20 +376,25 @@
         if (STATE.history.length > 50) STATE.history.pop();
         saveState();
 
-        // Render iframe
+        // Render iframe into stage
         const src = getPlayerSrc(STATE.mode, track.videoId);
-        DOM.playerContainer.innerHTML = `
+        const stage = DOM.playerStage || DOM.playerContainer;
+        stage.innerHTML = `
             <iframe
                 id="sonora-active-iframe"
                 src="${src}"
                 title="${escapeHtml(track.title || 'Sonora Player')}"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                 allowfullscreen
+                webkitallowfullscreen
+                mozallowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin">
             </iframe>
         `;
 
-        if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = track.title || `Video (${track.videoId})`;
+        const displayTitle = track.title || `Video (${track.videoId})`;
+        if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = displayTitle;
+        if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = displayTitle;
         if (DOM.nowPlayingSub) {
             DOM.nowPlayingSub.textContent = STATE.mode === 'official'
                 ? 'Standard YouTube Embed active'
@@ -538,6 +549,7 @@
             if (meta.title) {
                 STATE.activeTrack.title = meta.title;
                 if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = meta.title;
+                if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = meta.title;
             }
             if (meta.thumbnail) {
                 STATE.activeTrack.thumbnail = meta.thumbnail;
@@ -959,18 +971,96 @@
             });
         }
 
-        // Fullscreen button
+        // Universal Fullscreen (works on Desktop, Android, iPad, and iPhone iOS Safari/Chrome)
+        const enterFullscreen = () => {
+            if (!DOM.playerContainer) return;
+            if (!document.getElementById('sonora-active-iframe')) {
+                if (STATE.activeTrack) {
+                    playTrack(STATE.activeTrack);
+                } else if (STATE.items.length > 0) {
+                    playTrack(STATE.items[0]);
+                } else {
+                    showToast('Add or select a song first to play in full screen');
+                    return;
+                }
+            }
+            STATE.isFullscreen = true;
+            DOM.playerContainer.classList.add('is-fullscreen');
+            if (DOM.fullscreenBtn) DOM.fullscreenBtn.classList.add('active');
+
+            // Request native browser fullscreen where supported (Desktop / Android / iPad)
+            const reqFs = DOM.playerContainer.requestFullscreen ||
+                          DOM.playerContainer.webkitRequestFullscreen ||
+                          DOM.playerContainer.msRequestFullscreen;
+            if (reqFs) {
+                Promise.resolve(reqFs.call(DOM.playerContainer)).then(() => {
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {});
+                    }
+                }).catch(() => {});
+            }
+        };
+
+        const exitFullscreen = () => {
+            if (!DOM.playerContainer) return;
+            STATE.isFullscreen = false;
+            DOM.playerContainer.classList.remove('is-fullscreen');
+            if (DOM.fullscreenBtn) DOM.fullscreenBtn.classList.remove('active');
+
+            const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+            if (fsEl) {
+                const exitFs = document.exitFullscreen || document.webkitExitFullscreen;
+                if (exitFs) Promise.resolve(exitFs.call(document)).catch(() => {});
+            }
+            if (screen.orientation && screen.orientation.unlock) {
+                try { screen.orientation.unlock(); } catch {}
+            }
+        };
+
+        const toggleFullscreen = () => {
+            const isActive = STATE.isFullscreen ||
+                             Boolean(document.fullscreenElement || document.webkitFullscreenElement) ||
+                             (DOM.playerContainer && DOM.playerContainer.classList.contains('is-fullscreen'));
+            if (isActive) {
+                exitFullscreen();
+            } else {
+                enterFullscreen();
+            }
+        };
+
         if (DOM.fullscreenBtn) {
-            DOM.fullscreenBtn.addEventListener('click', () => {
-                const frame = document.getElementById('sonora-active-iframe') || DOM.playerContainer;
-                if (!frame) return;
-                if (document.fullscreenElement) {
-                    document.exitFullscreen().catch(() => {});
-                } else if (frame.requestFullscreen) {
-                    frame.requestFullscreen().catch(() => {});
+            DOM.fullscreenBtn.addEventListener('click', toggleFullscreen);
+        }
+        if (DOM.fsExitBtn) {
+            DOM.fsExitBtn.addEventListener('click', exitFullscreen);
+        }
+        if (DOM.fsNextBtn) {
+            DOM.fsNextBtn.addEventListener('click', () => playNext());
+        }
+        if (DOM.fsReloadBtn) {
+            DOM.fsReloadBtn.addEventListener('click', () => {
+                if (STATE.activeTrack) {
+                    playTrack(STATE.activeTrack);
+                    showToast('Reloaded player 🔄');
                 }
             });
         }
+
+        const syncNativeFullscreenExit = () => {
+            const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!fsEl && STATE.isFullscreen) {
+                STATE.isFullscreen = false;
+                if (DOM.playerContainer) DOM.playerContainer.classList.remove('is-fullscreen');
+                if (DOM.fullscreenBtn) DOM.fullscreenBtn.classList.remove('active');
+            }
+        };
+        document.addEventListener('fullscreenchange', syncNativeFullscreenExit);
+        document.addEventListener('webkitfullscreenchange', syncNativeFullscreenExit);
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && STATE.isFullscreen) {
+                exitFullscreen();
+            }
+        });
 
         // Background play helper (silent WAV audio keeps WebAudio / MediaSession alive on mobile)
         if (DOM.bgPlayBtn) {
@@ -1121,15 +1211,17 @@
                     thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(STATE.activeVideoId)}/hqdefault.jpg`
                 };
                 STATE.activeTrack = track;
-                DOM.playerContainer.innerHTML = `
+                const stage = DOM.playerStage || DOM.playerContainer;
+                stage.innerHTML = `
                     <button type="button" class="resume-poster" aria-label="Resume last track">
                         <img class="resume-thumb" src="${escapeHtml(getPrimaryThumbnail(track))}" alt="" referrerpolicy="no-referrer">
                         <span class="resume-overlay">▶ <strong>Tap to resume</strong><small>${escapeHtml(track.title)}</small></span>
                     </button>`;
-                const resumeImg = DOM.playerContainer.querySelector('.resume-thumb');
+                const resumeImg = stage.querySelector('.resume-thumb');
                 attachThumbnailFallback(resumeImg, track.videoId);
-                DOM.playerContainer.querySelector('.resume-poster').addEventListener('click', () => playTrack(track));
+                stage.querySelector('.resume-poster').addEventListener('click', () => playTrack(track));
                 if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = track.title;
+                if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = track.title;
                 if (DOM.nowPlayingSub) DOM.nowPlayingSub.textContent = 'Last played · tap the player to resume';
             }
         });
