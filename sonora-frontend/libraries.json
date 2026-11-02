@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "id": "default-saloon-song",
+    "name": "Saloon Song",
+    "videos": [
+      {
+        "id": "yt-RWqmC7oBPKA",
+        "videoId": "RWqmC7oBPKA",
+        "category": "Saloon Song",
+        "title": "Saloon Song · Deluxe Pop Saloon | डिलक्स पॉप सैलून: Barber Shop Playlist | Saloon Playlist | Old Songs",
+        "thumbnail": "https://i.ytimg.com/vi/RWqmC7oBPKA/hqdefault.jpg"
+      }
+    ]
+  },
+  {
+    "id": "default-bus-driver-song",
+    "name": "Bus Driver Song",
+    "videos": [
+      {
+        "id": "yt-9nx09wvQvNE",
+        "videoId": "9nx09wvQvNE",
+        "category": "Bus Driver Song",
+        "title": "Bus Driver Song · Indian Bus Driver Playlist || Hindi Song || 90s Song",
+        "thumbnail": "https://i.ytimg.com/vi/9nx09wvQvNE/hqdefault.jpg"
+      }
+    ]
+  },
+  {
+    "id": "default-road-trip-song",
+    "name": "Road Trip Song",
+    "videos": [
+      {
+        "id": "yt-YwEKIl3qQzA",
+        "videoId": "YwEKIl3qQzA",
+        "category": "Road Trip Song",
+        "title": "Road Trip Song · Non-Stop Road Trip Jukebox | Best Travelling Songs | Bollywood",
+        "thumbnail": "https://i.ytimg.com/vi/YwEKIl3qQzA/hqdefault.jpg"
+      }
+    ]
+  },
+  {
+    "id": "default-90s-song",
+    "name": "90s Song",
+    "videos": [
+      {
+        "id": "yt-9uS3o5YOR1U",
+        "videoId": "9uS3o5YOR1U",
+        "category": "90s Song",
+        "title": "90s Song · Evergreen Hindi Songs | Bollywood 90s Classics",
+        "thumbnail": "https://i.ytimg.com/vi/9uS3o5YOR1U/hqdefault.jpg"
+      }
+    ]
+  }
+]

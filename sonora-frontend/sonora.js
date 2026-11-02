@@ -15,6 +15,61 @@
     const MODE_KEY = 'sonora-player-mode';
     const PLAYLISTS_KEY = 'sonora-custom-playlists';
     const CLEAN_INIT_KEY = 'sonora-clean-init-v2';
+    const DEFAULT_SEED_KEY = 'sonora-default-seed-v3';
+
+    const DEFAULT_SONGS = [
+        {
+            id: 'yt-RWqmC7oBPKA',
+            videoId: 'RWqmC7oBPKA',
+            category: 'Saloon Song',
+            title: 'Saloon Song · Deluxe Pop Saloon | डिलक्स पॉप सैलून: Barber Shop Playlist | Saloon Playlist | Old Songs',
+            thumbnail: 'https://i.ytimg.com/vi/RWqmC7oBPKA/hqdefault.jpg'
+        },
+        {
+            id: 'yt-9nx09wvQvNE',
+            videoId: '9nx09wvQvNE',
+            category: 'Bus Driver Song',
+            title: 'Bus Driver Song · Indian Bus Driver Playlist || Hindi Song || 90s Song',
+            thumbnail: 'https://i.ytimg.com/vi/9nx09wvQvNE/hqdefault.jpg'
+        },
+        {
+            id: 'yt-YwEKIl3qQzA',
+            videoId: 'YwEKIl3qQzA',
+            category: 'Road Trip Song',
+            title: 'Road Trip Song · Non-Stop Road Trip Jukebox | Best Travelling Songs | Bollywood',
+            thumbnail: 'https://i.ytimg.com/vi/YwEKIl3qQzA/hqdefault.jpg'
+        },
+        {
+            id: 'yt-9uS3o5YOR1U',
+            videoId: '9uS3o5YOR1U',
+            category: '90s Song',
+            title: '90s Song · Evergreen Hindi Songs | Bollywood 90s Classics',
+            thumbnail: 'https://i.ytimg.com/vi/9uS3o5YOR1U/hqdefault.jpg'
+        }
+    ];
+
+    const DEFAULT_CURATED_LIBRARIES = [
+        {
+            id: 'default-saloon-song',
+            name: 'Saloon Song',
+            videos: [{ ...DEFAULT_SONGS[0] }]
+        },
+        {
+            id: 'default-bus-driver-song',
+            name: 'Bus Driver Song',
+            videos: [{ ...DEFAULT_SONGS[1] }]
+        },
+        {
+            id: 'default-road-trip-song',
+            name: 'Road Trip Song',
+            videos: [{ ...DEFAULT_SONGS[2] }]
+        },
+        {
+            id: 'default-90s-song',
+            name: '90s Song',
+            videos: [{ ...DEFAULT_SONGS[3] }]
+        }
+    ];
 
     const FALLBACK_THUMB_SVG =
         "data:image/svg+xml;utf8," +
@@ -29,17 +84,17 @@
             '</svg>'
         );
 
-    // App State (Starts completely empty — no pre-populated songs)
+    // App State (Starts with the 4 default playlist tracks for everyone)
     const STATE = {
-        items: [],              // User's added YouTube songs
+        items: DEFAULT_SONGS.map(s => ({ ...s })), // Default YouTube playlist
         queue: [],              // Active playback queue
         favorites: [],          // Array of video IDs
         history: [],            // Watched history
-        curatedLibraries: [],   // Optional external libraries from libraries.json (empty by default)
+        curatedLibraries: DEFAULT_CURATED_LIBRARIES.map(l => ({ ...l, videos: l.videos.map(v => ({ ...v })) })),
         customPlaylists: [],    // User-created playlists [{ id, name, videos, custom: true }]
         activeLibraryId: 'all-songs',
-        activeVideoId: '',
-        activeTrack: null,
+        activeVideoId: DEFAULT_SONGS[0].videoId,
+        activeTrack: { ...DEFAULT_SONGS[0] },
         mode: localStorage.getItem(MODE_KEY) || 'adfree', // 'adfree' | 'official'
         searchTerm: '',
         activeTab: 'library',   // 'library' | 'queue' | 'saved' | 'favorites' | 'history'
@@ -299,11 +354,17 @@
     }
 
     function hydratePlaceholderTitles() {
-        const isPlaceholder = (title) => !title || /^YouTube [Vv]ideo\s*·|^Video\s*\(/i.test(String(title).trim());
+        const needsHydration = (item) => {
+            if (!item || !item.videoId) return false;
+            const title = String(item.title || '').trim();
+            if (!title || /^YouTube [Vv]ideo\s*·|^Video\s*\(/i.test(title)) return true;
+            if (item.category && title === item.category) return true;
+            return false;
+        };
         const idsToFetch = new Set();
         const collect = (arr) => {
             (arr || []).forEach(item => {
-                if (item && item.videoId && isPlaceholder(item.title)) {
+                if (needsHydration(item)) {
                     idsToFetch.add(item.videoId);
                 }
             });
@@ -312,6 +373,7 @@
         collect(STATE.queue);
         collect(STATE.history);
         STATE.customPlaylists.forEach(p => collect(p.videos));
+        STATE.curatedLibraries.forEach(p => collect(p.videos));
         idsToFetch.forEach(videoId => {
             fetchVideoMeta(videoId).then(meta => {
                 if (meta) updateTrackMetaEverywhere(videoId, meta);
@@ -374,6 +436,37 @@
         }).catch(() => null);
     }
 
+    function ensureDefaultPlaylist() {
+        const seeded = localStorage.getItem(DEFAULT_SEED_KEY);
+        if (!seeded || !Array.isArray(STATE.items) || STATE.items.length === 0) {
+            const existingById = new Map((STATE.items || []).map(i => [i.videoId, i]));
+            const merged = [];
+            DEFAULT_SONGS.forEach(def => {
+                const existing = existingById.get(def.videoId);
+                if (existing) {
+                    existing.category = existing.category || def.category;
+                    if (!existing.title || /^YouTube [Vv]ideo/i.test(existing.title)) {
+                        existing.title = def.title;
+                    }
+                    merged.push(existing);
+                    existingById.delete(def.videoId);
+                } else {
+                    merged.push({ ...def });
+                }
+            });
+            existingById.forEach(val => merged.push(val));
+            STATE.items = merged;
+            try {
+                localStorage.setItem(DEFAULT_SEED_KEY, '1');
+            } catch {}
+            saveState();
+        }
+        if (!STATE.activeVideoId && STATE.items.length > 0) {
+            STATE.activeVideoId = STATE.items[0].videoId;
+            STATE.activeTrack = STATE.items[0];
+        }
+    }
+
     function loadStorage() {
         try {
             // One-time clean reset so any old pre-loaded / test songs are cleared
@@ -395,6 +488,7 @@
         } catch (e) {
             console.warn('[Sonora] Failed to read storage:', e);
         }
+        ensureDefaultPlaylist();
     }
 
     function saveState() {
@@ -418,14 +512,17 @@
 
     async function loadLibraries() {
         try {
-            const res = await fetch('sonora-frontend/libraries.json?v=2');
+            const res = await fetch('sonora-frontend/libraries.json?v=3');
             if (res.ok) {
                 const parsed = await res.json();
-                STATE.curatedLibraries = Array.isArray(parsed) ? parsed : [];
+                STATE.curatedLibraries = Array.isArray(parsed) && parsed.length
+                    ? parsed
+                    : DEFAULT_CURATED_LIBRARIES.map(l => ({ ...l, videos: l.videos.map(v => ({ ...v })) }));
             }
         } catch (err) {
-            STATE.curatedLibraries = [];
+            STATE.curatedLibraries = DEFAULT_CURATED_LIBRARIES.map(l => ({ ...l, videos: l.videos.map(v => ({ ...v })) }));
         }
+        hydratePlaceholderTitles();
         renderAll();
     }
 
@@ -764,20 +861,29 @@
 
     function updateTrackMetaEverywhere(videoId, meta) {
         if (!videoId || !meta) return;
+        const formatTitle = (item, rawTitle) => {
+            if (!rawTitle) return item.title;
+            if (item.category && !rawTitle.toLowerCase().startsWith(item.category.toLowerCase())) {
+                return `${item.category} · ${rawTitle}`;
+            }
+            return rawTitle;
+        };
         const applyMeta = (item) => {
             if (item.videoId !== videoId) return;
-            if (meta.title) item.title = meta.title;
+            if (meta.title) item.title = formatTitle(item, meta.title);
             if (meta.thumbnail) item.thumbnail = meta.thumbnail;
         };
         STATE.items.forEach(applyMeta);
         STATE.queue.forEach(applyMeta);
         STATE.history.forEach(applyMeta);
         STATE.customPlaylists.forEach(p => (p.videos || []).forEach(applyMeta));
+        STATE.curatedLibraries.forEach(p => (p.videos || []).forEach(applyMeta));
         if (STATE.activeTrack && STATE.activeTrack.videoId === videoId) {
             if (meta.title) {
-                STATE.activeTrack.title = meta.title;
-                if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = meta.title;
-                if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = meta.title;
+                const nextTitle = formatTitle(STATE.activeTrack, meta.title);
+                STATE.activeTrack.title = nextTitle;
+                if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = nextTitle;
+                if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = nextTitle;
             }
             if (meta.thumbnail) {
                 STATE.activeTrack.thumbnail = meta.thumbnail;
