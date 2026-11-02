@@ -603,20 +603,89 @@
                 : 'Ad-Free Player active';
         }
 
-        if ('mediaSession' in navigator) {
+        updateMediaSession(track);
+
+        // Arm the audio bridge so Android/iOS notification bar and lock-screen controls persist
+        if (!STATE.bgAudio) {
             try {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: track.title || 'Sonora Music',
-                    artist: 'Arcade Hub Sonora',
-                    artwork: [
-                        { src: getPrimaryThumbnail(track), sizes: '480x360', type: 'image/jpeg' }
-                    ]
-                });
-                navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+                STATE.bgAudio = new Audio(createSilentWavUrl());
+                STATE.bgAudio.loop = true;
+                STATE.bgAudio.volume = 0.01;
             } catch {}
+        }
+        if (STATE.bgAudio) {
+            STATE.bgAudio.play().catch(() => {});
         }
 
         renderAll();
+    }
+
+    function updateMediaSession(track) {
+        if (!('mediaSession' in navigator) || !track) return;
+        try {
+            const thumbUrl = getPrimaryThumbnail(track);
+            const title = track.title || 'Sonora Music';
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: 'Sonora · Arcade Hub',
+                album: 'Sonora Ad-Free Playlist',
+                artwork: [
+                    { src: thumbUrl, sizes: '96x96', type: 'image/jpeg' },
+                    { src: thumbUrl, sizes: '128x128', type: 'image/jpeg' },
+                    { src: thumbUrl, sizes: '192x192', type: 'image/jpeg' },
+                    { src: thumbUrl, sizes: '256x256', type: 'image/jpeg' },
+                    { src: thumbUrl, sizes: '384x384', type: 'image/jpeg' },
+                    { src: thumbUrl, sizes: '512x512', type: 'image/jpeg' }
+                ]
+            });
+            navigator.mediaSession.playbackState = 'playing';
+
+            navigator.mediaSession.setActionHandler('play', () => {
+                sendIframeCommand('playVideo');
+                navigator.mediaSession.playbackState = 'playing';
+                if (!STATE.bgAudio) {
+                    STATE.bgAudio = new Audio(createSilentWavUrl());
+                    STATE.bgAudio.loop = true;
+                    STATE.bgAudio.volume = 0.01;
+                }
+                STATE.bgAudio.play().catch(() => {});
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+                sendIframeCommand('pauseVideo');
+                navigator.mediaSession.playbackState = 'paused';
+                if (STATE.bgAudio) STATE.bgAudio.pause();
+            });
+
+            navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+            navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
+            navigator.mediaSession.setActionHandler('stop', () => {
+                sendIframeCommand('stopVideo');
+                navigator.mediaSession.playbackState = 'none';
+                if (STATE.bgAudio) STATE.bgAudio.pause();
+            });
+        } catch (err) {
+            console.warn('[Sonora] MediaSession update failed:', err);
+        }
+    }
+
+    function playPrevious() {
+        if (STATE.history.length > 1) {
+            const prev = STATE.history[1];
+            playTrack(prev);
+            showToast(`Playing previous: ${prev.title || prev.videoId}`);
+            return;
+        }
+        const activeLib = getActiveLibrary();
+        const videos = (activeLib && activeLib.videos && activeLib.videos.length) ? activeLib.videos : STATE.items;
+        const currentIdx = videos.findIndex(v => v.videoId === STATE.activeVideoId);
+        if (currentIdx > 0) {
+            playTrack(videos[currentIdx - 1]);
+            showToast(`Playing previous: ${videos[currentIdx - 1].title || videos[currentIdx - 1].videoId}`);
+        } else if (videos.length > 0) {
+            playTrack(videos[videos.length - 1]);
+            showToast(`Playing: ${videos[videos.length - 1].title || videos[videos.length - 1].videoId}`);
+        }
     }
 
     function playNext() {
@@ -1242,12 +1311,21 @@
                 if (!data) return;
                 if (data.event === 'onReady') {
                     sendIframeCommand('playVideo');
-                } else if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
-                    if (STATE.queue.length > 0) {
+                    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                } else if (data.event === 'infoDelivery' && data.info) {
+                    if (data.info.playerState === 1 && 'mediaSession' in navigator) {
+                        navigator.mediaSession.playbackState = 'playing';
+                    } else if (data.info.playerState === 2 && 'mediaSession' in navigator) {
+                        navigator.mediaSession.playbackState = 'paused';
+                    } else if (data.info.playerState === 0 && STATE.queue.length > 0) {
                         playNext();
                     }
-                } else if (data.event === 'onStateChange' && data.info === 0) {
-                    if (STATE.queue.length > 0) {
+                } else if (data.event === 'onStateChange') {
+                    if (data.info === 1 && 'mediaSession' in navigator) {
+                        navigator.mediaSession.playbackState = 'playing';
+                    } else if (data.info === 2 && 'mediaSession' in navigator) {
+                        navigator.mediaSession.playbackState = 'paused';
+                    } else if (data.info === 0 && STATE.queue.length > 0) {
                         playNext();
                     }
                 }
