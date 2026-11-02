@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v284';
+const CACHE_NAME = 'arcade-hub-cache-v285';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -492,22 +492,44 @@ self.addEventListener('fetch', (e) => {
             })
         );
     } else {
+        // Ensure HTML responses never carry an outdated Content-Security-Policy blocking YouTube/Sonora
+        const ensureUpdatedCSP = (res) => {
+            if (!res || !res.headers) return res;
+            const csp = res.headers.get('content-security-policy');
+            if (!csp || csp.includes('youtube-nocookie.com')) return res;
+            const headers = new Headers(res.headers);
+            headers.set(
+                'content-security-policy',
+                csp
+                    .replace(/frame-src\s+([^;]+)/i, "frame-src $1 https://www.youtube.com https://*.youtube.com https://www.youtube-nocookie.com https://*.youtube-nocookie.com https://www.yout-ube.com https://*.yout-ube.com")
+                    .replace(/img-src\s+([^;]+)/i, "img-src $1 https://i.ytimg.com https://*.ytimg.com https://img.youtube.com https://*.youtube.com https://*.ggpht.com https://*.googleusercontent.com")
+                    .replace(/connect-src\s+([^;]+)/i, "connect-src $1 https://noembed.com https://www.youtube.com https://*.youtube.com https://*.youtube-nocookie.com https://*.yout-ube.com")
+                    .replace(/child-src\s+([^;]+)/i, "child-src $1 https://www.youtube.com https://*.youtube.com https://www.youtube-nocookie.com https://*.youtube-nocookie.com https://www.yout-ube.com https://*.yout-ube.com")
+            );
+            return new Response(res.body, {
+                status: res.status,
+                statusText: res.statusText,
+                headers
+            });
+        };
+
         // Network-First strategy for HTML pages and APIs to keep content fresh
         e.respondWith(
             fetch(e.request).then((networkResponse) => {
-                if (networkResponse.status === 200) {
-                    const responseToCache = networkResponse.clone();
+                const cleanResponse = ensureUpdatedCSP(networkResponse);
+                if (cleanResponse.status === 200) {
+                    const responseToCache = cleanResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
                 }
                 // Trigger sync check
                 e.waitUntil(sendQueuedAnalytics().catch(() => {}));
-                return networkResponse;
+                return cleanResponse;
             }).catch(() => {
                 // On offline network error, fallback to cache
                 return matchCache(e.request).then((cachedResponse) => {
-                    if (cachedResponse) return cachedResponse;
+                    if (cachedResponse) return ensureUpdatedCSP(cachedResponse);
                     if (e.request.mode === 'navigate') {
-                        return caches.match('index.html');
+                        return caches.match('index.html').then(ensureUpdatedCSP);
                     }
                 });
             })

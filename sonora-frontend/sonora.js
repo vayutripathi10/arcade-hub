@@ -230,18 +230,48 @@
     }
 
     async function fetchVideoMeta(videoId) {
-        try {
-            const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`);
-            if (!res.ok) return null;
-            const data = await res.json();
-            if (!data) return null;
-            return {
-                title: data.title ? String(data.title).trim() : null,
-                thumbnail: data.thumbnail_url ? String(data.thumbnail_url).trim() : null
-            };
-        } catch {
-            return null;
+        const watchUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+        const endpoints = [
+            `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`,
+            `https://noembed.com/embed?url=${encodeURIComponent(watchUrl)}`
+        ];
+        for (const url of endpoints) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) continue;
+                const data = await res.json();
+                if (data && data.title) {
+                    return {
+                        title: String(data.title).trim(),
+                        thumbnail: data.thumbnail_url ? String(data.thumbnail_url).trim() : `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`
+                    };
+                }
+            } catch {
+                // Try next oEmbed endpoint
+            }
         }
+        return null;
+    }
+
+    function hydratePlaceholderTitles() {
+        const isPlaceholder = (title) => !title || /^YouTube [Vv]ideo\s*·|^Video\s*\(/i.test(String(title).trim());
+        const idsToFetch = new Set();
+        const collect = (arr) => {
+            (arr || []).forEach(item => {
+                if (item && item.videoId && isPlaceholder(item.title)) {
+                    idsToFetch.add(item.videoId);
+                }
+            });
+        };
+        collect(STATE.items);
+        collect(STATE.queue);
+        collect(STATE.history);
+        STATE.customPlaylists.forEach(p => collect(p.videos));
+        idsToFetch.forEach(videoId => {
+            fetchVideoMeta(videoId).then(meta => {
+                if (meta) updateTrackMetaEverywhere(videoId, meta);
+            });
+        });
     }
 
     // -------------------------------------------------------------------------
@@ -1073,7 +1103,13 @@
     // 6. INITIAL RUN
     // -------------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(reg => {
+                if (reg) reg.update().catch(() => {});
+            }).catch(() => {});
+        }
         loadStorage();
+        hydratePlaceholderTitles();
         initEvents();
         loadLibraries().then(() => {
             if (STATE.activeVideoId && DOM.playerContainer) {
