@@ -52,6 +52,7 @@
     // DOM Elements Cache
     const DOM = {
         viewport: document.getElementById('sonora-viewport'),
+        playerPane: document.querySelector('.player-pane'),
         addForm: document.getElementById('add-link-form'),
         addInput: document.getElementById('add-link-input'),
         playerContainer: document.getElementById('player-container'),
@@ -66,6 +67,7 @@
         modeBtnLabel: document.getElementById('mode-btn-label'),
         skipBtn: document.getElementById('skip-btn'),
         reloadBtn: document.getElementById('reload-btn'),
+        minVideoBtn: document.getElementById('min-video-btn'),
         fullscreenBtn: document.getElementById('fullscreen-btn'),
         bgPlayBtn: document.getElementById('bg-play-btn'),
         searchForm: document.getElementById('header-search-form'),
@@ -77,9 +79,11 @@
         // Lists
         libraryList: document.getElementById('library-list'),
         libraryTabs: document.getElementById('library-tabs'),
+        toggleAddSongBtn: document.getElementById('toggle-add-song-btn'),
         libraryAddSongForm: document.getElementById('library-add-song-form'),
         libraryAddSongInput: document.getElementById('library-add-song-input'),
         libraryAddSongBtn: document.getElementById('library-add-song-btn'),
+        cancelAddSongBtn: document.getElementById('cancel-add-song-btn'),
         queueList: document.getElementById('queue-list'),
         savedList: document.getElementById('saved-list'),
         favoritesList: document.getElementById('favorites-list'),
@@ -432,6 +436,12 @@
         DOM.modeBtnLabel.textContent = isAdFree ? 'Ad-Free' : 'Embed';
     }
 
+    function syncPlayerIdleState() {
+        if (!DOM.playerPane) return;
+        const isIdle = !STATE.activeVideoId;
+        DOM.playerPane.classList.toggle('is-idle', isIdle);
+    }
+
     // -------------------------------------------------------------------------
     // 3. PLAYBACK & PLAYLIST ENGINE
     // -------------------------------------------------------------------------
@@ -452,6 +462,13 @@
 
         STATE.activeVideoId = track.videoId;
         STATE.activeTrack = track;
+        if (DOM.playerPane) {
+            DOM.playerPane.classList.remove('is-idle', 'is-video-minimized');
+        }
+        if (DOM.minVideoBtn) {
+            DOM.minVideoBtn.classList.remove('active');
+            DOM.minVideoBtn.innerHTML = '▾ <span>Mini</span>';
+        }
         saveState();
 
         // Add to history
@@ -1098,6 +1115,7 @@
 
     function renderAll() {
         syncModeButtonUI();
+        syncPlayerIdleState();
         renderLibraryTabs();
         renderLibrary();
         renderQueue();
@@ -1141,6 +1159,27 @@
             });
         }
 
+        // Toggle Add Song bar inside Library panel
+        if (DOM.toggleAddSongBtn && DOM.libraryAddSongForm) {
+            DOM.toggleAddSongBtn.addEventListener('click', () => {
+                const isHidden = DOM.libraryAddSongForm.hasAttribute('hidden');
+                if (isHidden) {
+                    DOM.libraryAddSongForm.removeAttribute('hidden');
+                    if (DOM.newPlaylistForm) DOM.newPlaylistForm.setAttribute('hidden', '');
+                    if (DOM.libraryAddSongInput) DOM.libraryAddSongInput.focus();
+                } else {
+                    DOM.libraryAddSongForm.setAttribute('hidden', '');
+                }
+            });
+        }
+
+        if (DOM.cancelAddSongBtn && DOM.libraryAddSongForm) {
+            DOM.cancelAddSongBtn.addEventListener('click', () => {
+                DOM.libraryAddSongForm.setAttribute('hidden', '');
+                if (DOM.libraryAddSongInput) DOM.libraryAddSongInput.value = '';
+            });
+        }
+
         // Form: Add Song(s) directly inside selected Library
         if (DOM.libraryAddSongForm) {
             DOM.libraryAddSongForm.addEventListener('submit', (e) => {
@@ -1148,7 +1187,18 @@
                 const inputVal = DOM.libraryAddSongInput ? DOM.libraryAddSongInput.value.trim() : '';
                 if (addSongsToLibrary(inputVal, STATE.activeLibraryId, false)) {
                     if (DOM.libraryAddSongInput) DOM.libraryAddSongInput.value = '';
+                    DOM.libraryAddSongForm.setAttribute('hidden', '');
                 }
+            });
+        }
+
+        // Mobile Video Minimize / Expand button (Mini Audio Bar mode)
+        if (DOM.minVideoBtn && DOM.playerPane) {
+            DOM.minVideoBtn.addEventListener('click', () => {
+                const minimized = DOM.playerPane.classList.toggle('is-video-minimized');
+                DOM.minVideoBtn.classList.toggle('active', minimized);
+                DOM.minVideoBtn.innerHTML = minimized ? '▴ <span>Video</span>' : '▾ <span>Mini</span>';
+                showToast(minimized ? 'Video minimized — full playlist view 📋' : 'Video player expanded 📺');
             });
         }
 
@@ -1158,6 +1208,7 @@
                 const isHidden = DOM.newPlaylistForm.hasAttribute('hidden');
                 if (isHidden) {
                     DOM.newPlaylistForm.removeAttribute('hidden');
+                    if (DOM.libraryAddSongForm) DOM.libraryAddSongForm.setAttribute('hidden', '');
                     if (DOM.newPlaylistInput) DOM.newPlaylistInput.focus();
                 } else {
                     DOM.newPlaylistForm.setAttribute('hidden', '');
@@ -1181,6 +1232,7 @@
                 createCustomPlaylist(name);
                 if (DOM.newPlaylistInput) DOM.newPlaylistInput.value = '';
                 DOM.newPlaylistForm.setAttribute('hidden', '');
+                if (DOM.libraryAddSongForm) DOM.libraryAddSongForm.removeAttribute('hidden');
                 if (DOM.libraryAddSongInput) DOM.libraryAddSongInput.focus();
             });
         }

@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=7">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=8">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
@@ -123,6 +123,9 @@
                         <button class="toolbar-btn" id="fullscreen-btn" title="Play Fullscreen on any device">
                             ⛶ <span>Full</span>
                         </button>
+                        <button class="toolbar-btn mobile-only-btn" id="min-video-btn" title="Minimize or expand video player while browsing songs">
+                            ▾ <span>Mini</span>
+                        </button>
                     </div>
                 </div>
             </section>
@@ -155,9 +158,10 @@
                         <div class="panel-header">
                             <span class="panel-title">Libraries</span>
                             <div class="panel-actions">
-                                <button type="button" class="panel-action-btn accent" id="new-playlist-btn" title="Create a new library">➕ Create Library</button>
+                                <button type="button" class="panel-action-btn accent" id="new-playlist-btn" title="Create a new library">➕ Library</button>
+                                <button type="button" class="panel-action-btn" id="toggle-add-song-btn" title="Add YouTube song(s) to selected library">➕ Add Song</button>
                                 <button type="button" class="panel-action-btn" id="play-all-library-btn" title="Play all songs in selected library">▶ Play All</button>
-                                <button type="button" class="panel-action-btn" id="queue-all-library-btn" title="Queue all songs in selected library">➕ Queue All</button>
+                                <button type="button" class="panel-action-btn" id="queue-all-library-btn" title="Queue all songs in selected library">➕ Queue</button>
                             </div>
                         </div>
                         <form class="new-playlist-bar" id="new-playlist-form" hidden>
@@ -165,11 +169,12 @@
                             <button type="submit" class="panel-action-btn accent">Create</button>
                             <button type="button" class="panel-action-btn" id="cancel-playlist-btn">Cancel</button>
                         </form>
-                        <div class="playlist-chips" id="library-tabs"></div>
-                        <form class="library-add-song-bar" id="library-add-song-form">
+                        <form class="library-add-song-bar" id="library-add-song-form" hidden>
                             <input type="text" id="library-add-song-input" placeholder="Paste YouTube link(s) to add to this library…" aria-label="Paste YouTube links for this library">
-                            <button type="submit" class="panel-action-btn accent" id="library-add-song-btn" title="Add YouTube song(s) to this library">➕ Add Song</button>
+                            <button type="submit" class="panel-action-btn accent" id="library-add-song-btn" title="Add YouTube song(s) to this library">➕ Add</button>
+                            <button type="button" class="panel-action-btn" id="cancel-add-song-btn">Cancel</button>
                         </form>
+                        <div class="playlist-chips" id="library-tabs"></div>
                         <div class="list-scroll" id="library-list"></div>
                     </div>
 
@@ -244,7 +249,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=6"></script>
+    <script src="sonora-frontend/sonora.js?v=8"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
