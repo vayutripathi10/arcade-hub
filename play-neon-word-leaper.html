@@ -74,10 +74,17 @@
         .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
         .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
         @media (max-width: 768px) {
-            .play-main-container { padding: 10px 0; gap: 16px; }
-            .play-console { height: 70dvh; border-left: none; border-right: none; border-radius: 0; }
-            .play-info-section { padding: 20px; margin: 0 10px; }
-            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+            .play-main-container { padding: 8px 0 16px; gap: 12px; }
+            .play-console-holder { max-width: 100%; }
+            .play-console { 
+                height: 84dvh; 
+                height: clamp(520px, 85dvh, 760px); 
+                border-left: none; 
+                border-right: none; 
+                border-radius: 0; 
+            }
+            .play-info-section { padding: 18px 14px; margin: 0 8px; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 14px; }
         }
 
         body, .play-root, .play-console-wrapper, .play-console-holder, .play-console, .play-iframe, .fullscreen-btn, .menu-toggle-btn, .sidebar-nav {

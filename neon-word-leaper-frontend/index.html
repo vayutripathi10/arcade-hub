@@ -226,11 +226,28 @@
             </div>
         </div>
 
+        <!-- Cyber Virtual Touch Keyboard (Mobile First) -->
+        <div id="cyberKeyboard" class="cyber-keyboard" aria-label="Virtual Touch Keyboard">
+            <div class="cyber-kb-row" id="kbRow1"></div>
+            <div class="cyber-kb-row" id="kbRow2"></div>
+            <div class="cyber-kb-row" id="kbRow3"></div>
+            <div class="cyber-kb-row cyber-kb-row-actions">
+                <button type="button" class="cyber-key key-action" id="kbToggleModeBtn" title="Switch to device keyboard">⌨️ Device</button>
+                <button type="button" class="cyber-key key-space" data-key=" " id="kbSpaceBtn">␣ SPACE</button>
+                <button type="button" class="cyber-key key-action" id="kbHideBtn" title="Hide keyboard">✕ Hide</button>
+            </div>
+        </div>
+
+        <!-- Mobile Floating Toggle Buttons -->
+        <div class="mobile-controls-bar" id="mobileControlsBar">
+            <button id="mobileTouchKbToggleBtn" class="mobile-control-pill active" title="Toggle On-Screen Keyboard">⚡ Touch Keys</button>
+            <button id="mobileKbBtn" class="mobile-control-pill" title="Open Native Device Keyboard">⌨️ Device</button>
+        </div>
+
         <!-- Mobile Soft Keyboard Trigger (Autofill disabled to prevent iOS keychain bars) -->
         <input type="text" id="mobileInput" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="text" data-lpignore="true" data-form-type="other" aria-hidden="true">
-        <button id="mobileKbBtn" class="mobile-kb-btn" title="Open Keyboard">⌨️ Touch to Type</button>
     </div>
 
-    <script src="game.js?v=ArcadeHub_WordLeaper_v4"></script>
+    <script src="game.js?v=ArcadeHub_WordLeaper_v5"></script>
 </body>
 </html>

@@ -477,8 +477,16 @@
         return width <= 768 || window.innerHeight < 600 || ('ontouchstart' in window);
     }
 
+    function isCyberKbActive() {
+        const kb = document.getElementById('cyberKeyboard');
+        return isMobileDevice() && kb && kb.classList.contains('active') && !kb.classList.contains('hidden');
+    }
+
     function getIdealRunnerScreenY() {
-        // On mobile devices, position runner in upper-middle (36% of viewport height) so it stays completely above virtual keyboards
+        if (isCyberKbActive()) {
+            // On mobile with on-screen cyber keyboard, keep runner comfortably in upper 28% so all rooftops and gaps remain visible
+            return height * 0.28;
+        }
         return isMobileDevice() ? height * 0.36 : height * 0.52;
     }
 
@@ -577,16 +585,16 @@
 
         remSpan.innerText = remaining;
 
-        // Dynamic font sizing for long phrases/sentences
+        // Dynamic font sizing for long phrases/sentences (optimized for mobile)
         if (targetWord.length > 22) {
-            wordDisplay.style.fontSize = '1.45rem';
+            wordDisplay.style.fontSize = isMobileDevice() ? '1.05rem' : '1.45rem';
             wordDisplay.style.letterSpacing = '1px';
         } else if (targetWord.length > 13) {
-            wordDisplay.style.fontSize = '1.75rem';
-            wordDisplay.style.letterSpacing = '2px';
+            wordDisplay.style.fontSize = isMobileDevice() ? '1.25rem' : '1.75rem';
+            wordDisplay.style.letterSpacing = isMobileDevice() ? '1.5px' : '2px';
         } else {
-            wordDisplay.style.fontSize = '2.1rem';
-            wordDisplay.style.letterSpacing = '3px';
+            wordDisplay.style.fontSize = isMobileDevice() ? '1.5rem' : '2.1rem';
+            wordDisplay.style.letterSpacing = isMobileDevice() ? '2px' : '3px';
         }
 
         const timerFill = document.getElementById('timerFill');
@@ -596,6 +604,8 @@
         } else {
             timerFill.style.background = 'linear-gradient(90deg, #00ffcc, #10b981)';
         }
+
+        highlightCyberKey(current);
     }
 
     function updateStageProgressHUD() {
@@ -1666,6 +1676,11 @@
         document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
         document.getElementById('word-hud-container').style.display = 'flex';
 
+        if (isMobileDevice()) {
+            const kb = document.getElementById('cyberKeyboard');
+            if (kb) kb.classList.add('active');
+        }
+
         initWalls();
         setNextWord(false);
     }
@@ -1687,6 +1702,9 @@
             canvas.height = height;
             targetCameraY = runner.y - getIdealRunnerScreenY();
             targetCameraX = runner.x - width * 0.35;
+            updateButtonPrompts();
+            const kb = document.getElementById('cyberKeyboard');
+            if (kb && isMobileDevice()) kb.classList.add('active');
         });
 
         if (window.visualViewport) {
@@ -1697,13 +1715,13 @@
 
         document.getElementById('game-container').addEventListener('click', () => {
             window.focus();
-            if (gameState === 'PLAYING') {
+            if (gameState === 'PLAYING' && !isCyberKbActive()) {
                 focusMobileKeyboard();
             }
         });
 
         canvas.addEventListener('touchstart', () => {
-            if (gameState === 'PLAYING') {
+            if (gameState === 'PLAYING' && !isCyberKbActive()) {
                 focusMobileKeyboard();
             }
         }, { passive: true });
@@ -1747,13 +1765,25 @@
             }
         });
 
+        function updateButtonPrompts() {
+            const isMob = isMobileDevice();
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) {
+                startBtn.innerHTML = `<span>START STAGE ${currentStage} ${isMob ? '▶' : '[ SPACE ]'}</span>`;
+            }
+            const restartBtn = document.getElementById('restartBtn');
+            if (restartBtn) {
+                restartBtn.innerHTML = `RETRY STAGE ${isMob ? '↺' : '[ SPACE ]'}`;
+            }
+        }
+
         // Stage Card Selection
         document.querySelectorAll('.stage-card').forEach(card => {
             card.addEventListener('click', () => {
                 document.querySelectorAll('.stage-card').forEach(c => c.classList.remove('active'));
                 card.classList.add('active');
                 currentStage = parseInt(card.dataset.stage, 10);
-                document.getElementById('startBtn').innerHTML = `<span>START STAGE ${currentStage} [ SPACE ]</span>`;
+                updateButtonPrompts();
             });
         });
 
@@ -1808,6 +1838,120 @@
                 }
             });
         }
+
+        initCyberKeyboard();
+        updateButtonPrompts();
+    }
+
+    function initCyberKeyboard() {
+        const kb = document.getElementById('cyberKeyboard');
+        const row1 = document.getElementById('kbRow1');
+        const row2 = document.getElementById('kbRow2');
+        const row3 = document.getElementById('kbRow3');
+        if (!kb || !row1 || !row2 || !row3) return;
+
+        const r1Keys = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
+        const r2Keys = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
+        const r3Keys = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
+
+        row1.innerHTML = '';
+        row2.innerHTML = '';
+        row3.innerHTML = '';
+
+        function createKeyBtn(keyChar) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cyber-key';
+            btn.dataset.key = keyChar;
+            btn.textContent = keyChar;
+
+            const press = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (gameState !== 'PLAYING') return;
+                const cfg = STAGE_CONFIGS[currentStage];
+                const expectedChar = targetWord.charAt(typedIndex);
+                let charToSend = keyChar.toLowerCase();
+                if (cfg && cfg.caseSensitive) {
+                    if (expectedChar === keyChar.toUpperCase()) {
+                        charToSend = keyChar.toUpperCase();
+                    }
+                }
+                handleTypingInput(charToSend);
+                btn.classList.add('key-pressed');
+                setTimeout(() => btn.classList.remove('key-pressed'), 100);
+            };
+
+            btn.addEventListener('pointerdown', press);
+            return btn;
+        }
+
+        r1Keys.forEach(k => row1.appendChild(createKeyBtn(k)));
+        r2Keys.forEach(k => row2.appendChild(createKeyBtn(k)));
+        r3Keys.forEach(k => row3.appendChild(createKeyBtn(k)));
+
+        const spaceBtn = document.getElementById('kbSpaceBtn');
+        if (spaceBtn) {
+            spaceBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (gameState !== 'PLAYING') return;
+                handleTypingInput(' ');
+                spaceBtn.classList.add('key-pressed');
+                setTimeout(() => spaceBtn.classList.remove('key-pressed'), 100);
+            });
+        }
+
+        const hideBtn = document.getElementById('kbHideBtn');
+        if (hideBtn) {
+            hideBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                kb.classList.toggle('hidden');
+                targetCameraY = runner.y - getIdealRunnerScreenY();
+            });
+        }
+
+        const toggleModeBtn = document.getElementById('kbToggleModeBtn');
+        const mobileInput = document.getElementById('mobileInput');
+        if (toggleModeBtn) {
+            toggleModeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                kb.classList.add('hidden');
+                if (mobileInput) mobileInput.focus();
+                targetCameraY = runner.y - getIdealRunnerScreenY();
+            });
+        }
+
+        const mobileTouchKbToggleBtn = document.getElementById('mobileTouchKbToggleBtn');
+        if (mobileTouchKbToggleBtn) {
+            mobileTouchKbToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                kb.classList.toggle('hidden');
+                targetCameraY = runner.y - getIdealRunnerScreenY();
+            });
+        }
+
+        if (isMobileDevice()) {
+            kb.classList.add('active');
+        }
+    }
+
+    function highlightCyberKey(char) {
+        if (!char) {
+            document.querySelectorAll('.cyber-key.key-hint').forEach(k => k.classList.remove('key-hint'));
+            return;
+        }
+        const clean = char.toUpperCase();
+        document.querySelectorAll('.cyber-key').forEach(el => {
+            const keyVal = (el.dataset.key || '').toUpperCase();
+            if (clean === ' ' && el.id === 'kbSpaceBtn') {
+                el.classList.add('key-hint');
+            } else if (keyVal === clean && keyVal !== '') {
+                el.classList.add('key-hint');
+            } else {
+                el.classList.remove('key-hint');
+            }
+        });
     }
 
     function togglePause() {
