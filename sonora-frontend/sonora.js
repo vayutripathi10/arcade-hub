@@ -15,7 +15,7 @@
     const MODE_KEY = 'sonora-player-mode';
     const PLAYLISTS_KEY = 'sonora-custom-playlists';
     const CLEAN_INIT_KEY = 'sonora-clean-init-v2';
-    const DEFAULT_SEED_KEY = 'sonora-default-seed-v3';
+    const DEFAULT_SEED_KEY = 'sonora-default-seed-v4';
 
     const DEFAULT_SONGS = [
         {
@@ -45,6 +45,13 @@
             category: '90s Song',
             title: '90s Song · Evergreen Hindi Songs | Bollywood 90s Classics',
             thumbnail: 'https://i.ytimg.com/vi/9uS3o5YOR1U/hqdefault.jpg'
+        },
+        {
+            id: 'yt-BrIkUBI_37I',
+            videoId: 'BrIkUBI_37I',
+            category: 'Kabhi Yaadon Mein',
+            title: 'Kabhi Yaadon Mein Aaun · Abhijeet | Divya Khosla | T-Series Pop Classic',
+            thumbnail: 'https://i.ytimg.com/vi/BrIkUBI_37I/hqdefault.jpg'
         }
     ];
 
@@ -68,6 +75,11 @@
             id: 'default-90s-song',
             name: '90s Song',
             videos: [{ ...DEFAULT_SONGS[3] }]
+        },
+        {
+            id: 'default-kabhi-yaadon-mein',
+            name: 'Kabhi Yaadon Mein',
+            videos: [{ ...DEFAULT_SONGS[4] }]
         }
     ];
 
@@ -578,7 +590,7 @@
         if (STATE.history.length > 50) STATE.history.pop();
         saveState();
 
-        // Render iframe into stage
+        // Render iframe into stage (sandboxed to prevent opening external tabs or leaving Sonora)
         const src = getPlayerSrc(STATE.mode, track.videoId);
         const stage = DOM.playerStage || DOM.playerContainer;
         stage.innerHTML = `
@@ -586,6 +598,7 @@
                 id="sonora-active-iframe"
                 src="${src}"
                 title="${escapeHtml(track.title || 'Sonora Player')}"
+                sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                 allowfullscreen
                 webkitallowfullscreen
