@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=5">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=6">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
@@ -48,10 +48,11 @@
                 </div>
             </div>
 
-            <div class="header-search-wrap">
-                <span>🔍</span>
-                <input type="text" id="header-search-input" placeholder="Search saved tracks or playlists…" aria-label="Search tracks">
-            </div>
+            <form class="header-search-wrap" id="header-search-form">
+                <input type="search" id="header-search-input" placeholder="Search songs, libraries, or YouTube…" aria-label="Search tracks" autocomplete="off">
+                <button type="button" class="search-clear-btn" id="header-search-clear" title="Clear search" aria-label="Clear search" hidden>✕</button>
+                <button type="submit" class="search-submit-btn" id="header-search-btn" title="Search saved songs or search on YouTube" aria-label="Search">🔍</button>
+            </form>
 
             <div class="header-right">
                 <button class="action-icon-btn" id="bg-play-btn" title="Toggle Background Audio Support" aria-label="Background audio">
@@ -149,19 +150,23 @@
                     <!-- Tab 1: Library -->
                     <div class="tab-panel active" id="tab-library">
                         <div class="panel-header">
-                            <span class="panel-title">Playlists</span>
+                            <span class="panel-title">Libraries</span>
                             <div class="panel-actions">
-                                <button class="panel-action-btn" id="new-playlist-btn" title="Create a new playlist">➕ New Playlist</button>
-                                <button class="panel-action-btn" id="play-all-library-btn" title="Play All Tracks">▶ Play All</button>
-                                <button class="panel-action-btn" id="queue-all-library-btn" title="Queue All Tracks">➕ Queue All</button>
+                                <button type="button" class="panel-action-btn accent" id="new-playlist-btn" title="Create a new library">➕ Create Library</button>
+                                <button type="button" class="panel-action-btn" id="play-all-library-btn" title="Play all songs in selected library">▶ Play All</button>
+                                <button type="button" class="panel-action-btn" id="queue-all-library-btn" title="Queue all songs in selected library">➕ Queue All</button>
                             </div>
                         </div>
                         <form class="new-playlist-bar" id="new-playlist-form" hidden>
-                            <input type="text" id="new-playlist-input" placeholder="Playlist name (e.g. Workout Mix)…" maxlength="40" aria-label="New playlist name">
+                            <input type="text" id="new-playlist-input" placeholder="Enter library name (e.g. Hindi Hits, Workout)…" maxlength="50" aria-label="New library name">
                             <button type="submit" class="panel-action-btn accent">Create</button>
                             <button type="button" class="panel-action-btn" id="cancel-playlist-btn">Cancel</button>
                         </form>
                         <div class="playlist-chips" id="library-tabs"></div>
+                        <form class="library-add-song-bar" id="library-add-song-form">
+                            <input type="text" id="library-add-song-input" placeholder="Paste YouTube link(s) to add to this library…" aria-label="Paste YouTube links for this library">
+                            <button type="submit" class="panel-action-btn accent" id="library-add-song-btn" title="Add YouTube song(s) to this library">➕ Add Song</button>
+                        </form>
                         <div class="list-scroll" id="library-list"></div>
                     </div>
 
@@ -216,12 +221,27 @@
             <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="/">Arcade Hub</a> | <a href="retro-hub">Retro Hub</a> | <a href="pdf-tools">PDF Tools</a> | <a href="utility-hub">Utility Hub</a> | <a href="blog">Blog &amp; Guides</a> | <a href="privacy">Privacy</a> | <a href="tos">Terms</a> | <a href="contact">Contact</a></p>
         </footer>
 
+        <!-- LIBRARY PICKER MODAL -->
+        <div class="library-picker-modal" id="library-picker-modal" hidden>
+            <div class="library-picker-card">
+                <div class="library-picker-head">
+                    <span id="library-picker-title">Add Song to Library</span>
+                    <button type="button" class="library-picker-close" id="library-picker-close" aria-label="Close">✕</button>
+                </div>
+                <div class="library-picker-list" id="library-picker-list"></div>
+                <form class="library-picker-new" id="library-picker-new-form">
+                    <input type="text" id="library-picker-new-input" placeholder="Or create new library name…" maxlength="50">
+                    <button type="submit" class="panel-action-btn accent">➕ Create &amp; Add</button>
+                </form>
+            </div>
+        </div>
+
         <!-- TOAST NOTIFICATION -->
         <div class="sonora-toast" id="sonora-toast"></div>
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=5"></script>
+    <script src="sonora-frontend/sonora.js?v=6"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
