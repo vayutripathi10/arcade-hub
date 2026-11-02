@@ -1,0 +1,813 @@
+/* Sonora Music Player Styles - Arcade Hub Integrated Edition */
+:root {
+    --sonora-bg: #07070a;
+    --sonora-surface: #101018;
+    --sonora-card: #151520;
+    --sonora-border: rgba(167, 139, 250, 0.16);
+    --sonora-accent: #8b5cf6;
+    --sonora-accent-light: #c4b5fd;
+    --sonora-accent-glow: rgba(139, 92, 246, 0.35);
+    --sonora-cyan: #00ffcc;
+    --sonora-pink: #ec4899;
+    --sonora-text: #f5f4fa;
+    --sonora-muted: #9493a3;
+    --sonora-dim: #605f70;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+    background: var(--sonora-bg);
+    color: var(--sonora-text);
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Master viewport shell - STRICTLY NO PAGE SCROLL */
+.sonora-viewport {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    background: radial-gradient(circle at 50% 0%, rgba(76, 52, 144, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 100% 100%, rgba(0, 255, 204, 0.05) 0%, transparent 40%),
+                #07070a;
+}
+
+/* TOP HEADER */
+.sonora-header {
+    height: 60px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(13, 13, 20, 0.94);
+    border-bottom: 1px solid var(--sonora-border);
+    backdrop-filter: blur(12px);
+    z-index: 50;
+    gap: 12px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-hub-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--sonora-cyan);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    padding: 7px 13px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.back-hub-btn:hover {
+    background: rgba(0, 255, 204, 0.15);
+    border-color: var(--sonora-cyan);
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+    transform: translateY(-1px);
+}
+
+.sonora-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.sonora-brand-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #c4b5fd, #8b5cf6 65%, #ec4899);
+    display: grid;
+    place-items: center;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+}
+
+.sonora-brand span {
+    background: linear-gradient(90deg, #ffffff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.header-search-wrap {
+    flex: 1;
+    max-width: 460px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 4px 14px;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.header-search-wrap:focus-within {
+    border-color: var(--sonora-accent);
+    box-shadow: 0 0 12px var(--sonora-accent-glow);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.header-search-wrap input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 0.88rem;
+}
+
+.header-search-wrap input::placeholder {
+    color: var(--sonora-muted);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.action-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--sonora-border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--sonora-text);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.action-icon-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--sonora-accent);
+    color: #fff;
+}
+
+/* MAIN DUAL-PANE WORKSPACE */
+.sonora-main-layout {
+    flex: 1;
+    min-height: 0; /* essential for flex child scroll containers */
+    display: grid;
+    grid-template-columns: minmax(360px, 1.25fr) minmax(320px, 1fr);
+    gap: 16px;
+    padding: 14px 16px;
+    overflow: hidden;
+}
+
+/* LEFT PANE: PLAYER & ADD URL */
+.player-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 12px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Custom scrollbars for internal panes */
+.player-pane::-webkit-scrollbar,
+.library-scroll::-webkit-scrollbar,
+.list-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.player-pane::-webkit-scrollbar-track,
+.library-scroll::-webkit-scrollbar-track,
+.list-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+.player-pane::-webkit-scrollbar-thumb,
+.library-scroll::-webkit-scrollbar-thumb,
+.list-scroll::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.25);
+    border-radius: 999px;
+}
+
+/* ADD LINK CARD */
+.add-link-card {
+    background: linear-gradient(135deg, rgba(76, 52, 144, 0.2) 0%, rgba(16, 16, 24, 0.9) 100%);
+    border: 1px solid var(--sonora-border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    flex-shrink: 0;
+}
+
+.add-link-form {
+    display: flex;
+    gap: 8px;
+}
+
+.add-link-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 9px 12px;
+    color: #fff;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.add-link-input:focus {
+    border-color: var(--sonora-accent);
+}
+
+.add-link-btn {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+
+.add-link-btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-1px);
+}
+
+/* PLAYER CONTAINER */
+.video-player-container {
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+}
+
+.video-player-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.player-empty-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--sonora-muted);
+    text-align: center;
+    padding: 20px;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, #0c0c12 80%);
+}
+
+.player-empty-placeholder .empty-icon {
+    font-size: 2.8rem;
+    color: var(--sonora-accent-light);
+}
+
+/* PLAYER CONTROLS TOOLBAR */
+.player-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--sonora-card);
+    border: 1px solid var(--sonora-border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.now-playing-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.now-playing-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.now-playing-sub {
+    font-size: 0.72rem;
+    color: var(--sonora-cyan);
+    margin-top: 2px;
+}
+
+.player-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.toolbar-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--sonora-text);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.toolbar-btn:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: var(--sonora-accent);
+    color: #fff;
+}
+
+.toolbar-btn.active {
+    background: var(--sonora-accent);
+    color: #fff;
+    border-color: var(--sonora-accent);
+    box-shadow: 0 0 10px var(--sonora-accent-glow);
+}
+
+/* RIGHT PANE: TABS (PLAYLISTS, QUEUE, SAVED, FAVORITES) */
+.library-pane {
+    background: var(--sonora-surface);
+    border: 1px solid var(--sonora-border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.tab-nav-bar {
+    display: flex;
+    gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--sonora-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+
+.tab-nav-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-pill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--sonora-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.18s;
+}
+
+.tab-pill:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.tab-pill.active {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: #fff;
+    border-color: var(--sonora-accent-light);
+    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.35);
+}
+
+.pill-count {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+}
+
+/* TAB CONTENT CONTAINER */
+.tab-content-area {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tab-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.tab-panel.active {
+    display: flex;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+}
+
+.panel-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.panel-action-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--sonora-muted);
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.panel-action-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    color: #fff;
+    border-color: var(--sonora-accent);
+}
+
+.panel-action-btn.accent {
+    background: var(--sonora-accent);
+    border-color: var(--sonora-accent);
+    color: #fff;
+    font-weight: 700;
+}
+
+.new-playlist-bar {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(139, 92, 246, 0.08);
+    flex-shrink: 0;
+}
+.new-playlist-bar[hidden] { display: none !important; }
+.new-playlist-bar input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: #fff;
+    font-size: 0.78rem;
+    outline: none;
+}
+.new-playlist-bar input:focus {
+    border-color: var(--sonora-cyan);
+}
+
+/* PLAYLIST CHIPS (switch between curated libraries) */
+.playlist-chips {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+.playlist-chips::-webkit-scrollbar { display: none; }
+.playlist-chip {
+    flex: 0 0 auto;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--sonora-muted);
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.playlist-chip.active {
+    border-color: var(--sonora-cyan);
+    color: var(--sonora-cyan);
+    background: rgba(0, 255, 204, 0.08);
+}
+.playlist-chip-del {
+    margin-left: 5px;
+    color: #f87171;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* TRACK LISTING SCROLL */
+.list-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: all 0.15s;
+    cursor: pointer;
+}
+
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.track-item.playing {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: var(--sonora-accent);
+}
+
+.track-thumb {
+    width: 68px;
+    height: 42px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #181822;
+}
+
+.track-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.track-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-sub {
+    font-size: 0.7rem;
+    color: var(--sonora-muted);
+}
+
+.track-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.track-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--sonora-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+}
+
+.track-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.track-btn.fav.active {
+    color: var(--sonora-pink);
+}
+
+/* EMPTY STATE */
+.empty-tab-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--sonora-muted);
+    text-align: center;
+    gap: 8px;
+    padding: 20px;
+}
+
+/* FOOTER (Strictly pinned at bottom, standard Arcade Hub style) */
+.sonora-footer {
+    min-height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #08080d;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 0.74rem;
+    line-height: 1.5;
+    color: var(--sonora-dim);
+    padding: 6px 12px;
+    text-align: center;
+    z-index: 40;
+}
+
+/* TAP-TO-RESUME POSTER */
+.resume-poster {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: #000;
+    cursor: pointer;
+    display: block;
+}
+.resume-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.55;
+}
+.resume-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    font-size: 1.6rem;
+    text-align: center;
+    padding: 12px;
+}
+.resume-overlay strong { font-size: 0.95rem; }
+.resume-overlay small {
+    font-size: 0.75rem;
+    color: #ddd;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sonora-footer a {
+    color: var(--sonora-cyan);
+    text-decoration: none;
+    margin: 0 4px;
+}
+
+.sonora-footer a:hover {
+    text-decoration: underline;
+}
+
+/* TOAST NOTIFICATION */
+.sonora-toast {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(24, 20, 36, 0.95);
+    border: 1px solid var(--sonora-accent);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 15px var(--sonora-accent-glow);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sonora-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* RESPONSIVE LAYOUT (MOBILE OPTIMIZED, ZERO WHOLE-PAGE SCROLL) */
+@media (max-width: 900px) {
+    .sonora-main-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .player-pane {
+        max-height: 46vh;
+        gap: 8px;
+    }
+
+    .add-link-card {
+        padding: 8px 10px;
+    }
+
+    .video-player-container {
+        aspect-ratio: 16 / 9;
+        max-height: 26vh;
+    }
+
+    .player-toolbar {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .now-playing-info {
+        flex: 1 1 100%;
+    }
+
+    .now-playing-sub {
+        display: none;
+    }
+
+    .player-btn-group {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .sonora-brand span {
+        display: none;
+    }
+
+    .header-search-wrap {
+        max-width: 200px;
+    }
+
+    .sonora-footer {
+        font-size: 0.68rem;
+    }
+}

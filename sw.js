@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v282';
+const CACHE_NAME = 'arcade-hub-cache-v283';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -184,6 +184,10 @@ const CORE_ASSETS = [
     'snake-frontend/index.html',
     'snake-frontend/script.js',
     'snake-frontend/style.css',
+    'sonora.html',
+    'sonora-frontend/libraries.json',
+    'sonora-frontend/sonora.css',
+    'sonora-frontend/sonora.js',
     'space-shooter-frontend/index.html',
     'space-shooter-frontend/player_ship.png',
     'space-shooter-frontend/script.js',
@@ -365,7 +369,7 @@ function matchCache(request) {
                 if (fileRes) return fileRes;
 
                 // Check for direct clean URL routes
-                const cleanRoots = ['about', 'achievements', 'contact', 'privacy', 'tos', 'updates', 'retro-hub', 'blog', 'pdf-tools', 'utility-hub'];
+                const cleanRoots = ['about', 'achievements', 'contact', 'privacy', 'tos', 'updates', 'retro-hub', 'blog', 'pdf-tools', 'utility-hub', 'sonora'];
                 if (cleanRoots.includes(page)) {
                     return caches.match(page + '.html');
                 }

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Sonora Music App on Arcade Hub: Stream your favorite YouTube songs ad-free, build queues, organize playlists, and enjoy background music play without interruptions.">
+    <meta name="keywords" content="sonora, ad-free youtube music, background music player, youtube playlist creator, arcade hub sonora, free web music app">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="canonical" href="https://arcadehubplay.com/sonora">
+    <title>Sonora Music — Ad-Free YouTube Playlists &amp; Music Player | Arcade Hub</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="sonora-frontend/sonora.css">
+
+    <!-- Open Graph & Twitter -->
+    <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
+    <meta property="og:description" content="Listen to uninterrupted ad-free YouTube music, manage custom playlists, and stream background tracks with zero registration.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arcadehubplay.com/sonora">
+    <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
+    <meta name="twitter:card" content="summary">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+</head>
+<body>
+    <div class="sonora-viewport" id="sonora-viewport">
+        <!-- TOP APP HEADER -->
+        <header class="sonora-header">
+            <div class="header-left">
+                <a href="/" class="back-hub-btn" title="Return to Arcade Hub Homepage">
+                    ← <span>Arcade Hub</span>
+                </a>
+                <div class="sonora-brand">
+                    <div class="sonora-brand-icon">🎵</div>
+                    <span>Sonora</span>
+                </div>
+            </div>
+
+            <div class="header-search-wrap">
+                <span>🔍</span>
+                <input type="text" id="header-search-input" placeholder="Search saved tracks or playlists…" aria-label="Search tracks">
+            </div>
+
+            <div class="header-right">
+                <button class="action-icon-btn" id="bg-play-btn" title="Toggle Background Audio Support" aria-label="Background audio">
+                    🎧
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN DUAL-PANE VIEWPORT -->
+        <main class="sonora-main-layout">
+            <!-- LEFT PANE: PLAYER & ADD URL -->
+            <section class="player-pane">
+                <!-- Add YouTube Link Form -->
+                <div class="add-link-card">
+                    <form class="add-link-form" id="add-link-form">
+                        <input
+                            type="url"
+                            id="add-link-input"
+                            class="add-link-input"
+                            placeholder="Paste YouTube link (watch, Shorts, youtu.be)…"
+                            required
+                            aria-label="YouTube Link">
+                        <button type="submit" class="add-link-btn" title="Add and play immediately">
+                            <span>➕</span> <span>Play Now</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Video Player Container (16:9 Aspect Ratio) -->
+                <div class="video-player-container" id="player-container">
+                    <div class="player-empty-placeholder">
+                        <span class="empty-icon">🎧</span>
+                        <h3 style="font-size: 1.1rem; color: #fff; font-weight: 700;">Sonora Ad-Free Player Ready</h3>
+                        <p style="font-size: 0.82rem; max-width: 320px;">Paste any YouTube link above or select a track from the library on the right to start listening.</p>
+                    </div>
+                </div>
+
+                <!-- Player Controls Toolbar -->
+                <div class="player-toolbar">
+                    <div class="now-playing-info">
+                        <span class="now-playing-title" id="now-playing-title">No track playing</span>
+                        <span class="now-playing-sub" id="now-playing-sub">Select a track below</span>
+                    </div>
+
+                    <div class="player-btn-group">
+                        <button class="toolbar-btn active" id="mode-btn" title="Switch between Ad-Free gateway and YouTube No-Cookie Embed">
+                            🛡️ <span id="mode-btn-label">Ad-Free</span>
+                        </button>
+                        <button class="toolbar-btn" id="skip-btn" title="Play next in queue">
+                            ⏭️ <span>Next</span>
+                        </button>
+                        <button class="toolbar-btn" id="reload-btn" title="Reload player if stuck">
+                            🔄
+                        </button>
+                        <button class="toolbar-btn" id="fullscreen-btn" title="Toggle Fullscreen">
+                            ⛶
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANE: TABBED LIBRARIES, QUEUE & FAVORITES -->
+            <section class="library-pane">
+                <!-- Tab Navigation Bar -->
+                <div class="tab-nav-bar">
+                    <button class="tab-pill active" data-tab="library">
+                        📁 <span>Library</span> <span class="pill-count" id="library-count">0</span>
+                    </button>
+                    <button class="tab-pill" data-tab="queue">
+                        🕒 <span>Queue</span> <span class="pill-count" id="queue-count">0</span>
+                    </button>
+                    <button class="tab-pill" data-tab="saved">
+                        💾 <span>Saved</span> <span class="pill-count" id="saved-count">0</span>
+                    </button>
+                    <button class="tab-pill" data-tab="favorites">
+                        ❤️ <span>Favorites</span> <span class="pill-count" id="favorites-count">0</span>
+                    </button>
+                    <button class="tab-pill" data-tab="history">
+                        📜 <span>History</span> <span class="pill-count" id="history-count">0</span>
+                    </button>
+                </div>
+
+                <!-- Tab Panels Area -->
+                <div class="tab-content-area">
+                    <!-- Tab 1: Library -->
+                    <div class="tab-panel active" id="tab-library">
+                        <div class="panel-header">
+                            <span class="panel-title">Playlists</span>
+                            <div class="panel-actions">
+                                <button class="panel-action-btn" id="new-playlist-btn" title="Create a new playlist">➕ New Playlist</button>
+                                <button class="panel-action-btn" id="play-all-library-btn" title="Play All Tracks">▶ Play All</button>
+                                <button class="panel-action-btn" id="queue-all-library-btn" title="Queue All Tracks">➕ Queue All</button>
+                            </div>
+                        </div>
+                        <form class="new-playlist-bar" id="new-playlist-form" hidden>
+                            <input type="text" id="new-playlist-input" placeholder="Playlist name (e.g. Workout Mix)…" maxlength="40" aria-label="New playlist name">
+                            <button type="submit" class="panel-action-btn accent">Create</button>
+                            <button type="button" class="panel-action-btn" id="cancel-playlist-btn">Cancel</button>
+                        </form>
+                        <div class="playlist-chips" id="library-tabs"></div>
+                        <div class="list-scroll" id="library-list"></div>
+                    </div>
+
+                    <!-- Tab 2: Queue -->
+                    <div class="tab-panel" id="tab-queue">
+                        <div class="panel-header">
+                            <span class="panel-title">Up Next</span>
+                            <div class="panel-actions">
+                                <button class="panel-action-btn" id="shuffle-queue-btn" title="Shuffle Queue">🔀 Shuffle</button>
+                                <button class="panel-action-btn" id="clear-queue-btn" title="Clear Queue">🗑️ Clear</button>
+                            </div>
+                        </div>
+                        <div class="list-scroll" id="queue-list"></div>
+                    </div>
+
+                    <!-- Tab 3: Saved Links -->
+                    <div class="tab-panel" id="tab-saved">
+                        <div class="panel-header">
+                            <span class="panel-title">My Saved Links</span>
+                            <div class="panel-actions">
+                                <button class="panel-action-btn" id="export-saved-btn" title="Backup saved links &amp; playlists to JSON">⬇️ Backup</button>
+                                <label class="panel-action-btn" title="Restore from JSON backup" style="cursor:pointer;">
+                                    ⬆️ Restore
+                                    <input type="file" id="import-saved-input" accept="application/json" hidden>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="list-scroll" id="saved-list"></div>
+                    </div>
+
+                    <!-- Tab 4: Favorites -->
+                    <div class="tab-panel" id="tab-favorites">
+                        <div class="panel-header">
+                            <span class="panel-title">Favorites</span>
+                        </div>
+                        <div class="list-scroll" id="favorites-list"></div>
+                    </div>
+
+                    <!-- Tab 5: History -->
+                    <div class="tab-panel" id="tab-history">
+                        <div class="panel-header">
+                            <span class="panel-title">Recently Played</span>
+                        </div>
+                        <div class="list-scroll" id="history-list"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- FOOTER (Standard Arcade Hub docked footer) -->
+        <footer class="sonora-footer">
+            <p>&copy; 2026 Arcade Hub. All rights reserved. | <a href="/">Arcade Hub</a> | <a href="retro-hub">Retro Hub</a> | <a href="pdf-tools">PDF Tools</a> | <a href="utility-hub">Utility Hub</a> | <a href="blog">Blog &amp; Guides</a> | <a href="privacy">Privacy</a> | <a href="tos">Terms</a> | <a href="contact">Contact</a></p>
+        </footer>
+
+        <!-- TOAST NOTIFICATION -->
+        <div class="sonora-toast" id="sonora-toast"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="sonora-frontend/sonora.js"></script>
+    <script src="shared/pwa-setup.js"></script>
+</body>
+</html>
