@@ -68,26 +68,24 @@ html, body {
     gap: 12px;
 }
 
-.back-hub-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.06);
+.home-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(0, 255, 204, 0.08);
     color: var(--sonora-cyan);
-    border: 1px solid rgba(0, 255, 204, 0.3);
-    padding: 7px 13px;
-    border-radius: 999px;
-    font-size: 0.82rem;
-    font-weight: 700;
+    border: 1px solid rgba(0, 255, 204, 0.35);
+    display: inline-grid;
+    place-items: center;
     text-decoration: none;
+    flex-shrink: 0;
     transition: all 0.2s ease;
-    white-space: nowrap;
 }
 
-.back-hub-btn:hover {
-    background: rgba(0, 255, 204, 0.15);
+.home-icon-btn:hover {
+    background: rgba(0, 255, 204, 0.18);
     border-color: var(--sonora-cyan);
-    box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.35);
     transform: translateY(-1px);
 }
 
@@ -1051,9 +1049,10 @@ html, body {
         gap: 8px;
     }
 
-    .back-hub-btn {
-        padding: 5px 10px;
-        font-size: 0.74rem;
+    .home-icon-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
     }
 
     .sonora-brand-icon {
