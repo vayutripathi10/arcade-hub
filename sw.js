@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v283';
+const CACHE_NAME = 'arcade-hub-cache-v284';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -413,6 +413,12 @@ self.addEventListener('fetch', (e) => {
     const isAnalyticsRequest = url.hostname.includes('google-analytics.com') || 
                                url.hostname.includes('analytics.google.com') || 
                                url.pathname.includes('/collect');
+
+    // Never intercept cross-origin requests (YouTube embeds, i.ytimg.com thumbnails, noembed, fonts, CDNs)
+    // except Google Analytics offline queueing handled below.
+    if (url.origin !== self.location.origin && !isAnalyticsRequest) {
+        return;
+    }
 
     if (isAnalyticsRequest) {
         e.respondWith(

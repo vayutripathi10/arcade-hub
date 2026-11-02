@@ -6,7 +6,7 @@
 (function () {
     'use strict';
 
-    // LocalStorage Keys (matching original Sonora keys + custom playlists)
+    // LocalStorage Keys
     const STORAGE_KEY = 'sonora-youtube-links';
     const ACTIVE_KEY = 'sonora-active-youtube';
     const QUEUE_KEY = 'sonora-youtube-queue';
@@ -14,16 +14,30 @@
     const HISTORY_KEY = 'sonora-watch-history';
     const MODE_KEY = 'sonora-player-mode';
     const PLAYLISTS_KEY = 'sonora-custom-playlists';
+    const CLEAN_INIT_KEY = 'sonora-clean-init-v2';
 
-    // App State
+    const FALLBACK_THUMB_SVG =
+        "data:image/svg+xml;utf8," +
+        encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90">' +
+            '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+            '<stop offset="0%" stop-color="#2e1065"/><stop offset="100%" stop-color="#0f172a"/>' +
+            '</linearGradient></defs>' +
+            '<rect width="160" height="90" fill="url(#g)"/>' +
+            '<circle cx="80" cy="45" r="22" fill="rgba(139,92,246,0.25)" stroke="#a78bfa" stroke-width="2"/>' +
+            '<text x="80" y="52" text-anchor="middle" fill="#f5f3ff" font-family="sans-serif" font-size="22">♫</text>' +
+            '</svg>'
+        );
+
+    // App State (Starts completely empty — no pre-populated songs)
     const STATE = {
-        items: [],              // Saved custom links
+        items: [],              // User's added YouTube songs
         queue: [],              // Active playback queue
         favorites: [],          // Array of video IDs
         history: [],            // Watched history
-        curatedLibraries: [],   // Pre-loaded libraries from libraries.json
+        curatedLibraries: [],   // Optional external libraries from libraries.json (empty by default)
         customPlaylists: [],    // User-created playlists [{ id, name, videos, custom: true }]
-        activeLibraryId: 'mostly-viewed',
+        activeLibraryId: 'all-songs',
         activeVideoId: '',
         activeTrack: null,
         mode: localStorage.getItem(MODE_KEY) || 'adfree', // 'adfree' | 'official'
@@ -81,19 +95,35 @@
     // 1. HELPERS & YOUTUBE URL PARSER
     // -------------------------------------------------------------------------
     function getAllLibraries() {
-        return [...STATE.customPlaylists, ...STATE.curatedLibraries];
+        const allSongsLib = {
+            id: 'all-songs',
+            name: 'All Songs',
+            isAllSongs: true,
+            videos: STATE.items
+        };
+        return [allSongsLib, ...STATE.customPlaylists, ...STATE.curatedLibraries];
     }
 
     function getActiveLibrary() {
         const all = getAllLibraries();
-        return all.find(l => l.id === STATE.activeLibraryId) || all[0] || null;
+        return all.find(l => l.id === STATE.activeLibraryId) || all[0];
     }
 
     function getVideoId(input) {
         if (!input) return '';
+        const raw = String(input).trim();
+
+        // Extract URL if user pasted share text like "Check this out https://youtu.be/abc..."
+        const urlMatch = raw.match(/https?:\/\/[^\s"'<>]+/i);
+        const candidate = urlMatch ? urlMatch[0] : (
+            /^(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be|yout-ube\.com)\//i.test(raw)
+                ? 'https://' + raw
+                : raw
+        );
+
         try {
-            const parsed = new URL(input.trim());
-            const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+            const parsed = new URL(candidate);
+            const host = parsed.hostname.toLowerCase().replace(/^(?:www|m|music)\./, '');
             let id = '';
 
             if (host === 'youtu.be') {
@@ -102,24 +132,58 @@
                 host === 'youtube.com' ||
                 host.endsWith('.youtube.com') ||
                 host === 'yout-ube.com' ||
-                host.endsWith('.yout-ube.com')
+                host.endsWith('.yout-ube.com') ||
+                host === 'youtube-nocookie.com'
             ) {
                 id = parsed.searchParams.get('v') ||
-                     parsed.pathname.match(/^\/(?:shorts|embed|live|v)\/([^/?]+)/)?.[1] || '';
+                     parsed.pathname.match(/^\/(?:shorts|embed|live|v|watch)\/([^/?&#]+)/)?.[1] || '';
             }
-            return /^[a-zA-Z0-9_-]{11}$/.test(id) ? id : '';
+            if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
         } catch {
-            const raw = input.trim();
-            return /^[a-zA-Z0-9_-]{11}$/.test(raw) ? raw : '';
+            // Fall through to regex extraction
         }
+
+        const regexMatch = raw.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/|\/live\/|\/v\/)([a-zA-Z0-9_-]{11})/);
+        if (regexMatch && regexMatch[1]) return regexMatch[1];
+
+        return /^[a-zA-Z0-9_-]{11}$/.test(raw) ? raw : '';
+    }
+
+    function getPrimaryThumbnail(track) {
+        if (track && track.thumbnail && /^https?:\/\//i.test(track.thumbnail)) {
+            return track.thumbnail;
+        }
+        const vid = encodeURIComponent(track.videoId);
+        return `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
+    }
+
+    function attachThumbnailFallback(imgEl, videoId) {
+        if (!imgEl || !videoId) return;
+        const vid = encodeURIComponent(videoId);
+        const fallbacks = [
+            `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`,
+            `https://img.youtube.com/vi/${vid}/hqdefault.jpg`,
+            `https://img.youtube.com/vi/${vid}/mqdefault.jpg`,
+            `https://img.youtube.com/vi/${vid}/0.jpg`,
+            `https://i.ytimg.com/vi/${vid}/default.jpg`,
+            FALLBACK_THUMB_SVG
+        ];
+        let step = 0;
+        imgEl.addEventListener('error', () => {
+            if (step < fallbacks.length) {
+                imgEl.src = fallbacks[step++];
+            }
+        });
     }
 
     function getPlayerSrc(mode, videoId, startAt = 0) {
         if (!videoId) return '';
+        const startParam = startAt > 0 ? `&start=${Math.floor(startAt)}` : '';
+
         if (mode === 'official') {
-            return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&playsinline=1${startAt ? `&start=${startAt}` : ''}`;
+            return `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&playsinline=1${startParam}`;
         }
-        return `https://www.yout-ube.com/watch?v=${videoId}&autoplay=1${startAt ? `&t=${startAt}s` : ''}`;
+        return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&playsinline=1&iv_load_policy=3${startParam}`;
     }
 
     function escapeHtml(str) {
@@ -143,7 +207,7 @@
 
     function createSilentWavUrl() {
         const sampleRate = 8000;
-        const numSamples = sampleRate; // 1 second silent loop
+        const numSamples = sampleRate;
         const buffer = new ArrayBuffer(44 + numSamples * 2);
         const view = new DataView(buffer);
         const writeStr = (offset, str) => {
@@ -165,12 +229,16 @@
         return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
     }
 
-    async function fetchVideoTitle(videoId) {
+    async function fetchVideoMeta(videoId) {
         try {
             const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`);
             if (!res.ok) return null;
             const data = await res.json();
-            return data && data.title ? String(data.title).trim() : null;
+            if (!data) return null;
+            return {
+                title: data.title ? String(data.title).trim() : null,
+                thumbnail: data.thumbnail_url ? String(data.thumbnail_url).trim() : null
+            };
         } catch {
             return null;
         }
@@ -181,6 +249,16 @@
     // -------------------------------------------------------------------------
     function loadStorage() {
         try {
+            // One-time clean reset so any old pre-loaded / test songs are cleared
+            if (!localStorage.getItem(CLEAN_INIT_KEY)) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(ACTIVE_KEY);
+                localStorage.removeItem(QUEUE_KEY);
+                localStorage.removeItem(FAVORITES_KEY);
+                localStorage.removeItem(HISTORY_KEY);
+                localStorage.removeItem(PLAYLISTS_KEY);
+                localStorage.setItem(CLEAN_INIT_KEY, '1');
+            }
             STATE.items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
             STATE.queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
             STATE.favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
@@ -202,6 +280,8 @@
             localStorage.setItem(MODE_KEY, STATE.mode);
             if (STATE.activeVideoId) {
                 localStorage.setItem(ACTIVE_KEY, STATE.activeVideoId);
+            } else {
+                localStorage.removeItem(ACTIVE_KEY);
             }
         } catch (e) {
             console.warn('[Sonora] Failed to save storage:', e);
@@ -210,24 +290,13 @@
 
     async function loadLibraries() {
         try {
-            const res = await fetch('sonora-frontend/libraries.json');
+            const res = await fetch('sonora-frontend/libraries.json?v=2');
             if (res.ok) {
-                STATE.curatedLibraries = await res.json();
+                const parsed = await res.json();
+                STATE.curatedLibraries = Array.isArray(parsed) ? parsed : [];
             }
         } catch (err) {
-            console.warn('[Sonora] Could not fetch libraries.json:', err);
-        }
-
-        if (!STATE.curatedLibraries || !STATE.curatedLibraries.length) {
-            STATE.curatedLibraries = [{
-                id: 'mostly-viewed',
-                name: 'Mostly Viewed',
-                videos: [
-                    { id: 'yt-Vt9aqDSoyMU', videoId: 'Vt9aqDSoyMU', title: '90s Hits Hindi Songs | Evergreen Bollywood' },
-                    { id: 'yt-7bQgUMWrwgg', videoId: '7bQgUMWrwgg', title: 'Best of Himesh Reshammiya | Superhit Audio Jukebox' },
-                    { id: 'yt-xpmsWKoMrVc', videoId: 'xpmsWKoMrVc', title: 'KK Jukebox | Best of KK Romantic Hits' }
-                ]
-            }];
+            STATE.curatedLibraries = [];
         }
         renderAll();
     }
@@ -242,6 +311,18 @@
     // -------------------------------------------------------------------------
     // 3. PLAYBACK & PLAYLIST ENGINE
     // -------------------------------------------------------------------------
+    function sendIframeCommand(func, args = []) {
+        const iframe = document.getElementById('sonora-active-iframe');
+        if (!iframe || !iframe.contentWindow) return;
+        try {
+            iframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func,
+                args
+            }), '*');
+        } catch {}
+    }
+
     function playTrack(track) {
         if (!track || !track.videoId) return;
 
@@ -266,7 +347,7 @@
                 id="sonora-active-iframe"
                 src="${src}"
                 title="${escapeHtml(track.title || 'Sonora Player')}"
-                allow="fullscreen *; autoplay *; encrypted-media *; picture-in-picture *"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                 allowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin">
             </iframe>
@@ -275,8 +356,8 @@
         if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = track.title || `Video (${track.videoId})`;
         if (DOM.nowPlayingSub) {
             DOM.nowPlayingSub.textContent = STATE.mode === 'official'
-                ? 'YouTube No-Cookie Embed active'
-                : 'Ad-free playback active';
+                ? 'Standard YouTube Embed active'
+                : 'Ad-Free Player active';
         }
 
         if ('mediaSession' in navigator) {
@@ -285,7 +366,7 @@
                     title: track.title || 'Sonora Music',
                     artist: 'Arcade Hub Sonora',
                     artwork: [
-                        { src: `https://i.ytimg.com/vi/${track.videoId}/hqdefault.jpg`, sizes: '480x360', type: 'image/jpeg' }
+                        { src: getPrimaryThumbnail(track), sizes: '480x360', type: 'image/jpeg' }
                     ]
                 });
                 navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
@@ -336,8 +417,8 @@
     function deleteSaved(videoId) {
         STATE.items = STATE.items.filter(i => i.videoId !== videoId);
         saveState();
-        renderSaved();
-        showToast('Deleted from saved links');
+        renderAll();
+        showToast('Removed song from library');
     }
 
     function createCustomPlaylist(name) {
@@ -367,8 +448,7 @@
         if (!target) return;
         STATE.customPlaylists = STATE.customPlaylists.filter(p => p.id !== playlistId);
         if (STATE.activeLibraryId === playlistId) {
-            const firstAvail = getAllLibraries()[0];
-            STATE.activeLibraryId = firstAvail ? firstAvail.id : 'mostly-viewed';
+            STATE.activeLibraryId = 'all-songs';
         }
         saveState();
         renderLibraryTabs();
@@ -394,7 +474,8 @@
         playlist.videos.unshift({
             id: track.id || `yt-${track.videoId}`,
             videoId: track.videoId,
-            title: track.title || `YouTube Video · ${track.videoId}`
+            title: track.title || `YouTube Video · ${track.videoId}`,
+            thumbnail: track.thumbnail || getPrimaryThumbnail(track)
         });
         saveState();
         renderLibraryTabs();
@@ -412,20 +493,25 @@
         showToast(`Removed from "${playlist.name}"`);
     }
 
-    function updateTrackTitleEverywhere(videoId, newTitle) {
-        if (!videoId || !newTitle) return;
-        const updateArr = (arr) => {
-            arr.forEach(item => {
-                if (item.videoId === videoId) item.title = newTitle;
-            });
+    function updateTrackMetaEverywhere(videoId, meta) {
+        if (!videoId || !meta) return;
+        const applyMeta = (item) => {
+            if (item.videoId !== videoId) return;
+            if (meta.title) item.title = meta.title;
+            if (meta.thumbnail) item.thumbnail = meta.thumbnail;
         };
-        updateArr(STATE.items);
-        updateArr(STATE.queue);
-        updateArr(STATE.history);
-        STATE.customPlaylists.forEach(p => updateArr(p.videos || []));
+        STATE.items.forEach(applyMeta);
+        STATE.queue.forEach(applyMeta);
+        STATE.history.forEach(applyMeta);
+        STATE.customPlaylists.forEach(p => (p.videos || []).forEach(applyMeta));
         if (STATE.activeTrack && STATE.activeTrack.videoId === videoId) {
-            STATE.activeTrack.title = newTitle;
-            if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = newTitle;
+            if (meta.title) {
+                STATE.activeTrack.title = meta.title;
+                if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = meta.title;
+            }
+            if (meta.thumbnail) {
+                STATE.activeTrack.thumbnail = meta.thumbnail;
+            }
         }
         saveState();
         renderAll();
@@ -441,11 +527,11 @@
         const div = document.createElement('div');
         div.className = `track-item ${isPlaying ? 'playing' : ''}`;
 
-        const thumbUrl = `https://i.ytimg.com/vi/${encodeURIComponent(track.videoId)}/mqdefault.jpg`;
+        const thumbUrl = getPrimaryThumbnail(track);
         const safeTitle = escapeHtml(track.title || `YouTube Video · ${track.videoId}`);
 
         div.innerHTML = `
-            <img class="track-thumb" src="${thumbUrl}" alt="" loading="lazy" onerror="this.src='favicon.png'">
+            <img class="track-thumb" src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">
             <div class="track-details">
                 <span class="track-title" title="${safeTitle}">${safeTitle}</span>
                 <span class="track-sub">${isPlaying ? '▶ Now Playing' : 'Tap to play'}</span>
@@ -463,6 +549,9 @@
                 ${options.canDelete ? `<button class="track-btn delete-btn" title="Delete">🗑️</button>` : ''}
             </div>
         `;
+
+        const imgEl = div.querySelector('.track-thumb');
+        attachThumbnailFallback(imgEl, track.videoId);
 
         // Click row to play
         div.addEventListener('click', (e) => {
@@ -542,28 +631,35 @@
         DOM.libraryList.innerHTML = '';
 
         const activeLib = getActiveLibrary();
-        if (!activeLib || !activeLib.videos || !activeLib.videos.length) {
+        const videos = (activeLib && activeLib.videos) || [];
+
+        if (DOM.libraryCount) DOM.libraryCount.textContent = String(videos.length);
+
+        if (!videos.length) {
             const hint = activeLib && activeLib.custom
                 ? 'Paste a YouTube link on the left or tap 📁 on any song to add it to this playlist'
-                : 'No tracks in this playlist';
-            DOM.libraryList.innerHTML = `<div class="empty-tab-box"><span>Playlist is empty</span><small>${escapeHtml(hint)}</small></div>`;
-            if (DOM.libraryCount) DOM.libraryCount.textContent = '0';
+                : 'Paste any YouTube URL on the left and tap "Play Now" to add your first song';
+            DOM.libraryList.innerHTML = `<div class="empty-tab-box"><span>Library is empty</span><small>${escapeHtml(hint)}</small></div>`;
             return;
         }
 
-        const filtered = activeLib.videos.filter(v => {
+        const filtered = videos.filter(v => {
             if (!STATE.searchTerm) return true;
             return (v.title || '').toLowerCase().includes(STATE.searchTerm.toLowerCase());
         });
 
         filtered.forEach(track => {
             DOM.libraryList.appendChild(createTrackItem(track, {
-                canDelete: Boolean(activeLib.custom),
-                onDelete: (videoId) => removeTrackFromPlaylist(activeLib.id, videoId)
+                canDelete: Boolean(activeLib.custom || activeLib.isAllSongs),
+                onDelete: (videoId) => {
+                    if (activeLib.custom) {
+                        removeTrackFromPlaylist(activeLib.id, videoId);
+                    } else {
+                        deleteSaved(videoId);
+                    }
+                }
             }));
         });
-
-        if (DOM.libraryCount) DOM.libraryCount.textContent = activeLib.videos.length;
     }
 
     function renderQueue() {
@@ -588,7 +684,7 @@
             DOM.queueList.appendChild(item);
         });
 
-        if (DOM.queueCount) DOM.queueCount.textContent = STATE.queue.length;
+        if (DOM.queueCount) DOM.queueCount.textContent = String(STATE.queue.length);
     }
 
     function renderSaved() {
@@ -610,7 +706,7 @@
             DOM.savedList.appendChild(createTrackItem(track, { canDelete: true }));
         });
 
-        if (DOM.savedCount) DOM.savedCount.textContent = STATE.items.length;
+        if (DOM.savedCount) DOM.savedCount.textContent = String(STATE.items.length);
     }
 
     function renderFavorites() {
@@ -623,7 +719,11 @@
         });
 
         const favTracks = STATE.favorites.map(favId => {
-            return allKnown.find(t => t.videoId === favId) || { videoId: favId, title: `YouTube Video · ${favId}` };
+            return allKnown.find(t => t.videoId === favId) || {
+                videoId: favId,
+                title: `YouTube Video · ${favId}`,
+                thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(favId)}/hqdefault.jpg`
+            };
         });
 
         if (!favTracks.length) {
@@ -636,7 +736,7 @@
             DOM.favoritesList.appendChild(createTrackItem(track));
         });
 
-        if (DOM.favoritesCount) DOM.favoritesCount.textContent = favTracks.length;
+        if (DOM.favoritesCount) DOM.favoritesCount.textContent = String(favTracks.length);
     }
 
     function renderHistory() {
@@ -653,7 +753,7 @@
             DOM.historyList.appendChild(createTrackItem(track));
         });
 
-        if (DOM.historyCount) DOM.historyCount.textContent = STATE.history.length;
+        if (DOM.historyCount) DOM.historyCount.textContent = String(STATE.history.length);
     }
 
     function renderAll() {
@@ -670,6 +770,26 @@
     // 5. EVENT LISTENERS
     // -------------------------------------------------------------------------
     function initEvents() {
+        // Listen for YouTube IFrame Player API postMessage state changes (auto-advance queue on video end)
+        window.addEventListener('message', (event) => {
+            if (!event.origin || !event.origin.includes('youtube')) return;
+            try {
+                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                if (!data) return;
+                if (data.event === 'onReady') {
+                    sendIframeCommand('playVideo');
+                } else if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
+                    if (STATE.queue.length > 0) {
+                        playNext();
+                    }
+                } else if (data.event === 'onStateChange' && data.info === 0) {
+                    if (STATE.queue.length > 0) {
+                        playNext();
+                    }
+                }
+            } catch {}
+        });
+
         // Form: Add Link
         if (DOM.addForm) {
             DOM.addForm.addEventListener('submit', (e) => {
@@ -682,15 +802,19 @@
                     return;
                 }
 
+                const defaultThumb = `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`;
                 let existing = STATE.items.find(i => i.videoId === videoId);
                 if (!existing) {
                     existing = {
                         id: `yt-${videoId}`,
                         videoId: videoId,
                         title: `YouTube Video · ${videoId}`,
+                        thumbnail: defaultThumb,
                         addedAt: Date.now()
                     };
                     STATE.items.unshift(existing);
+                } else if (!existing.thumbnail) {
+                    existing.thumbnail = defaultThumb;
                 }
 
                 // If currently viewing a custom playlist, also add it there
@@ -700,7 +824,8 @@
                         activeLib.videos.unshift({
                             id: existing.id,
                             videoId: existing.videoId,
-                            title: existing.title
+                            title: existing.title,
+                            thumbnail: existing.thumbnail
                         });
                     }
                 }
@@ -710,12 +835,12 @@
                 if (DOM.addInput) DOM.addInput.value = '';
                 showToast(activeLib && activeLib.custom
                     ? `Added to "${activeLib.name}" and playing! 🎶`
-                    : 'Link saved and playing! 🎶');
+                    : 'Song added and playing! 🎶');
 
-                // Fetch real video title asynchronously via oEmbed
-                fetchVideoTitle(videoId).then(realTitle => {
-                    if (realTitle) {
-                        updateTrackTitleEverywhere(videoId, realTitle);
+                // Fetch real video title & thumbnail asynchronously via oEmbed
+                fetchVideoMeta(videoId).then(meta => {
+                    if (meta) {
+                        updateTrackMetaEverywhere(videoId, meta);
                     }
                 });
             });
@@ -753,7 +878,7 @@
             });
         }
 
-        // Mode Toggle Button (Ad-Free vs YouTube No-Cookie Embed)
+        // Mode Toggle Button (Ad-Free No-Cookie vs Standard YouTube Embed)
         if (DOM.modeBtn) {
             DOM.modeBtn.addEventListener('click', () => {
                 STATE.mode = STATE.mode === 'official' ? 'adfree' : 'official';
@@ -764,7 +889,7 @@
                 }
                 showToast(STATE.mode === 'adfree'
                     ? 'Switched to Ad-Free Mode 🛡️'
-                    : 'Switched to YouTube Embed Mode 📺');
+                    : 'Switched to Standard Embed Mode 📺');
             });
         }
 
@@ -924,7 +1049,6 @@
                     try {
                         const parsed = JSON.parse(String(reader.result || '{}'));
                         if (Array.isArray(parsed)) {
-                            // Compatible with raw array exports from original Sonora
                             STATE.items = parsed;
                         } else {
                             if (Array.isArray(parsed.items)) STATE.items = parsed.items;
@@ -957,14 +1081,17 @@
                 getAllLibraries().forEach(l => { if (l.videos) allKnown.push(...l.videos); });
                 const track = allKnown.find(t => t.videoId === STATE.activeVideoId) || {
                     videoId: STATE.activeVideoId,
-                    title: `YouTube Video · ${STATE.activeVideoId}`
+                    title: `YouTube Video · ${STATE.activeVideoId}`,
+                    thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(STATE.activeVideoId)}/hqdefault.jpg`
                 };
                 STATE.activeTrack = track;
                 DOM.playerContainer.innerHTML = `
                     <button type="button" class="resume-poster" aria-label="Resume last track">
-                        <img src="https://i.ytimg.com/vi/${encodeURIComponent(track.videoId)}/hqdefault.jpg" alt="">
+                        <img class="resume-thumb" src="${escapeHtml(getPrimaryThumbnail(track))}" alt="" referrerpolicy="no-referrer">
                         <span class="resume-overlay">▶ <strong>Tap to resume</strong><small>${escapeHtml(track.title)}</small></span>
                     </button>`;
+                const resumeImg = DOM.playerContainer.querySelector('.resume-thumb');
+                attachThumbnailFallback(resumeImg, track.videoId);
                 DOM.playerContainer.querySelector('.resume-poster').addEventListener('click', () => playTrack(track));
                 if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = track.title;
                 if (DOM.nowPlayingSub) DOM.nowPlayingSub.textContent = 'Last played · tap the player to resume';
