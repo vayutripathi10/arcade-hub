@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v281';
+const CACHE_NAME = 'arcade-hub-cache-v282';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -8,6 +8,7 @@ const CORE_ASSETS = [
     'blog/evolution-of-cyberpunk-web-games.html',
     'blog/future-of-browser-gaming-webgpu-pwa.html',
     'blog/game-physics-hitbox-collision.html',
+    'blog/generative-ai-in-gaming-and-web-development.html',
     'blog/glowing-gradients-cyberpunk-web-design.html',
     'blog/grid-mainframes-spatial-puzzle-design.html',
     'blog/html5-canvas-rendering-performance.html',
@@ -102,6 +103,14 @@ const CORE_ASSETS = [
     'neon-swing-frontend/script.js',
     'neon-swing-frontend/style.css',
     'neon-swing-frontend/thumbnail.jpg',
+    'neon-trivia-frontend/game.js',
+    'neon-trivia-frontend/index.html',
+    'neon-trivia-frontend/style.css',
+    'neon-trivia-frontend/thumbnail.jpg',
+    'neon-word-leaper-frontend/game.js',
+    'neon-word-leaper-frontend/index.html',
+    'neon-word-leaper-frontend/style.css',
+    'neon-word-leaper-frontend/thumbnail.jpg',
     'neon-zombie-shooter-frontend/index.html',
     'neon-zombie-shooter-frontend/map.js',
     'neon-zombie-shooter-frontend/script.js',
@@ -125,6 +134,8 @@ const CORE_ASSETS = [
     'play-neon-runner.html',
     'play-neon-snake.html',
     'play-neon-swing.html',
+    'play-neon-trivia.html',
+    'play-neon-word-leaper.html',
     'play-neon-zombie-shooter.html',
     'play-retro-racer.html',
     'play-retro-tank-battle.html',
@@ -188,6 +199,9 @@ const CORE_ASSETS = [
     'tictactoe-frontend/style.css',
     'tictactoe-frontend/thumbnail.jpg',
     'tos.html',
+    'traffic-assumption-frontend/app.js',
+    'traffic-assumption-frontend/index.html',
+    'traffic-assumption-frontend/style.css',
     'updates.html'
 ];
 
@@ -328,7 +342,8 @@ self.addEventListener('sync', (e) => {
 
 // Clean URL helper to map routes to physical .html files in cache
 function matchCache(request) {
-    return caches.match(request).then((res) => {
+    // 1. Try exact match (with ignoreSearch to handle query params like ?v=123)
+    return caches.match(request, { ignoreSearch: true }).then((res) => {
         if (res) return res;
 
         const url = new URL(request.url);
@@ -344,17 +359,28 @@ function matchCache(request) {
             // Strip leading slash for mapping
             const page = path.substring(1);
             
-            // Check for direct clean URL routes
-            const cleanRoots = ['about', 'achievements', 'contact', 'privacy', 'tos', 'updates', 'retro-hub', 'blog'];
-            if (cleanRoots.includes(page)) {
-                return caches.match(page + '.html');
-            }
-            if (page.startsWith('play-') && !page.endsWith('.html')) {
-                return caches.match(page + '.html');
-            }
-            if (page.startsWith('blog/') && !page.endsWith('.html')) {
-                return caches.match(page + '.html');
-            }
+            // Direct file match check (e.g. page path without query params)
+            const directFileMatch = caches.match(page, { ignoreSearch: true });
+            return directFileMatch.then((fileRes) => {
+                if (fileRes) return fileRes;
+
+                // Check for direct clean URL routes
+                const cleanRoots = ['about', 'achievements', 'contact', 'privacy', 'tos', 'updates', 'retro-hub', 'blog', 'pdf-tools', 'utility-hub'];
+                if (cleanRoots.includes(page)) {
+                    return caches.match(page + '.html');
+                }
+                if (page.startsWith('play-') && !page.endsWith('.html')) {
+                    return caches.match(page + '.html');
+                }
+                if (page.startsWith('blog/') && !page.endsWith('.html')) {
+                    return caches.match(page + '.html');
+                }
+                // Check if requesting an index page inside a folder (e.g. 'neon-arrows-frontend' or 'dino-frontend')
+                if (!page.includes('.')) {
+                    return caches.match(page + '/index.html', { ignoreSearch: true });
+                }
+                return null;
+            });
         }
         return null;
     });
