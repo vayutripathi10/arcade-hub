@@ -1201,18 +1201,23 @@ html, body {
         display: none;
     }
 
-    /* Allow collapsing the video into a mini audio bar on mobile while keeping playback alive */
+    /* Mobile Floating Mini Player (Picture-in-Picture floating in bottom-right corner) */
     .player-pane.is-video-minimized .video-player-container:not(.is-fullscreen) {
-        position: static !important;
-        height: 1px !important;
-        min-height: 0 !important;
-        width: 100% !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        border: none !important;
-        margin: -6px 0 0 !important;
-        box-shadow: none !important;
-        aspect-ratio: auto !important;
+        position: fixed !important;
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 12px !important;
+        width: clamp(170px, 48vw, 240px) !important;
+        height: auto !important;
+        aspect-ratio: 16 / 9 !important;
+        z-index: 9999 !important;
+        border-radius: 12px !important;
+        border: 2px solid var(--sonora-accent) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9), 0 0 18px rgba(139, 92, 246, 0.5) !important;
+        background: #000 !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        margin: 0 !important;
+        animation: miniPlayerFloatIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     .player-pane.is-video-minimized .mini-player-placeholder {
@@ -1220,7 +1225,15 @@ html, body {
     }
 
     .player-pane.is-video-minimized .mini-overlay-bar {
-        display: none !important;
+        display: flex !important;
+        top: 4px !important;
+        right: 4px !important;
+    }
+
+    .player-pane.is-video-minimized .mini-overlay-btn {
+        padding: 3px 8px !important;
+        font-size: 0.7rem !important;
+        border-radius: 6px !important;
     }
 
     .mobile-only-btn {
