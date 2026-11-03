@@ -576,7 +576,7 @@
         }
         if (DOM.minVideoBtn) {
             DOM.minVideoBtn.classList.remove('active');
-            DOM.minVideoBtn.innerHTML = '▾ <span>Mini</span>';
+            DOM.minVideoBtn.innerHTML = '🗗 <span>Mini</span>';
         }
         saveState();
 
@@ -1389,14 +1389,29 @@
             });
         }
 
-        // Mobile Video Minimize / Expand button (Mini Audio Bar mode)
-        if (DOM.minVideoBtn && DOM.playerPane) {
-            DOM.minVideoBtn.addEventListener('click', () => {
-                const minimized = DOM.playerPane.classList.toggle('is-video-minimized');
+        // Video Minimize / Expand button (Mini Player & Floating PiP mode)
+        const toggleMiniPlayer = () => {
+            if (!DOM.playerPane) return;
+            const minimized = DOM.playerPane.classList.toggle('is-video-minimized');
+            if (DOM.minVideoBtn) {
                 DOM.minVideoBtn.classList.toggle('active', minimized);
-                DOM.minVideoBtn.innerHTML = minimized ? '▴ <span>Video</span>' : '▾ <span>Mini</span>';
-                showToast(minimized ? 'Video minimized — full playlist view 📋' : 'Video player expanded 📺');
-            });
+                DOM.minVideoBtn.innerHTML = minimized ? '▴ <span>Expand</span>' : '🗗 <span>Mini</span>';
+            }
+            showToast(minimized ? 'Mini player active 🗗' : 'Player expanded 📺');
+        };
+
+        if (DOM.minVideoBtn) {
+            DOM.minVideoBtn.addEventListener('click', toggleMiniPlayer);
+        }
+
+        const miniExpandBtn = document.getElementById('mini-expand-btn');
+        if (miniExpandBtn) {
+            miniExpandBtn.addEventListener('click', toggleMiniPlayer);
+        }
+
+        const miniPlaceholder = document.getElementById('mini-player-placeholder');
+        if (miniPlaceholder) {
+            miniPlaceholder.addEventListener('click', toggleMiniPlayer);
         }
 
         // Custom Library Creation UI

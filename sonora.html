@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=8">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=9">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
@@ -94,6 +94,9 @@
                             <button type="button" class="fs-btn fs-exit-btn" id="fs-exit-btn" title="Exit Fullscreen">✕ <span>Exit</span></button>
                         </div>
                     </div>
+                    <div class="mini-overlay-bar" id="mini-overlay-bar">
+                        <button type="button" class="mini-overlay-btn" id="mini-expand-btn" title="Expand to normal player">⛶ <span>Expand</span></button>
+                    </div>
                     <div class="player-stage" id="player-stage">
                         <div class="player-empty-placeholder">
                             <span class="empty-icon">🎧</span>
@@ -101,6 +104,13 @@
                             <p style="font-size: 0.82rem; max-width: 320px;">Paste any YouTube link above or select a track from the library on the right to start listening.</p>
                         </div>
                     </div>
+                </div>
+
+                <!-- Mini Player Placeholder (visible on desktop when video floats in bottom right) -->
+                <div class="mini-player-placeholder" id="mini-player-placeholder" title="Click to expand player back">
+                    <span style="font-size: 1.5rem;">🗗</span>
+                    <strong style="color: #fff; font-size: 0.88rem;">Video playing in Mini Player</strong>
+                    <span style="font-size: 0.74rem; color: var(--sonora-accent);">Click anywhere to expand back ↖</span>
                 </div>
 
                 <!-- Player Controls Toolbar -->
@@ -123,8 +133,8 @@
                         <button class="toolbar-btn" id="fullscreen-btn" title="Play Fullscreen on any device">
                             ⛶ <span>Full</span>
                         </button>
-                        <button class="toolbar-btn mobile-only-btn" id="min-video-btn" title="Minimize or expand video player while browsing songs">
-                            ▾ <span>Mini</span>
+                        <button class="toolbar-btn" id="min-video-btn" title="Toggle Mini Player (Floating Picture-in-Picture on desktop, compact view on mobile)">
+                            🗗 <span>Mini</span>
                         </button>
                     </div>
                 </div>
@@ -249,7 +259,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=11"></script>
+    <script src="sonora-frontend/sonora.js?v=12"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
