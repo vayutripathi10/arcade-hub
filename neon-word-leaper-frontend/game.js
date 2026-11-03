@@ -484,14 +484,14 @@
 
     function getIdealRunnerScreenY() {
         if (isCyberKbActive()) {
-            // On mobile with on-screen cyber keyboard, keep runner comfortably in upper 28% so all rooftops and gaps remain visible
-            return height * 0.28;
+            // Keep runner centered in clear middle view between top word pill and bottom touch keyboard
+            return height * 0.42;
         }
-        return isMobileDevice() ? height * 0.36 : height * 0.52;
+        return isMobileDevice() ? height * 0.45 : height * 0.52;
     }
 
     function getIdealJumpArcHeight() {
-        return isMobileDevice() ? 105 : 170;
+        return isMobileDevice() ? 85 : 170;
     }
 
     function initWalls() {
@@ -587,13 +587,13 @@
 
         // Dynamic font sizing for long phrases/sentences (optimized for mobile)
         if (targetWord.length > 22) {
-            wordDisplay.style.fontSize = isMobileDevice() ? '1.05rem' : '1.45rem';
+            wordDisplay.style.fontSize = isMobileDevice() ? '0.95rem' : '1.35rem';
             wordDisplay.style.letterSpacing = '1px';
         } else if (targetWord.length > 13) {
-            wordDisplay.style.fontSize = isMobileDevice() ? '1.25rem' : '1.75rem';
+            wordDisplay.style.fontSize = isMobileDevice() ? '1.05rem' : '1.55rem';
             wordDisplay.style.letterSpacing = isMobileDevice() ? '1.5px' : '2px';
         } else {
-            wordDisplay.style.fontSize = isMobileDevice() ? '1.5rem' : '2.1rem';
+            wordDisplay.style.fontSize = isMobileDevice() ? '1.25rem' : '1.85rem';
             wordDisplay.style.letterSpacing = isMobileDevice() ? '2px' : '3px';
         }
 
