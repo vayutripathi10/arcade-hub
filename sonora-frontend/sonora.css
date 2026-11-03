@@ -421,17 +421,80 @@ html, body {
 }
 
 /* --- MINI PLAYER MODE (Desktop & Tablet Floating PiP) --- */
+/* --- MINI PLAYER MODE (DRAGGABLE PICTURE-IN-PICTURE) --- */
 .mini-overlay-bar {
     display: none;
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    left: 6px;
+    right: 6px;
     z-index: 50;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
     pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .player-pane.is-video-minimized .mini-overlay-bar {
     display: flex;
+}
+
+.mini-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(14, 12, 24, 0.92);
+    border: 1px solid rgba(139, 92, 246, 0.45);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: grab;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    touch-action: none;
+}
+
+.mini-drag-handle:active,
+.video-player-container.is-dragging .mini-drag-handle {
+    cursor: grabbing;
+    background: var(--sonora-accent);
+    color: #fff;
+    border-color: var(--sonora-accent);
+}
+
+.drag-icon {
+    font-size: 0.9rem;
+    letter-spacing: -1px;
+}
+
+.mini-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mini-drag-shield {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 45;
+    cursor: grabbing;
+    background: transparent;
+}
+
+.video-player-container.is-dragging .mini-drag-shield {
+    display: block;
+}
+
+.video-player-container.is-dragging {
+    transition: none !important;
+    animation: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
 }
 
 .mini-overlay-btn {
@@ -1227,12 +1290,18 @@ html, body {
     .player-pane.is-video-minimized .mini-overlay-bar {
         display: flex !important;
         top: 4px !important;
+        left: 4px !important;
         right: 4px !important;
     }
 
+    .player-pane.is-video-minimized .mini-drag-handle {
+        padding: 3px 7px !important;
+        font-size: 0.65rem !important;
+    }
+
     .player-pane.is-video-minimized .mini-overlay-btn {
-        padding: 3px 8px !important;
-        font-size: 0.7rem !important;
+        padding: 3px 7px !important;
+        font-size: 0.65rem !important;
         border-radius: 6px !important;
     }
 

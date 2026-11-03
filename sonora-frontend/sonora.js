@@ -1436,15 +1436,32 @@
             });
         }
 
+        function resetMiniPlayerPosition() {
+            if (!DOM.playerContainer) return;
+            DOM.playerContainer.style.left = '';
+            DOM.playerContainer.style.top = '';
+            DOM.playerContainer.style.right = '';
+            DOM.playerContainer.style.bottom = '';
+            DOM.playerContainer.classList.remove('is-dragging');
+        }
+
         // Video Minimize / Expand button (Mini Player & Floating PiP mode)
         const toggleMiniPlayer = () => {
             if (!DOM.playerPane) return;
             const minimized = DOM.playerPane.classList.toggle('is-video-minimized');
+            resetMiniPlayerPosition();
             if (DOM.minVideoBtn) {
                 DOM.minVideoBtn.classList.toggle('active', minimized);
                 DOM.minVideoBtn.innerHTML = minimized ? '▴ <span>Expand</span>' : '🗗 <span>Mini</span>';
             }
-            showToast(minimized ? 'Mini player active 🗗' : 'Player expanded 📺');
+            if (minimized) {
+                const isMobile = window.innerWidth <= 768;
+                showToast(isMobile
+                    ? 'Mini player active 🗗 (Drag anywhere | Tip: Tap "Full" & swipe home to float over other apps 📱)'
+                    : 'Mini player active 🗗 (Drag handle to reposition anywhere)');
+            } else {
+                showToast('Player expanded 📺');
+            }
         };
 
         if (DOM.minVideoBtn) {
@@ -1460,6 +1477,76 @@
         if (miniPlaceholder) {
             miniPlaceholder.addEventListener('click', toggleMiniPlayer);
         }
+
+        // Smooth Draggable Mini Player across entire browser screen (Mouse & Touch)
+        function initMiniPlayerDragging() {
+            const handle = document.getElementById('mini-drag-handle');
+            const container = DOM.playerContainer;
+            if (!handle || !container) return;
+
+            let isDragging = false;
+            let startPointerX = 0;
+            let startPointerY = 0;
+            let startElemX = 0;
+            let startElemY = 0;
+
+            const onPointerDown = (e) => {
+                if (!DOM.playerPane || !DOM.playerPane.classList.contains('is-video-minimized')) return;
+                if (e.target.closest('#mini-expand-btn')) return;
+                isDragging = true;
+                startPointerX = e.clientX;
+                startPointerY = e.clientY;
+
+                const rect = container.getBoundingClientRect();
+                startElemX = rect.left;
+                startElemY = rect.top;
+
+                container.style.bottom = 'auto';
+                container.style.right = 'auto';
+                container.style.left = `${startElemX}px`;
+                container.style.top = `${startElemY}px`;
+                container.classList.add('is-dragging');
+
+                if (handle.setPointerCapture && e.pointerId != null) {
+                    try { handle.setPointerCapture(e.pointerId); } catch {}
+                }
+                e.preventDefault();
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startPointerX;
+                const dy = e.clientY - startPointerY;
+
+                const rect = container.getBoundingClientRect();
+                const w = rect.width;
+                const h = rect.height;
+
+                const maxLeft = Math.max(0, window.innerWidth - w - 6);
+                const maxTop = Math.max(0, window.innerHeight - h - 6);
+
+                const newLeft = Math.max(6, Math.min(maxLeft, startElemX + dx));
+                const newTop = Math.max(6, Math.min(maxTop, startElemY + dy));
+
+                container.style.left = `${newLeft}px`;
+                container.style.top = `${newTop}px`;
+            };
+
+            const onPointerUp = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                container.classList.remove('is-dragging');
+                if (handle.releasePointerCapture && e.pointerId != null) {
+                    try { handle.releasePointerCapture(e.pointerId); } catch {}
+                }
+            };
+
+            handle.addEventListener('pointerdown', onPointerDown);
+            window.addEventListener('pointermove', onPointerMove, { passive: true });
+            window.addEventListener('pointerup', onPointerUp, { passive: true });
+            window.addEventListener('pointercancel', onPointerUp, { passive: true });
+        }
+        initMiniPlayerDragging();
 
         // Custom Library Creation UI
         if (DOM.newPlaylistBtn && DOM.newPlaylistForm) {

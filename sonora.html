@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=10">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=11">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
@@ -94,9 +94,17 @@
                             <button type="button" class="fs-btn fs-exit-btn" id="fs-exit-btn" title="Exit Fullscreen">✕ <span>Exit</span></button>
                         </div>
                     </div>
+                    <!-- Mini Player Draggable Header & Controls -->
                     <div class="mini-overlay-bar" id="mini-overlay-bar">
-                        <button type="button" class="mini-overlay-btn" id="mini-expand-btn" title="Expand to normal player">⛶ <span>Expand</span></button>
+                        <div class="mini-drag-handle" id="mini-drag-handle" title="Drag to move mini player anywhere on screen">
+                            <span class="drag-icon">⠿</span>
+                            <span class="drag-text">Drag</span>
+                        </div>
+                        <div class="mini-actions">
+                            <button type="button" class="mini-overlay-btn" id="mini-expand-btn" title="Expand to normal player">⛶ <span>Expand</span></button>
+                        </div>
                     </div>
+                    <div class="mini-drag-shield" id="mini-drag-shield"></div>
                     <div class="player-stage" id="player-stage">
                         <div class="player-empty-placeholder">
                             <span class="empty-icon">🎧</span>
@@ -259,7 +267,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=13"></script>
+    <script src="sonora-frontend/sonora.js?v=14"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>
