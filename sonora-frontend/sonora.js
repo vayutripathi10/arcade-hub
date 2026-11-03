@@ -317,9 +317,11 @@
         }, 3200);
     }
 
-    function createSilentWavUrl() {
+    let cachedSilentAudioUrl = null;
+    function getSilentWavUrl() {
+        if (cachedSilentAudioUrl) return cachedSilentAudioUrl;
         const sampleRate = 8000;
-        const numSamples = sampleRate;
+        const numSamples = sampleRate * 120; // 2 minutes continuous silent bridge to prevent rapid loop flickering
         const buffer = new ArrayBuffer(44 + numSamples * 2);
         const view = new DataView(buffer);
         const writeStr = (offset, str) => {
@@ -338,7 +340,8 @@
         view.setUint16(34, 16, true);
         writeStr(36, 'data');
         view.setUint32(40, numSamples * 2, true);
-        return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
+        cachedSilentAudioUrl = URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
+        return cachedSilentAudioUrl;
     }
 
     async function fetchVideoMeta(videoId) {
@@ -616,12 +619,10 @@
                 : 'Ad-Free Player active';
         }
 
-        updateMediaSession(track);
-
-        // Arm the audio bridge so Android/iOS notification bar and lock-screen controls persist
+        // Arm the continuous audio bridge so Android/iOS notification bar stays alive without rapid loop resets
         if (!STATE.bgAudio) {
             try {
-                STATE.bgAudio = new Audio(createSilentWavUrl());
+                STATE.bgAudio = new Audio(getSilentWavUrl());
                 STATE.bgAudio.loop = true;
                 STATE.bgAudio.volume = 0.01;
             } catch {}
@@ -630,25 +631,28 @@
             STATE.bgAudio.play().catch(() => {});
         }
 
+        // Set rich MediaSession metadata directly after audio activation
+        updateMediaSession(track);
+
         renderAll();
     }
 
     function updateMediaSession(track) {
         if (!('mediaSession' in navigator) || !track) return;
         try {
+            const vid = encodeURIComponent(track.videoId);
             const thumbUrl = getPrimaryThumbnail(track);
             const title = track.title || 'Sonora Music';
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: title,
-                artist: 'Sonora · Arcade Hub',
+                artist: 'Sonora - Arcade Hub',
                 album: 'Sonora Ad-Free Playlist',
                 artwork: [
-                    { src: thumbUrl, sizes: '96x96', type: 'image/jpeg' },
-                    { src: thumbUrl, sizes: '128x128', type: 'image/jpeg' },
-                    { src: thumbUrl, sizes: '192x192', type: 'image/jpeg' },
-                    { src: thumbUrl, sizes: '256x256', type: 'image/jpeg' },
-                    { src: thumbUrl, sizes: '384x384', type: 'image/jpeg' },
-                    { src: thumbUrl, sizes: '512x512', type: 'image/jpeg' }
+                    { src: thumbUrl, sizes: '512x512', type: 'image/jpeg' },
+                    { src: `https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`, sizes: '1280x720', type: 'image/jpeg' },
+                    { src: `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`, sizes: '480x360', type: 'image/jpeg' },
+                    { src: `https://i.ytimg.com/vi/${vid}/mqdefault.jpg`, sizes: '320x180', type: 'image/jpeg' },
+                    { src: `${window.location.origin}/favicon.png`, sizes: '192x192', type: 'image/png' }
                 ]
             });
             navigator.mediaSession.playbackState = 'playing';
@@ -656,12 +660,7 @@
             navigator.mediaSession.setActionHandler('play', () => {
                 sendIframeCommand('playVideo');
                 navigator.mediaSession.playbackState = 'playing';
-                if (!STATE.bgAudio) {
-                    STATE.bgAudio = new Audio(createSilentWavUrl());
-                    STATE.bgAudio.loop = true;
-                    STATE.bgAudio.volume = 0.01;
-                }
-                STATE.bgAudio.play().catch(() => {});
+                if (STATE.bgAudio) STATE.bgAudio.play().catch(() => {});
             });
 
             navigator.mediaSession.setActionHandler('pause', () => {
@@ -672,6 +671,30 @@
 
             navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
             navigator.mediaSession.setActionHandler('previoustrack', () => playPrevious());
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                if (details.seekTime != null) {
+                    sendIframeCommand('seekTo', [details.seekTime, true]);
+                    if ('setPositionState' in navigator.mediaSession && STATE.lastDuration) {
+                        try {
+                            navigator.mediaSession.setPositionState({
+                                duration: STATE.lastDuration,
+                                playbackRate: 1,
+                                position: details.seekTime
+                            });
+                        } catch {}
+                    }
+                }
+            });
+            navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                const step = details.seekOffset || 10;
+                const nextPos = Math.min(STATE.lastDuration || 9999, (STATE.lastPosition || 0) + step);
+                sendIframeCommand('seekTo', [nextPos, true]);
+            });
+            navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                const step = details.seekOffset || 10;
+                const prevPos = Math.max(0, (STATE.lastPosition || 0) - step);
+                sendIframeCommand('seekTo', [prevPos, true]);
+            });
             navigator.mediaSession.setActionHandler('stop', () => {
                 sendIframeCommand('stopVideo');
                 navigator.mediaSession.playbackState = 'none';
@@ -1333,6 +1356,30 @@
                     } else if (data.info.playerState === 0 && STATE.queue.length > 0) {
                         playNext();
                     }
+
+                    // Sync video title if delivered from YouTube
+                    if (data.info.videoData && data.info.videoData.title && STATE.activeTrack) {
+                        if (!STATE.activeTrack.title || STATE.activeTrack.title.startsWith('Video (')) {
+                            STATE.activeTrack.title = data.info.videoData.title;
+                            if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = data.info.videoData.title;
+                            if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = data.info.videoData.title;
+                            updateMediaSession(STATE.activeTrack);
+                        }
+                    }
+
+                    // Sync duration and current playback progress to Notification bar
+                    if (data.info.duration && 'mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+                        STATE.lastDuration = data.info.duration;
+                        STATE.lastPosition = data.info.currentTime || 0;
+                        try {
+                            const curTime = Math.min(STATE.lastPosition, STATE.lastDuration);
+                            navigator.mediaSession.setPositionState({
+                                duration: STATE.lastDuration,
+                                playbackRate: 1,
+                                position: curTime
+                            });
+                        } catch {}
+                    }
                 } else if (data.event === 'onStateChange') {
                     if (data.info === 1 && 'mediaSession' in navigator) {
                         navigator.mediaSession.playbackState = 'playing';
@@ -1686,7 +1733,7 @@
                 DOM.bgPlayBtn.classList.toggle('active', STATE.bgPlay);
                 if (STATE.bgPlay) {
                     if (!STATE.bgAudio) {
-                        STATE.bgAudio = new Audio(createSilentWavUrl());
+                        STATE.bgAudio = new Audio(getSilentWavUrl());
                         STATE.bgAudio.loop = true;
                         STATE.bgAudio.volume = 0.01;
                     }
