@@ -1680,14 +1680,81 @@
             DOM.minVideoBtn.addEventListener('click', toggleMiniPlayer);
         }
 
+        function openHubBrowser(targetUrl = 'index.html') {
+            const overlay = document.getElementById('sonora-hub-overlay');
+            const frame = document.getElementById('sonora-hub-frame');
+            if (!overlay || !frame) return;
+
+            // Automatically enter mini player mode so the video floats over the hub
+            if (DOM.playerPane && !DOM.playerPane.classList.contains('is-video-minimized')) {
+                toggleMiniPlayer();
+            }
+
+            if (!frame.src || frame.src === 'about:blank' || !frame.src.includes(targetUrl)) {
+                frame.src = targetUrl;
+            }
+
+            overlay.removeAttribute('hidden');
+            showToast('Browsing Arcade Hub 🎮 (Music playing in corner!)');
+        }
+
+        function closeHubBrowser() {
+            const overlay = document.getElementById('sonora-hub-overlay');
+            if (overlay) {
+                overlay.setAttribute('hidden', '');
+            }
+        }
+
+        // Intercept Home button click so playing music never unloads
+        const homeBtn = document.querySelector('.home-icon-btn');
+        if (homeBtn) {
+            homeBtn.addEventListener('click', (e) => {
+                if (STATE.activeTrack && STATE.activeVideoId) {
+                    e.preventDefault();
+                    openHubBrowser('index.html');
+                }
+            });
+        }
+
+        // Intercept Footer navigation links
+        document.querySelectorAll('.sonora-footer a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && !href.startsWith('http') && !href.startsWith('#')) {
+                link.addEventListener('click', (e) => {
+                    if (STATE.activeTrack && STATE.activeVideoId) {
+                        e.preventDefault();
+                        const target = href === '/' ? 'index.html' : (href.endsWith('.html') ? href : href + '.html');
+                        openHubBrowser(target);
+                    }
+                });
+            }
+        });
+
+        // Close hub overlay when clicking Back to Sonora
+        const hubBackBtn = document.getElementById('sonora-hub-back-btn');
+        if (hubBackBtn) {
+            hubBackBtn.addEventListener('click', () => {
+                closeHubBrowser();
+                if (DOM.playerPane && DOM.playerPane.classList.contains('is-video-minimized')) {
+                    toggleMiniPlayer();
+                }
+            });
+        }
+
         const miniExpandBtn = document.getElementById('mini-expand-btn');
         if (miniExpandBtn) {
-            miniExpandBtn.addEventListener('click', toggleMiniPlayer);
+            miniExpandBtn.addEventListener('click', () => {
+                closeHubBrowser();
+                toggleMiniPlayer();
+            });
         }
 
         const miniPlaceholder = document.getElementById('mini-player-placeholder');
         if (miniPlaceholder) {
-            miniPlaceholder.addEventListener('click', toggleMiniPlayer);
+            miniPlaceholder.addEventListener('click', () => {
+                closeHubBrowser();
+                toggleMiniPlayer();
+            });
         }
 
         // Smooth Draggable Mini Player across entire browser screen (Mouse & Touch)

@@ -1356,6 +1356,65 @@ html, body {
     transform: translateX(-50%) translateY(0);
 }
 
+/* IN-APP ARCADE HUB BROWSER (UNINTERRUPTED MUSIC) */
+.sonora-hub-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: #0b0f19;
+    display: flex;
+    flex-direction: column;
+}
+
+.sonora-hub-overlay[hidden] {
+    display: none !important;
+}
+
+.sonora-hub-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(14, 12, 24, 0.98);
+    border-bottom: 1px solid rgba(139, 92, 246, 0.35);
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.sonora-hub-back-btn {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s;
+    user-select: none;
+}
+
+.sonora-hub-back-btn:hover {
+    opacity: 0.9;
+}
+
+.sonora-hub-status {
+    color: #a78bfa;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.sonora-hub-overlay iframe {
+    flex: 1 1 0%;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #0f172a;
+}
+
 /* RESPONSIVE LAYOUT (YOUTUBE MUSIC / SPOTIFY INSPIRED MOBILE UI, ZERO WHOLE-PAGE SCROLL) */
 @media (max-width: 900px) {
     .sonora-header {
