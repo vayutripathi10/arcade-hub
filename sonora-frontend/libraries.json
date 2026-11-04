@@ -80,15 +80,7 @@
   {
     "id": "default-mc-square",
     "name": "MC Square",
-    "videos": [
-      {
-        "id": "yt-J37qIx07IOo",
-        "videoId": "J37qIx07IOo",
-        "category": "MC Square",
-        "title": "MC Square · MC SQUARE All Songs From HUSTLE 2.0 | Jukebox Playlist",
-        "thumbnail": "https://i.ytimg.com/vi/J37qIx07IOo/hqdefault.jpg"
-      }
-    ]
+    "videos": []
   },
   {
     "id": "default-honey-singh",

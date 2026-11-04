@@ -54,18 +54,11 @@
             thumbnail: 'https://i.ytimg.com/vi/BrIkUBI_37I/hqdefault.jpg'
         },
         {
-            id: 'yt-wYFZCoQ11jI',
+            id: 'default-wYFZCoQ11jI',
             videoId: 'wYFZCoQ11jI',
             category: 'Hollywood',
             title: 'Hollywood · Top Trending Music on Spotify 2026 🍃 || Best Healing English Songs Playlist',
             thumbnail: 'https://i.ytimg.com/vi/wYFZCoQ11jI/hqdefault.jpg'
-        },
-        {
-            id: 'yt-J37qIx07IOo',
-            videoId: 'J37qIx07IOo',
-            category: 'MC Square',
-            title: 'MC Square · MC SQUARE All Songs From HUSTLE 2.0 | Jukebox Playlist',
-            thumbnail: 'https://i.ytimg.com/vi/J37qIx07IOo/hqdefault.jpg'
         },
         {
             id: 'yt-vgKdf8ktVtU',
@@ -145,32 +138,32 @@
         {
             id: 'default-mc-square',
             name: 'MC Square',
-            videos: [{ ...DEFAULT_SONGS[6] }]
+            videos: []
         },
         {
             id: 'default-honey-singh',
             name: 'Honey Singh',
-            videos: [{ ...DEFAULT_SONGS[7] }]
+            videos: [{ ...DEFAULT_SONGS[6] }]
         },
         {
             id: 'default-satinder-sartaaj',
             name: 'Satinder Sartaaj',
-            videos: [{ ...DEFAULT_SONGS[8] }]
+            videos: [{ ...DEFAULT_SONGS[7] }]
         },
         {
             id: 'default-badshah',
             name: 'Badshah',
-            videos: [{ ...DEFAULT_SONGS[9] }]
+            videos: [{ ...DEFAULT_SONGS[8] }]
         },
         {
             id: 'default-karan-aujla',
             name: 'Karan Aujla',
-            videos: [{ ...DEFAULT_SONGS[10] }, { ...DEFAULT_SONGS[11] }]
+            videos: [{ ...DEFAULT_SONGS[9] }, { ...DEFAULT_SONGS[10] }]
         },
         {
             id: 'default-midnight-vibes',
             name: 'Midnight Vibes',
-            videos: [{ ...DEFAULT_SONGS[12] }]
+            videos: [{ ...DEFAULT_SONGS[11] }]
         }
     ];
 
@@ -621,7 +614,7 @@
 
     async function loadLibraries() {
         try {
-            const res = await fetch('sonora-frontend/libraries.json?v=4');
+            const res = await fetch('sonora-frontend/libraries.json?v=5');
             if (res.ok) {
                 const parsed = await res.json();
                 STATE.curatedLibraries = Array.isArray(parsed) && parsed.length
