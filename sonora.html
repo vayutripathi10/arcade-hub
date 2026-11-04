@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=11">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=12">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora">
@@ -146,6 +146,19 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- SUGGESTED SONGS (UP NEXT) -->
+                <div class="suggested-card" id="suggested-card">
+                    <div class="suggested-card-header">
+                        <div class="suggested-title-group">
+                            <span class="suggested-icon">✨</span>
+                            <span class="suggested-title">Suggested Songs</span>
+                            <span class="suggested-badge" id="suggested-badge">Up Next</span>
+                        </div>
+                        <span class="suggested-hint">Tap to play instantly</span>
+                    </div>
+                    <div class="suggested-track-list" id="suggested-track-list"></div>
+                </div>
             </section>
 
             <!-- RIGHT PANE: TABBED LIBRARIES, QUEUE & FAVORITES -->
@@ -267,7 +280,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=15"></script>
+    <script src="sonora-frontend/sonora.js?v=16"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>

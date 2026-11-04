@@ -146,6 +146,9 @@
         // Lists
         libraryList: document.getElementById('library-list'),
         libraryTabs: document.getElementById('library-tabs'),
+        suggestedCard: document.getElementById('suggested-card'),
+        suggestedList: document.getElementById('suggested-track-list'),
+        suggestedBadge: document.getElementById('suggested-badge'),
         toggleAddSongBtn: document.getElementById('toggle-add-song-btn'),
         libraryAddSongForm: document.getElementById('library-add-song-form'),
         libraryAddSongInput: document.getElementById('library-add-song-input'),
@@ -1322,6 +1325,115 @@
         });
     }
 
+    function getSuggestedTracks() {
+        const pool = [];
+        const seen = new Set();
+        if (STATE.activeVideoId) {
+            seen.add(STATE.activeVideoId);
+        }
+
+        const addTrack = (track, sourceLabel, priority = 0) => {
+            if (!track || !track.videoId) return;
+            if (seen.has(track.videoId)) return;
+            seen.add(track.videoId);
+            pool.push({
+                track,
+                sourceLabel,
+                priority
+            });
+        };
+
+        // 1. Current active library (if any)
+        const activeLib = (STATE.curatedLibraries || []).find(l => l.id === STATE.activeLibraryId) ||
+                          (STATE.customPlaylists || []).find(l => l.id === STATE.activeLibraryId);
+        if (activeLib && activeLib.videos) {
+            activeLib.videos.forEach(v => addTrack(v, activeLib.name || 'Current Library', 10));
+        }
+
+        // 2. Curated built-in libraries
+        (STATE.curatedLibraries || []).forEach(lib => {
+            (lib.videos || []).forEach(v => addTrack(v, lib.name || 'Featured', 5));
+        });
+
+        // 3. User custom playlists
+        (STATE.customPlaylists || []).forEach(p => {
+            (p.videos || []).forEach(v => addTrack(v, p.name || 'My Playlist', 7));
+        });
+
+        // 4. Saved items & favorites & history
+        (STATE.items || []).forEach(v => addTrack(v, 'Saved', 4));
+        (STATE.favorites || []).forEach(v => addTrack(v, 'Favorite', 6));
+        (STATE.history || []).forEach(v => addTrack(v, 'Recent', 3));
+
+        // Keyword relevance matching if activeTrack has title
+        const currentTitle = (STATE.activeTrack?.title || '').toLowerCase();
+        const keywords = currentTitle
+            .replace(/[^a-z0-9\s]/g, ' ')
+            .split(/\s+/)
+            .filter(w => w.length >= 4 && !['song', 'video', 'music', 'official', 'lyrics', 'audio', 'deluxe', 'hindi'].includes(w));
+
+        pool.forEach(item => {
+            const itemTitle = (item.track.title || '').toLowerCase();
+            let matchScore = 0;
+            keywords.forEach(kw => {
+                if (itemTitle.includes(kw)) matchScore += 15;
+            });
+            item.priority += matchScore;
+        });
+
+        // Sort descending by priority
+        pool.sort((a, b) => b.priority - a.priority);
+
+        return pool.slice(0, 10).map(p => ({ ...p.track, sourceLabel: p.sourceLabel }));
+    }
+
+    function renderSuggestions() {
+        if (!DOM.suggestedList) return;
+        const tracks = getSuggestedTracks();
+        if (tracks.length === 0) {
+            if (DOM.suggestedCard) DOM.suggestedCard.style.display = 'none';
+            return;
+        }
+        if (DOM.suggestedCard) DOM.suggestedCard.style.display = 'flex';
+
+        if (DOM.suggestedBadge) {
+            DOM.suggestedBadge.textContent = STATE.activeTrack ? 'Up Next' : 'Featured';
+        }
+
+        DOM.suggestedList.innerHTML = tracks.map(t => {
+            const thumb = getPrimaryThumbnail(t);
+            const title = escapeHtml(t.title || 'Music Track');
+            const source = escapeHtml(t.sourceLabel || 'Sonora');
+            return `
+                <div class="suggested-item" data-video-id="${t.videoId}" title="${title}">
+                    <div class="suggested-thumb-wrap">
+                        <img src="${thumb}" alt="${title}" class="suggested-thumb" loading="lazy" onerror="this.src='favicon.png'">
+                        <div class="suggested-play-overlay">▶</div>
+                    </div>
+                    <div class="suggested-info">
+                        <span class="suggested-song-title">${title}</span>
+                        <span class="suggested-song-source">${source}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Attach click handlers to play track directly in Sonora
+        DOM.suggestedList.querySelectorAll('.suggested-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const vid = el.getAttribute('data-video-id');
+                const track = tracks.find(t => t.videoId === vid);
+                if (track) {
+                    playTrack(track);
+                    showToast(`Playing ${track.title || 'track'} 🎶`);
+                    if (window.innerWidth <= 768 && DOM.playerContainer) {
+                        DOM.playerContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            });
+        });
+    }
+
     function renderAll() {
         syncModeButtonUI();
         syncPlayerIdleState();
@@ -1331,6 +1443,7 @@
         renderSaved();
         renderFavorites();
         renderHistory();
+        renderSuggestions();
     }
 
     // -------------------------------------------------------------------------

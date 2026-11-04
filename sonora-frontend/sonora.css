@@ -665,6 +665,166 @@ html, body {
     box-shadow: 0 0 10px var(--sonora-accent-glow);
 }
 
+/* SUGGESTED SONGS TRAY (UP NEXT) */
+.suggested-card {
+    background: linear-gradient(135deg, rgba(30, 24, 52, 0.6) 0%, rgba(16, 14, 26, 0.85) 100%);
+    border: 1px solid var(--sonora-border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.suggested-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.suggested-title-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.suggested-icon {
+    font-size: 0.95rem;
+}
+
+.suggested-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+}
+
+.suggested-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(139, 92, 246, 0.18);
+    color: var(--sonora-accent-light);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+}
+
+.suggested-hint {
+    font-size: 0.7rem;
+    color: var(--sonora-muted);
+}
+
+.suggested-track-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 2px 2px 6px 2px;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.suggested-track-list::-webkit-scrollbar {
+    height: 4px;
+}
+
+.suggested-track-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 999px;
+}
+
+.suggested-track-list::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.3);
+    border-radius: 999px;
+}
+
+.suggested-item {
+    flex: 0 0 135px;
+    max-width: 135px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 6px;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    user-select: none;
+}
+
+.suggested-item:hover,
+.suggested-item:active {
+    transform: translateY(-2px);
+    background: rgba(139, 92, 246, 0.14);
+    border-color: rgba(139, 92, 246, 0.5);
+}
+
+.suggested-thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 7px;
+    overflow: hidden;
+    background: #000;
+}
+
+.suggested-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.suggested-play-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-size: 1.15rem;
+    color: #fff;
+}
+
+.suggested-item:hover .suggested-play-overlay,
+.suggested-item:active .suggested-play-overlay {
+    opacity: 1;
+}
+
+.suggested-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.suggested-song-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.5em;
+}
+
+.suggested-song-source {
+    font-size: 0.64rem;
+    color: var(--sonora-accent-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.85;
+}
+
 /* RIGHT PANE: TABS (PLAYLISTS, QUEUE, SAVED, FAVORITES) */
 .library-pane {
     background: var(--sonora-surface);
@@ -1369,6 +1529,27 @@ html, body {
         font-size: 0.74rem;
         border-radius: 7px;
         white-space: nowrap;
+    }
+
+    .suggested-card {
+        padding: 8px 10px;
+        border-radius: 12px;
+        gap: 6px;
+    }
+
+    .suggested-item {
+        flex: 0 0 118px;
+        max-width: 118px;
+        padding: 5px;
+        border-radius: 8px;
+    }
+
+    .suggested-song-title {
+        font-size: 0.68rem;
+    }
+
+    .suggested-hint {
+        display: none;
     }
 
     /* Library Pane with Docked 5-Tab Bottom Navigation Bar (like YouTube Music / Spotify) */
