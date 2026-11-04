@@ -680,6 +680,13 @@
         if (STATE.history.length > 50) STATE.history.pop();
         saveState();
 
+        if (track && track.videoId) {
+            try {
+                localStorage.setItem('sonora_active_track', JSON.stringify(track));
+                localStorage.setItem('sonora_active_video_id', track.videoId);
+            } catch {}
+        }
+
         // Render iframe into stage (sandboxed to prevent opening external tabs or leaving Sonora)
         const src = getPlayerSrc(STATE.mode, track.videoId);
         const stage = DOM.playerStage || DOM.playerContainer;
@@ -1645,15 +1652,25 @@
             if (!DOM.playerPane) return;
             const minimized = DOM.playerPane.classList.toggle('is-video-minimized');
             resetMiniPlayerPosition();
+            if (minimized) {
+                try {
+                    localStorage.setItem('sonora_mini_active', 'true');
+                    if (STATE.activeTrack) {
+                        localStorage.setItem('sonora_active_track', JSON.stringify(STATE.activeTrack));
+                        localStorage.setItem('sonora_active_video_id', STATE.activeTrack.videoId);
+                    }
+                } catch {}
+            } else {
+                try {
+                    localStorage.removeItem('sonora_mini_active');
+                } catch {}
+            }
             if (DOM.minVideoBtn) {
                 DOM.minVideoBtn.classList.toggle('active', minimized);
                 DOM.minVideoBtn.innerHTML = minimized ? '▴ <span>Expand</span>' : '🗗 <span>Mini</span>';
             }
             if (minimized) {
-                const isMobile = window.innerWidth <= 768;
-                showToast(isMobile
-                    ? 'Mini player active 🗗 (Drag anywhere | Tip: Tap "Full" & swipe home to float over other apps 📱)'
-                    : 'Mini player active 🗗 (Drag handle to reposition anywhere)');
+                showToast('Mini player active 🗗 (Persistent across all games and pages in Arcade Hub!)');
             } else {
                 showToast('Player expanded 📺');
             }
@@ -1734,6 +1751,10 @@
                 if (handle.releasePointerCapture && e.pointerId != null) {
                     try { handle.releasePointerCapture(e.pointerId); } catch {}
                 }
+                const rect = container.getBoundingClientRect();
+                try {
+                    localStorage.setItem('sonora_mini_pos', JSON.stringify({ left: rect.left, top: rect.top }));
+                } catch {}
             };
 
             handle.addEventListener('pointerdown', onPointerDown);

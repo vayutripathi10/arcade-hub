@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v304';
+const CACHE_NAME = 'arcade-hub-cache-v305';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -177,6 +177,7 @@ const CORE_ASSETS = [
     'shared/pdf.min.js',
     'shared/pdf.worker.min.js',
     'shared/pwa-setup.js',
+    'shared/global-sonora.js',
     'sky-jumper-frontend/index.html',
     'sky-jumper-frontend/script.js',
     'sky-jumper-frontend/style.css',

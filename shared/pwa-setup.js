@@ -214,3 +214,19 @@ function showIOSInstallModal() {
         modal.style.display = 'flex';
     }
 }
+
+
+// Automatically load Persistent Global Sonora Mini Player across Arcade Hub
+(function() {
+    if (!document.getElementById('global-sonora-script')) {
+        const isSub = window.location.pathname.includes('/retro-racer-frontend/') || 
+                      window.location.pathname.includes('/cyber-survivor-frontend/') || 
+                      window.location.pathname.includes('/dino-frontend/') ||
+                      window.location.pathname.includes('/blog/');
+        const script = document.createElement('script');
+        script.id = 'global-sonora-script';
+        script.src = isSub ? '../shared/global-sonora.js?v=2' : 'shared/global-sonora.js?v=2';
+        script.defer = true;
+        document.head.appendChild(script);
+    }
+})();
