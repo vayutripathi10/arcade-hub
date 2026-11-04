@@ -52,6 +52,62 @@
             category: 'Kabhi Yaadon Mein',
             title: 'Kabhi Yaadon Mein Aaun · Abhijeet | Divya Khosla | T-Series Pop Classic',
             thumbnail: 'https://i.ytimg.com/vi/BrIkUBI_37I/hqdefault.jpg'
+        },
+        {
+            id: 'yt-wYFZCoQ11jI',
+            videoId: 'wYFZCoQ11jI',
+            category: 'Hollywood',
+            title: 'Hollywood · Top Trending Music on Spotify 2026 🍃 || Best Healing English Songs Playlist',
+            thumbnail: 'https://i.ytimg.com/vi/wYFZCoQ11jI/hqdefault.jpg'
+        },
+        {
+            id: 'yt-J37qIx07IOo',
+            videoId: 'J37qIx07IOo',
+            category: 'MC Square',
+            title: 'MC Square · MC SQUARE All Songs From HUSTLE 2.0 | Jukebox Playlist',
+            thumbnail: 'https://i.ytimg.com/vi/J37qIx07IOo/hqdefault.jpg'
+        },
+        {
+            id: 'yt-vgKdf8ktVtU',
+            videoId: 'vgKdf8ktVtU',
+            category: 'Honey Singh',
+            title: 'Honey Singh · Yo Yo Honey Singh Hits & Latest Jukebox',
+            thumbnail: 'https://i.ytimg.com/vi/vgKdf8ktVtU/hqdefault.jpg'
+        },
+        {
+            id: 'yt-MlXTbqptX_8',
+            videoId: 'MlXTbqptX_8',
+            category: 'Satinder Sartaaj',
+            title: 'Satinder Sartaaj · Hits & Best Punjabi Sufi Classics',
+            thumbnail: 'https://i.ytimg.com/vi/MlXTbqptX_8/hqdefault.jpg'
+        },
+        {
+            id: 'yt-F4zJDtieQtA',
+            videoId: 'F4zJDtieQtA',
+            category: 'Badshah',
+            title: 'Badshah · Best Of Badshah Party Anthems (Proper Patola, Genda Phool, Mercy, Chull)',
+            thumbnail: 'https://i.ytimg.com/vi/F4zJDtieQtA/hqdefault.jpg'
+        },
+        {
+            id: 'yt-H4IRWXePhnU',
+            videoId: 'H4IRWXePhnU',
+            category: 'Karan Aujla',
+            title: 'Karan Aujla · All Hits & New Punjabi Songs Collection',
+            thumbnail: 'https://i.ytimg.com/vi/H4IRWXePhnU/hqdefault.jpg'
+        },
+        {
+            id: 'yt-wfyJJBoSwio',
+            videoId: 'wfyJJBoSwio',
+            category: 'Karan Aujla',
+            title: 'Karan Aujla · Best Of Karan Aujla Songs Jukebox',
+            thumbnail: 'https://i.ytimg.com/vi/wfyJJBoSwio/hqdefault.jpg'
+        },
+        {
+            id: 'yt-5bqOxLuJIq0',
+            videoId: '5bqOxLuJIq0',
+            category: 'Midnight Vibes',
+            title: 'Midnight Vibes 🌙 · Hindi Chill & Emotional Late Night Playlist',
+            thumbnail: 'https://i.ytimg.com/vi/5bqOxLuJIq0/hqdefault.jpg'
         }
     ];
 
@@ -80,6 +136,41 @@
             id: 'default-kabhi-yaadon-mein',
             name: 'Kabhi Yaadon Mein',
             videos: [{ ...DEFAULT_SONGS[4] }]
+        },
+        {
+            id: 'default-hollywood',
+            name: 'Hollywood',
+            videos: [{ ...DEFAULT_SONGS[5] }]
+        },
+        {
+            id: 'default-mc-square',
+            name: 'MC Square',
+            videos: [{ ...DEFAULT_SONGS[6] }]
+        },
+        {
+            id: 'default-honey-singh',
+            name: 'Honey Singh',
+            videos: [{ ...DEFAULT_SONGS[7] }]
+        },
+        {
+            id: 'default-satinder-sartaaj',
+            name: 'Satinder Sartaaj',
+            videos: [{ ...DEFAULT_SONGS[8] }]
+        },
+        {
+            id: 'default-badshah',
+            name: 'Badshah',
+            videos: [{ ...DEFAULT_SONGS[9] }]
+        },
+        {
+            id: 'default-karan-aujla',
+            name: 'Karan Aujla',
+            videos: [{ ...DEFAULT_SONGS[10] }, { ...DEFAULT_SONGS[11] }]
+        },
+        {
+            id: 'default-midnight-vibes',
+            name: 'Midnight Vibes',
+            videos: [{ ...DEFAULT_SONGS[12] }]
         }
     ];
 
@@ -530,7 +621,7 @@
 
     async function loadLibraries() {
         try {
-            const res = await fetch('sonora-frontend/libraries.json?v=3');
+            const res = await fetch('sonora-frontend/libraries.json?v=4');
             if (res.ok) {
                 const parsed = await res.json();
                 STATE.curatedLibraries = Array.isArray(parsed) && parsed.length
