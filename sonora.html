@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="description" content="Sonora Music App on Arcade Hub: Stream your favorite YouTube songs ad-free, build queues, organize playlists, and enjoy background music play without interruptions.">
-    <meta name="keywords" content="sonora, ad-free youtube music, background music player, youtube playlist creator, arcade hub sonora, free web music app">
+    <meta name="description" content="Sonora on Arcade Hub: Stream your favorite music, build queues, organize playlists, and enjoy background music play without interruptions.">
+    <meta name="keywords" content="sonora, music player, playlist, arcade hub sonora, background music">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="canonical" href="https://arcadehubplay.com/sonora">
-    <title>Sonora Music — Ad-Free YouTube Playlists &amp; Music Player | Arcade Hub</title>
+    <title>Sonora</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,8 +18,8 @@
     <link rel="stylesheet" href="sonora-frontend/sonora.css?v=11">
 
     <!-- Open Graph & Twitter -->
-    <meta property="og:title" content="Sonora Music — Ad-Free YouTube Playlists | Arcade Hub">
-    <meta property="og:description" content="Listen to uninterrupted ad-free YouTube music, manage custom playlists, and stream background tracks with zero registration.">
+    <meta property="og:title" content="Sonora">
+    <meta property="og:description" content="Listen to uninterrupted music, manage custom playlists, and stream background tracks with zero registration.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://arcadehubplay.com/sonora">
     <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
@@ -108,8 +108,8 @@
                     <div class="player-stage" id="player-stage">
                         <div class="player-empty-placeholder">
                             <span class="empty-icon">🎧</span>
-                            <h3 style="font-size: 1.1rem; color: #fff; font-weight: 700;">Sonora Ad-Free Player Ready</h3>
-                            <p style="font-size: 0.82rem; max-width: 320px;">Paste any YouTube link above or select a track from the library on the right to start listening.</p>
+                            <h3 style="font-size: 1.1rem; color: #fff; font-weight: 700;">Sonora Player Ready</h3>
+                            <p style="font-size: 0.82rem; max-width: 320px;">Paste any link above or select a track from the library on the right to start listening.</p>
                         </div>
                     </div>
                 </div>
@@ -129,8 +129,8 @@
                     </div>
 
                     <div class="player-btn-group">
-                        <button class="toolbar-btn active" id="mode-btn" title="Switch between Ad-Free gateway and YouTube No-Cookie Embed">
-                            🛡️ <span id="mode-btn-label">Ad-Free</span>
+                        <button class="toolbar-btn" id="mode-btn" style="display: none;" aria-hidden="true">
+                            <span id="mode-btn-label"></span>
                         </button>
                         <button class="toolbar-btn" id="skip-btn" title="Play next in queue">
                             ⏭️ <span>Next</span>
@@ -267,7 +267,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=14"></script>
+    <script src="sonora-frontend/sonora.js?v=15"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>

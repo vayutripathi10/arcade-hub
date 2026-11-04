@@ -614,9 +614,7 @@
         if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = displayTitle;
         if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = displayTitle;
         if (DOM.nowPlayingSub) {
-            DOM.nowPlayingSub.textContent = STATE.mode === 'official'
-                ? 'Standard YouTube Embed active'
-                : 'Ad-Free Player active';
+            DOM.nowPlayingSub.textContent = 'Now Playing';
         }
 
         // Arm the continuous audio bridge so Android/iOS notification bar stays alive without rapid loop resets
@@ -646,7 +644,7 @@
             navigator.mediaSession.metadata = new MediaMetadata({
                 title: title,
                 artist: 'Sonora - Arcade Hub',
-                album: 'Sonora Ad-Free Playlist',
+                album: 'Sonora Playlist',
                 artwork: [
                     { src: thumbUrl, sizes: '512x512', type: 'image/jpeg' },
                     { src: `https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`, sizes: '1280x720', type: 'image/jpeg' },
