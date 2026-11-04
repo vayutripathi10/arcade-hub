@@ -1532,24 +1532,72 @@ html, body {
     }
 
     .suggested-card {
-        padding: 8px 10px;
-        border-radius: 12px;
-        gap: 6px;
+        padding: 5px 8px;
+        border-radius: 10px;
+        gap: 4px;
+        background: rgba(24, 18, 40, 0.75);
     }
 
-    .suggested-item {
-        flex: 0 0 118px;
-        max-width: 118px;
-        padding: 5px;
-        border-radius: 8px;
+    .suggested-card-header {
+        padding: 0 2px;
     }
 
-    .suggested-song-title {
-        font-size: 0.68rem;
+    .suggested-icon {
+        font-size: 0.82rem;
+    }
+
+    .suggested-title {
+        font-size: 0.74rem;
+    }
+
+    .suggested-badge {
+        font-size: 0.56rem;
+        padding: 1px 5px;
     }
 
     .suggested-hint {
         display: none;
+    }
+
+    .suggested-track-list {
+        gap: 6px;
+        padding: 1px 1px 3px 1px;
+    }
+
+    .suggested-item {
+        flex: 0 0 160px;
+        max-width: 160px;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 5px;
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.04);
+    }
+
+    .suggested-thumb-wrap {
+        width: 42px;
+        height: 26px;
+        flex: 0 0 42px;
+        aspect-ratio: auto;
+        border-radius: 4px;
+    }
+
+    .suggested-info {
+        flex: 1 1 0%;
+        min-width: 0;
+        gap: 1px;
+    }
+
+    .suggested-song-title {
+        font-size: 0.66rem;
+        -webkit-line-clamp: 1;
+        min-height: auto;
+        white-space: nowrap;
+    }
+
+    .suggested-song-source {
+        font-size: 0.58rem;
     }
 
     /* Library Pane with Docked 5-Tab Bottom Navigation Bar (like YouTube Music / Spotify) */
