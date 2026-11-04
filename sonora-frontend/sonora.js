@@ -15,7 +15,7 @@
     const MODE_KEY = 'sonora-player-mode';
     const PLAYLISTS_KEY = 'sonora-custom-playlists';
     const CLEAN_INIT_KEY = 'sonora-clean-init-v2';
-    const DEFAULT_SEED_KEY = 'sonora-default-seed-v4';
+    const DEFAULT_SEED_KEY = 'sonora-default-seed-v6';
 
     const DEFAULT_SONGS = [
         {
@@ -272,12 +272,48 @@
     // -------------------------------------------------------------------------
     // 1. HELPERS & YOUTUBE URL PARSER
     // -------------------------------------------------------------------------
+    function getAllSongsList() {
+        const seen = new Set();
+        const allSongs = [];
+
+        // 1. Collect songs from all curated library folders
+        (STATE.curatedLibraries || []).forEach(lib => {
+            (lib.videos || []).forEach(v => {
+                if (v && v.videoId && !seen.has(v.videoId)) {
+                    seen.add(v.videoId);
+                    allSongs.push({ ...v, _libName: lib.name });
+                }
+            });
+        });
+
+        // 2. Collect songs from all user custom library folders
+        (STATE.customPlaylists || []).forEach(lib => {
+            (lib.videos || []).forEach(v => {
+                if (v && v.videoId && !seen.has(v.videoId)) {
+                    seen.add(v.videoId);
+                    allSongs.push({ ...v, _libName: lib.name });
+                }
+            });
+        });
+
+        // 3. Collect any additional user-saved songs
+        (STATE.items || []).forEach(v => {
+            if (v && v.videoId && !seen.has(v.videoId)) {
+                seen.add(v.videoId);
+                allSongs.push(v);
+            }
+        });
+
+        return allSongs;
+    }
+
     function getAllLibraries() {
+        const allSongs = getAllSongsList();
         const allSongsLib = {
             id: 'all-songs',
             name: 'All Songs',
             isAllSongs: true,
-            videos: STATE.items
+            videos: allSongs
         };
         return [allSongsLib, ...STATE.customPlaylists, ...STATE.curatedLibraries];
     }
