@@ -718,7 +718,9 @@
 
         if (track && track.videoId) {
             try {
-                localStorage.setItem('sonora_mini_active', 'true');
+                if (DOM.playerPane && DOM.playerPane.classList.contains('is-video-minimized')) {
+                    localStorage.setItem('sonora_mini_active', 'true');
+                }
                 localStorage.setItem('sonora_active_track', JSON.stringify(track));
                 localStorage.setItem('sonora_active_video_id', track.videoId);
             } catch {}
