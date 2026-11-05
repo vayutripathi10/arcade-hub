@@ -125,6 +125,26 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 
+function returnToArcadeHub() {
+    try {
+        if (window.top && window.top !== window && window.top.document && window.top.document.getElementById('sonora-hub-frame')) {
+            window.top.document.getElementById('sonora-hub-frame').src = 'index.html';
+            return;
+        }
+    } catch (e) {}
+    try {
+        if (window.parent && window.parent !== window) {
+            if (window.parent.parent && window.parent.parent !== window.parent && window.parent.parent.document && window.parent.parent.document.getElementById('sonora-hub-frame')) {
+                window.parent.parent.document.getElementById('sonora-hub-frame').src = 'index.html';
+                return;
+            }
+            window.parent.location.href = '../index.html';
+            return;
+        }
+    } catch (e) {}
+    window.location.href = '../index.html';
+}
+
 let touchHandled = false;
 function init() {
     resizeCanvas();
@@ -132,7 +152,7 @@ function init() {
     // Hub Button Fix
     document.getElementById('hub-btn')?.addEventListener('click', () => {
         console.log('hub clicked');
-        window.top.location.href = '../index.html';
+        returnToArcadeHub();
     });
 
     startBtn?.addEventListener('click', (e) => {
@@ -242,7 +262,7 @@ function init() {
     document.getElementById('hub-gameover-btn')?.addEventListener('click', (e) => {
         e.stopPropagation();
         console.log('Hub button clicked from game over screen');
-        window.top.location.href = '../index.html';
+        returnToArcadeHub();
     });
 }
 

@@ -1020,8 +1020,28 @@ document.getElementById('btn-mute').addEventListener('click', () => {
 });
 
 // Quit Logic
+function returnToArcadeHub() {
+    try {
+        if (window.top && window.top !== window && window.top.document && window.top.document.getElementById('sonora-hub-frame')) {
+            window.top.document.getElementById('sonora-hub-frame').src = 'index.html';
+            return;
+        }
+    } catch (e) {}
+    try {
+        if (window.parent && window.parent !== window) {
+            if (window.parent.parent && window.parent.parent !== window.parent && window.parent.parent.document && window.parent.parent.document.getElementById('sonora-hub-frame')) {
+                window.parent.parent.document.getElementById('sonora-hub-frame').src = 'index.html';
+                return;
+            }
+            window.parent.location.href = '../index.html';
+            return;
+        }
+    } catch (e) {}
+    window.location.href = '../index.html';
+}
+
 const quitGame = () => {
-    window.top.location.href = '../index.html';
+    returnToArcadeHub();
 };
 document.getElementById('btn-quit').addEventListener('click', quitGame);
 document.getElementById('btn-quit-end').addEventListener('click', quitGame);

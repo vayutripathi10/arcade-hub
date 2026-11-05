@@ -52,13 +52,29 @@ class PipeGame {
         document.getElementById('mute-btn').addEventListener('click', () => this.toggleMute());
         document.getElementById('hint-btn').addEventListener('click', () => this.showHint());
 
+        function returnToArcadeHub() {
+            try {
+                if (window.top && window.top !== window && window.top.document && window.top.document.getElementById('sonora-hub-frame')) {
+                    window.top.document.getElementById('sonora-hub-frame').src = 'index.html';
+                    return;
+                }
+            } catch (e) {}
+            try {
+                if (window.parent && window.parent !== window) {
+                    if (window.parent.parent && window.parent.parent !== window.parent && window.parent.parent.document && window.parent.parent.document.getElementById('sonora-hub-frame')) {
+                        window.parent.parent.document.getElementById('sonora-hub-frame').src = 'index.html';
+                        return;
+                    }
+                    window.parent.location.href = '../index.html';
+                    return;
+                }
+            } catch (e) {}
+            window.location.href = '../index.html';
+        }
+
         const exitToHub = () => {
             this.playTone(600, 'sine', 0.06, 0.05);
-            if (window.top !== window.self) {
-                window.top.location.href = '../index.html';
-            } else {
-                window.location.href = '../index.html';
-            }
+            returnToArcadeHub();
         };
         document.getElementById('mode-back-btn').addEventListener('click', exitToHub);
         document.getElementById('pause-exit-btn').addEventListener('click', exitToHub);

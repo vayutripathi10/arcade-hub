@@ -718,6 +718,7 @@
 
         if (track && track.videoId) {
             try {
+                localStorage.setItem('sonora_mini_active', 'true');
                 localStorage.setItem('sonora_active_track', JSON.stringify(track));
                 localStorage.setItem('sonora_active_video_id', track.videoId);
             } catch {}
@@ -1740,6 +1741,9 @@
                 overlay.setAttribute('hidden', '');
             }
         }
+
+        window.openHubBrowser = openHubBrowser;
+        window.closeHubBrowser = closeHubBrowser;
 
         // Intercept Home button click so playing music never unloads
         const homeBtn = document.querySelector('.home-icon-btn');
