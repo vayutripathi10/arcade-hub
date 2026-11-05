@@ -613,20 +613,37 @@ Each object must follow this exact schema:
         const expBox = document.getElementById('explanation-box');
         expBox.classList.remove('active');
 
-        // Populate options
+        // Blur any previously active element so no focus box lingers
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+
+        // Populate options & clear all selection/hover artifacts
         const optsGrid = document.getElementById('options-grid');
         const optButtons = optsGrid.querySelectorAll('.option-btn');
 
         ['A', 'B', 'C', 'D'].forEach((key, idx) => {
             const btn = optButtons[idx];
             if (btn) {
+                btn.blur();
                 btn.className = 'option-btn';
+                btn.classList.remove('selected-correct', 'selected-wrong', 'reveal-correct');
                 btn.disabled = false;
                 btn.setAttribute('data-opt', key);
+                btn.style.boxShadow = '';
+                btn.style.borderColor = '';
+                btn.style.background = '';
+                btn.style.transform = '';
+
                 const textEl = btn.querySelector('.opt-label');
                 const iconEl = btn.querySelector('.opt-status-icon');
                 if (textEl) textEl.textContent = q.options[key] || '';
                 if (iconEl) iconEl.textContent = '';
+
+                // Trigger fresh subtle stagger entrance
+                btn.style.animation = 'none';
+                void btn.offsetWidth;
+                btn.style.animation = `optEntrance 0.28s cubic-bezier(0.16, 1, 0.3, 1) ${idx * 40}ms backwards`;
             }
         });
 

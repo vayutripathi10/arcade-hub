@@ -558,12 +558,13 @@ html, body {
    SCREEN 3: ACTIVE GAMEPLAY
    -------------------------------------------------------------------------- */
 .gameplay-container {
-    max-width: 680px;
+    max-width: 780px;
     width: 100%;
-    margin: 0 auto;
+    margin: auto;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    padding: 12px 0 24px 0;
 }
 
 .gameplay-header {
@@ -698,93 +699,181 @@ html, body {
     font-family: 'Outfit', 'Noto Sans Devanagari', sans-serif;
 }
 
-/* Options Grid (2x2 layout: A B on top row, C D on bottom row) */
+/* Options Grid (2x2 layout on desktop/laptop, 1-col on mobile) */
 .options-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 14px;
 }
 
 .option-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: rgba(18, 22, 33, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 12px 16px;
-    color: #fff;
+    gap: 14px;
+    background: rgba(18, 24, 38, 0.88);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px 18px;
+    color: #f8fafc;
     cursor: pointer;
     text-align: left;
     font-family: 'Outfit', 'Noto Sans Devanagari', sans-serif;
-    font-size: 0.98rem;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    min-height: 54px;
+    font-size: 1.02rem;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    min-height: 60px;
+    position: relative;
+    outline: none !important;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
-.option-btn:hover:not(:disabled) {
-    background: rgba(0, 255, 204, 0.08);
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 255, 204, 0.15);
+/* Staggered smooth entrance animation for fresh questions */
+@keyframes optEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Clear all sticky / default focus styles completely */
+.option-btn:focus {
+    outline: none !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: none !important;
+}
+
+.option-btn:focus-visible {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 14px rgba(0, 255, 204, 0.35) !important;
+}
+
+/* ONLY apply hover when device has a real fine-pointer mouse (DESKTOP / LAPTOP) */
+/* This prevents touch devices (mobile/tablets) from having sticky hover! */
+@media (hover: hover) and (pointer: fine) {
+    .option-btn:hover:not(:disabled) {
+        background: rgba(30, 41, 59, 0.95);
+        border-color: rgba(0, 255, 204, 0.65);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 255, 204, 0.18);
+    }
+    .option-btn:hover:not(:disabled) .opt-key {
+        border-color: var(--primary);
+        background: rgba(0, 255, 204, 0.16);
+        color: #fff;
+    }
+}
+
+/* Active touch feedback */
+.option-btn:active:not(:disabled) {
+    transform: scale(0.98);
+    background: rgba(30, 41, 59, 0.95);
 }
 
 .opt-key {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 0.92rem;
+    font-weight: 800;
+    font-size: 0.94rem;
     color: var(--primary);
     flex-shrink: 0;
+    transition: all 0.2s ease;
 }
 
 .opt-label {
     flex: 1;
-    line-height: 1.35;
+    line-height: 1.4;
+    word-break: break-word;
 }
 
 .opt-status-icon {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 /* Option Selected States */
 .option-btn.selected-correct {
-    background: rgba(16, 185, 129, 0.2) !important;
+    background: rgba(16, 185, 129, 0.24) !important;
     border-color: #10b981 !important;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.35) !important;
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.45) !important;
+    transform: scale(1.01) !important;
 }
 
 .option-btn.selected-correct .opt-key {
-    background: #10b981;
-    color: #000;
+    background: #10b981 !important;
+    color: #000 !important;
+    border-color: #10b981 !important;
+    font-weight: 900 !important;
 }
 
 .option-btn.selected-wrong {
-    background: rgba(255, 0, 85, 0.2) !important;
+    background: rgba(255, 0, 85, 0.24) !important;
     border-color: var(--accent-red) !important;
-    box-shadow: 0 0 20px var(--accent-red-glow) !important;
+    box-shadow: 0 0 24px var(--accent-red-glow) !important;
+    transform: scale(0.99) !important;
 }
 
 .option-btn.selected-wrong .opt-key {
-    background: var(--accent-red);
-    color: #fff;
+    background: var(--accent-red) !important;
+    color: #fff !important;
+    border-color: var(--accent-red) !important;
+    font-weight: 900 !important;
 }
 
 .option-btn.reveal-correct {
     border-color: #10b981 !important;
-    background: rgba(16, 185, 129, 0.12) !important;
+    background: rgba(16, 185, 129, 0.16) !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.3) !important;
+}
+
+.option-btn.reveal-correct .opt-key {
+    background: #10b981 !important;
+    color: #000 !important;
+    border-color: #10b981 !important;
 }
 
 .option-btn:disabled {
     cursor: default;
+}
+
+/* Desktop Keyboard Hint */
+.desktop-keyboard-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-top: 4px;
+    user-select: none;
+}
+
+.desktop-keyboard-hint kbd {
+    background: rgba(0, 255, 204, 0.12);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    color: var(--primary);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
 }
 
 /* Explanation Box */
@@ -1242,39 +1331,47 @@ html, body {
         font-size: 0.72rem;
     }
 
-    /* Gameplay */
+    /* Gameplay on Mobile */
     .gameplay-container {
-        gap: 10px;
+        gap: 12px;
+        padding-bottom: 20px;
     }
     .gameplay-header {
-        padding: 8px 10px;
-        gap: 6px;
+        padding: 8px 12px;
+        gap: 8px;
     }
     .back-lobby-btn {
-        font-size: 0.72rem;
-        padding: 4px 8px;
+        font-size: 0.74rem;
+        padding: 4px 10px;
     }
     .question-card {
-        padding: 14px 16px;
+        padding: 16px 18px;
+        border-radius: 14px;
     }
     .question-text {
-        font-size: 1.08rem;
-        line-height: 1.45;
+        font-size: 1.15rem;
+        line-height: 1.5;
     }
+    /* Mobile: Stack options in 1 full-width column for supreme readability & comfort */
     .options-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
     }
     .option-btn {
-        padding: 10px 10px;
-        font-size: 0.88rem;
-        gap: 8px;
-        min-height: 48px;
+        padding: 12px 16px !important;
+        font-size: 0.98rem !important;
+        gap: 12px !important;
+        min-height: 54px !important;
+        border-radius: 12px !important;
     }
     .opt-key {
-        width: 26px;
-        height: 26px;
-        font-size: 0.82rem;
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.88rem !important;
+        border-radius: 8px !important;
+    }
+    .desktop-keyboard-hint {
+        display: none !important;
     }
 
     /* Results */
