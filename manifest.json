@@ -1,7 +1,7 @@
 {
   "name": "Arcade Hub",
   "short_name": "Arcade Hub",
-  "description": "Play 24+ free arcade games instantly in your browser - no download, no login, no signup.",
+  "description": "Play 24+ free arcade games and stream uninterrupted music with Sonora.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#111111",
@@ -33,5 +33,14 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "sonora.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

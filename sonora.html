@@ -6,6 +6,13 @@
     <meta name="description" content="Sonora on Arcade Hub: Stream your favorite music, build queues, organize playlists, and enjoy background music play without interruptions.">
     <meta name="keywords" content="sonora, music player, playlist, arcade hub sonora, background music">
     <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="manifest" href="sonora-manifest.json">
+    <meta name="theme-color" content="#0a0a10">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sonora">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="canonical" href="https://arcadehubplay.com/sonora">
     <title>Sonora</title>
 
@@ -78,6 +85,9 @@
                             placeholder="Paste YouTube link (watch, Shorts, youtu.be)…"
                             required
                             aria-label="YouTube Link">
+                        <button type="button" class="paste-clip-btn" id="paste-clip-btn" title="Paste link from clipboard">
+                            📋 <span>Paste</span>
+                        </button>
                         <button type="submit" class="add-link-btn" title="Add and play immediately">
                             <span>➕</span> <span>Play Now</span>
                         </button>
@@ -291,7 +301,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=21"></script>
+    <script src="sonora-frontend/sonora.js?v=22"></script>
     <script src="shared/pwa-setup.js"></script>
 </body>
 </html>

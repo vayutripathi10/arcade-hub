@@ -1642,6 +1642,36 @@
             });
         }
 
+        // Quick Clipboard Paste Link Button (Mobile / iPhone / Desktop)
+        const pasteBtn = document.getElementById('paste-clip-btn');
+        if (pasteBtn) {
+            pasteBtn.addEventListener('click', async () => {
+                try {
+                    if (navigator.clipboard && navigator.clipboard.readText) {
+                        const text = await navigator.clipboard.readText();
+                        if (text) {
+                            if (DOM.addInput) DOM.addInput.value = text.trim();
+                            const vid = getVideoId(text);
+                            if (vid) {
+                                if (addSongsToLibrary(text.trim(), STATE.activeLibraryId, true)) {
+                                    if (DOM.addInput) DOM.addInput.value = '';
+                                    showToast('Pasted & playing YouTube track! 🎵');
+                                }
+                            } else {
+                                showToast('Pasted text from clipboard 📋');
+                            }
+                        } else {
+                            showToast('Clipboard is empty 📋');
+                        }
+                    } else {
+                        showToast('Please long-press and paste into the box 📋');
+                    }
+                } catch (e) {
+                    showToast('Please long-press and paste into the box 📋');
+                }
+            });
+        }
+
         // Toggle Add Song bar inside Library panel
         if (DOM.toggleAddSongBtn && DOM.libraryAddSongForm) {
             DOM.toggleAddSongBtn.addEventListener('click', () => {
@@ -2263,6 +2293,60 @@
         }
     }
 
+    // Handle incoming Web Share Target URLs (from Android share sheet / YouTube app)
+    async function handleIncomingSharedTarget() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const sharedUrl = params.get('url') || '';
+            const sharedText = params.get('text') || '';
+            const sharedTitle = params.get('title') || '';
+            
+            const raw = `${sharedUrl} ${sharedText} ${sharedTitle}`.trim();
+            if (!raw) return;
+
+            const videoId = getVideoId(sharedUrl) || getVideoId(sharedText) || getVideoId(raw);
+            if (!videoId) return;
+
+            // Clear query params from address bar cleanly without reloading
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+
+            let title = (sharedTitle && !sharedTitle.startsWith('http')) 
+                ? sharedTitle 
+                : (sharedText && !sharedText.startsWith('http') && sharedText.length < 80 ? sharedText : `YouTube Track`);
+
+            let artist = 'Shared from YouTube';
+
+            // Attempt to fetch real oEmbed title
+            try {
+                const meta = await fetchVideoMeta(videoId);
+                if (meta && meta.title) {
+                    title = meta.title;
+                }
+            } catch (e) {}
+
+            const track = {
+                id: `shared_${videoId}_${Date.now()}`,
+                videoId: videoId,
+                title: title,
+                artist: artist,
+                thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`,
+                sharedAt: new Date().toISOString()
+            };
+
+            STATE.items.unshift(track);
+            saveState();
+            renderAll();
+
+            playTrack(track, true);
+            showToast(`Imported & Playing: "${title}" 🎵`);
+            return true;
+        } catch (err) {
+            console.warn('[Sonora] Error handling incoming shared target:', err);
+            return false;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // 6. INITIAL RUN
     // -------------------------------------------------------------------------
@@ -2285,7 +2369,10 @@
         });
         hydratePlaceholderTitles();
         initEvents();
-        loadLibraries().then(() => {
+        loadLibraries().then(async () => {
+            const wasHandled = await handleIncomingSharedTarget();
+            if (wasHandled) return;
+
             if (STATE.activeVideoId && DOM.playerContainer) {
                 const allKnown = [...STATE.items, ...STATE.history];
                 getAllLibraries().forEach(l => { if (l.videos) allKnown.push(...l.videos); });

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v309';
+const CACHE_NAME = 'arcade-hub-cache-v310';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -39,6 +39,8 @@ const CORE_ASSETS = [
     'icon-192.png',
     'icon-512.png',
     'index.html',
+    'manifest.json',
+    'sonora-manifest.json',
     'neon-arrows-frontend/index.html',
     'neon-arrows-frontend/script.js',
     'neon-arrows-frontend/style.css',
