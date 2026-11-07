@@ -256,7 +256,7 @@
                         <button type="button" class="fullscreen-exit-btn" id="fsExitBtn" onclick="toggleFullscreen()" aria-label="Exit Fullscreen Mode">
                             ✕ <span>Exit Fullscreen</span>
                         </button>
-                        <iframe src="neon-word-leaper-frontend/index.html?v=ArcadeHub_WordLeaper_v7" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
+                        <iframe src="neon-word-leaper-frontend/index.html?v=ArcadeHub_WordLeaper_v8" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle Fullscreen Mode">
@@ -389,16 +389,24 @@
                 sidebarOverlay.addEventListener('click', toggleSidebar);
             }
 
-            // Automatically focus iframe so keyboard events work immediately
+            // Automatically focus iframe and sync canvas resolution immediately
             const iframe = document.getElementById('gameIframe');
             if (iframe) {
-                const focusIframe = () => {
+                const syncAndFocusIframe = () => {
                     try {
                         iframe.contentWindow.focus();
+                        iframe.contentWindow.postMessage({ type: 'RESIZE_CANVAS' }, '*');
                     } catch(e) {}
                 };
-                iframe.addEventListener('load', focusIframe);
-                document.getElementById('playConsoleContainer').addEventListener('click', focusIframe);
+                iframe.addEventListener('load', () => {
+                    syncAndFocusIframe();
+                    setTimeout(syncAndFocusIframe, 150);
+                    setTimeout(syncAndFocusIframe, 400);
+                });
+                document.getElementById('playConsoleContainer').addEventListener('click', syncAndFocusIframe);
+                window.addEventListener('resize', () => {
+                    setTimeout(syncAndFocusIframe, 50);
+                });
             }
         });
     </script>

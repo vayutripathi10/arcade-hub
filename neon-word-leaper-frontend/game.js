@@ -297,8 +297,10 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
+    let width = window.innerWidth || document.documentElement.clientWidth || 980;
+    let height = window.innerHeight || document.documentElement.clientHeight || 680;
+    canvas.width = width;
+    canvas.height = height;
 
     let gameState = 'START';
     let currentStage = 1;
@@ -473,27 +475,37 @@
         }
     }
 
-    function hasFinePointer() {
-        return !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+    function isMobileUserAgent() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent);
     }
 
-    function isTouchOnlyDevice() {
-        const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
-        return hasTouch && !hasFinePointer();
+    function hasFinePointer() {
+        if (window.matchMedia) {
+            if (window.matchMedia('(any-pointer: fine)').matches || window.matchMedia('(pointer: fine)').matches) {
+                return true;
+            }
+        }
+        return !isMobileUserAgent();
     }
 
     function isMobileDevice() {
-        if (hasFinePointer()) return false;
-        return isTouchOnlyDevice() || width <= 768;
+        if (!isMobileUserAgent() && hasFinePointer()) {
+            return false;
+        }
+        return isMobileUserAgent();
     }
 
     function shouldShowCyberKeyboard() {
-        return isTouchOnlyDevice() || (isMobileDevice() && width <= 600);
+        // Laptops and desktops (Windows, Mac, Linux) have physical keyboards, never auto-show virtual keys
+        if (!isMobileUserAgent()) {
+            return false;
+        }
+        return true;
     }
 
     function isCyberKbActive() {
         const kb = document.getElementById('cyberKeyboard');
-        return shouldShowCyberKeyboard() && kb && kb.classList.contains('active') && !kb.classList.contains('hidden');
+        return kb && kb.classList.contains('active') && !kb.classList.contains('hidden');
     }
 
     function getBaseCameraZoom() {
@@ -524,7 +536,38 @@
         return 170;
     }
 
+    function resizeCanvas() {
+        width = window.innerWidth || document.documentElement.clientWidth || 980;
+        height = window.innerHeight || document.documentElement.clientHeight || 680;
+        if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+        }
+        targetCameraZoom = getBaseCameraZoom();
+        cameraZoom = targetCameraZoom;
+        if (runner && walls && walls.length > 0) {
+            targetCameraY = runner.y - getIdealRunnerScreenY();
+            cameraY = targetCameraY;
+            targetCameraX = runner.x - width * 0.35;
+            cameraX = targetCameraX;
+        }
+        updateButtonPrompts();
+        const kb = document.getElementById('cyberKeyboard');
+        if (kb) {
+            if (shouldShowCyberKeyboard()) {
+                kb.classList.add('active');
+            } else {
+                kb.classList.remove('active');
+            }
+        }
+    }
+
     function initWalls() {
+        width = window.innerWidth || document.documentElement.clientWidth || 980;
+        height = window.innerHeight || document.documentElement.clientHeight || 680;
+        canvas.width = width;
+        canvas.height = height;
+
         walls = [];
         let currentX = 120;
         const groundY = height * 0.65;
@@ -1715,7 +1758,9 @@
             }
         }
 
+        resizeCanvas();
         initWalls();
+        resizeCanvas();
         setNextWord(false);
     }
 
@@ -1729,30 +1774,24 @@
             }
         }
 
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            targetCameraZoom = getBaseCameraZoom();
-            targetCameraY = runner.y - getIdealRunnerScreenY();
-            targetCameraX = runner.x - width * 0.35;
-            updateButtonPrompts();
-            const kb = document.getElementById('cyberKeyboard');
-            if (kb) {
-                if (shouldShowCyberKeyboard()) {
-                    kb.classList.add('active');
-                } else {
-                    kb.classList.remove('active');
-                }
-            }
-        });
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
+        window.addEventListener('load', resizeCanvas);
 
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
-                targetCameraY = runner.y - getIdealRunnerScreenY();
+                resizeCanvas();
             });
         }
+
+        window.addEventListener('message', (e) => {
+            if (e.data && (e.data.type === 'RESIZE_CANVAS' || e.data.type === 'FULLSCREEN_CHANGE')) {
+                resizeCanvas();
+                if (e.data.type === 'FULLSCREEN_CHANGE') {
+                    updateFsBtnUI(!!e.data.isFullscreen);
+                }
+            }
+        });
 
         document.getElementById('game-container').addEventListener('click', () => {
             window.focus();
@@ -1999,7 +2038,7 @@
             hideBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 kb.classList.toggle('hidden');
-                targetCameraY = runner.y - getIdealRunnerScreenY();
+                resizeCanvas();
             });
         }
 
@@ -2010,7 +2049,7 @@
                 e.stopPropagation();
                 kb.classList.add('hidden');
                 if (mobileInput) mobileInput.focus();
-                targetCameraY = runner.y - getIdealRunnerScreenY();
+                resizeCanvas();
             });
         }
 
@@ -2018,8 +2057,13 @@
         if (mobileTouchKbToggleBtn) {
             mobileTouchKbToggleBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                kb.classList.toggle('hidden');
-                targetCameraY = runner.y - getIdealRunnerScreenY();
+                if (kb.classList.contains('active') && !kb.classList.contains('hidden')) {
+                    kb.classList.add('hidden');
+                } else {
+                    kb.classList.add('active');
+                    kb.classList.remove('hidden');
+                }
+                resizeCanvas();
             });
         }
 
@@ -2061,10 +2105,13 @@
     // -------------------------------------------------------------------------
     // 12. INITIALIZATION
     // -------------------------------------------------------------------------
+    resizeCanvas();
     initHoverCars();
     initEmbers();
     initListeners();
     initWalls();
+    resizeCanvas();
     requestAnimationFrame(gameLoop);
+    requestAnimationFrame(resizeCanvas);
 
 })();
