@@ -81,18 +81,15 @@ Every single feature, page, modal, and game **must be tested on mobile viewport 
 
 Sonora is Arcade Hub's integrated music streaming engine. Because browser audio policies and YouTube embeds are fragile, **the following rules are strictly mandatory**:
 
-### 4.1 The Single Player Instance Rule (Zero Double Audio)
+### 4.1 Single Player Instance & Zero Floating Clutter
 * **Never create more than one YouTube player or audio stream at any time.**
-* When the user clicks the "Home" icon in Sonora or browses Arcade Hub, Sonora does **NOT** unload. Instead, it activates the in-app overlay (`#sonora-hub-overlay` with `index.html?in_sonora=1`).
-* Sonora's original minimized player (`.player-pane.is-video-minimized .video-player-container`) floats above the overlay at `z-index: 99999 !important`.
+* **Mini Player Scoped to Sonora Only**: The video minimize (`🗗 Mini`) feature is strictly designed for `sonora.html` so users can browse playlists within Sonora.
+* **Clean Background Playback on Other Pages**: When browsing the Home screen or playing games via Sonora's in-app hub overlay (`#sonora-hub-overlay` with `index.html?in_sonora=1`), **NO floating mini-player is rendered**. Music plays seamlessly in the background, and the top bar displays `← Back to Sonora` | `🎵 Playing in Background`, leaving the entire screen clean and unobstructed for games.
 
-### 4.2 Global Mini Player Quarantine (`shared/global-sonora.js`)
-* `shared/global-sonora.js` creates a standalone floating mini-player for users who browse Arcade Hub outside of Sonora.
-* **Strict Rule**: `global-sonora.js` **MUST NEVER** create a mini-player (`#arcade-global-sonora`) if:
-  1. The page is running inside an iframe (`window.self !== window.top` or `window.parent !== window`).
-  2. The URL query contains `in_sonora=1`.
-  3. Sonora is already actively playing in another tab (`isSonoraActiveElsewhere()` heartbeat).
-* If any of these conditions are true, `global-sonora.js` must **exit immediately (`return;`)** without rendering any player or listening to storage events.
+### 4.2 Seamless Navigation Shield (`shared/global-sonora.js`)
+* `shared/global-sonora.js` functions strictly as a navigation shield for background playback.
+* It ensures clicks on "Back to Sonora" or game exit buttons smoothly switch context without ever interrupting the background YouTube audio.
+* It must **NEVER** instantiate floating video players, secondary iframes, or mini widgets on any external page.
 
 ### 4.3 Lock Screen & Background Playback
 * Sonora maintains an active `navigator.mediaSession` with artwork, title, artist, and handlers (`play`, `pause`, `nexttrack`, `previoustrack`, `seekto`).

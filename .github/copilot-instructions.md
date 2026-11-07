@@ -16,8 +16,9 @@ When working on this codebase, you must strictly adhere to the project's archite
    - Touch targets must be at least 44x44px.
 4. **Sonora Music Engine & Audio Architecture**:
    - **Zero Double Audio**: Never instantiate more than one YouTube player or audio stream at once.
+   - **Mini Player Scoped to Sonora**: The floating mini player is strictly for `sonora.html`. External pages/games play audio in the background with zero floating video window.
    - Background Hub browsing is managed via Sonora's in-app overlay (`#sonora-hub-overlay` with `index.html?in_sonora=1`).
-   - `shared/global-sonora.js` must NEVER create `#arcade-global-sonora` if running inside an iframe (`window.self !== window.top`), or if `in_sonora=1` is present, or if Sonora is active elsewhere (`sonora_tab_active`).
+   - `shared/global-sonora.js` functions strictly as a navigation shield and must never spawn floating players or iframes.
 5. **Deployment & Cache Management**:
    - Whenever editing a `.js` or `.css` file, bump its query string in HTML tags (e.g. `?v=...`).
    - Always increment `CACHE_NAME` in `sw.js` (e.g. `arcade-hub-cache-v312` -> `v313`).
