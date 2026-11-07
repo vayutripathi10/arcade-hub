@@ -111,7 +111,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="hub-style.css?v=2">
+    <link rel="stylesheet" href="hub-style.css?v=3">
 
     <style>
         .retro-card {
@@ -155,6 +155,37 @@
 </head>
 
 <body>
+
+    <!-- Sonora Music Promotion Banner (Top Bar - 10s Auto-Dismiss) -->
+    <div id="sonora-promo-banner" class="sonora-promo-banner" role="banner" aria-label="Sonora Music Promotion">
+        <div class="sonora-promo-progress" id="sonoraPromoProgress"></div>
+        <div class="sonora-promo-inner">
+            <a href="sonora" class="sonora-promo-main-link" title="Open Sonora Music">
+                <div class="sonora-promo-eq" aria-hidden="true">
+                    <span class="sonora-eq-bar"></span>
+                    <span class="sonora-eq-bar"></span>
+                    <span class="sonora-eq-bar"></span>
+                    <span class="sonora-eq-bar"></span>
+                    <span class="sonora-eq-bar"></span>
+                </div>
+                <div class="sonora-promo-text">
+                    <div class="sonora-promo-title-row">
+                        <span class="sonora-promo-badge">SPOTLIGHT</span>
+                        <strong class="sonora-promo-title">Stream Unlimited Music on Sonora 🎧</strong>
+                    </div>
+                    <span class="sonora-promo-sub">Listen to ad-free music in the background while playing games!</span>
+                </div>
+            </a>
+            <div class="sonora-promo-actions">
+                <a href="sonora" class="sonora-promo-cta">
+                    <span>Open Sonora</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </a>
+                <button type="button" class="sonora-promo-close" id="sonoraPromoClose" title="Dismiss Banner" aria-label="Dismiss Banner">✕</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Hamburger Menu Button -->
     <button id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle Menu">
         <span></span>
@@ -830,6 +861,57 @@
     </script>
     <!-- PWA Service Worker & Install Prompt Registration -->
     <script src="shared/pwa-setup.js?v=325"></script>
+
+    <!-- Sonora Music Promo Banner 10-Second Auto-Dismiss Controller -->
+    <script>
+        (function initSonoraPromoBanner() {
+            const banner = document.getElementById('sonora-promo-banner');
+            const progressBar = document.getElementById('sonoraPromoProgress');
+            const closeBtn = document.getElementById('sonoraPromoClose');
+            if (!banner || !progressBar) return;
+
+            document.body.classList.add('has-sonora-banner');
+
+            const DURATION = 10000; // 10 seconds
+            const startTime = Date.now();
+            let animFrameId = null;
+
+            function updateProgress() {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, DURATION - elapsed);
+                const pct = (remaining / DURATION) * 100;
+                progressBar.style.width = pct + '%';
+
+                if (remaining > 0 && !banner.classList.contains('sonora-promo-hidden')) {
+                    animFrameId = requestAnimationFrame(updateProgress);
+                } else {
+                    dismissBanner();
+                }
+            }
+
+            function dismissBanner() {
+                if (animFrameId) cancelAnimationFrame(animFrameId);
+                banner.classList.add('sonora-promo-hidden');
+                document.body.classList.remove('has-sonora-banner');
+                setTimeout(() => {
+                    if (banner && banner.parentNode) {
+                        banner.remove();
+                    }
+                }, 500);
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dismissBanner();
+                });
+            }
+
+            animFrameId = requestAnimationFrame(updateProgress);
+        })();
+    </script>
+
 </body>
 
 </html>
