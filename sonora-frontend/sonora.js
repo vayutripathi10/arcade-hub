@@ -1759,8 +1759,9 @@
                 toggleMiniPlayer();
             }
 
-            if (!frame.src || frame.src === 'about:blank' || !frame.src.includes(targetUrl)) {
-                frame.src = targetUrl;
+            const cleanTarget = targetUrl.includes('?') ? `${targetUrl}&in_sonora=1` : `${targetUrl}?in_sonora=1`;
+            if (!frame.src || frame.src === 'about:blank' || !frame.src.includes('in_sonora=1')) {
+                frame.src = cleanTarget;
             }
 
             overlay.removeAttribute('hidden');
@@ -2397,6 +2398,20 @@
                 if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = track.title;
                 if (DOM.nowPlayingSub) DOM.nowPlayingSub.textContent = 'Last played · tap the player to resume';
             }
+        });
+
+        // Sonora presence heartbeat to ensure no secondary mini players are created in other tabs or frames
+        setInterval(() => {
+            if (STATE.activeTrack && STATE.activeVideoId) {
+                try {
+                    localStorage.setItem('sonora_tab_active', String(Date.now()));
+                } catch {}
+            }
+        }, 2000);
+        window.addEventListener('beforeunload', () => {
+            try {
+                localStorage.removeItem('sonora_tab_active');
+            } catch {}
         });
     });
 })();

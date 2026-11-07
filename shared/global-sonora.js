@@ -16,13 +16,23 @@
     const isSubfolder = pathname.includes('-frontend/') || pathname.includes('/blog/');
     const sonoraUrl = isSubfolder ? '../sonora.html' : 'sonora.html';
 
-    // 0. Detect if running inside any iframe / embedded sub-window
+    // 0. Detect if running inside any iframe / embedded sub-window or Sonora Hub
     let isInsideIframe = false;
     try {
-        isInsideIframe = (window.self !== window.top);
+        isInsideIframe = (window.self !== window.top) || (window.parent !== window);
     } catch (e) {
         isInsideIframe = true;
     }
+
+    const isSonoraParam = window.location.search.includes('in_sonora=1');
+    const isSonoraActiveElsewhere = () => {
+        try {
+            const lastActive = Number(localStorage.getItem('sonora_tab_active') || 0);
+            return (Date.now() - lastActive < 4000);
+        } catch {
+            return false;
+        }
+    };
 
     // 1. SEAMLESS NAVIGATION SHIELD
     // When running inside Sonora's background in-app hub browser overlay (#sonora-hub-frame),
@@ -55,7 +65,7 @@
     }
 
     const sonoraFrame = getSonoraFrame();
-    if (sonoraFrame || isInsideIframe) {
+    if (sonoraFrame || isInsideIframe || isSonoraParam) {
         if (sonoraFrame) {
             const protectNavigation = () => {
                 // A. Intercept links pointing to Sonora -> smoothly switch back to Sonora full player
@@ -141,6 +151,9 @@
     // 2. STANDALONE GLOBAL MINI PLAYER
     // For when Arcade Hub is browsed outside Sonora's persistent frame
     function isMiniActive() {
+        if (isInsideIframe || isSonoraParam || isSonoraActiveElsewhere()) {
+            return false;
+        }
         return localStorage.getItem('sonora_mini_active') === 'true';
     }
 
@@ -476,7 +489,7 @@
     // React to storage changes from Sonora in other tabs/windows
     window.addEventListener('storage', (e) => {
         if (e.key === 'sonora_mini_active') {
-            if (e.newValue === 'true') {
+            if (e.newValue === 'true' && isMiniActive()) {
                 createGlobalPlayer();
             } else {
                 const existing = document.getElementById('arcade-global-sonora');
