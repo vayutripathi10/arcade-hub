@@ -1754,10 +1754,6 @@
             const frame = document.getElementById('sonora-hub-frame');
             if (!overlay || !frame) return;
 
-            // Automatically enter mini player mode so the video floats over the hub
-            if (DOM.playerPane && !DOM.playerPane.classList.contains('is-video-minimized')) {
-                toggleMiniPlayer();
-            }
 
             const cleanTarget = targetUrl.includes('?') ? `${targetUrl}&in_sonora=1` : `${targetUrl}?in_sonora=1`;
             if (!frame.src || frame.src === 'about:blank' || !frame.src.includes('in_sonora=1')) {
@@ -1765,7 +1761,7 @@
             }
 
             overlay.removeAttribute('hidden');
-            showToast('Browsing Arcade Hub 🎮 (Music playing in corner!)');
+            showToast('Browsing Arcade Hub 🎮 (Music playing in background!)');
         }
 
         function closeHubBrowser() {

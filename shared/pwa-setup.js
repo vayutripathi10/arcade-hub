@@ -223,7 +223,7 @@ function showIOSInstallModal() {
                       window.location.pathname.includes('/blog/');
         const script = document.createElement('script');
         script.id = 'global-sonora-script';
-        script.src = isSub ? '../shared/global-sonora.js?v=20' : 'shared/global-sonora.js?v=20';
+        script.src = isSub ? '../shared/global-sonora.js?v=25' : 'shared/global-sonora.js?v=25';
         script.defer = true;
         document.head.appendChild(script);
     }
