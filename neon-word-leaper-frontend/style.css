@@ -624,7 +624,7 @@ canvas#gameCanvas {
     touch-action: manipulation;
 }
 
-.cyber-keyboard.active {
+.cyber-keyboard.active:not(.hidden) {
     display: flex;
 }
 
@@ -828,6 +828,9 @@ canvas#gameCanvas {
         margin-top: 1px;
     }
     .cyber-keyboard {
+        display: none;
+    }
+    .cyber-keyboard.active:not(.hidden) {
         display: flex;
     }
     .mobile-controls-bar {
@@ -836,12 +839,29 @@ canvas#gameCanvas {
 }
 
 @media (max-width: 480px) {
+    .cyber-keyboard {
+        padding: 4px 3px calc(4px + env(safe-area-inset-bottom, 4px));
+        gap: 4px;
+    }
     .cyber-key {
-        height: 40px;
-        font-size: 1.05rem;
+        height: 38px;
+        font-size: 0.98rem;
         border-radius: 7px;
+    }
+    .key-action {
+        height: 34px;
+        font-size: 0.68rem;
     }
     .cyber-kb-row {
         gap: 3px;
+    }
+    .mobile-controls-bar {
+        bottom: 4px;
+        right: 4px;
+        gap: 4px;
+    }
+    .mobile-control-pill {
+        padding: 4px 8px;
+        font-size: 0.68rem;
     }
 }

@@ -22,7 +22,7 @@
         .play-root { background-color: #06070a; color: #cbd5e1; font-family: 'Outfit', sans-serif; height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
         .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 20px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
-        .play-console-holder { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 12px; }
+        .play-console-holder { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 12px; }
         .play-console { 
             width: 100%; 
             height: 750px; 
@@ -37,6 +37,43 @@
         }
         .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
         .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .fullscreen-exit-btn {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 9999999;
+            background: rgba(13, 14, 18, 0.88);
+            border: 2px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 999px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 14px rgba(0, 255, 204, 0.4);
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .play-console:fullscreen .fullscreen-exit-btn,
+        .play-console:-webkit-full-screen .fullscreen-exit-btn,
+        .play-console.css-fullscreen-active .fullscreen-exit-btn {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+        }
+        .fullscreen-exit-btn:hover,
+        .fullscreen-exit-btn:active {
+            background: #00ffcc;
+            color: #06070a;
+            box-shadow: 0 0 22px #00ffcc;
+            transform: scale(1.04);
+        }
         .play-iframe { width: 100%; height: 100%; border: none; display: block; }
         .console-actions { display: flex; justify-content: flex-end; }
         .fullscreen-btn {
@@ -216,7 +253,10 @@
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
                     <div class="play-console" id="playConsoleContainer">
-                        <iframe src="neon-word-leaper-frontend/index.html?v=ArcadeHub_WordLeaper_v6" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
+                        <button type="button" class="fullscreen-exit-btn" id="fsExitBtn" onclick="toggleFullscreen()" aria-label="Exit Fullscreen Mode">
+                            ✕ <span>Exit Fullscreen</span>
+                        </button>
+                        <iframe src="neon-word-leaper-frontend/index.html?v=ArcadeHub_WordLeaper_v7" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle Fullscreen Mode">
@@ -276,27 +316,59 @@
         // Fullscreen Toggle
         function toggleFullscreen() {
             const container = document.getElementById('playConsoleContainer');
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || container.classList.contains('css-fullscreen-active'));
+            if (!isFS) {
                 if (container.requestFullscreen) {
-                    container.requestFullscreen();
+                    container.requestFullscreen().catch(() => toggleCssFullscreen(container));
                 } else if (container.webkitRequestFullscreen) {
                     container.webkitRequestFullscreen();
                 } else {
                     toggleCssFullscreen(container);
                 }
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                }
+                if (container.classList.contains('css-fullscreen-active')) {
+                    toggleCssFullscreen(container);
                 }
             }
+            setTimeout(updateFullscreenState, 100);
         }
 
         function toggleCssFullscreen(container) {
             container.classList.toggle('css-fullscreen-active');
             document.body.classList.toggle('css-fullscreen-open');
+            updateFullscreenState();
         }
+
+        function updateFullscreenState() {
+            const container = document.getElementById('playConsoleContainer');
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || (container && container.classList.contains('css-fullscreen-active')));
+            const bottomBtn = document.getElementById('fullscreen-btn');
+            if (bottomBtn) {
+                bottomBtn.innerHTML = isFS ? '<span>✕ Exit Fullscreen</span>' : '<span>⛶ Fullscreen</span>';
+            }
+            try {
+                const iframe = document.getElementById('gameIframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'FULLSCREEN_CHANGE', isFullscreen: isFS }, '*');
+                }
+            } catch(e) {}
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenState);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'TOGGLE_FULLSCREEN') {
+                toggleFullscreen();
+            }
+        });
+        window.toggleFullscreen = toggleFullscreen;
 
         // Sidebar Navigation Toggle
         document.addEventListener('DOMContentLoaded', () => {

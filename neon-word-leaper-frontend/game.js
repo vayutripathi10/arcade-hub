@@ -473,25 +473,55 @@
         }
     }
 
+    function hasFinePointer() {
+        return !!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+    }
+
+    function isTouchOnlyDevice() {
+        const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+        return hasTouch && !hasFinePointer();
+    }
+
     function isMobileDevice() {
-        return width <= 768 || window.innerHeight < 600 || ('ontouchstart' in window);
+        if (hasFinePointer()) return false;
+        return isTouchOnlyDevice() || width <= 768;
+    }
+
+    function shouldShowCyberKeyboard() {
+        return isTouchOnlyDevice() || (isMobileDevice() && width <= 600);
     }
 
     function isCyberKbActive() {
         const kb = document.getElementById('cyberKeyboard');
-        return isMobileDevice() && kb && kb.classList.contains('active') && !kb.classList.contains('hidden');
+        return shouldShowCyberKeyboard() && kb && kb.classList.contains('active') && !kb.classList.contains('hidden');
+    }
+
+    function getBaseCameraZoom() {
+        if (width < 450) {
+            return Math.max(0.68, width / 550);
+        } else if (width < 768) {
+            return 0.82;
+        } else if (width < 980) {
+            return 0.92;
+        }
+        return 1.0;
     }
 
     function getIdealRunnerScreenY() {
         if (isCyberKbActive()) {
-            // Keep runner centered in clear middle view between top word pill and bottom touch keyboard
-            return height * 0.42;
+            const kb = document.getElementById('cyberKeyboard');
+            const kbH = (kb && kb.offsetHeight > 0) ? kb.offsetHeight : (height < 600 ? 170 : 210);
+            const topH = 80;
+            return topH + Math.max(120, height - kbH - topH) * 0.52;
         }
-        return isMobileDevice() ? height * 0.45 : height * 0.52;
+        return isMobileDevice() ? height * 0.48 : height * 0.52;
     }
 
     function getIdealJumpArcHeight() {
-        return isMobileDevice() ? 85 : 170;
+        if (isMobileDevice() || width < 768) {
+            return Math.min(110, height * 0.22);
+        }
+        return 170;
     }
 
     function initWalls() {
@@ -515,8 +545,8 @@
         targetCameraX = cameraX;
         cameraY = runner.y - getIdealRunnerScreenY();
         targetCameraY = cameraY;
-        cameraZoom = 1.0;
-        targetCameraZoom = 1.0;
+        cameraZoom = getBaseCameraZoom();
+        targetCameraZoom = cameraZoom;
         cameraRoll = 0;
         targetCameraRoll = 0;
 
@@ -878,7 +908,7 @@
 
                 targetCameraX = runner.x - width * 0.35;
                 targetCameraY = runner.y - getIdealRunnerScreenY();
-                targetCameraZoom = 1.0;
+                targetCameraZoom = getBaseCameraZoom();
                 targetCameraRoll = 0;
                 speedLines = [];
 
@@ -902,12 +932,12 @@
                 // Cinematic Dynamic Camera: Follow runner and peak altitude cleanly
                 targetCameraX = runner.x - width * 0.35;
                 targetCameraY = runner.y - getIdealRunnerScreenY() - heightOffset * 0.22;
-                targetCameraZoom = 1.0 + Math.sin(p * Math.PI) * (isMobileDevice() ? 0.08 : 0.14);
+                targetCameraZoom = getBaseCameraZoom() * (1.0 + Math.sin(p * Math.PI) * (isMobileDevice() ? 0.08 : 0.14));
                 targetCameraRoll = Math.sin(p * Math.PI * 2) * 0.03;
             }
         } else if (runner.state === 'LANDING') {
             runner.landingTimer -= dt;
-            targetCameraZoom = 1.0;
+            targetCameraZoom = getBaseCameraZoom();
             targetCameraRoll = 0;
             targetCameraY = runner.y - getIdealRunnerScreenY();
             if (runner.landingTimer <= 0) {
@@ -918,7 +948,7 @@
             runner.y += runner.vy;
             runner.vy += 26 * dt;
             runner.angle += 8 * dt;
-            targetCameraZoom = 0.95;
+            targetCameraZoom = getBaseCameraZoom() * 0.95;
 
             if (runner.y > height + 80) {
                 if (lives > 0) {
@@ -936,7 +966,7 @@
                 gameState = 'PLAYING';
             }
         } else if (runner.state === 'IDLE') {
-            targetCameraZoom = 1.0;
+            targetCameraZoom = getBaseCameraZoom();
             targetCameraRoll = 0;
             targetCameraX = runner.x - width * 0.35;
             targetCameraY = runner.y - getIdealRunnerScreenY();
@@ -958,7 +988,7 @@
         createSparks(runner.x, runner.y - 25, STAGE_CONFIGS[currentStage].theme.primary, 30);
         screenShake = 8;
         targetCameraY = runner.y - getIdealRunnerScreenY();
-        targetCameraZoom = 1.0;
+        targetCameraZoom = getBaseCameraZoom();
         targetCameraRoll = 0;
 
         // Reset scarf
@@ -1676,9 +1706,13 @@
         document.querySelectorAll('.overlay').forEach(o => o.classList.remove('active'));
         document.getElementById('word-hud-container').style.display = 'flex';
 
-        if (isMobileDevice()) {
-            const kb = document.getElementById('cyberKeyboard');
-            if (kb) kb.classList.add('active');
+        const kb = document.getElementById('cyberKeyboard');
+        if (kb) {
+            if (shouldShowCyberKeyboard()) {
+                kb.classList.add('active');
+            } else {
+                kb.classList.remove('active');
+            }
         }
 
         initWalls();
@@ -1700,11 +1734,18 @@
             height = window.innerHeight;
             canvas.width = width;
             canvas.height = height;
+            targetCameraZoom = getBaseCameraZoom();
             targetCameraY = runner.y - getIdealRunnerScreenY();
             targetCameraX = runner.x - width * 0.35;
             updateButtonPrompts();
             const kb = document.getElementById('cyberKeyboard');
-            if (kb && isMobileDevice()) kb.classList.add('active');
+            if (kb) {
+                if (shouldShowCyberKeyboard()) {
+                    kb.classList.add('active');
+                } else {
+                    kb.classList.remove('active');
+                }
+            }
         });
 
         if (window.visualViewport) {
@@ -1812,6 +1853,57 @@
             sound.init();
             sound.muted = !sound.muted;
             soundBtn.innerText = sound.muted ? '🔇' : '🔊';
+        });
+
+        // In-HUD Fullscreen Toggle & Synced State
+        const fsBtn = document.getElementById('fsBtn');
+        function updateFsBtnUI(isFS) {
+            if (fsBtn) {
+                fsBtn.innerText = isFS ? '✕' : '⛶';
+                fsBtn.title = isFS ? 'Exit Fullscreen' : 'Enter Fullscreen';
+                fsBtn.setAttribute('aria-label', fsBtn.title);
+            }
+        }
+
+        function toggleGameFullscreen() {
+            try {
+                if (window.parent && window.parent !== window && typeof window.parent.toggleFullscreen === 'function') {
+                    window.parent.toggleFullscreen();
+                    return;
+                }
+            } catch(e) {}
+            try {
+                window.parent.postMessage({ type: 'TOGGLE_FULLSCREEN' }, '*');
+            } catch(e) {}
+
+            const elem = document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+
+        if (fsBtn) {
+            fsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleGameFullscreen();
+            });
+        }
+
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'FULLSCREEN_CHANGE') {
+                updateFsBtnUI(!!e.data.isFullscreen);
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            updateFsBtnUI(!!(document.fullscreenElement || document.webkitFullscreenElement));
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            updateFsBtnUI(!!(document.fullscreenElement || document.webkitFullscreenElement));
         });
 
         const mobileInput = document.getElementById('mobileInput');
@@ -1931,8 +2023,10 @@
             });
         }
 
-        if (isMobileDevice()) {
+        if (shouldShowCyberKeyboard()) {
             kb.classList.add('active');
+        } else {
+            kb.classList.remove('active');
         }
     }
 
