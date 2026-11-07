@@ -151,10 +151,7 @@
     // 2. STANDALONE GLOBAL MINI PLAYER
     // For when Arcade Hub is browsed outside Sonora's persistent frame
     function isMiniActive() {
-        if (isInsideIframe || isSonoraParam || isSonoraActiveElsewhere()) {
-            return false;
-        }
-        return localStorage.getItem('sonora_mini_active') === 'true';
+        return false;
     }
 
     function getActiveTrack() {
@@ -337,9 +334,9 @@
     }
 
     function createGlobalPlayer() {
-        if (document.getElementById('arcade-global-sonora')) return;
-        const videoId = getActiveVideoId();
-        if (!videoId) return;
+        const existing = document.getElementById('arcade-global-sonora');
+        if (existing) existing.remove();
+        return;
 
         const track = getActiveTrack();
         injectStyles();
@@ -477,24 +474,17 @@
     }
 
     function init() {
-        if (isMiniActive()) {
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', createGlobalPlayer);
-            } else {
-                createGlobalPlayer();
-            }
-        }
+        const existing = document.getElementById('arcade-global-sonora');
+        if (existing) existing.remove();
+        try {
+            localStorage.removeItem('sonora_mini_active');
+        } catch {}
     }
 
-    // React to storage changes from Sonora in other tabs/windows
     window.addEventListener('storage', (e) => {
         if (e.key === 'sonora_mini_active') {
-            if (e.newValue === 'true' && isMiniActive()) {
-                createGlobalPlayer();
-            } else {
-                const existing = document.getElementById('arcade-global-sonora');
-                if (existing) existing.remove();
-            }
+            const existing = document.getElementById('arcade-global-sonora');
+            if (existing) existing.remove();
         }
     });
 
