@@ -3,6 +3,7 @@
   <!-- Root Pages -->
   <url>
     <loc>https://arcadehubplay.com/</loc>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -28,13 +29,15 @@
   </url>
   <url>
     <loc>https://arcadehubplay.com/pdf-tools</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-11-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://arcadehubplay.com/utility-hub</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <lastmod>2026-11-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://arcadehubplay.com/tos</loc>
@@ -289,8 +292,8 @@
   </url>
   <url>
     <loc>https://arcadehubplay.com/sonora</loc>
-    <lastmod>2026-11-02</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.95</priority>
   </url>
 </urlset>

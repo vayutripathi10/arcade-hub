@@ -15,7 +15,7 @@
     const MODE_KEY = 'sonora-player-mode';
     const PLAYLISTS_KEY = 'sonora-custom-playlists';
     const CLEAN_INIT_KEY = 'sonora-clean-init-v2';
-    const DEFAULT_SEED_KEY = 'sonora-default-seed-v6';
+    const DEFAULT_SEED_KEY = 'sonora-default-seed-v8';
 
     const DEFAULT_SONGS = [
         {
@@ -156,10 +156,116 @@
             videos: [{ ...DEFAULT_SONGS[8] }]
         },
         {
-            id: 'default-karan-aujla',
-            name: 'Karan Aujla',
-            videos: [{ ...DEFAULT_SONGS[9] }, { ...DEFAULT_SONGS[10] }]
-        },
+        id: "default-karan-aujla",
+        name: "Karan Aujla Hits",
+        videos: [
+                {
+                        id: "yt-LK7-_dgAVQE",
+                        videoId: "LK7-_dgAVQE",
+                        category: "Karan Aujla Hits",
+                        title: "Tauba Tauba · Bad Newz | Karan Aujla | Vicky Kaushal",
+                        thumbnail: "https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg"
+                },
+                {
+                        id: "yt-cWMxCE2HTag",
+                        videoId: "cWMxCE2HTag",
+                        category: "Karan Aujla Hits",
+                        title: "Softly · Karan Aujla | Ikky | Making Memories",
+                        thumbnail: "https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg"
+                },
+                {
+                        id: "yt-wGiaxBbGQk4",
+                        videoId: "wGiaxBbGQk4",
+                        category: "Karan Aujla Hits",
+                        title: "Winning Speech · Karan Aujla | Latest Punjabi Hit",
+                        thumbnail: "https://i.ytimg.com/vi/wGiaxBbGQk4/hqdefault.jpg"
+                },
+                {
+                        id: "yt-k85UB5b6pJU",
+                        videoId: "k85UB5b6pJU",
+                        category: "Karan Aujla Hits",
+                        title: "Admirin' You · Karan Aujla | Ikky | Making Memories",
+                        thumbnail: "https://i.ytimg.com/vi/k85UB5b6pJU/hqdefault.jpg"
+                },
+                {
+                        id: "yt-BtQp2U6hJII",
+                        videoId: "BtQp2U6hJII",
+                        category: "Karan Aujla Hits",
+                        title: "White Brown Black · Avvy Sra | Karan Aujla | Jaani",
+                        thumbnail: "https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg"
+                },
+                {
+                        id: "yt-4DfVxVeqk2o",
+                        videoId: "4DfVxVeqk2o",
+                        category: "Karan Aujla Hits",
+                        title: "52 Bars · Karan Aujla | Ikky | Four You EP",
+                        thumbnail: "https://i.ytimg.com/vi/4DfVxVeqk2o/hqdefault.jpg"
+                },
+                {
+                        id: "yt-fRJ03btNsao",
+                        videoId: "fRJ03btNsao",
+                        category: "Karan Aujla Hits",
+                        title: "Bachke Bachke · Karan Aujla | Ikky | Punjabi Smash Hit",
+                        thumbnail: "https://i.ytimg.com/vi/fRJ03btNsao/hqdefault.jpg"
+                },
+                {
+                        id: "yt-rXoReWNm8Zo",
+                        videoId: "rXoReWNm8Zo",
+                        category: "Karan Aujla Hits",
+                        title: "Antidote · Karan Aujla | Making Memories",
+                        thumbnail: "https://i.ytimg.com/vi/rXoReWNm8Zo/hqdefault.jpg"
+                },
+                {
+                        id: "yt-CeFQO9MQNqs",
+                        videoId: "CeFQO9MQNqs",
+                        category: "Karan Aujla Hits",
+                        title: "Players · Badshah X Karan Aujla",
+                        thumbnail: "https://i.ytimg.com/vi/CeFQO9MQNqs/hqdefault.jpg"
+                },
+                {
+                        id: "yt-au5uNkCKzaY",
+                        videoId: "au5uNkCKzaY",
+                        category: "Karan Aujla Hits",
+                        title: "God Damn · Badshah X Karan Aujla | Ek Tha Raja",
+                        thumbnail: "https://i.ytimg.com/vi/au5uNkCKzaY/hqdefault.jpg"
+                },
+                {
+                        id: "yt-2sAzb3kraoQ",
+                        videoId: "2sAzb3kraoQ",
+                        category: "Karan Aujla Hits",
+                        title: "Mexico Koka · Karan Aujla | Mahira Sharma",
+                        thumbnail: "https://i.ytimg.com/vi/2sAzb3kraoQ/hqdefault.jpg"
+                },
+                {
+                        id: "yt-o9PY6NsB3_E",
+                        videoId: "o9PY6NsB3_E",
+                        category: "Karan Aujla Hits",
+                        title: "Chitta Kurta · Karan Aujla feat. Gurlez Akhtar",
+                        thumbnail: "https://i.ytimg.com/vi/o9PY6NsB3_E/hqdefault.jpg"
+                },
+                {
+                        id: "yt-6Pd-3nvYDRk",
+                        videoId: "6Pd-3nvYDRk",
+                        category: "Karan Aujla Hits",
+                        title: "Don't Look · Karan Aujla | Rupan Bal | Jay Trak",
+                        thumbnail: "https://i.ytimg.com/vi/6Pd-3nvYDRk/hqdefault.jpg"
+                },
+                {
+                        id: "yt-H4IRWXePhnU",
+                        videoId: "H4IRWXePhnU",
+                        category: "Karan Aujla Hits",
+                        title: "Karan Aujla · All Hits & New Punjabi Songs Collection",
+                        thumbnail: "https://i.ytimg.com/vi/H4IRWXePhnU/hqdefault.jpg"
+                },
+                {
+                        id: "yt-wfyJJBoSwio",
+                        videoId: "wfyJJBoSwio",
+                        category: "Karan Aujla Hits",
+                        title: "Best Of Karan Aujla · Non-Stop Jukebox",
+                        thumbnail: "https://i.ytimg.com/vi/wfyJJBoSwio/hqdefault.jpg"
+                }
+        ]
+},
         {
             id: 'default-midnight-vibes',
             name: 'Midnight Vibes',
@@ -650,7 +756,7 @@
 
     async function loadLibraries() {
         try {
-            const res = await fetch('sonora-frontend/libraries.json?v=5');
+            const res = await fetch('sonora-frontend/libraries.json?v=7');
             if (res.ok) {
                 const parsed = await res.json();
                 STATE.curatedLibraries = Array.isArray(parsed) && parsed.length
