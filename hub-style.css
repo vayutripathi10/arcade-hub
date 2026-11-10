@@ -920,19 +920,46 @@ body::before {
     position: fixed;
     top: 0;
     left: 0;
-    width: 300px;
+    width: 310px;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-right: 1px solid var(--glass-border);
     z-index: 1100;
-    padding: 60px 30px;
+    padding: 30px 20px 40px 24px;
     display: flex;
     flex-direction: column;
     transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 15px 0 35px rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 255, 204, 0.25) transparent;
+}
+
+/* Custom Scrollbar for Sidebar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 204, 0.25);
+    border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 
 .sidebar-nav.active {
@@ -984,11 +1011,12 @@ body::before {
 
 /* Sidebar Contents */
 .sidebar-header {
-    margin-bottom: 30px;
+    margin-bottom: 20px;
+    flex-shrink: 0;
 }
 
 .sidebar-header h2 {
-    font-size: 1.8rem;
+    font-size: 1.7rem;
     font-weight: 700;
     background: linear-gradient(45deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
@@ -1006,21 +1034,23 @@ body::before {
 .sidebar-links {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 8px;
+    padding-bottom: 24px;
 }
 
 .sidebar-link {
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 1.1rem;
+    font-size: 1.02rem;
     font-weight: 600;
-    padding: 12px 20px;
+    padding: 10px 18px;
     border-radius: 12px;
     border: 1px solid transparent;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .sidebar-link:hover {
@@ -1051,6 +1081,7 @@ body.menu-open {
     .sidebar-nav {
         width: 100%;
         max-width: 280px;
+        padding: 24px 16px 36px 18px;
     }
 }
 
@@ -1063,17 +1094,18 @@ body.menu-open {
     background: linear-gradient(135deg, rgba(0, 255, 204, 0.1) 0%, rgba(0, 243, 255, 0.1) 100%);
     border: 1px solid var(--primary);
     color: var(--primary);
-    padding: 12px 20px;
+    padding: 10px 18px;
     border-radius: 12px;
-    font-size: 1.1rem;
+    font-size: 1.02rem;
     font-weight: 700;
     cursor: pointer;
     font-family: 'Outfit', sans-serif;
     transition: all 0.3s ease;
-    margin-top: 20px;
+    margin-top: 10px;
     box-shadow: 0 4px 15px rgba(0, 255, 204, 0.15);
     text-transform: uppercase;
     letter-spacing: 1px;
+    flex-shrink: 0;
 }
 
 .pwa-install-btn:hover {
