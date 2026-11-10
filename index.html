@@ -153,7 +153,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="hub-style.css?v=4">
+    <link rel="stylesheet" href="hub-style.css?v=5">
 
     <style>
         .retro-card {
@@ -258,25 +258,52 @@
     </nav>
 
     <div class="header-container">
+        <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text">Curated Browser Gaming Platform</span>
+        </div>
         <h1 class="main-title">Arcade Hub</h1>
-        <p class="subtitle">Where Classic Games Meet Modern Fun</p>
-    </div>
+        <p class="subtitle">Instant play. Zero downloads. Experience 28+ high-FPS browser arcade games, client-side PDF utilities, and ad-free YouTube music streaming.</p>
 
-    <main class="container">
         <div class="stats-overview">
-            <div class="stat-pill" style="min-width: 150px; justify-content: center;">
+            <div class="stat-pill">
+                <span class="pill-icon">🏆</span>
                 <span class="pill-label">Badges</span>
                 <span class="pill-value" id="badge-count">0/24</span>
             </div>
+            <div class="stat-pill">
+                <span class="pill-icon">⚡</span>
+                <span class="pill-label">Library</span>
+                <span class="pill-value">28 Games</span>
+            </div>
+            <div class="stat-pill">
+                <span class="pill-icon">🚀</span>
+                <span class="pill-label">Refresh</span>
+                <span class="pill-value">120 FPS</span>
+            </div>
         </div>
 
+        <nav class="category-filter-bar" id="categoryFilterBar" aria-label="Game Categories">
+            <button type="button" class="filter-btn active" data-filter="all">🔥 All Games</button>
+            <button type="button" class="filter-btn" data-filter="action">⚡ Action</button>
+            <button type="button" class="filter-btn" data-filter="puzzle">🧠 Puzzle & Logic</button>
+            <button type="button" class="filter-btn" data-filter="arcade">🕹️ Classic Arcade</button>
+            <button type="button" class="filter-btn" data-filter="casual">✨ Casual & Chill</button>
+            <button type="button" class="filter-btn" data-filter="retro">💾 Retro 8-Bit</button>
+        </nav>
+    </div>
 
-        <div class="games-grid">
+    <main class="container">
+
+        <div class="games-grid" id="gamesGrid">
 
             <!-- Daily Quiz (Daily AI Trivia) Card (NEW) -->
-            <a href="play-neon-trivia" class="game-card"
-                style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.45);">
+            <a href="play-neon-trivia" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Trivia & Quiz</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🧠</span> Daily Quiz</h3>
                     <div class="card-video-container">
                         <img src="neon-trivia-frontend/thumbnail.jpg" alt="Daily Quiz"
@@ -288,9 +315,12 @@
             </a>
 
             <!-- Neon Word Leaper Card (NEW) -->
-            <a href="play-neon-word-leaper" class="game-card"
-                style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.45);">
+            <a href="play-neon-word-leaper" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Typing Parkour</span>
+                        <span class="card-rating">★ 5.0</span>
+                    </div>
                     <h3 class="game-title"><span>🏃‍♂️</span> Neon Word Leaper</h3>
                     <div class="card-video-container">
                         <img src="neon-word-leaper-frontend/thumbnail.jpg" alt="Neon Word Leaper"
@@ -302,9 +332,12 @@
             </a>
 
             <!-- Neon Dice Destiny Card -->
-            <a href="play-neon-dice-destiny" class="game-card"
-                style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.45);">
+            <a href="play-neon-dice-destiny" class="game-card" data-category="casual">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">3D Dice & Coin</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>🎲</span> Neon Dice Destiny</h3>
                     <div class="card-video-container">
                         <img src="neon-dice-frontend/thumbnail.jpg" alt="Neon Dice Destiny"
@@ -316,9 +349,12 @@
             </a>
 
             <!-- Neon Arrows Card -->
-            <a href="play-neon-arrows" class="game-card"
-                style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.45);">
+            <a href="play-neon-arrows" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Logic Maze</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🏹</span> Neon Arrows</h3>
                     <div class="card-video-container">
                         <video muted loop playsinline webkit-playsinline preload="none"
@@ -332,9 +368,12 @@
             </a>
 
             <!-- Neon Pin Pull Card -->
-            <a href="play-neon-pin-pull" class="game-card"
-                style="border-color: #ff007f; box-shadow: 0 0 15px rgba(255, 0, 127, 0.45);">
+            <a href="play-neon-pin-pull" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Pin Puzzle</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>📌</span> Neon Pin Pull</h3>
                     <div class="card-video-container">
                         <video muted loop playsinline webkit-playsinline preload="none"
@@ -347,9 +386,12 @@
             </a>
 
             <!-- Neon Cypher Card (NEW) -->
-            <a href="play-neon-cypher" class="game-card"
-                style="border-color: #00ffcc; box-shadow: 0 0 15px rgba(0, 255, 204, 0.45);">
+            <a href="play-neon-cypher" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Cryptic Code</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🔐</span> Neon Cypher</h3>
                     <div class="card-video-container">
                         <video muted loop playsinline webkit-playsinline preload="none"
@@ -362,9 +404,12 @@
             </a>
 
             <!-- Neon Swing Card -->
-            <a href="play-neon-swing" class="game-card"
-                style="border-color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);">
+            <a href="play-neon-swing" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Grapple Physics</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🕸️</span> Neon Swing</h3>
                     <div class="card-video-container">
                         <img src="neon-swing-frontend/thumbnail.jpg" alt="Neon Swing"
@@ -375,9 +420,12 @@
             </a>
 
             <!-- Neon Screws & Bolts Card -->
-            <a href="play-neon-bolts" class="game-card"
-                style="border-color: #ffff00; box-shadow: 0 0 15px rgba(255, 255, 0, 0.4);">
+            <a href="play-neon-bolts" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Spatial Puzzle</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>🔩</span> Neon Screws & Bolts</h3>
                     <div class="card-video-container">
                         <video muted loop playsinline webkit-playsinline preload="none"
@@ -390,9 +438,12 @@
             </a>
 
             <!-- Neon Zen Snake Card (NEW) -->
-            <a href="play-neon-snake" class="game-card"
-                style="border-color: #ff00ea; box-shadow: 0 0 15px rgba(255, 0, 234, 0.45);">
+            <a href="play-neon-snake" class="game-card" data-category="casual">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Zen Snake</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🐍</span> Neon Zen Snake</h3>
                     <div class="card-video-container">
                         <img src="neon-snake-frontend/thumbnail.jpg" alt="Neon Zen Snake"
@@ -403,9 +454,12 @@
             </a>
 
             <!-- Neon Pipes Card (NEW) -->
-            <a href="play-neon-pipes" class="game-card"
-                style="border-color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);">
+            <a href="play-neon-pipes" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Pipe Connect</span>
+                        <span class="card-rating">★ 4.7</span>
+                    </div>
                     <h3 class="game-title"><span>💧</span> Neon Pipes</h3>
                     <div class="card-video-container">
                         <img src="neon-pipes-frontend/thumbnail.jpg" alt="Neon Pipes"
@@ -416,9 +470,12 @@
             </a>
 
             <!-- Neon Helix Drop Card (NEW) -->
-            <a href="play-neon-helix-drop" class="game-card"
-                style="border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+            <a href="play-neon-helix-drop" class="game-card" data-category="casual">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Helix Jump</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>🌀</span> Neon Helix Drop</h3>
                     <div class="card-video-container">
                         <img src="neon-helix-drop-frontend/thumbnail.jpg" alt="Neon Helix Drop"
@@ -429,9 +486,12 @@
             </a>
 
             <!-- Neon Zombie Shooter Card (NEW) -->
-            <a href="play-neon-zombie-shooter" class="game-card"
-                style="border-color: #00ffff; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);">
+            <a href="play-neon-zombie-shooter" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Survival Shooter</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>👾</span> Neon Zombie Shooter</h3>
                     <div class="card-video-container">
                         <img src="neon-zombie-shooter-frontend/thumbnail.jpg" alt="Neon Zombie Shooter"
@@ -442,9 +502,12 @@
             </a>
 
             <!-- Sky Jumper Card -->
-            <a href="play-sky-jumper" class="game-card"
-                style="border-color: #ffe600; box-shadow: 0 0 15px rgba(255, 230, 0, 0.4);">
+            <a href="play-sky-jumper" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Endless Jumper</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>🚀</span> Sky Jumper</h3>
                     <div class="card-video-container">
                         <img src="sky-jumper-frontend/thumbnail.jpg" alt="Sky Jumper"
@@ -455,9 +518,12 @@
             </a>
 
             <!-- Cyber Survivor Card -->
-            <a href="play-cyber-survivor" class="game-card"
-                style="border-color: #ff00ea; box-shadow: 0 0 15px rgba(255, 0, 234, 0.4);">
+            <a href="play-cyber-survivor" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Bullet Heaven</span>
+                        <span class="card-rating">★ 5.0</span>
+                    </div>
                     <h3 class="game-title"><span>👾</span> Cyber Survivor</h3>
                     <div class="card-video-container">
                         <img src="cyber-survivor-frontend/thumbnail.jpg" alt="Cyber Survivor"
@@ -468,9 +534,12 @@
             </a>
 
             <!-- Neon Brick Breaker Card -->
-            <a href="play-neon-brick-breaker" class="game-card"
-                style="border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+            <a href="play-neon-brick-breaker" class="game-card" data-category="arcade">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Breakout Classic</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>💠</span> Neon Brick Breaker</h3>
                     <div class="card-video-container">
                         <img src="neon-brick-breaker-frontend/thumbnail.jpg" alt="Neon Brick Breaker Thumbnail">
@@ -480,9 +549,12 @@
             </a>
 
             <!-- Neon Invaders Card -->
-            <a href="play-neon-invaders" class="game-card"
-                style="border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+            <a href="play-neon-invaders" class="game-card" data-category="arcade">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Space Defense</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>👾</span> Neon Invaders</h3>
                     <div class="card-video-container">
                         <img src="neon-invaders-frontend/thumbnail.jpg" alt="Neon Invaders Thumbnail">
@@ -492,9 +564,12 @@
             </a>
 
             <!-- Neon Brawler Card -->
-            <a href="play-neon-brawler" class="game-card"
-                style="border-color: #ff00ea; box-shadow: 0 0 15px rgba(255, 0, 234, 0.4);">
+            <a href="play-neon-brawler" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Side-Scroller</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>👊</span> Neon Brawler</h3>
                     <div class="card-video-container">
                         <img src="neon-brawler-frontend/thumbnail.jpg" alt="Neon Brawler"
@@ -505,9 +580,12 @@
             </a>
 
             <!-- Stick Duel Towers Card -->
-            <a href="play-stick-duel" class="game-card"
-                style="border-color: #ff0055; box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+            <a href="play-stick-duel" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Stick Duel</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>⚔️</span> Stick Duel Towers</h3>
                     <div class="card-video-container">
                         <img src="stick-duel-frontend/thumbnail.jpg" alt="Stick Duel Towers"
@@ -519,9 +597,12 @@
 
 
             <!-- Neon Space Shooter Card -->
-            <a href="play-space-shooter" class="game-card"
-                style="border-color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);">
+            <a href="play-space-shooter" class="game-card" data-category="arcade">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Retro Arcade</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🚀</span> Neon Space Shooter</h3>
                     <div class="card-video-container">
                         <img src="space-shooter-frontend/thumbnail.jpg" alt="Neon Space Shooter Thumbnail">
@@ -531,9 +612,12 @@
             </a>
 
             <!-- Neon Draw Bridge Card -->
-            <a href="play-neon-drawbridge" class="game-card"
-                style="border-color: #ffe600; box-shadow: 0 0 15px rgba(255, 230, 0, 0.4);">
+            <a href="play-neon-drawbridge" class="game-card" data-category="puzzle">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Bridge Builder</span>
+                        <span class="card-rating">★ 4.7</span>
+                    </div>
                     <h3 class="game-title"><span>🌉</span> Neon Draw Bridge</h3>
                     <div class="card-video-container">
                         <img src="neon-drawbridge-frontend/thumbnail.jpg" alt="Neon Draw Bridge"
@@ -544,9 +628,12 @@
             </a>
 
             <!-- Neon Bottle Shooter Card -->
-            <a href="play-neon-bottle-shooter" class="game-card"
-                style="border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+            <a href="play-neon-bottle-shooter" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Target Shooter</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>🍾</span> Neon Bottle Shooter</h3>
                     <div class="card-video-container">
                         <img src="neon-bottle-shooter-frontend/thumbnail.jpg" alt="Neon Bottle Shooter"
@@ -557,9 +644,12 @@
             </a>
 
             <!-- Neon Flappy Card -->
-            <a href="play-flappy" class="game-card"
-                style="border-color: #ff00ea; box-shadow: 0 0 15px rgba(255, 0, 234, 0.4);">
+            <a href="play-flappy" class="game-card" data-category="arcade">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Precision Tap</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🐦</span> Neon Flappy</h3>
                     <div class="card-video-container">
                         <img src="flappy-frontend/thumbnail.jpg" alt="Neon Flappy"
@@ -572,9 +662,12 @@
 
 
             <!-- Neon Stick Fighter Card -->
-            <a href="play-stick-fighter" class="game-card"
-                style="border-color: #00ff66; box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);">
+            <a href="play-stick-fighter" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Combat Action</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🥷</span> Neon Stick Fighter</h3>
                     <div class="card-video-container">
                         <img src="stick-fighter-frontend/thumbnail.jpg" alt="Neon Stick Fighter"
@@ -585,9 +678,12 @@
             </a>
 
             <!-- Neon Runner Card -->
-            <a href="play-neon-runner" class="game-card"
-                style="border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+            <a href="play-neon-runner" class="game-card" data-category="action">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Speed Runner</span>
+                        <span class="card-rating">★ 4.8</span>
+                    </div>
                     <h3 class="game-title"><span>🏃‍♂️</span> Neon Runner</h3>
                     <div class="card-video-container">
                         <img src="neon-runner-frontend/thumbnail.jpg" alt="Neon Runner"
@@ -597,9 +693,12 @@
                 </div>
             </a>
             <!-- Dino Runner Card -->
-            <a href="play-dino" class="game-card"
-                style="border-color: #8a2be2; box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);">
+            <a href="play-dino" class="game-card" data-category="casual">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Zen Runner</span>
+                        <span class="card-rating">★ 4.9</span>
+                    </div>
                     <h3 class="game-title"><span>🦖</span> Zen Dino</h3>
                     <div class="card-video-container">
                         <img src="dino-frontend/thumbnail.jpg" alt="Zen Dino"
@@ -612,9 +711,12 @@
 
 
             <!-- Tic Tac Toe Card -->
-            <a href="play-tictactoe" class="game-card"
-                style="border-color: #00f3ff; box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);">
+            <a href="play-tictactoe" class="game-card" data-category="casual">
                 <div class="card-content">
+                    <div class="card-meta-row">
+                        <span class="card-tag">Strategy Board</span>
+                        <span class="card-rating">★ 4.7</span>
+                    </div>
                     <h3 class="game-title"><span>⭕</span> Classic Tic Tac Toe</h3>
                     <div class="card-video-container">
                         <img src="tictactoe-frontend/thumbnail.jpg" alt="Classic Tic Tac Toe"
@@ -624,8 +726,7 @@
                 </div>
             </a>
             <!-- Retro Car Race Card -->
-            <a href="play-retro-racer" class="game-card retro-card"
-                style="background: #111; border: 4px inset #666; box-shadow: inset 0 0 10px #000, 4px 4px 0 #000; border-radius: 0;">
+            <a href="play-retro-racer" class="game-card retro-card" data-category="retro">
                 <div class="card-content">
                     <h3 class="game-title"
                         style="font-family: 'Press Start 2P', Courier; color: #0f0; text-shadow: none; font-size: 12px; text-transform: uppercase;">
@@ -642,8 +743,7 @@
             </a>
 
             <!-- Retro Tank Battle Card -->
-            <a href="play-retro-tank-battle" class="game-card retro-card"
-                style="background: #111; border: 4px inset #cc0000; box-shadow: inset 0 0 10px #000, 4px 4px 0 #cc0000; border-radius: 0;">
+            <a href="play-retro-tank-battle" class="game-card retro-card" data-category="retro">
                 <div class="card-content">
                     <h3 class="game-title"
                         style="font-family: 'Press Start 2P', Courier; color: #ff3333; text-shadow: none; font-size: 12px; text-transform: uppercase;">
@@ -952,6 +1052,34 @@
 
             animFrameId = requestAnimationFrame(updateProgress);
         })();
+    </script>
+
+
+    <!-- Category Filter Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const cards = document.querySelectorAll('.games-grid .game-card');
+        if (!filterBtns.length || !cards.length) return;
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.dataset.filter;
+
+                cards.forEach(card => {
+                    const cat = card.dataset.category;
+                    if (filter === 'all' || cat === filter) {
+                        card.style.display = 'flex';
+                        card.style.animation = 'fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
     </script>
 
 </body>
