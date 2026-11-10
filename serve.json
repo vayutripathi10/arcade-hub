@@ -1,0 +1,21 @@
+{
+  "cleanUrls": [
+    "/*",
+    "/blog/**"
+  ],
+  "redirects": [
+    { "source": ":folder([a-z0-9_-]+-frontend)", "destination": "/:folder/index.html" },
+    { "source": ":folder([a-z0-9_-]+-frontend)/", "destination": "/:folder/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "**",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
+  ]
+}
