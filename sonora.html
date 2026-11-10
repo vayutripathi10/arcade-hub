@@ -287,6 +287,9 @@
                     <button class="tab-pill" data-tab="history">
                         📜 <span>History</span> <span class="pill-count" id="history-count">0</span>
                     </button>
+                    <button class="tab-pill" data-tab="guide" title="Sonora Streaming Guide &amp; FAQ">
+                        📖 <span>Guide &amp; FAQ</span>
+                    </button>
                 </div>
 
                 <!-- Tab Panels Area -->
@@ -358,81 +361,88 @@
                         </div>
                         <div class="list-scroll" id="history-list"></div>
                     </div>
+                    <!-- Tab 6: Guide & FAQ (Deep Semantic SSR SEO Content) -->
+                    <div class="tab-panel" id="tab-guide">
+                        <div class="panel-header">
+                            <span class="panel-title">Sonora Streaming Guide &amp; FAQ</span>
+                        </div>
+                        <div class="list-scroll" style="padding: 24px 20px; overflow-y: auto;">
+                            <section class="sonora-seo-panel" style="max-width: 900px; margin: 0 auto; text-align: left;">
+                                <div style="border-bottom: 2px solid #8b5cf6; padding-bottom: 16px; margin-bottom: 24px;">
+                                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; color: #fff; margin: 0 0 8px 0; font-weight: 700;">
+                                        🎵 Sonora: Free Ad-Free YouTube Music Streaming with Background Playback
+                                    </h2>
+                                    <p style="font-size: 0.95rem; color: #94a3b8; margin: 0; line-height: 1.6;">
+                                        Sonora on Arcade Hub is an ad-free web music player engineered for seamless audio streaming. Listen to uninterrupted tracks, build custom playlists, and enjoy background playback on Android, iOS, Windows, and Mac with zero registration.
+                                    </p>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 28px;">
+                                    <article style="padding: 16px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
+                                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #a78bfa; margin: 0 0 8px 0;">
+                                            1. Ad-Free YouTube Music Streaming
+                                        </h3>
+                                        <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                            Enjoy uninterrupted music without mid-roll commercials or banner interruptions. Paste any YouTube watch URL, Shorts link, or youtu.be shortlink into Sonora to start listening instantly.
+                                        </p>
+                                    </article>
+
+                                    <article style="padding: 16px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
+                                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #38bdf8; margin: 0 0 8px 0;">
+                                            2. Continuous Background &amp; Screen-Off Playback
+                                        </h3>
+                                        <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                            Unlike standard mobile browsers that kill audio when you switch tabs or lock your screen, Sonora integrates the HTML5 MediaSession API and silent audio bridges to maintain steady audio playback across tab changes and phone locks.
+                                        </p>
+                                    </article>
+
+                                    <article style="padding: 16px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
+                                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #ec4899; margin: 0 0 8px 0;">
+                                            3. Curated Indian &amp; Global Hit Libraries
+                                        </h3>
+                                        <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                            Explore dedicated libraries including Karan Aujla Hits (Tauba Tauba, Softly, 52 Bars, Winning Speech), Honey Singh Jukebox, Satinder Sartaaj Sufi Classics, 90s Evergreen Bollywood, Road Trip Anthems, and Midnight Vibes.
+                                        </p>
+                                    </article>
+
+                                    <article style="padding: 16px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
+                                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: #10b981; margin: 0 0 8px 0;">
+                                            4. Android Web Share Target PWA Support
+                                        </h3>
+                                        <p style="font-size: 0.86rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
+                                            When installed on Android via Chrome ("Add to Home Screen"), Sonora appears directly in the system share tray. Share any song from the YouTube app to Sonora to automatically add it to your queue and start playing.
+                                        </p>
+                                    </article>
+                                </div>
+
+                                <div style="border-top: 1px solid rgba(139, 92, 246, 0.2); padding-top: 20px;">
+                                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; color: #fff; margin-bottom: 14px;">
+                                        ❓ Frequently Asked Questions (FAQ)
+                                    </h3>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                                        <div>
+                                            <strong style="color: #a78bfa; display: block; font-size: 0.92rem; margin-bottom: 6px;">Q: Is Sonora completely free to use?</strong>
+                                            <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.5; margin: 0;">Yes! Sonora is 100% free with zero fees, zero recurring subscriptions, and zero email signups required.</p>
+                                        </div>
+                                        <div>
+                                            <strong style="color: #a78bfa; display: block; font-size: 0.92rem; margin-bottom: 6px;">Q: How do I export or backup my playlists?</strong>
+                                            <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.5; margin: 0;">Under the 'Saved' tab, click 'Backup' to download a JSON file containing all your saved tracks, custom playlists, and favorites. You can restore it anytime with the 'Restore' button.</p>
+                                        </div>
+                                        <div>
+                                            <strong style="color: #a78bfa; display: block; font-size: 0.92rem; margin-bottom: 6px;">Q: Can I use keyboard controls to pause or skip tracks?</strong>
+                                            <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.5; margin: 0;">Yes. Native lock screen controls, wireless Bluetooth headphone buttons, and hardware media keys (Play, Pause, Next, Previous) are fully integrated via the MediaSession API.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
 
         
-        <!-- SONORA DEEP SEMANTIC SSR SEO CONTENT & MUSIC STREAMING GUIDE -->
-        <section class="sonora-seo-panel" style="max-width: 1200px; margin: 40px auto 20px auto; padding: 28px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 14px; background: rgba(14, 12, 24, 0.85); backdrop-filter: blur(12px); text-align: left; box-sizing: border-box;">
-            <div style="border-bottom: 2px solid #8b5cf6; padding-bottom: 16px; margin-bottom: 24px;">
-                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; color: #fff; margin: 0 0 8px 0; font-weight: 700;">
-                    🎵 Sonora: Free Ad-Free YouTube Music Streaming with Background Playback
-                </h2>
-                <p style="font-size: 0.95rem; color: #94a3b8; margin: 0; line-height: 1.6;">
-                    Sonora on Arcade Hub is an ad-free web music player engineered for seamless audio streaming. Listen to uninterrupted tracks, build custom playlists, and enjoy background playback on Android, iOS, Windows, and Mac with zero registration.
-                </p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 32px;">
-                <article style="padding: 18px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
-                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: #a78bfa; margin: 0 0 10px 0;">
-                        1. Ad-Free YouTube Music Streaming
-                    </h3>
-                    <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
-                        Enjoy uninterrupted music without mid-roll commercials or banner interruptions. Paste any YouTube watch URL, Shorts link, or youtu.be shortlink into Sonora to start listening instantly.
-                    </p>
-                </article>
-
-                <article style="padding: 18px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
-                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: #38bdf8; margin: 0 0 10px 0;">
-                        2. Continuous Background & Screen-Off Playback
-                    </h3>
-                    <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
-                        Unlike standard mobile browsers that kill audio when you switch tabs or lock your screen, Sonora integrates the HTML5 MediaSession API and silent audio bridges to maintain steady audio playback across tab changes and phone locks.
-                    </p>
-                </article>
-
-                <article style="padding: 18px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
-                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: #ec4899; margin: 0 0 10px 0;">
-                        3. Curated Indian & Global Hit Libraries
-                    </h3>
-                    <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
-                        Explore dedicated libraries including Karan Aujla Hits (Tauba Tauba, Softly, 52 Bars, Winning Speech), Honey Singh Jukebox, Satinder Sartaaj Sufi Classics, 90s Evergreen Bollywood, Road Trip Anthems, and Midnight Vibes.
-                    </p>
-                </article>
-
-                <article style="padding: 18px; border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px; background: rgba(255, 255, 255, 0.02);">
-                    <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: #10b981; margin: 0 0 10px 0;">
-                        4. Android Web Share Target PWA Support
-                    </h3>
-                    <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6; margin: 0;">
-                        When installed on Android via Chrome ("Add to Home Screen"), Sonora appears directly in the system share tray. Share any song from the YouTube app to Sonora to automatically add it to your queue and start playing.
-                    </p>
-                </article>
-            </div>
-
-            <!-- Complete FAQ Accordion Section -->
-            <div style="border-top: 1px solid rgba(139, 92, 246, 0.2); padding-top: 20px;">
-                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; color: #fff; margin-bottom: 16px;">
-                    ❓ Frequently Asked Questions (FAQ)
-                </h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px;">
-                    <div>
-                        <strong style="color: #a78bfa; display: block; font-size: 0.95rem; margin-bottom: 6px;">Q: Is Sonora completely free to use?</strong>
-                        <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.5; margin: 0;">Yes! Sonora is 100% free with zero fees, zero recurring subscriptions, and zero email signups required.</p>
-                    </div>
-                    <div>
-                        <strong style="color: #a78bfa; display: block; font-size: 0.95rem; margin-bottom: 6px;">Q: How do I export or backup my playlists?</strong>
-                        <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.5; margin: 0;">Under the 'Saved' tab, click 'Backup' to download a JSON file containing all your saved tracks, custom playlists, and favorites. You can restore it anytime with the 'Restore' button.</p>
-                    </div>
-                    <div>
-                        <strong style="color: #a78bfa; display: block; font-size: 0.95rem; margin-bottom: 6px;">Q: Can I use keyboard controls to pause or skip tracks?</strong>
-                        <p style="font-size: 0.84rem; color: #94a3b8; line-height: 1.5; margin: 0;">Yes. Native lock screen controls, wireless Bluetooth headphone buttons, and hardware media keys (Play, Pause, Next, Previous) are fully integrated via the MediaSession API.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+        
 
         <!-- FOOTER (Standard Arcade Hub docked footer) -->
         <footer class="sonora-footer">

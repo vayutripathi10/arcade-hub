@@ -6121,66 +6121,7 @@
             excelExtractedData.forEach(row => {
                 html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
             });
-            html += '</table>
-    <!-- URL Hash Routing for Direct Search Engine & Deep-Link Tool Activation -->
-    <script>
-        (function() {
-            const hashToTab = {
-                '#merge': 'merge',
-                '#combine': 'merge',
-                '#combine-pdf': 'merge',
-                '#combine-pdfs': 'merge',
-                '#merge-pdf': 'merge',
-                '#split': 'split',
-                '#split-pdf': 'split',
-                '#images-to-pdf': 'image-compiler',
-                '#image-to-pdf': 'image-compiler',
-                '#jpg-to-pdf': 'image-compiler',
-                '#png-to-pdf': 'image-compiler',
-                '#rotate': 'rotate',
-                '#rotate-pdf': 'rotate',
-                '#extract-text': 'text-extractor',
-                '#text-extractor': 'text-extractor',
-                '#ocr': 'text-extractor',
-                '#watermark': 'watermark',
-                '#pdf-watermark': 'watermark',
-                '#editor': 'editor',
-                '#pdf-editor': 'editor',
-                '#edit-pdf': 'editor',
-                '#sign-pdf': 'editor',
-                '#pdf-to-image': 'pdf-to-image',
-                '#pdf-to-jpg': 'pdf-to-image',
-                '#pdf-to-png': 'pdf-to-image',
-                '#pdf-to-excel': 'pdf-to-excel',
-                '#pdf-to-csv': 'pdf-to-excel',
-                '#excel': 'pdf-to-excel',
-                '#pdf-to-word': 'pdf-to-word',
-                '#pdf-to-docx': 'pdf-to-word',
-                '#word': 'pdf-to-word'
-            };
-
-            function activateTabFromHash() {
-                const hash = (window.location.hash || '').toLowerCase();
-                if (!hash) return;
-                const tabKey = hashToTab[hash];
-                if (tabKey) {
-                    const targetTab = document.querySelector(`.deck-tab[data-tab="${tabKey}"]`);
-                    if (targetTab) {
-                        targetTab.click();
-                        const deckArea = document.querySelector('.engine-panel');
-                        if (deckArea && window.scrollY > 400) {
-                            deckArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                }
-            }
-
-            window.addEventListener('DOMContentLoaded', activateTabFromHash);
-            window.addEventListener('hashchange', activateTabFromHash);
-        })();
-    </script>
-
-</body></html>';
+            html += '</table></body></html>';
 
             const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
             const link = document.createElement('a');
@@ -6603,6 +6544,64 @@
             // Safety timeout: force close loader after 8 seconds in case of broken network requests
             setTimeout(completeLoader, 8000);
         }
+    </script>
+
+    <!-- URL Hash Routing for Direct Search Engine & Deep-Link Tool Activation -->
+    <script>
+        (function() {
+            const hashToTab = {
+                '#merge': 'merge',
+                '#combine': 'merge',
+                '#combine-pdf': 'merge',
+                '#combine-pdfs': 'merge',
+                '#merge-pdf': 'merge',
+                '#split': 'split',
+                '#split-pdf': 'split',
+                '#images-to-pdf': 'image-compiler',
+                '#image-to-pdf': 'image-compiler',
+                '#jpg-to-pdf': 'image-compiler',
+                '#png-to-pdf': 'image-compiler',
+                '#rotate': 'rotate',
+                '#rotate-pdf': 'rotate',
+                '#extract-text': 'text-extractor',
+                '#text-extractor': 'text-extractor',
+                '#ocr': 'text-extractor',
+                '#watermark': 'watermark',
+                '#pdf-watermark': 'watermark',
+                '#editor': 'editor',
+                '#pdf-editor': 'editor',
+                '#edit-pdf': 'editor',
+                '#sign-pdf': 'editor',
+                '#pdf-to-image': 'pdf-to-image',
+                '#pdf-to-jpg': 'pdf-to-image',
+                '#pdf-to-png': 'pdf-to-image',
+                '#pdf-to-excel': 'pdf-to-excel',
+                '#pdf-to-csv': 'pdf-to-excel',
+                '#excel': 'pdf-to-excel',
+                '#pdf-to-word': 'pdf-to-word',
+                '#pdf-to-docx': 'pdf-to-word',
+                '#word': 'pdf-to-word'
+            };
+
+            function activateTabFromHash() {
+                const hash = (window.location.hash || '').toLowerCase();
+                if (!hash) return;
+                const tabKey = hashToTab[hash];
+                if (tabKey) {
+                    const targetTab = document.querySelector(`.deck-tab[data-tab="${tabKey}"]`);
+                    if (targetTab) {
+                        targetTab.click();
+                        const deckArea = document.querySelector('.engine-panel');
+                        if (deckArea && window.scrollY > 400) {
+                            deckArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }
+            }
+
+            window.addEventListener('DOMContentLoaded', activateTabFromHash);
+            window.addEventListener('hashchange', activateTabFromHash);
+        })();
     </script>
     <script src="shared/pwa-setup.js"></script>
 </body>
