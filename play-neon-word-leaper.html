@@ -25,9 +25,9 @@
         .play-console-holder { width: 100%; max-width: 980px; display: flex; flex-direction: column; gap: 12px; }
         .play-console { 
             width: 100%; 
-            height: 750px; 
-            height: min(750px, calc(100vh - 180px)); 
-            height: min(750px, calc(100dvh - 180px)); 
+            height: 700px; 
+            height: clamp(560px, calc(100vh - 140px), 760px); 
+            height: clamp(560px, calc(100dvh - 140px), 760px); 
             background: #0d0e12; 
             border: 3px solid #00ffcc; 
             box-shadow: 0 0 20px rgba(0, 255, 204, 0.25); 
@@ -256,7 +256,7 @@
                         <button type="button" class="fullscreen-exit-btn" id="fsExitBtn" onclick="toggleFullscreen()" aria-label="Exit Fullscreen Mode">
                             ✕ <span>Exit Fullscreen</span>
                         </button>
-                        <iframe src="neon-word-leaper-frontend/index.html?v=ArcadeHub_WordLeaper_v8" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
+                        <iframe src="neon-word-leaper-frontend/index.html?v=ArcadeHub_WordLeaper_v9" class="play-iframe" id="gameIframe" title="Neon Word Leaper Game Frame" allow="autoplay; fullscreen"></iframe>
                     </div>
                     <div class="console-actions">
                         <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" aria-label="Toggle Fullscreen Mode">

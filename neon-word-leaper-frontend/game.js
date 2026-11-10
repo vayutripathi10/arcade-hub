@@ -536,6 +536,18 @@
         return 170;
     }
 
+    function updateButtonPrompts() {
+        const isMob = isMobileDevice();
+        const startBtn = document.getElementById('startBtn');
+        if (startBtn) {
+            startBtn.innerHTML = `<span>START STAGE ${currentStage} ${isMob ? '▶' : '[ SPACE ]'}</span>`;
+        }
+        const restartBtn = document.getElementById('restartBtn');
+        if (restartBtn) {
+            restartBtn.innerHTML = `RETRY STAGE ${isMob ? '↺' : '[ SPACE ]'}`;
+        }
+    }
+
     function resizeCanvas() {
         width = window.innerWidth || document.documentElement.clientWidth || 980;
         height = window.innerHeight || document.documentElement.clientHeight || 680;
@@ -1727,6 +1739,7 @@
     }
 
     function startGame(stageNum = currentStage) {
+        window.focus();
         sound.init();
         currentStage = stageNum;
         gameState = 'PLAYING';
@@ -1845,17 +1858,7 @@
             }
         });
 
-        function updateButtonPrompts() {
-            const isMob = isMobileDevice();
-            const startBtn = document.getElementById('startBtn');
-            if (startBtn) {
-                startBtn.innerHTML = `<span>START STAGE ${currentStage} ${isMob ? '▶' : '[ SPACE ]'}</span>`;
-            }
-            const restartBtn = document.getElementById('restartBtn');
-            if (restartBtn) {
-                restartBtn.innerHTML = `RETRY STAGE ${isMob ? '↺' : '[ SPACE ]'}`;
-            }
-        }
+
 
         // Stage Card Selection
         document.querySelectorAll('.stage-card').forEach(card => {
