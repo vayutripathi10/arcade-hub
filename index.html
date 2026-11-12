@@ -153,7 +153,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="hub-style.css?v=8">
+    <link rel="stylesheet" href="hub-style.css?v=9">
 
     <style>
         .retro-card {
@@ -268,6 +268,17 @@
             <span class="ambient-vibe-text" id="ambientVibeText">Late Night Session</span>
             <span class="ambient-vibe-dot">·</span>
             <span class="ambient-vibe-sub" id="ambientVibeSub">28+ High-FPS Browser Games Ready</span>
+        </div>
+        <div class="welcome-back-bar" id="welcomeBackBar" style="display: none;" aria-live="polite">
+            <div class="welcome-badge">
+                <span class="welcome-icon">🔥</span>
+                <span class="welcome-streak" id="welcomeStreakText">Day 1 Streak</span>
+            </div>
+            <div class="welcome-info">
+                <span class="welcome-greeting" id="welcomeGreeting">Welcome back, Player!</span>
+                <span class="welcome-resume" id="welcomeResumeWrap"></span>
+            </div>
+            <button type="button" class="welcome-dismiss-btn" id="welcomeDismissBtn" title="Dismiss" aria-label="Dismiss">✕</button>
         </div>
         <h1 class="main-title">Arcade Hub</h1>
         <p class="subtitle">Instant play. Zero downloads. Experience 28+ high-FPS browser arcade games, client-side PDF utilities, and ad-free YouTube music streaming.</p>
@@ -1091,6 +1102,8 @@
 
     <!-- Ambient Time & City Vibe Engine -->
     <script src="shared/ambient-geo.js?v=1" defer></script>
+    <!-- Eco-Battery, Network & Welcome Back Engine -->
+    <script src="shared/device-experience.js?v=1" defer></script>
 </body>
 
 </html>

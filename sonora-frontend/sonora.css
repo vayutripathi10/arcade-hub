@@ -1960,7 +1960,51 @@ html, body {
     }
 }
 
-/* Landscape mobile phones: keep 2-column layout so both player and list have full vertical space */
+/* Eco-Battery & Network Toast */
+.experience-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 10000;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: rgba(15, 20, 32, 0.94);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 999px;
+    padding: 8px 18px;
+    color: #f1f5f9;
+    font-size: 0.78rem;
+    font-weight: 600;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(139, 92, 246, 0.25);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.experience-toast.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.experience-toast-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+body.eco-mode .sonora-promo-eq .sonora-eq-bar {
+    animation: none !important;
+    height: 8px !important;
+}
+
+body.eco-mode .player-pane {
+    box-shadow: none !important;
+}
+
 @media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
     .sonora-main-layout {
         display: grid;

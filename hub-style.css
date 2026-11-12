@@ -205,6 +205,152 @@ body {
     white-space: nowrap;
 }
 
+/* Welcome Back & Streak Bar */
+.welcome-back-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(24, 30, 48, 0.85) 0%, rgba(15, 20, 35, 0.9) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: 999px;
+    padding: 6px 16px;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(99, 102, 241, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: ambientBarFadeIn 0.45s ease-out;
+    transition: all 0.3s ease;
+}
+
+.welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(249, 115, 22, 0.25) 100%);
+    border: 1px solid rgba(249, 115, 22, 0.5);
+    color: #ffedd5;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.welcome-badge .welcome-icon {
+    font-size: 0.85rem;
+    animation: livePulse 2s infinite ease-in-out;
+}
+
+.welcome-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.welcome-greeting {
+    color: #f8fafc;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.welcome-resume-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.welcome-resume-btn:hover {
+    transform: scale(1.04);
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+    box-shadow: 0 3px 12px rgba(99, 102, 241, 0.5);
+}
+
+.welcome-dismiss-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+.welcome-dismiss-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Experience Toast (Eco-Battery & Network Notifications) */
+.experience-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    z-index: 10000;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: rgba(15, 20, 32, 0.94);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    border-radius: 999px;
+    padding: 8px 18px;
+    color: #f1f5f9;
+    font-size: 0.78rem;
+    font-weight: 600;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(99, 102, 241, 0.25);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.experience-toast.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+.experience-toast-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Eco-Battery Mode: Disable expensive GPU shadows & animations to conserve battery */
+body.eco-mode .game-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+body.eco-mode .hero-badge .badge-dot,
+body.eco-mode .badge-dot {
+    animation: none !important;
+}
+
+body.eco-mode .sonora-promo-eq .sonora-eq-bar {
+    animation: none !important;
+    height: 8px !important;
+}
+
 .main-title {
     font-size: clamp(2.6rem, 6.5vw, 4.2rem);
     font-weight: 800;
@@ -1341,6 +1487,21 @@ body.has-sonora-banner .menu-toggle-btn {
     .ambient-vibe-pill {
         font-size: 0.68rem;
         padding: 2px 7px;
+    }
+
+    .welcome-back-bar {
+        border-radius: 14px;
+        padding: 6px 10px;
+        gap: 8px;
+        max-width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .welcome-greeting {
+        font-size: 0.74rem;
     }
 
     .category-filter-bar {
