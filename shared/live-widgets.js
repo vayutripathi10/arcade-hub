@@ -214,6 +214,29 @@
         }
     }
 
+    function navigateToSonora(targetUrl) {
+        try {
+            if (window.top && window.top !== window) {
+                if (typeof window.top.handleSonoraRedirect === 'function') {
+                    window.top.handleSonoraRedirect(targetUrl);
+                    return;
+                }
+                if (window.top.document) {
+                    const overlay = window.top.document.getElementById('sonora-hub-overlay');
+                    if (overlay) {
+                        overlay.setAttribute('hidden', '');
+                        const frame = window.top.document.getElementById('sonora-hub-frame');
+                        if (frame) frame.src = 'about:blank';
+                        return;
+                    }
+                }
+                window.top.location.href = targetUrl;
+                return;
+            }
+        } catch (e) {}
+        window.location.href = targetUrl;
+    }
+
     function renderWeather(data) {
         const card = document.getElementById('heroWeatherCard');
         if (!card) return;
@@ -239,7 +262,7 @@
             card.title = `Weather Mood: Click to stream ${data.condition} soundscapes on Sonora!`;
             if (card.addEventListener) {
                 card.addEventListener('click', () => {
-                    window.location.href = `sonora?lib=${encodeURIComponent(data.sonoraLib)}`;
+                    navigateToSonora(`sonora?lib=${encodeURIComponent(data.sonoraLib)}`);
                 });
             }
         }
@@ -332,7 +355,7 @@
             card.title = `Festival Celebration: Click to stream festive hits on Sonora!`;
             if (card.addEventListener) {
                 card.addEventListener('click', () => {
-                    window.location.href = 'sonora';
+                    navigateToSonora('sonora');
                 });
             }
         }

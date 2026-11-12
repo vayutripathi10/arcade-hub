@@ -6,6 +6,40 @@
 (function () {
     'use strict';
 
+    // 0. FRAME GUARD: Never allow a second Sonora instance to boot inside #sonora-hub-frame or any iframe
+    if (window.self !== window.top) {
+        try {
+            if (window.top && typeof window.top.handleSonoraRedirect === 'function') {
+                window.top.handleSonoraRedirect(window.location.href);
+                window.location.replace('about:blank');
+                return;
+            }
+            if (window.top && window.top.document) {
+                const parentOverlay = window.top.document.getElementById('sonora-hub-overlay');
+                if (parentOverlay) {
+                    parentOverlay.setAttribute('hidden', '');
+                    const parentFrame = window.top.document.getElementById('sonora-hub-frame');
+                    if (parentFrame) parentFrame.src = 'about:blank';
+                    return;
+                }
+            }
+            window.top.location.href = window.location.href;
+        } catch (e) {
+            try { window.top.location.href = window.location.href; } catch (_) {}
+        }
+        return;
+    }
+
+    // Unique Session Instance ID for Single-Player Enforcement across tabs/redirections
+    const SONORA_INSTANCE_ID = 'sonora_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+    const SESSION_CLAIM_KEY = 'sonora_active_session_lock_v1';
+    let sessionChannel = null;
+    try {
+        if (typeof BroadcastChannel !== 'undefined') {
+            sessionChannel = new BroadcastChannel('sonora_single_session_v1');
+        }
+    } catch (e) {}
+
     // LocalStorage Keys
     const STORAGE_KEY = 'sonora-youtube-links';
     const ACTIVE_KEY = 'sonora-active-youtube';
@@ -798,8 +832,97 @@
         } catch {}
     }
 
+    function destroyActivePlayerIframe() {
+        const existingFrames = document.querySelectorAll('#sonora-active-iframe, #player-stage iframe');
+        existingFrames.forEach(f => {
+            try {
+                if (f.contentWindow) {
+                    f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
+                }
+                f.src = 'about:blank';
+                f.remove();
+            } catch (e) {}
+        });
+    }
+
+    function claimSonoraSession(reason = 'play') {
+        const payload = {
+            type: 'SONORA_SESSION_CLAIM',
+            instanceId: SONORA_INSTANCE_ID,
+            reason,
+            timestamp: Date.now()
+        };
+        try {
+            if (sessionChannel) sessionChannel.postMessage(payload);
+        } catch (e) {}
+        try {
+            localStorage.setItem(SESSION_CLAIM_KEY, JSON.stringify(payload));
+        } catch (e) {}
+    }
+
+    function suspendLocalPlayerFromOtherSession() {
+        const overlay = document.getElementById('sonora-hub-overlay');
+        const hubFrame = document.getElementById('sonora-hub-frame');
+        if (overlay) overlay.setAttribute('hidden', '');
+        if (hubFrame && hubFrame.src && hubFrame.src !== 'about:blank') {
+            try { hubFrame.src = 'about:blank'; } catch (e) {}
+        }
+
+        const activeIframe = document.getElementById('sonora-active-iframe');
+        if (!activeIframe) return;
+
+        destroyActivePlayerIframe();
+
+        if (STATE.bgAudio) {
+            try { STATE.bgAudio.pause(); } catch (e) {}
+        }
+        if ('mediaSession' in navigator) {
+            try { navigator.mediaSession.playbackState = 'paused'; } catch (e) {}
+        }
+
+        const stage = DOM.playerStage || DOM.playerContainer;
+        if (stage && STATE.activeTrack) {
+            const track = STATE.activeTrack;
+            stage.innerHTML = `
+                <button type="button" class="resume-poster" aria-label="Resume last track">
+                    <img class="resume-thumb" src="${escapeHtml(getPrimaryThumbnail(track))}" alt="" referrerpolicy="no-referrer">
+                    <span class="resume-overlay">▶ <strong>Tap to resume</strong><small>${escapeHtml(track.title)}</small></span>
+                </button>`;
+            const resumeImg = stage.querySelector('.resume-thumb');
+            attachThumbnailFallback(resumeImg, track.videoId);
+            stage.querySelector('.resume-poster').addEventListener('click', () => playTrack(track));
+            if (DOM.nowPlayingSub) {
+                DOM.nowPlayingSub.textContent = 'Paused · tap the player to resume';
+            }
+        }
+    }
+
+    if (sessionChannel) {
+        sessionChannel.addEventListener('message', (e) => {
+            const data = e && e.data;
+            if (data && data.type === 'SONORA_SESSION_CLAIM' && data.instanceId && data.instanceId !== SONORA_INSTANCE_ID) {
+                suspendLocalPlayerFromOtherSession();
+            }
+        });
+    }
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === SESSION_CLAIM_KEY && e.newValue) {
+            try {
+                const data = JSON.parse(e.newValue);
+                if (data && data.instanceId && data.instanceId !== SONORA_INSTANCE_ID) {
+                    suspendLocalPlayerFromOtherSession();
+                }
+            } catch (err) {}
+        }
+    });
+
     function playTrack(track) {
         if (!track || !track.videoId) return;
+
+        // Enforce single active player across all tabs/sessions and destroy any prior player on this page
+        claimSonoraSession('play');
+        destroyActivePlayerIframe();
 
         STATE.activeVideoId = track.videoId;
         STATE.activeTrack = track;
@@ -1856,16 +1979,55 @@
             DOM.minVideoBtn.addEventListener('click', toggleMiniPlayer);
         }
 
+        function isSonoraTargetUrl(url) {
+            if (!url || typeof url !== 'string') return false;
+            const cleanBase = url.split('?')[0].split('#')[0].trim().toLowerCase();
+            return cleanBase === 'sonora' ||
+                   cleanBase === 'sonora.html' ||
+                   cleanBase === '/sonora' ||
+                   cleanBase === '/sonora.html' ||
+                   cleanBase.endsWith('/sonora') ||
+                   cleanBase.endsWith('/sonora.html');
+        }
+
+        function handleSonoraRedirect(targetUrl) {
+            closeHubBrowser();
+            if (DOM.playerPane && DOM.playerPane.classList.contains('is-video-minimized')) {
+                toggleMiniPlayer();
+            }
+            if (targetUrl && typeof targetUrl === 'string' && targetUrl.includes('?')) {
+                try {
+                    const qIndex = targetUrl.indexOf('?');
+                    const params = new URLSearchParams(targetUrl.slice(qIndex));
+                    const libParam = params.get('lib');
+                    if (libParam) {
+                        const matched = getAllLibraries().find(l =>
+                            l.id === libParam ||
+                            l.id === `default-${libParam}` ||
+                            l.name.toLowerCase().includes(libParam.toLowerCase())
+                        );
+                        if (matched) {
+                            STATE.activeLibraryId = matched.id;
+                            renderLibraryTabs();
+                            renderLibrary();
+                            showToast(`Switched to "${matched.name}" library 🎵`);
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
         function openHubBrowser(targetUrl = 'index.html') {
+            if (isSonoraTargetUrl(targetUrl)) {
+                handleSonoraRedirect(targetUrl);
+                return;
+            }
             const overlay = document.getElementById('sonora-hub-overlay');
             const frame = document.getElementById('sonora-hub-frame');
             if (!overlay || !frame) return;
 
-
             const cleanTarget = targetUrl.includes('?') ? `${targetUrl}&in_sonora=1` : `${targetUrl}?in_sonora=1`;
-            if (!frame.src || frame.src === 'about:blank' || !frame.src.includes('in_sonora=1')) {
-                frame.src = cleanTarget;
-            }
+            frame.src = cleanTarget;
 
             overlay.removeAttribute('hidden');
             showToast('Browsing Arcade Hub 🎮 (Music playing in background!)');
@@ -1873,19 +2035,40 @@
 
         function closeHubBrowser() {
             const overlay = document.getElementById('sonora-hub-overlay');
+            const frame = document.getElementById('sonora-hub-frame');
             if (overlay) {
                 overlay.setAttribute('hidden', '');
             }
+            if (frame && frame.src && frame.src !== 'about:blank') {
+                try { frame.src = 'about:blank'; } catch (e) {}
+            }
+        }
+
+        const hubFrameEl = document.getElementById('sonora-hub-frame');
+        if (hubFrameEl) {
+            hubFrameEl.addEventListener('load', () => {
+                try {
+                    const loc = hubFrameEl.contentWindow && hubFrameEl.contentWindow.location;
+                    if (loc && loc.pathname && isSonoraTargetUrl(loc.pathname)) {
+                        handleSonoraRedirect(loc.href);
+                    }
+                } catch (e) {}
+            });
         }
 
         window.openHubBrowser = openHubBrowser;
         window.closeHubBrowser = closeHubBrowser;
+        window.handleSonoraRedirect = handleSonoraRedirect;
 
-        // Intercept Home button click so playing music never unloads
+        function isPlayerActivelyRunning() {
+            return Boolean(document.getElementById('sonora-active-iframe') && STATE.activeTrack && STATE.activeVideoId);
+        }
+
+        // Intercept Home button click so actively playing music never unloads
         const homeBtn = document.querySelector('.home-icon-btn');
         if (homeBtn) {
             homeBtn.addEventListener('click', (e) => {
-                if (STATE.activeTrack && STATE.activeVideoId) {
+                if (isPlayerActivelyRunning()) {
                     e.preventDefault();
                     openHubBrowser('index.html');
                 }
@@ -1897,7 +2080,13 @@
             const href = link.getAttribute('href');
             if (href && !href.startsWith('http') && !href.startsWith('#')) {
                 link.addEventListener('click', (e) => {
-                    if (STATE.activeTrack && STATE.activeVideoId) {
+                    if (isSonoraTargetUrl(href)) {
+                        e.preventDefault();
+                        handleSonoraRedirect(href);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+                    if (isPlayerActivelyRunning()) {
                         e.preventDefault();
                         const target = href === '/' ? 'index.html' : (href.endsWith('.html') ? href : href + '.html');
                         openHubBrowser(target);
@@ -2505,6 +2694,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Immediately claim active Sonora session on entry so any other open Sonora tab stops playing
+        claimSonoraSession('page_enter');
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistration().then(reg => {
                 if (reg) reg.update().catch(() => {});
