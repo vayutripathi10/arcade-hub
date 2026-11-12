@@ -293,13 +293,45 @@
     }
 
     // -------------------------------------------------------------------------
-    // 8. AUTO INITIALIZE
+    // 8. DISABLE UNWANTED TEXT SELECTION & DBLCLICK HIGHLIGHT / OS COPY POPUPS
+    // -------------------------------------------------------------------------
+    function initSelectionControl() {
+        const isEditable = (el) => {
+            if (!el) return false;
+            const tag = el.tagName ? el.tagName.toUpperCase() : '';
+            return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable || 
+                   (el.closest && (el.closest('input, textarea, [contenteditable="true"], .allow-select, .selectable-text')));
+        };
+
+        // Prevent unwanted text selection starting on non-editable elements
+        document.addEventListener('selectstart', (e) => {
+            if (!isEditable(e.target)) {
+                e.preventDefault();
+            }
+        });
+
+        // Clear any text selection and prevent double-click native word selection popup
+        document.addEventListener('dblclick', (e) => {
+            if (!isEditable(e.target)) {
+                e.preventDefault();
+                const sel = window.getSelection ? window.getSelection() : null;
+                if (sel) {
+                    if (sel.removeAllRanges) sel.removeAllRanges();
+                    else if (sel.empty) sel.empty();
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. AUTO INITIALIZE
     // -------------------------------------------------------------------------
     function init() {
         initWelcomeBack();
         initBatteryMonitoring();
         initNetworkMonitoring();
         initGameTracking();
+        initSelectionControl();
     }
 
     window.ArcadeExperience = {

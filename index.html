@@ -153,7 +153,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="hub-style.css?v=9">
+    <link rel="stylesheet" href="hub-style.css?v=12">
 
     <style>
         .retro-card {
@@ -280,8 +280,52 @@
             </div>
             <button type="button" class="welcome-dismiss-btn" id="welcomeDismissBtn" title="Dismiss" aria-label="Dismiss">✕</button>
         </div>
-        <h1 class="main-title">Arcade Hub</h1>
-        <p class="subtitle">Instant play. Zero downloads. Experience 28+ high-FPS browser arcade games, client-side PDF utilities, and ad-free YouTube music streaming.</p>
+        <!-- HERO SHOWCASE: LEFT (WEATHER) + CENTER (TITLE) + RIGHT (FESTIVALS) -->
+        <div class="hero-showcase-row">
+            <!-- Left Card: Live Weather & Mood -->
+            <div class="hero-live-card weather-live-card" id="heroWeatherCard" aria-label="Live Weather & Mood">
+                <div class="live-card-header">
+                    <span class="live-card-tag"><span class="live-pulse-dot"></span> LIVE WEATHER</span>
+                    <span class="live-card-loc" id="weatherCardLoc">Detecting…</span>
+                </div>
+                <div class="live-card-body">
+                    <div class="weather-temp-row">
+                        <span class="weather-temp-icon" id="weatherCardIcon">🌦️</span>
+                        <span class="weather-temp-val" id="weatherCardTemp">--°C</span>
+                    </div>
+                    <div class="weather-condition" id="weatherCardCond">Checking weather…</div>
+                </div>
+                <div class="live-card-footer">
+                    <span class="live-card-hint" id="weatherCardMood">🎧 Cozy vibes &amp; retro games</span>
+                </div>
+            </div>
+
+            <!-- Center Block: Title & Subtitle -->
+            <div class="hero-center-block">
+                <h1 class="main-title">Arcade Hub</h1>
+                <p class="subtitle">Instant play. Zero downloads. Experience 28+ high-FPS browser arcade games, client-side PDF utilities, and ad-free YouTube music streaming.</p>
+            </div>
+
+            <!-- Right Card: Local Festivals & Events -->
+            <div class="hero-live-card festival-live-card" id="heroFestivalCard" aria-label="Festivals and Cultural Events">
+                <div class="live-card-header">
+                    <span class="live-card-tag festival-tag">🪔 FESTIVALS &amp; EVENTS</span>
+                    <span class="live-card-loc" id="festivalCardLoc">India 🇮🇳</span>
+                </div>
+                <div class="live-card-body">
+                    <div class="festival-name-row">
+                        <span class="festival-icon" id="festivalCardIcon">🎉</span>
+                        <div class="festival-title-group">
+                            <span class="festival-name" id="festivalCardName">Festive Calendar</span>
+                            <span class="festival-countdown" id="festivalCardCountdown">Loading…</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="live-card-footer">
+                    <span class="live-card-hint" id="festivalCardVibe">✨ Festive mood &amp; music unlocked</span>
+                </div>
+            </div>
+        </div>
 
         <div class="stats-overview">
             <div class="stat-pill">
@@ -1103,7 +1147,9 @@
     <!-- Ambient Time & City Vibe Engine -->
     <script src="shared/ambient-geo.js?v=1" defer></script>
     <!-- Eco-Battery, Network & Welcome Back Engine -->
-    <script src="shared/device-experience.js?v=1" defer></script>
+    <script src="shared/device-experience.js?v=2" defer></script>
+    <!-- Live Weather & Festivals Engine -->
+    <script src="shared/live-widgets.js?v=1" defer></script>
 </body>
 
 </html>
