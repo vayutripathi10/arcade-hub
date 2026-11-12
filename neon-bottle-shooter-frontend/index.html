@@ -26,7 +26,7 @@
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=ArcadeHub_Bottle_ResponsiveV2">
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_Bottle_EngagementV3">
 
     <!-- Dark Mode Ad Formatting -->
     <style>
@@ -285,8 +285,9 @@
         <div class="header-center">
             <h1 class="game-title">Neon Bottle Shooter</h1>
         </div>
-        <div class="header-right">
+        <div class="header-right" style="gap: 8px;">
             <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="btn-fs" class="icon-btn" title="Toggle Fullscreen">⛶</button>
         </div>
     </header>
 
@@ -312,17 +313,71 @@
             <h2>Select Mode</h2>
             <div class="mode-buttons">
                 <button class="mode-btn" data-mode="classic">
-                    <h3>Classic Mode</h3>
-                    <p>60 seconds. Highest score wins.</p>
+                    <div class="mode-card-top">
+                        <h3>Classic Mode</h3>
+                        <span class="mode-rank" id="rank-classic">Rookie</span>
+                    </div>
+                    <p>60 seconds rapid gallery. Highest score wins.</p>
+                    <div class="mode-meta">
+                        <span class="mode-best" id="best-classic">🏆 Best: 0</span>
+                        <span class="mode-play-cta">PLAY ➔</span>
+                    </div>
                 </button>
                 <button class="mode-btn" data-mode="survival">
-                    <h3>Survival Mode</h3>
-                    <p>3 strikes and you're out. Increasing difficulty.</p>
+                    <div class="mode-card-top">
+                        <h3>Survival Mode</h3>
+                        <span class="mode-rank" id="rank-survival">Rookie</span>
+                    </div>
+                    <p>3 strikes and you're out. Rising wave speed.</p>
+                    <div class="mode-meta">
+                        <span class="mode-best" id="best-survival">🏆 Best: 0</span>
+                        <span class="mode-play-cta">PLAY ➔</span>
+                    </div>
                 </button>
                 <button class="mode-btn" data-mode="precision">
-                    <h3>Precision Mode</h3>
-                    <p>Limited bullets. Make every shot count.</p>
+                    <div class="mode-card-top">
+                        <h3>Precision Mode</h3>
+                        <span class="mode-rank" id="rank-precision">Rookie</span>
+                    </div>
+                    <p>30 bullets total. Make every single shot count.</p>
+                    <div class="mode-meta">
+                        <span class="mode-best" id="best-precision">🏆 Best: 0</span>
+                        <span class="mode-play-cta">PLAY ➔</span>
+                    </div>
                 </button>
+            </div>
+
+            <div class="armory-panel" id="skinSelector">
+                <div class="armory-header">
+                    <span class="armory-title">🔫 BLASTER LASER SKIN</span>
+                    <span class="shattered-badge" id="ui-total-shattered">🍾 0 Shattered</span>
+                </div>
+                <div class="skin-list">
+                    <button type="button" class="skin-btn active" data-skin="cyan" title="Cyan Plasma (Default)">
+                        <span class="skin-dot" style="background:#00ffcc;box-shadow:0 0 8px #00ffcc;"></span>
+                        <span class="skin-name">Cyan</span>
+                        <span class="skin-req" id="skin-req-cyan">✓</span>
+                    </button>
+                    <button type="button" class="skin-btn" data-skin="crimson" title="Unlocks at 50 shattered bottles">
+                        <span class="skin-dot" style="background:#ff0055;box-shadow:0 0 8px #ff0055;"></span>
+                        <span class="skin-name">Crimson</span>
+                        <span class="skin-req" id="skin-req-crimson">🔒 50</span>
+                    </button>
+                    <button type="button" class="skin-btn" data-skin="emerald" title="Unlocks at 150 shattered bottles">
+                        <span class="skin-dot" style="background:#39ff14;box-shadow:0 0 8px #39ff14;"></span>
+                        <span class="skin-name">Emerald</span>
+                        <span class="skin-req" id="skin-req-emerald">🔒 150</span>
+                    </button>
+                    <button type="button" class="skin-btn" data-skin="supernova" title="Unlocks at 300 shattered bottles">
+                        <span class="skin-dot" style="background:#ffd700;box-shadow:0 0 8px #ffd700;"></span>
+                        <span class="skin-name">Gold</span>
+                        <span class="skin-req" id="skin-req-supernova">🔒 300</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="controls-hint">
+                ⚡ <strong>Pro Controls:</strong> Right-Click or <strong>[R]</strong> / <strong>[Space]</strong> Reload &bull; Neck Shots = <strong>🎯 2x CRIT!</strong>
             </div>
         </div>
 
@@ -370,14 +425,14 @@
 
     <div class="bottom-bar">
         <div class="ammo-container" id="ui-ammo">🔫 6 / 6</div>
-        <button id="btn-reload" class="action-btn reload-btn">RELOAD</button>
+        <button id="btn-reload" class="action-btn reload-btn" title="Shortcut: Press R, Spacebar, or Right-Click">RELOAD [R]</button>
         <button id="btn-pause" class="icon-btn-square">||</button>
     </div>
 
     <!-- Scripts -->
     <script src="../shared/audio-fx.js"></script>
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Bottle_ResponsiveV2"></script>
+    <script src="script.js?v=ArcadeHub_Bottle_EngagementV3"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {

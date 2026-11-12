@@ -69,6 +69,34 @@ let shockwaves = [];
 let hitStopTimer = 0;
 let screenFlashColor = '#ffffff';
 let screenFlashIntensity = 0;
+let overdriveTimer = 0;
+let critHits = 0;
+let totalBottlesShattered = parseInt(localStorage.getItem('bottleTotalShattered')) || 0;
+let selectedSkin = localStorage.getItem('bottleSelectedSkin') || 'cyan';
+
+const BLASTER_SKINS = {
+    cyan: { name: 'Cyan', color: '#00ffcc', spark: '#00ffff', req: 0 },
+    crimson: { name: 'Crimson', color: '#ff0055', spark: '#ff5588', req: 50 },
+    emerald: { name: 'Emerald', color: '#39ff14', spark: '#88ff66', req: 150 },
+    supernova: { name: 'Gold', color: '#ffd700', spark: '#ffee88', req: 300 }
+};
+if (!BLASTER_SKINS[selectedSkin] || totalBottlesShattered < BLASTER_SKINS[selectedSkin].req) {
+    selectedSkin = 'cyan';
+}
+
+function getActiveLaserColor() {
+    if (overdriveTimer > 0) {
+        return `hsl(${Math.floor((Date.now() * 0.45) % 360)}, 100%, 60%)`;
+    }
+    return (BLASTER_SKINS[selectedSkin] || BLASTER_SKINS.cyan).color;
+}
+
+function getActiveSparkColor() {
+    if (overdriveTimer > 0) {
+        return `hsl(${Math.floor((Date.now() * 0.45 + 60) % 360)}, 100%, 65%)`;
+    }
+    return (BLASTER_SKINS[selectedSkin] || BLASTER_SKINS.cyan).spark;
+}
 
 function updateLaserTrails(deltaTime) {
     laserTrails.forEach(t => t.life -= 0.18 * deltaTime); // Fade slightly slower for visibility
@@ -180,8 +208,9 @@ function drawGun() {
     }
     
     // 3. Heavy outer casing
-    ctx.strokeStyle = '#00ffcc';
-    ctx.shadowColor = '#00ffcc';
+    const skinColor = getActiveLaserColor();
+    ctx.strokeStyle = skinColor;
+    ctx.shadowColor = skinColor;
     ctx.shadowBlur = 15;
     ctx.fillStyle = '#081c18';
     ctx.lineWidth = 3;
@@ -197,7 +226,7 @@ function drawGun() {
     ctx.stroke();
     
     // 4. Double Barrels
-    const barrelColor = shotgunAmmo > 0 ? '#ff5500' : '#00ffcc';
+    const barrelColor = shotgunAmmo > 0 ? '#ff5500' : skinColor;
     ctx.strokeStyle = barrelColor;
     ctx.shadowColor = barrelColor;
     ctx.shadowBlur = 15;
@@ -541,6 +570,49 @@ class JuicedSynth {
             noise.start(t);
             noise.stop(t + 0.26);
         } catch(e) {}
+    }
+
+    playCrit() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const t = this.ctx.currentTime;
+        [1046.5, 1567.98].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, t + i * 0.045);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.25, t + i * 0.045 + 0.14);
+            gain.gain.setValueAtTime(0.16, t + i * 0.045);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.045 + 0.15);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t + i * 0.045);
+            osc.stop(t + i * 0.045 + 0.16);
+        });
+    }
+
+    playOverdrive() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        const t = this.ctx.currentTime;
+        [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, t + i * 0.06);
+            gain.gain.setValueAtTime(0.12, t + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.22);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t + i * 0.06);
+            osc.stop(t + i * 0.06 + 0.24);
+        });
     }
 }
 
@@ -1078,16 +1150,26 @@ function triggerCombo(amount) {
         window.achievements.unlock('bottle', 'combo_10', 'Combo King');
     }
 
-    if (currentCombo > 0 && currentCombo % 5 === 0) {
+    if (currentCombo > 0 && currentCombo % 10 === 0) {
+        overdriveTimer = 360; // 6 seconds of Neon Overdrive
+        if (gameMode !== 'precision') {
+            isReloading = false;
+            ammo = MAX_AMMO;
+            uiAmmo.classList.remove('ammo-empty');
+        }
+        synth.playOverdrive();
+        floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.14, '🌈 NEON OVERDRIVE! FREE AMMO + 1.5x! 🌈', '#00ffcc', 28));
+        screenShake = Math.max(screenShake, 14);
+        updateHUD();
+    } else if (currentCombo > 0 && currentCombo % 5 === 0) {
         let msg = '';
         let col = '#00ffff';
-        if (currentCombo === 5) { msg = '🔥 GREAT COMBO! 🔥'; col = '#00ffff'; }
-        else if (currentCombo === 10) { msg = '⚡ UNSTOPPABLE! ⚡'; col = '#ffaa00'; }
+        if (currentCombo === 5) { msg = '🔥 5 HIT STREAK! 🔥'; col = '#00ffff'; }
         else if (currentCombo === 15) { msg = '🏆 SUPER SPREE! 🏆'; col = '#ff00ff'; }
-        else if (currentCombo >= 20) { msg = '💥 NEON GOD! 💥'; col = '#ff0055'; }
+        else if (currentCombo >= 25) { msg = '💥 NEON GOD! 💥'; col = '#ff0055'; }
         
         if (msg) {
-            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, msg, col, 28));
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height * 0.12, msg, col, 26));
             screenShake = Math.max(screenShake, 10);
         }
     }
@@ -1108,9 +1190,11 @@ function checkCollisionAt(tx, ty) {
         if (tx > b.x - padx && tx < b.x + b.w + padx &&
             ty > b.y - b.h/2 - pady && ty < b.y + b.h/2 + pady) {
             
-            b.hp--;
+            const bottleTop = b.y - b.h / 2;
+            const isCrit = (b.type !== 'bomb') && (ty <= bottleTop + b.h * 0.34);
+            b.hp -= isCrit ? 2 : 1;
             if (b.hp <= 0) {
-                hitBottle(b, i);
+                hitBottle(b, i, isCrit);
             } else {
                 b.scaleX = 1.5;
                 b.scaleY = 0.5;
@@ -1236,7 +1320,9 @@ function shoot() {
         return;
     }
 
-    ammo--;
+    if (overdriveTimer <= 0 || gameMode === 'precision') {
+        ammo--;
+    }
     shotsFired++;
     
     synth.init();
@@ -1258,12 +1344,15 @@ function shoot() {
     const muzzleX = bx + Math.cos(angle) * 105 * gunScale;
     const muzzleY = by + Math.sin(angle) * 105 * gunScale;
     
+    const beamColor = getActiveLaserColor();
+    const sparkColor = getActiveSparkColor();
+
     laserTrails.push({
         x1: muzzleX,
         y1: muzzleY,
         x2: crosshair.x,
         y2: crosshair.y,
-        color: '#00ffcc',
+        color: beamColor,
         life: 1.0
     });
     
@@ -1273,11 +1362,11 @@ function shoot() {
         const speed = Math.random() * 15 + 10;
         const vx = Math.cos(spreadAngle) * speed;
         const vy = Math.sin(spreadAngle) * speed;
-        particles.push(new Particle(muzzleX, muzzleY, '#00ffff', vx, vy));
+        particles.push(new Particle(muzzleX, muzzleY, sparkColor, vx, vy));
     }
     
     for (let s = 0; s < 6; s++) {
-        particles.push(new Particle(crosshair.x, crosshair.y, '#00ffff'));
+        particles.push(new Particle(crosshair.x, crosshair.y, sparkColor));
     }
 
     let hit = checkCollisionAt(crosshair.x, crosshair.y);
@@ -1347,10 +1436,14 @@ function triggerMegaBlast(centerX, centerY) {
     });
 }
 
-function hitBottle(b, index) {
+function hitBottle(b, index, isCrit = false) {
     bottles.splice(index, 1);
     shotsHit++;
     bottlesDestroyed++;
+    if (b.type !== 'bomb') {
+        totalBottlesShattered++;
+        localStorage.setItem('bottleTotalShattered', totalBottlesShattered);
+    }
     createExplosion(b.x + b.w/2, b.y, b.color);
     
     // Shockwave
@@ -1433,13 +1526,24 @@ function hitBottle(b, index) {
         triggerCombo(1);
     }
 
-    const finalPts = pts * comboMultiplier;
+    if (isCrit && b.type !== 'bomb' && pts > 0) {
+        pts *= 2;
+        critHits++;
+        synth.playCrit();
+        for (let c = 0; c < 12; c++) {
+            particles.push(new Particle(b.x + b.w / 2, b.y - b.h * 0.3, '#ffd700'));
+        }
+        floatingTexts.push(new FloatingText(b.x + b.w / 2, b.y - 34, '🎯 BULLSEYE! 2x', '#ffd700', 22));
+    }
+
+    const odMult = (overdriveTimer > 0 && pts > 0) ? 1.5 : 1;
+    const finalPts = Math.round(pts * comboMultiplier * odMult);
     score += finalPts;
     
     if (score < 0) score = 0;
 
     let sign = finalPts > 0 ? '+' : '';
-    floatingTexts.push(new FloatingText(b.x + b.w/2, b.y, `${sign}${finalPts}`, b.color));
+    floatingTexts.push(new FloatingText(b.x + b.w/2, b.y, `${sign}${finalPts}`, isCrit ? '#ffd700' : b.color));
     
     updateHUD();
 }
@@ -1454,6 +1558,13 @@ function update(deltaTime) {
 
     if (freezeTimer > 0) freezeTimer -= deltaTime;
     if (slowTimer > 0) slowTimer -= deltaTime;
+    if (overdriveTimer > 0) {
+        overdriveTimer -= deltaTime;
+        if (overdriveTimer <= 0) {
+            overdriveTimer = 0;
+            updateHUD();
+        }
+    }
 
     // Gun recoil, muzzle flash, crosshair scale, laser trails update
     if (gunRecoil > 0) {
@@ -1480,7 +1591,7 @@ function update(deltaTime) {
     }
     const cxMoved = Math.hypot(crosshair.x - this._lastCx, crosshair.y - this._lastCy);
     if (cxMoved > 4 && gameState === 'playing') {
-        const pColor = shotgunAmmo > 0 ? '#ff5500' : '#00ffff';
+        const pColor = shotgunAmmo > 0 ? '#ff5500' : getActiveSparkColor();
         const p = new Particle(
             crosshair.x + (Math.random() - 0.5) * 6,
             crosshair.y + (Math.random() - 0.5) * 6,
@@ -1550,31 +1661,110 @@ function drawCrosshair() {
     ctx.translate(crosshair.x, crosshair.y);
     ctx.scale(crosshairScale, crosshairScale);
     
-    ctx.strokeStyle = isReloading ? varWarn() : varAccent();
+    const activeColor = shotgunAmmo > 0 ? '#ff5500' : getActiveLaserColor();
+    ctx.strokeStyle = isReloading ? varWarn() : activeColor;
     ctx.lineWidth = 2;
     ctx.shadowBlur = 10;
     ctx.shadowColor = ctx.strokeStyle;
     
     const r = crosshair.radius;
-    // Circle
+    // Inner aiming circle
     ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.stroke();
+
+    // Center pinpoint dot
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.beginPath();
+    ctx.arc(0, 0, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Outer Segmented Ammo / Reload / Overdrive Ring
+    const ringRadius = r + 7;
+    if (isReloading) {
+        const progress = Math.max(0, Math.min(1, 1 - (reloadTimer / 30)));
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 3.5;
+        ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = varWarn();
+        ctx.shadowColor = varWarn();
+        ctx.lineWidth = 3.5;
+        ctx.arc(0, 0, ringRadius, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+        ctx.stroke();
+    } else if (overdriveTimer > 0 && gameMode !== 'precision') {
+        const spin = (Date.now() * 0.008) % (Math.PI * 2);
+        ctx.beginPath();
+        ctx.strokeStyle = activeColor;
+        ctx.shadowColor = activeColor;
+        ctx.lineWidth = 4;
+        ctx.arc(0, 0, ringRadius, spin, spin + Math.PI * 1.5);
+        ctx.stroke();
+    } else if (gameMode === 'precision') {
+        const ratio = Math.max(0, ammo / 30);
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+        ctx.lineWidth = 3.5;
+        ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = activeColor;
+        ctx.lineWidth = 3.5;
+        ctx.arc(0, 0, ringRadius, -Math.PI / 2, -Math.PI / 2 + ratio * Math.PI * 2);
+        ctx.stroke();
+    } else {
+        const totalSegs = shotgunAmmo > 0 ? 5 : MAX_AMMO;
+        const currentSegs = shotgunAmmo > 0 ? shotgunAmmo : ammo;
+        const gap = 0.14;
+        const segArc = (Math.PI * 2) / totalSegs;
+        ctx.lineWidth = 3.5;
+        for (let i = 0; i < totalSegs; i++) {
+            const startAngle = -Math.PI / 2 + i * segArc + gap / 2;
+            const endAngle = startAngle + segArc - gap;
+            ctx.beginPath();
+            if (i < currentSegs) {
+                ctx.strokeStyle = activeColor;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = activeColor;
+            } else {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.shadowBlur = 0;
+            }
+            ctx.arc(0, 0, ringRadius, startAngle, endAngle);
+            ctx.stroke();
+        }
+    }
 
     // Ticks
     const off = isReloading ? (reloadTimer % 10) : 0;
+    ctx.strokeStyle = isReloading ? varWarn() : activeColor;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-r-10 + off, 0); ctx.lineTo(-r + off, 0);
-    ctx.moveTo(r - off, 0); ctx.lineTo(r+10 - off, 0);
-    ctx.moveTo(0, -r-10 + off); ctx.lineTo(0, -r + off);
-    ctx.moveTo(0, r - off); ctx.lineTo(0, r+10 - off);
+    ctx.moveTo(-r - 12 + off, 0); ctx.lineTo(-r - 3 + off, 0);
+    ctx.moveTo(r + 3 - off, 0); ctx.lineTo(r + 12 - off, 0);
+    ctx.moveTo(0, -r - 12 + off); ctx.lineTo(0, -r - 3 + off);
+    ctx.moveTo(0, r + 3 - off); ctx.lineTo(0, r + 12 - off);
     ctx.stroke();
 
     if (isReloading) {
-        ctx.font = '12px Outfit';
+        ctx.font = 'bold 12px Outfit';
         ctx.fillStyle = varWarn();
         ctx.textAlign = 'center';
-        ctx.fillText('RELOADING', 0, r + 25);
+        ctx.fillText('RELOADING...', 0, r + 26);
+    } else if (overdriveTimer > 0) {
+        ctx.font = 'bold 11px Outfit';
+        ctx.fillStyle = activeColor;
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡ OVERDRIVE', 0, r + 26);
+    } else if (ammo === 1 && gameMode !== 'precision' && shotgunAmmo <= 0) {
+        ctx.font = 'bold 11px Outfit';
+        ctx.fillStyle = '#ffaa00';
+        ctx.textAlign = 'center';
+        ctx.fillText('LOW AMMO [R]', 0, r + 26);
     }
     
     ctx.restore();
@@ -1642,6 +1832,25 @@ function draw() {
         drawVignette('#ff5500', pulse * 0.45);
         ctx.fillStyle = 'rgba(255, 85, 0, 0.03)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    if (overdriveTimer > 0) {
+        const odColor = getActiveLaserColor();
+        const pulse = 0.55 + Math.sin(Date.now() * 0.012) * 0.2;
+        drawVignette(odColor, pulse * 0.55);
+        // Overdrive top timer bar
+        ctx.save();
+        const barW = 240;
+        const barH = 6;
+        const barX = (canvas.width - barW) / 2;
+        const barY = 46;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(barX, barY, barW, barH);
+        ctx.fillStyle = odColor;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = odColor;
+        ctx.fillRect(barX, barY, barW * Math.min(1, overdriveTimer / 360), barH);
+        ctx.restore();
     }
 
     drawShelves();
@@ -1727,6 +1936,8 @@ function initGame(mode) {
     freezeTimer = 0;
     slowTimer = 0;
     shotgunAmmo = 0;
+    overdriveTimer = 0;
+    critHits = 0;
     strikes = 0;
 
     uiTime.classList.remove('time-warning');
@@ -1764,6 +1975,9 @@ function updateHUD() {
     if (shotgunAmmo > 0) {
         uiAmmo.textContent = `⚡ Shotgun: ${shotgunAmmo}`;
         uiAmmo.classList.add('shotgun-active');
+    } else if (overdriveTimer > 0 && gameMode !== 'precision') {
+        uiAmmo.textContent = `🌈 OVERDRIVE: ∞`;
+        uiAmmo.classList.add('shotgun-active');
     } else if (gameMode === 'precision') {
         uiAmmo.textContent = `🔫 Ammo: ${ammo} / 30`;
         uiAmmo.classList.remove('shotgun-active');
@@ -1785,6 +1999,9 @@ function updateHUD() {
 }
 
 function updateHubButton() {
+    if (gameState === 'menu' && typeof refreshMenuStatsAndSkins === 'function') {
+        refreshMenuStatsAndSkins();
+    }
     const btn = document.getElementById('hud-hub-btn');
     if (!btn) return;
     if (gameState === 'menu') {
@@ -1818,7 +2035,8 @@ function gameOver() {
     if (shotsFired > 0) acc = Math.round((shotsHit / shotsFired) * 100);
     document.getElementById('go-accuracy').textContent = `${acc}%`;
     document.getElementById('go-combo').textContent = maxCombo;
-    document.getElementById('go-bottles').textContent = bottlesDestroyed;
+    document.getElementById('go-bottles').textContent = critHits > 0 ? `${bottlesDestroyed} (${critHits} 🎯)` : bottlesDestroyed;
+    refreshMenuStatsAndSkins();
 
     setTimeout(() => {
         gameOverMenu.classList.remove('hidden');
@@ -1927,8 +2145,96 @@ function shareScore(platform) {
     else if (platform === 'whatsapp') window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
 }
 
-// Initial call to set correct button label on load
+function getRankForScore(bestScore) {
+    if (bestScore >= 6000) return { label: '★ Neon Legend', cls: 'rank-legend' };
+    if (bestScore >= 3000) return { label: '⚡ Cyber Ace', cls: 'rank-ace' };
+    if (bestScore >= 1000) return { label: '🎯 Sharpshooter', cls: 'rank-sharpshooter' };
+    return { label: 'Rookie', cls: '' };
+}
+
+function refreshMenuStatsAndSkins() {
+    ['classic', 'survival', 'precision'].forEach(mode => {
+        const bestVal = parseInt(localStorage.getItem(`bottleBest_${mode}`)) || 0;
+        const bestEl = document.getElementById(`best-${mode}`);
+        const rankEl = document.getElementById(`rank-${mode}`);
+        if (bestEl) bestEl.textContent = `🏆 Best: ${bestVal.toLocaleString()}`;
+        if (rankEl) {
+            const r = getRankForScore(bestVal);
+            rankEl.textContent = r.label;
+            rankEl.className = 'mode-rank' + (r.cls ? ' ' + r.cls : '');
+        }
+    });
+
+    const shatteredEl = document.getElementById('ui-total-shattered');
+    if (shatteredEl) {
+        shatteredEl.textContent = `🍾 ${totalBottlesShattered.toLocaleString()} Shattered`;
+    }
+
+    document.querySelectorAll('.skin-btn').forEach(btn => {
+        const skinKey = btn.getAttribute('data-skin');
+        const skinCfg = BLASTER_SKINS[skinKey];
+        if (!skinCfg) return;
+        const unlocked = totalBottlesShattered >= skinCfg.req;
+        btn.classList.toggle('locked', !unlocked);
+        btn.classList.toggle('active', skinKey === selectedSkin && unlocked);
+        const reqEl = document.getElementById(`skin-req-${skinKey}`);
+        if (reqEl) {
+            if (skinKey === selectedSkin && unlocked) {
+                reqEl.textContent = 'EQUIPPED';
+            } else if (unlocked) {
+                reqEl.textContent = '✓ READY';
+            } else {
+                reqEl.textContent = `🔒 ${skinCfg.req}`;
+            }
+        }
+    });
+}
+
+document.querySelectorAll('.skin-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const skinKey = btn.getAttribute('data-skin');
+        const skinCfg = BLASTER_SKINS[skinKey];
+        if (!skinCfg) return;
+        if (totalBottlesShattered >= skinCfg.req) {
+            selectedSkin = skinKey;
+            localStorage.setItem('bottleSelectedSkin', selectedSkin);
+            synth.init();
+            synth.playCrit();
+            refreshMenuStatsAndSkins();
+        } else {
+            synth.init();
+            synth.playEmptyClick();
+        }
+    });
+});
+
+// Right-Click Instant Reload on Canvas / Game Wrapper
+canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    if (gameState === 'playing') {
+        reload();
+    }
+});
+
+// Keyboard Shortcuts: [R] or [Space] to Reload, [P] or [Escape] to Pause
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyR' || e.code === 'Space') {
+        if (gameState === 'playing') {
+            e.preventDefault();
+            reload();
+        }
+    } else if (e.code === 'KeyP' || e.code === 'Escape') {
+        if (gameState === 'playing' || gameState === 'paused') {
+            e.preventDefault();
+            togglePause();
+        }
+    }
+});
+
+// Initial call to set correct button label and menu stats on load
 updateHubButton();
+refreshMenuStatsAndSkins();
 
 // Start loop empty for background menu drawing
 animationFrameId = requestAnimationFrame(loop);
