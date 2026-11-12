@@ -115,7 +115,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=28">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=31">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora — Ad-Free YouTube Music Streaming & Background Audio Player | Arcade Hub">
@@ -199,6 +199,19 @@
         <main class="sonora-main-layout">
             <!-- LEFT PANE: PLAYER & ADD URL -->
             <section class="player-pane">
+                <!-- Experience Mode Switcher: Video + Audio vs Pure Audio (Spotify Style) -->
+                <div class="experience-mode-switcher" id="experience-mode-switcher" role="tablist" aria-label="Player Experience Mode">
+                    <button type="button" class="exp-mode-btn active" id="exp-mode-video" data-exp-mode="video" role="tab" aria-selected="true" title="Watch Video & Listen to Audio">
+                        <span class="exp-mode-icon">🎬</span>
+                        <span class="exp-mode-label">Video &amp; Audio</span>
+                    </button>
+                    <button type="button" class="exp-mode-btn" id="exp-mode-audio" data-exp-mode="audio" role="tab" aria-selected="false" title="Spotify-Style Pure Audio Music Player (Hides Video)">
+                        <span class="exp-mode-icon">🎧</span>
+                        <span class="exp-mode-label">Audio Only</span>
+                        <span class="exp-mode-pill">MUSIC</span>
+                    </button>
+                </div>
+
                 <!-- Add YouTube Link Form -->
                 <div class="add-link-card">
                     <form class="add-link-form" id="add-link-form">
@@ -244,6 +257,67 @@
                             <span class="empty-icon">🎧</span>
                             <h3 style="font-size: 1.1rem; color: #fff; font-weight: 700;">Sonora Player Ready</h3>
                             <p style="font-size: 0.82rem; max-width: 320px;">Paste any link above or select a track from the library on the right to start listening.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPOTIFY-STYLE PURE AUDIO PLAYER DECK (Visible when Audio Only Mode is selected) -->
+                <div class="audio-only-deck" id="audio-only-deck" aria-label="Spotify Style Audio Player">
+                    <div class="audio-deck-backdrop" id="audio-deck-backdrop"></div>
+                    <div class="audio-deck-inner">
+                        <!-- Top Row: Live Audio Badge, Equalizer & Actions -->
+                        <div class="audio-deck-top">
+                            <div class="audio-deck-status-pill">
+                                <span class="audio-eq-bars" id="audio-eq-bars" aria-hidden="true">
+                                    <span></span><span></span><span></span><span></span><span></span>
+                                </span>
+                                <span id="audio-deck-status-text">PURE AUDIO MODE</span>
+                            </div>
+                            <div class="audio-deck-top-actions">
+                                <button type="button" class="audio-icon-btn" id="audio-fav-btn" title="Save to Favorites" aria-label="Save to Favorites">🤍</button>
+                            </div>
+                        </div>
+
+                        <!-- Center Row: Album Art / Vinyl Disc + Track Metadata -->
+                        <div class="audio-deck-hero">
+                            <div class="audio-artwork-wrapper" id="audio-artwork-wrapper" title="Tap to Play / Pause">
+                                <div class="audio-vinyl-ring" aria-hidden="true"></div>
+                                <img class="audio-artwork-img" id="audio-artwork-img" src="favicon.png" alt="Album Artwork" referrerpolicy="no-referrer">
+                                <div class="audio-artwork-play-badge" id="audio-artwork-play-badge" aria-hidden="true">▶</div>
+                            </div>
+                            <div class="audio-track-meta">
+                                <h3 class="audio-track-title" id="audio-track-title">Select a song to start listening</h3>
+                                <p class="audio-track-subtitle" id="audio-track-subtitle">Sonora Pure Audio · Ad-Free Stream</p>
+                            </div>
+                        </div>
+
+                        <!-- Seek Bar & Timestamps -->
+                        <div class="audio-seek-section">
+                            <input type="range" class="audio-seek-slider" id="audio-seek-slider" min="0" max="1000" value="0" step="1" aria-label="Seek timeline">
+                            <div class="audio-time-row">
+                                <span id="audio-time-current">0:00</span>
+                                <span id="audio-time-total">0:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Main Spotify Transport Controls -->
+                        <div class="audio-transport-row">
+                            <button type="button" class="audio-ctrl-btn secondary" id="audio-shuffle-btn" title="Shuffle Queue" aria-label="Shuffle Queue">🔀</button>
+                            <button type="button" class="audio-ctrl-btn" id="audio-prev-btn" title="Previous Track" aria-label="Previous Track">⏮</button>
+                            <button type="button" class="audio-ctrl-btn play-main" id="audio-play-pause-btn" title="Play / Pause" aria-label="Play or Pause">
+                                <span id="audio-play-pause-icon">▶</span>
+                            </button>
+                            <button type="button" class="audio-ctrl-btn" id="audio-next-btn" title="Next Track" aria-label="Next Track">⏭</button>
+                            <button type="button" class="audio-ctrl-btn secondary" id="audio-repeat-btn" title="Toggle Repeat Track" aria-label="Toggle Repeat">🔁</button>
+                        </div>
+
+                        <!-- Volume & Output Row -->
+                        <div class="audio-volume-row">
+                            <button type="button" class="audio-vol-btn" id="audio-mute-btn" title="Mute / Unmute" aria-label="Mute or Unmute">🔊</button>
+                            <button type="button" class="audio-vol-step-btn" id="audio-vol-down-btn" title="Decrease Volume (-10%)" aria-label="Volume Down">🔉 −</button>
+                            <input type="range" class="audio-volume-slider" id="audio-volume-slider" min="0" max="100" value="100" step="1" aria-label="Volume">
+                            <button type="button" class="audio-vol-step-btn" id="audio-vol-up-btn" title="Increase Volume (+10%)" aria-label="Volume Up">🔊 +</button>
+                            <span class="audio-vol-label" id="audio-vol-label">100%</span>
                         </div>
                     </div>
                 </div>
@@ -300,7 +374,7 @@
                 <!-- Tab Navigation Bar -->
                 <div class="tab-nav-bar">
                     <button class="tab-pill active" data-tab="library">
-                        📁 <span>Library</span> <span class="pill-count" id="library-count">0</span>
+                        📁 <span id="library-tab-label">Library</span> <span class="pill-count" id="library-count">0</span>
                     </button>
                     <button class="tab-pill" data-tab="queue">
                         🕒 <span>Queue</span> <span class="pill-count" id="queue-count">0</span>
@@ -324,7 +398,7 @@
                     <!-- Tab 1: Library -->
                     <div class="tab-panel active" id="tab-library">
                         <div class="panel-header">
-                            <span class="panel-title">Libraries</span>
+                            <span class="panel-title" id="library-panel-title">Libraries</span>
                             <div class="panel-actions">
                                 <button type="button" class="panel-action-btn accent" id="new-playlist-btn" title="Create a new library">➕ Library</button>
                                 <button type="button" class="panel-action-btn" id="toggle-add-song-btn" title="Add YouTube song(s) to selected library">➕ Add Song</button>
@@ -351,6 +425,16 @@
                             <button type="button" class="spotlight-switch-btn" id="spotlightSwitchBtn">Play Spotlight</button>
                         </div>
 
+                        <!-- Spotify-Style Audio Collection Category Filter Bar (Visible only in Audio Mode) -->
+                        <div class="audio-collection-filter-bar" id="audio-collection-filter-bar" hidden>
+                            <button type="button" class="audio-cat-chip active" data-audio-cat="all">✨ All Collections</button>
+                            <button type="button" class="audio-cat-chip" data-audio-cat="trending">🔥 Trending</button>
+                            <button type="button" class="audio-cat-chip" data-audio-cat="most-viewed">🏆 Most Viewed</button>
+                            <button type="button" class="audio-cat-chip" data-audio-cat="latest">🆕 Latest</button>
+                            <button type="button" class="audio-cat-chip" data-audio-cat="artists">🎤 Artists</button>
+                            <button type="button" class="audio-cat-chip" data-audio-cat="moods">🌙 Moods &amp; Vibes</button>
+                        </div>
+
                         <div class="playlist-chips" id="library-tabs"></div>
                         <div class="list-scroll" id="library-list"></div>
                     </div>
@@ -358,7 +442,7 @@
                     <!-- Tab 2: Queue -->
                     <div class="tab-panel" id="tab-queue">
                         <div class="panel-header">
-                            <span class="panel-title">Up Next</span>
+                            <span class="panel-title" id="queue-panel-title">Up Next</span>
                             <div class="panel-actions">
                                 <button class="panel-action-btn" id="shuffle-queue-btn" title="Shuffle Queue">🔀 Shuffle</button>
                                 <button class="panel-action-btn" id="clear-queue-btn" title="Clear Queue">🗑️ Clear</button>
@@ -518,7 +602,7 @@
     <!-- Scripts -->
     <script src="shared/ambient-geo.js?v=1"></script>
     <script src="shared/device-experience.js?v=2" defer></script>
-    <script src="sonora-frontend/sonora.js?v=30"></script>
+    <script src="sonora-frontend/sonora.js?v=35"></script>
     <script src="shared/pwa-setup.js?v=326"></script>
 </body>
 </html>
