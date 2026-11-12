@@ -52,6 +52,24 @@
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
+/* Prevent unwanted text selection and native OS copy-paste popups on double-click */
+html, body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Allow text selection inside inputs, textareas, and explicitly enabled text containers */
+input, textarea, [contenteditable="true"], .allow-select, .selectable-text {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+}
+
 body {
     background-color: var(--bg-base);
     background-image: 
@@ -111,7 +129,7 @@ body {
 .header-container {
     text-align: center;
     margin-bottom: 2.75rem;
-    max-width: 900px;
+    max-width: 1180px;
     width: 100%;
     animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -349,6 +367,179 @@ body.eco-mode .badge-dot {
 body.eco-mode .sonora-promo-eq .sonora-eq-bar {
     animation: none !important;
     height: 8px !important;
+}
+
+/* Hero Showcase: Left & Right Live Cards flanking Title */
+.hero-showcase-row {
+    display: grid;
+    grid-template-columns: 240px 1fr 240px;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    margin: 0.5rem auto 1.5rem auto;
+}
+
+.hero-center-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 0;
+}
+
+.hero-live-card {
+    background: rgba(18, 24, 38, 0.72);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 16px;
+    padding: 14px 16px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    text-align: left;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+
+.hero-live-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 0 16px rgba(99, 102, 241, 0.35);
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.live-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.live-card-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #a5b4fc;
+    text-transform: uppercase;
+}
+
+.festival-tag {
+    color: #fcd34d;
+}
+
+.live-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22d3ee;
+    box-shadow: 0 0 8px #22d3ee;
+    animation: livePulse 2s infinite ease-in-out;
+    display: inline-block;
+}
+
+.live-card-loc {
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.weather-temp-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.weather-temp-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.weather-temp-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+
+.weather-condition {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+}
+
+.festival-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.festival-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.festival-title-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.festival-name {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.festival-countdown {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 1px 6px;
+    border-radius: 999px;
+    display: inline-block;
+    margin-top: 3px;
+    width: fit-content;
+}
+
+.festival-countdown.is-today {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    animation: livePulse 1.5s infinite;
+}
+
+.live-card-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 6px;
+    margin-top: 6px;
+}
+
+.live-card-hint {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .main-title {
@@ -1449,12 +1640,214 @@ body.has-sonora-banner .menu-toggle-btn {
         padding: 1.5rem 0.75rem 3rem 0.75rem;
     }
 
+    .header-container {
+        margin-bottom: 1.25rem !important;
+    }
+
+    .hero-badge {
+        display: none !important;
+    }
+
+    .ambient-vibe-bar {
+        gap: 5px;
+        padding: 4px 10px;
+        max-width: 100%;
+        margin: 0 auto 0.5rem auto;
+    }
+
+    .ambient-vibe-pill {
+        font-size: 0.66rem;
+        padding: 1px 7px;
+    }
+
+    .ambient-vibe-text {
+        font-size: 0.7rem;
+    }
+
+    .ambient-vibe-sub,
+    .ambient-vibe-dot {
+        display: none !important;
+    }
+
+    .welcome-back-bar {
+        border-radius: 999px;
+        padding: 4px 10px;
+        gap: 6px;
+        max-width: 100%;
+        margin: 0 auto 0.6rem auto;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+    }
+
+    .welcome-badge {
+        font-size: 0.66rem;
+        padding: 1px 6px;
+    }
+
+    .welcome-greeting {
+        font-size: 0.72rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .welcome-resume-btn {
+        font-size: 0.66rem;
+        padding: 2px 7px;
+    }
+
+    /* Hero Showcase Mobile: Compact Horizontal 2-Card Row below Title */
+    .hero-showcase-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 0 auto 0.75rem auto;
+        width: 100%;
+    }
+
+    .hero-center-block {
+        grid-column: 1 / -1;
+        order: -1;
+        width: 100%;
+    }
+
     .main-title {
-        font-size: 2.4rem;
+        font-size: clamp(2rem, 7vw, 2.4rem);
+        margin-bottom: 0.25rem;
+        line-height: 1.05;
     }
 
     .subtitle {
-        font-size: 0.98rem;
+        font-size: 0.82rem;
+        line-height: 1.35;
+        max-width: 95%;
+        margin: 0 auto 0.65rem auto;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .hero-live-card.weather-live-card {
+        grid-column: 1;
+        padding: 8px 10px;
+        border-radius: 12px;
+    }
+
+    .hero-live-card.festival-live-card {
+        grid-column: 2;
+        padding: 8px 10px;
+        border-radius: 12px;
+    }
+
+    .live-card-header {
+        margin-bottom: 3px;
+    }
+
+    .live-card-tag {
+        font-size: 0.58rem;
+    }
+
+    .live-card-loc {
+        font-size: 0.62rem;
+    }
+
+    .weather-temp-row {
+        gap: 6px;
+        margin-bottom: 2px;
+    }
+
+    .weather-temp-icon {
+        font-size: 1.25rem;
+    }
+
+    .weather-temp-val {
+        font-size: 1.15rem;
+        font-weight: 800;
+    }
+
+    .weather-condition {
+        font-size: 0.68rem;
+        color: #94a3b8;
+        margin-bottom: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .festival-name-row {
+        gap: 6px;
+        margin-bottom: 0;
+    }
+
+    .festival-icon {
+        font-size: 1.25rem;
+    }
+
+    .festival-name {
+        font-size: 0.76rem;
+        line-height: 1.15;
+    }
+
+    .festival-countdown {
+        font-size: 0.6rem;
+        padding: 0px 5px;
+        margin-top: 2px;
+    }
+
+    .live-card-hint,
+    .live-card-footer {
+        display: none !important;
+    }
+
+    /* Stats Micro-Pills on Mobile */
+    .stats-overview {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 0.75rem;
+        flex-wrap: nowrap;
+    }
+
+    .stat-pill {
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        gap: 4px;
+        border-radius: 999px;
+    }
+
+    .stat-pill .pill-icon {
+        font-size: 0.72rem;
+    }
+
+    .stat-pill .pill-label {
+        display: none;
+    }
+
+    /* Swipeable Single-Line Category Filter Chips Carousel */
+    .category-filter-bar {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        justify-content: flex-start !important;
+        gap: 6px !important;
+        margin: 0 -0.75rem 1.25rem -0.75rem !important;
+        padding: 4px 0.75rem !important;
+        width: calc(100% + 1.5rem);
+    }
+
+    .category-filter-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .filter-btn {
+        flex: 0 0 auto !important;
+        padding: 6px 14px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+        border-radius: 999px !important;
     }
 
     .games-grid {
@@ -1465,53 +1858,6 @@ body.has-sonora-banner .menu-toggle-btn {
     .stats-bar {
         flex-direction: column;
         gap: 2rem;
-    }
-
-    .ambient-vibe-bar {
-        gap: 6px;
-        padding: 5px 10px;
-        max-width: 95%;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .ambient-vibe-sub,
-    .ambient-vibe-dot {
-        display: none;
-    }
-
-    .ambient-vibe-text {
-        font-size: 0.72rem;
-    }
-
-    .ambient-vibe-pill {
-        font-size: 0.68rem;
-        padding: 2px 7px;
-    }
-
-    .welcome-back-bar {
-        border-radius: 14px;
-        padding: 6px 10px;
-        gap: 8px;
-        max-width: 95%;
-        margin-left: auto;
-        margin-right: auto;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .welcome-greeting {
-        font-size: 0.74rem;
-    }
-
-    .category-filter-bar {
-        gap: 6px;
-        margin-bottom: 1.75rem;
-    }
-
-    .filter-btn {
-        padding: 6px 14px;
-        font-size: 0.82rem;
     }
 
     .sonora-promo-sub {
