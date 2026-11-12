@@ -347,18 +347,6 @@
         if (vibeEl) vibeEl.textContent = `✨ ${data.vibe}`;
 
         card.classList.add('loaded');
-
-        // Clickable card: opens Sonora festive tunes or highlights games
-        if (!card._hasClickListener) {
-            card._hasClickListener = true;
-            if (card.style) card.style.cursor = 'pointer';
-            card.title = `Festival Celebration: Click to stream festive hits on Sonora!`;
-            if (card.addEventListener) {
-                card.addEventListener('click', () => {
-                    navigateToSonora('sonora');
-                });
-            }
-        }
     }
 
     // -------------------------------------------------------------------------

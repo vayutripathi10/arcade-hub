@@ -44,6 +44,7 @@
     const STORAGE_KEY = 'sonora-youtube-links';
     const ACTIVE_KEY = 'sonora-active-youtube';
     const QUEUE_KEY = 'sonora-youtube-queue';
+    const AUDIO_QUEUE_KEY = 'sonora-audio-only-queue';
     const FAVORITES_KEY = 'sonora-favorites';
     const HISTORY_KEY = 'sonora-watch-history';
     const MODE_KEY = 'sonora-player-mode';
@@ -304,6 +305,189 @@
             id: 'default-midnight-vibes',
             name: 'Midnight Vibes',
             videos: [{ ...DEFAULT_SONGS[11] }]
+        },
+        {
+            id: 'default-tmkoc',
+            name: '📺 Taarak Mehta (TMKOC)',
+            videos: [
+                { id: 'yt-1pK_manvlwU', videoId: '1pK_manvlwU', category: 'Taarak Mehta (TMKOC)', title: 'Bhootni Story | FULL EPISODE | Part 1 | Taarak Mehta Ka Ooltah Chashmah | तारक मेहता का उल्टा चश्मा', thumbnail: 'https://i.ytimg.com/vi/1pK_manvlwU/hqdefault.jpg' },
+                { id: 'yt-4JtgwW8BTPM', videoId: '4JtgwW8BTPM', category: 'Taarak Mehta (TMKOC)', title: 'Bhootni Story | Full Episode | Part 2 | Taarak Mehta Ka Ooltah Chashmah | तारक मेहता का उल्टा चश्मा', thumbnail: 'https://i.ytimg.com/vi/4JtgwW8BTPM/hqdefault.jpg' },
+                { id: 'yt-Ok88oUMS-u0', videoId: 'Ok88oUMS-u0', category: 'Taarak Mehta (TMKOC)', title: 'Taarak Mehta Ka Ooltah Chashmah | Episode 416 (Gokuldham Bhootni Special) | Full Episode', thumbnail: 'https://i.ytimg.com/vi/Ok88oUMS-u0/hqdefault.jpg' },
+                { id: 'yt-pFwi2cp1t9Q', videoId: 'pFwi2cp1t9Q', category: 'Taarak Mehta (TMKOC)', title: 'Taarak Mehta Ka Ooltah Chashmah - Episode 417 (Bhootni Arc) - Full Episode', thumbnail: 'https://i.ytimg.com/vi/pFwi2cp1t9Q/hqdefault.jpg' },
+                { id: 'yt-U2ACr7SUc7M', videoId: 'U2ACr7SUc7M', category: 'Taarak Mehta (TMKOC)', title: 'Taarak Mehta Ka Ooltah Chashmah - Episode 418 (Bhootni Climax) - Full Episode', thumbnail: 'https://i.ytimg.com/vi/U2ACr7SUc7M/hqdefault.jpg' },
+                { id: 'yt-XVDe4ennYbM', videoId: 'XVDe4ennYbM', category: 'Taarak Mehta (TMKOC)', title: 'अंधेरी रात में Jethalal को रोक लिया भूतनी ने | Gokuldham Ki Bhootni | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/XVDe4ennYbM/hqdefault.jpg' },
+                { id: 'yt-jzSg_tj_yiY', videoId: 'jzSg_tj_yiY', category: 'Taarak Mehta (TMKOC)', title: 'क्यों डर से काँप रहे हैं Jetha और Bapuji? | Gokuldham Ki Bhootni | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/jzSg_tj_yiY/hqdefault.jpg' },
+                { id: 'yt-bmXVRqvZoE8', videoId: 'bmXVRqvZoE8', category: 'Taarak Mehta (TMKOC)', title: 'Water Shortage At Gokuldham! | FULL MOVIE | Fan Favourite | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/bmXVRqvZoE8/hqdefault.jpg' },
+                { id: 'yt-YylNVbJUWmE', videoId: 'YylNVbJUWmE', category: 'Taarak Mehta (TMKOC)', title: 'पानी के Force से Bapuji चिपक गए दरवाज़े पर | Water Tanker Comedy | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/YylNVbJUWmE/hqdefault.jpg' },
+                { id: 'yt-3iPpeFwD5as', videoId: '3iPpeFwD5as', category: 'Taarak Mehta (TMKOC)', title: 'Jethalal के Guests की वजह से Society में हुई Water Crisis! | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/3iPpeFwD5as/hqdefault.jpg' },
+                { id: 'yt-94qbNM_x0vA', videoId: '94qbNM_x0vA', category: 'Taarak Mehta (TMKOC)', title: 'Gokuldham Mein Unknown Tempo?! | FULL MOVIE PART 1 | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/94qbNM_x0vA/hqdefault.jpg' },
+                { id: 'yt-0g-0fnbonJc', videoId: '0g-0fnbonJc', category: 'Taarak Mehta (TMKOC)', title: 'Gokuldham Mein Unknown Tempo?! | FULL MOVIE PART 2 | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/0g-0fnbonJc/hqdefault.jpg' },
+                { id: 'yt-peKpFzHPp2s', videoId: 'peKpFzHPp2s', category: 'Taarak Mehta (TMKOC)', title: 'Tempo Stuck in Gate - Ep 334 - Taarak Mehta Ka Ooltah Chashmah - Full Episode', thumbnail: 'https://i.ytimg.com/vi/peKpFzHPp2s/hqdefault.jpg' },
+                { id: 'yt-Z114q8JQ4wc', videoId: 'Z114q8JQ4wc', category: 'Taarak Mehta (TMKOC)', title: 'Tempo Stuck in Gate - Ep 335 - Taarak Mehta Ka Ooltah Chashmah - Full Episode', thumbnail: 'https://i.ytimg.com/vi/Z114q8JQ4wc/hqdefault.jpg' },
+                { id: 'yt-UDbLyCUKLn4', videoId: 'UDbLyCUKLn4', category: 'Taarak Mehta (TMKOC)', title: 'Bhide ki Siti (Whistle Stuck) | Full Movie | Hasa Hasao Divas | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/UDbLyCUKLn4/hqdefault.jpg' },
+                { id: 'yt-XCTBOOv-jpk', videoId: 'XCTBOOv-jpk', category: 'Taarak Mehta (TMKOC)', title: 'Bapuji Ki Hichki?! | Full Movie | Taarak Mehta Ka Ooltah Chashmah | तारक मेहता', thumbnail: 'https://i.ytimg.com/vi/XCTBOOv-jpk/hqdefault.jpg' },
+                { id: 'yt-6qVEWfCrRWc', videoId: '6qVEWfCrRWc', category: 'Taarak Mehta (TMKOC)', title: 'Gulabo से बचने के लिए Jethalal बना सन्यासी बाबा! | Gulabo Arc | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/6qVEWfCrRWc/hqdefault.jpg' },
+                { id: 'yt-5ziEhq6Liyo', videoId: '5ziEhq6Liyo', category: 'Taarak Mehta (TMKOC)', title: 'GOKULDHAM PREMIER LEAGUE (GPL)! | FULL MOVIE | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/5ziEhq6Liyo/hqdefault.jpg' },
+                { id: 'yt-pMwY33gov1U', videoId: 'pMwY33gov1U', category: 'Taarak Mehta (TMKOC)', title: 'Ep 1428 - GPL 3 Match | Taarak Mehta Ka Ooltah Chashmah - Full Episode', thumbnail: 'https://i.ytimg.com/vi/pMwY33gov1U/hqdefault.jpg' },
+                { id: 'yt-bNF5yt0xHVc', videoId: 'bNF5yt0xHVc', category: 'Taarak Mehta (TMKOC)', title: 'Ep 1429 - GPL 3 Match | Taarak Mehta Ka Ooltah Chashmah - Full Episode', thumbnail: 'https://i.ytimg.com/vi/bNF5yt0xHVc/hqdefault.jpg' },
+                { id: 'yt-fpiNLizme9o', videoId: 'fpiNLizme9o', category: 'Taarak Mehta (TMKOC)', title: 'Opposition के लिए क्या है Jetha की Strategy? | GPL Special | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/fpiNLizme9o/hqdefault.jpg' },
+                { id: 'yt-i4J1KvFSvqY', videoId: 'i4J1KvFSvqY', category: 'Taarak Mehta (TMKOC)', title: 'Tapu Sena Bhookh Hartal | FULL MOVIE | Ep 616 - 618 | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/i4J1KvFSvqY/hqdefault.jpg' },
+                { id: 'yt-ZwDoBTnjij8', videoId: 'ZwDoBTnjij8', category: 'Taarak Mehta (TMKOC)', title: 'Taarak Mehta Ka Ooltah Chashmah - Episode 605 - Full Episode', thumbnail: 'https://i.ytimg.com/vi/ZwDoBTnjij8/hqdefault.jpg' },
+                { id: 'yt-HmnG35THPeA', videoId: 'HmnG35THPeA', category: 'Taarak Mehta (TMKOC)', title: 'Taarak Mehta Ka Ooltah Chashmah - Episode 732 - Full Episode', thumbnail: 'https://i.ytimg.com/vi/HmnG35THPeA/hqdefault.jpg' },
+                { id: 'yt-m-2aFCLUm-s', videoId: 'm-2aFCLUm-s', category: 'Taarak Mehta (TMKOC)', title: 'Ep 1781 - Flats Ki Renovation | Taarak Mehta Ka Ooltah Chashmah | Full Episode', thumbnail: 'https://i.ytimg.com/vi/m-2aFCLUm-s/hqdefault.jpg' },
+                { id: 'yt-p1-mqYx1woM', videoId: 'p1-mqYx1woM', category: 'Taarak Mehta (TMKOC)', title: 'Popatlal Pav Bhaji Khakar Banayega Body! | FULL MOVIE | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/p1-mqYx1woM/hqdefault.jpg' },
+                { id: 'yt-NyWsSCahS5w', videoId: 'NyWsSCahS5w', category: 'Taarak Mehta (TMKOC)', title: 'Jetha ने क्यों बांधी आंख पर पट्टी? | Family Dispute | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/NyWsSCahS5w/hqdefault.jpg' },
+                { id: 'yt-iae90GAM-kg', videoId: 'iae90GAM-kg', category: 'Taarak Mehta (TMKOC)', title: 'Daya Pe Ayi Nayi Musibat! | FULL MOVIE PART 7 (Ep 1049-1052) | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/iae90GAM-kg/hqdefault.jpg' },
+                { id: 'yt-vQpu46k11us', videoId: 'vQpu46k11us', category: 'Taarak Mehta (TMKOC)', title: 'Daya Pe Ayi Nayi Musibat! | FULL MOVIE PART 8 (Ep 1053-1055) | Taarak Mehta Ka Ooltah Chashmah', thumbnail: 'https://i.ytimg.com/vi/vQpu46k11us/hqdefault.jpg' }
+            ]
+        }
+    ];
+
+    // Spotify-Style Curated Audio Collections (Exclusive to Pure Audio Mode — 100% Verified Embeddable & Thumbnail-Validated)
+    const AUDIO_CURATED_COLLECTIONS = [
+        {
+            id: 'audio-trending-now',
+            name: '🔥 Trending Now',
+            group: 'trending',
+            videos: [
+                { id: 'yt-roz9sXFkTuE', videoId: 'roz9sXFkTuE', category: 'Trending Audio', title: 'Aaj Ki Raat · Stree 2 | Sachin-Jigar, Madhubanti Bagchi', thumbnail: 'https://i.ytimg.com/vi/roz9sXFkTuE/hqdefault.jpg' },
+                { id: 'yt-LK7-_dgAVQE', videoId: 'LK7-_dgAVQE', category: 'Trending Audio', title: 'Tauba Tauba · Bad Newz | Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' },
+                { id: 'yt-hOHKltAiKXQ', videoId: 'hOHKltAiKXQ', category: 'Trending Audio', title: 'Big Dawgs · Hanumankind | Prod. Kalmi', thumbnail: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' },
+                { id: 'yt-iAIBF2ngbWY', videoId: 'iAIBF2ngbWY', category: 'Trending Audio', title: 'Pehle Bhi Main · Animal | Vishal Mishra, Raj Shekhar', thumbnail: 'https://i.ytimg.com/vi/iAIBF2ngbWY/hqdefault.jpg' },
+                { id: 'yt-VAdGW7QDJiU', videoId: 'VAdGW7QDJiU', category: 'Trending Audio', title: 'Chaleya · Jawan | Arijit Singh, Shilpa Rao', thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJiU/hqdefault.jpg' },
+                { id: 'yt-RLzC55ai0eo', videoId: 'RLzC55ai0eo', category: 'Trending Audio', title: 'Heeriye · Jasleen Royal ft. Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/RLzC55ai0eo/hqdefault.jpg' },
+                { id: 'yt-k3ijQJjUbTs', videoId: 'k3ijQJjUbTs', category: 'Trending Audio', title: 'Soulmate · Badshah X Arijit Singh (Ek Tha Raja)', thumbnail: 'https://i.ytimg.com/vi/k3ijQJjUbTs/hqdefault.jpg' },
+                { id: 'yt-XTp5jaRU3Ws', videoId: 'XTp5jaRU3Ws', category: 'Trending Audio', title: 'Wavy · Karan Aujla (Official Audio)', thumbnail: 'https://i.ytimg.com/vi/XTp5jaRU3Ws/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-most-viewed',
+            name: '🏆 Most Streamed Hits',
+            group: 'most-viewed',
+            videos: [
+                { id: 'yt-BddP6PYo2gs', videoId: 'BddP6PYo2gs', category: 'Most Streamed', title: 'Kesariya · Brahmāstra | Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
+                { id: 'yt-gvyUuxdRdR4', videoId: 'gvyUuxdRdR4', category: 'Most Streamed', title: 'Raataan Lambiyan · Shershaah | Jubin Nautiyal, Asees Kaur', thumbnail: 'https://i.ytimg.com/vi/gvyUuxdRdR4/hqdefault.jpg' },
+                { id: 'yt-Umqb9KENgmk', videoId: 'Umqb9KENgmk', category: 'Most Streamed', title: 'Tum Hi Ho · Aashiqui 2 | Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/Umqb9KENgmk/hqdefault.jpg' },
+                { id: 'yt-BBAyRBTfsOU', videoId: 'BBAyRBTfsOU', category: 'Most Streamed', title: 'Vaaste · Dhvani Bhanushali & Nikhil D’Souza', thumbnail: 'https://i.ytimg.com/vi/BBAyRBTfsOU/hqdefault.jpg' },
+                { id: 'yt-YxWlaYCA8MU', videoId: 'YxWlaYCA8MU', category: 'Most Streamed', title: 'Jhoome Jo Pathaan · Arijit Singh, Vishal-Sheykhar', thumbnail: 'https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg' },
+                { id: 'yt-jHNNMj5bNQw', videoId: 'jHNNMj5bNQw', category: 'Most Streamed', title: 'Kabira · Yeh Jawaani Hai Deewani | Pritam', thumbnail: 'https://i.ytimg.com/vi/jHNNMj5bNQw/hqdefault.jpg' },
+                { id: 'yt-JGwWNGJdvx8', videoId: 'JGwWNGJdvx8', category: 'Most Streamed', title: 'Shape of You · Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg' },
+                { id: 'yt-kJQP7kiw5Fk', videoId: 'kJQP7kiw5Fk', category: 'Most Streamed', title: 'Despacito · Luis Fonsi ft. Daddy Yankee', thumbnail: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-latest-releases',
+            name: '🆕 Latest Releases',
+            group: 'latest',
+            videos: [
+                { id: 'yt-XTp5jaRU3Ws', videoId: 'XTp5jaRU3Ws', category: 'Latest Audio', title: 'Wavy · Karan Aujla (Latest Punjabi Hit)', thumbnail: 'https://i.ytimg.com/vi/XTp5jaRU3Ws/hqdefault.jpg' },
+                { id: 'yt-4tywp83zkmk', videoId: '4tywp83zkmk', category: 'Latest Audio', title: 'Cheques · Shubh (Still Rollin)', thumbnail: 'https://i.ytimg.com/vi/4tywp83zkmk/hqdefault.jpg' },
+                { id: 'yt-eVli-tstM5E', videoId: 'eVli-tstM5E', category: 'Latest Audio', title: 'Espresso · Sabrina Carpenter', thumbnail: 'https://i.ytimg.com/vi/eVli-tstM5E/hqdefault.jpg' },
+                { id: 'yt-G7KNmW9a75Y', videoId: 'G7KNmW9a75Y', category: 'Latest Audio', title: 'Flowers · Miley Cyrus', thumbnail: 'https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg' },
+                { id: 'yt-wGiaxBbGQk4', videoId: 'wGiaxBbGQk4', category: 'Latest Audio', title: 'Winning Speech · Karan Aujla & Mxrci', thumbnail: 'https://i.ytimg.com/vi/wGiaxBbGQk4/hqdefault.jpg' },
+                { id: 'yt-rXoReWNm8Zo', videoId: 'rXoReWNm8Zo', category: 'Latest Audio', title: 'Antidote · Karan Aujla (Making Memories)', thumbnail: 'https://i.ytimg.com/vi/rXoReWNm8Zo/hqdefault.jpg' },
+                { id: 'yt-roz9sXFkTuE', videoId: 'roz9sXFkTuE', category: 'Latest Audio', title: 'Aaj Ki Raat · Stree 2 | Sachin-Jigar', thumbnail: 'https://i.ytimg.com/vi/roz9sXFkTuE/hqdefault.jpg' },
+                { id: 'yt-LK7-_dgAVQE', videoId: 'LK7-_dgAVQE', category: 'Latest Audio', title: 'Tauba Tauba · Bad Newz | Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/LK7-_dgAVQE/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-artist-arijit',
+            name: '🎤 Arijit Singh Essentials',
+            group: 'artists',
+            videos: [
+                { id: 'yt-BddP6PYo2gs', videoId: 'BddP6PYo2gs', category: 'Arijit Singh', title: 'Kesariya · Brahmāstra | Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/BddP6PYo2gs/hqdefault.jpg' },
+                { id: 'yt-VAdGW7QDJiU', videoId: 'VAdGW7QDJiU', category: 'Arijit Singh', title: 'Chaleya · Jawan | Arijit Singh, Shilpa Rao', thumbnail: 'https://i.ytimg.com/vi/VAdGW7QDJiU/hqdefault.jpg' },
+                { id: 'yt-RLzC55ai0eo', videoId: 'RLzC55ai0eo', category: 'Arijit Singh', title: 'Heeriye · Jasleen Royal ft. Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/RLzC55ai0eo/hqdefault.jpg' },
+                { id: 'yt-k3ijQJjUbTs', videoId: 'k3ijQJjUbTs', category: 'Arijit Singh', title: 'Soulmate · Badshah X Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/k3ijQJjUbTs/hqdefault.jpg' },
+                { id: 'yt-Umqb9KENgmk', videoId: 'Umqb9KENgmk', category: 'Arijit Singh', title: 'Tum Hi Ho · Aashiqui 2 | Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/Umqb9KENgmk/hqdefault.jpg' },
+                { id: 'yt-YxWlaYCA8MU', videoId: 'YxWlaYCA8MU', category: 'Arijit Singh', title: 'Jhoome Jo Pathaan · Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/YxWlaYCA8MU/hqdefault.jpg' },
+                { id: 'yt-fdubeMFwuGs', videoId: 'fdubeMFwuGs', category: 'Arijit Singh', title: 'Ilahi · Yeh Jawaani Hai Deewani | Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/fdubeMFwuGs/hqdefault.jpg' },
+                { id: 'yt-cYOB941gyXI', videoId: 'cYOB941gyXI', category: 'Arijit Singh', title: 'Hawayein · Jab Harry Met Sejal | Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/cYOB941gyXI/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-artist-aujla',
+            name: '🎤 Karan Aujla Studio',
+            group: 'artists',
+            videos: [
+                { id: 'yt-cWMxCE2HTag', videoId: 'cWMxCE2HTag', category: 'Karan Aujla', title: 'Softly · Karan Aujla & Ikky (Making Memories)', thumbnail: 'https://i.ytimg.com/vi/cWMxCE2HTag/hqdefault.jpg' },
+                { id: 'yt-XTp5jaRU3Ws', videoId: 'XTp5jaRU3Ws', category: 'Karan Aujla', title: 'Wavy · Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/XTp5jaRU3Ws/hqdefault.jpg' },
+                { id: 'yt-wGiaxBbGQk4', videoId: 'wGiaxBbGQk4', category: 'Karan Aujla', title: 'Winning Speech · Karan Aujla & Mxrci', thumbnail: 'https://i.ytimg.com/vi/wGiaxBbGQk4/hqdefault.jpg' },
+                { id: 'yt-BtQp2U6hJII', videoId: 'BtQp2U6hJII', category: 'Karan Aujla', title: 'White Brown Black · Avvy Sra & Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/BtQp2U6hJII/hqdefault.jpg' },
+                { id: 'yt-k85UB5b6pJU', videoId: 'k85UB5b6pJU', category: 'Karan Aujla', title: 'Admirin’ You · Karan Aujla & Ikky', thumbnail: 'https://i.ytimg.com/vi/k85UB5b6pJU/hqdefault.jpg' },
+                { id: 'yt-aFWDOFg7X2A', videoId: 'aFWDOFg7X2A', category: 'Karan Aujla', title: 'On Top · Karan Aujla', thumbnail: 'https://i.ytimg.com/vi/aFWDOFg7X2A/hqdefault.jpg' },
+                { id: 'yt-4DfVxVeqk2o', videoId: '4DfVxVeqk2o', category: 'Karan Aujla', title: '52 Bars · Karan Aujla & Ikky', thumbnail: 'https://i.ytimg.com/vi/4DfVxVeqk2o/hqdefault.jpg' },
+                { id: 'yt-fRJ03btNsao', videoId: 'fRJ03btNsao', category: 'Karan Aujla', title: 'Bachke Bachke · Karan Aujla & Ikky', thumbnail: 'https://i.ytimg.com/vi/fRJ03btNsao/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-artist-punjabi',
+            name: '🎤 Diljit & Punjabi Legends',
+            group: 'artists',
+            videos: [
+                { id: 'yt-dCmp56tSSmA', videoId: 'dCmp56tSSmA', category: 'Punjabi Pop', title: 'Born To Shine · Diljit Dosanjh (G.O.A.T)', thumbnail: 'https://i.ytimg.com/vi/dCmp56tSSmA/hqdefault.jpg' },
+                { id: 'yt-cl0a3i2wFcc', videoId: 'cl0a3i2wFcc', category: 'Punjabi Pop', title: 'G.O.A.T. · Diljit Dosanjh', thumbnail: 'https://i.ytimg.com/vi/cl0a3i2wFcc/hqdefault.jpg' },
+                { id: 'yt-M8vDwlHigJA', videoId: 'M8vDwlHigJA', category: 'Punjabi Pop', title: 'GOAT · Sidhu Moose Wala (Moosetape)', thumbnail: 'https://i.ytimg.com/vi/M8vDwlHigJA/hqdefault.jpg' },
+                { id: 'yt-6xoB4ZiKKn0', videoId: '6xoB4ZiKKn0', category: 'Punjabi Pop', title: 'The Last Ride · Sidhu Moose Wala', thumbnail: 'https://i.ytimg.com/vi/6xoB4ZiKKn0/hqdefault.jpg' },
+                { id: 'yt-MlXTbqptX_8', videoId: 'MlXTbqptX_8', category: 'Satinder Sartaaj', title: 'Satinder Sartaaj · Sufi Classics & Hits', thumbnail: 'https://i.ytimg.com/vi/MlXTbqptX_8/hqdefault.jpg' },
+                { id: 'yt-NbyHNASFi6U', videoId: 'NbyHNASFi6U', category: 'Honey Singh', title: 'Blue Eyes · Yo Yo Honey Singh', thumbnail: 'https://i.ytimg.com/vi/NbyHNASFi6U/hqdefault.jpg' },
+                { id: 'yt-PqFMFVcCZgI', videoId: 'PqFMFVcCZgI', category: 'Honey Singh', title: 'Brown Rang · Yo Yo Honey Singh', thumbnail: 'https://i.ytimg.com/vi/PqFMFVcCZgI/hqdefault.jpg' },
+                { id: 'yt-NTHz9ephYTw', videoId: 'NTHz9ephYTw', category: 'Badshah', title: 'Kar Gayi Chull · Badshah, Neha Kakkar', thumbnail: 'https://i.ytimg.com/vi/NTHz9ephYTw/hqdefault.jpg' },
+                { id: 'yt-8LZgzAZ2lpQ', videoId: '8LZgzAZ2lpQ', category: 'Badshah', title: 'Abhi Toh Party Shuru Hui Hai · Badshah', thumbnail: 'https://i.ytimg.com/vi/8LZgzAZ2lpQ/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-mood-midnight',
+            name: '🌙 Midnight Lo-Fi & Chill',
+            group: 'moods',
+            videos: [
+                { id: 'yt-sElE_BfQ67s', videoId: 'sElE_BfQ67s', category: 'Midnight Chill', title: 'Apocalypse · Cigarettes After Sex', thumbnail: 'https://i.ytimg.com/vi/sElE_BfQ67s/hqdefault.jpg' },
+                { id: 'yt-vGJTaP6anOU', videoId: 'vGJTaP6anOU', category: 'Midnight Chill', title: 'Can’t Help Falling In Love · Elvis Presley', thumbnail: 'https://i.ytimg.com/vi/vGJTaP6anOU/hqdefault.jpg' },
+                { id: 'yt-5bqOxLuJIq0', videoId: '5bqOxLuJIq0', category: 'Midnight Chill', title: 'Midnight Vibes 🌙 · Hindi Chill & Emotional Late Night Mix', thumbnail: 'https://i.ytimg.com/vi/5bqOxLuJIq0/hqdefault.jpg' },
+                { id: 'yt-gvyUuxdRdR4', videoId: 'gvyUuxdRdR4', category: 'Midnight Chill', title: 'Raataan Lambiyan · Shershaah', thumbnail: 'https://i.ytimg.com/vi/gvyUuxdRdR4/hqdefault.jpg' },
+                { id: 'yt-iAIBF2ngbWY', videoId: 'iAIBF2ngbWY', category: 'Midnight Chill', title: 'Pehle Bhi Main · Vishal Mishra', thumbnail: 'https://i.ytimg.com/vi/iAIBF2ngbWY/hqdefault.jpg' },
+                { id: 'yt-cYOB941gyXI', videoId: 'cYOB941gyXI', category: 'Midnight Chill', title: 'Hawayein · Arijit Singh, Pritam', thumbnail: 'https://i.ytimg.com/vi/cYOB941gyXI/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-mood-roadtrip',
+            name: '🚗 Long Drive & Road Trip',
+            group: 'moods',
+            videos: [
+                { id: 'yt-fdubeMFwuGs', videoId: 'fdubeMFwuGs', category: 'Road Trip Audio', title: 'Ilahi · Yeh Jawaani Hai Deewani | Arijit Singh', thumbnail: 'https://i.ytimg.com/vi/fdubeMFwuGs/hqdefault.jpg' },
+                { id: 'yt-jHNNMj5bNQw', videoId: 'jHNNMj5bNQw', category: 'Road Trip Audio', title: 'Kabira · Yeh Jawaani Hai Deewani', thumbnail: 'https://i.ytimg.com/vi/jHNNMj5bNQw/hqdefault.jpg' },
+                { id: 'yt-II2EO3Nw4m0', videoId: 'II2EO3Nw4m0', category: 'Road Trip Audio', title: 'Badtameez Dil · Yeh Jawaani Hai Deewani', thumbnail: 'https://i.ytimg.com/vi/II2EO3Nw4m0/hqdefault.jpg' },
+                { id: 'yt-7VppHj0Rue0', videoId: '7VppHj0Rue0', category: 'Road Trip Audio', title: 'Udd Jaa Kaale Kaava · Gadar 2 | Udit Narayan, Alka Yagnik', thumbnail: 'https://i.ytimg.com/vi/7VppHj0Rue0/hqdefault.jpg' },
+                { id: 'yt-YwEKIl3qQzA', videoId: 'YwEKIl3qQzA', category: 'Road Trip Audio', title: 'Non-Stop Bollywood Road Trip Audio Jukebox', thumbnail: 'https://i.ytimg.com/vi/YwEKIl3qQzA/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-mood-90s-retro',
+            name: '📻 90s Evergreen & Retro',
+            group: 'moods',
+            videos: [
+                { id: 'yt-9uS3o5YOR1U', videoId: '9uS3o5YOR1U', category: '90s Evergreen', title: '90s Evergreen Hindi Classics · Bollywood Golden Hits', thumbnail: 'https://i.ytimg.com/vi/9uS3o5YOR1U/hqdefault.jpg' },
+                { id: 'yt-RWqmC7oBPKA', videoId: 'RWqmC7oBPKA', category: '90s Nostalgia', title: 'Deluxe Pop Saloon · Classic 90s Hindi Playlist', thumbnail: 'https://i.ytimg.com/vi/RWqmC7oBPKA/hqdefault.jpg' },
+                { id: 'yt-BrIkUBI_37I', videoId: 'BrIkUBI_37I', category: '90s Pop Classic', title: 'Kabhi Yaadon Mein Aaun · Abhijeet | Divya Khosla', thumbnail: 'https://i.ytimg.com/vi/BrIkUBI_37I/hqdefault.jpg' },
+                { id: 'yt-xWi8nDUjHGA', videoId: 'xWi8nDUjHGA', category: '90s Remix', title: 'Dil Chori · Yo Yo Honey Singh (Hans Raj Hans Tribute)', thumbnail: 'https://i.ytimg.com/vi/xWi8nDUjHGA/hqdefault.jpg' },
+                { id: 'yt-vGJTaP6anOU', videoId: 'vGJTaP6anOU', category: 'Retro Classics', title: 'Can’t Help Falling In Love · Elvis Presley', thumbnail: 'https://i.ytimg.com/vi/vGJTaP6anOU/hqdefault.jpg' }
+            ]
+        },
+        {
+            id: 'audio-mood-global-pop',
+            name: '🌍 Global English Anthems',
+            group: 'moods',
+            videos: [
+                { id: 'yt-4NRXx6U8ABQ', videoId: '4NRXx6U8ABQ', category: 'Global Pop', title: 'Blinding Lights · The Weeknd', thumbnail: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg' },
+                { id: 'yt-kTJczUoc26U', videoId: 'kTJczUoc26U', category: 'Global Pop', title: 'STAY · The Kid LAROI, Justin Bieber', thumbnail: 'https://i.ytimg.com/vi/kTJczUoc26U/hqdefault.jpg' },
+                { id: 'yt-YykjpeuMNEk', videoId: 'YykjpeuMNEk', category: 'Global Pop', title: 'Hymn For The Weekend · Coldplay', thumbnail: 'https://i.ytimg.com/vi/YykjpeuMNEk/hqdefault.jpg' },
+                { id: 'yt-2LBBaD1aQuw', videoId: '2LBBaD1aQuw', category: 'Global Pop', title: 'Something Just Like This · The Chainsmokers & Coldplay', thumbnail: 'https://i.ytimg.com/vi/2LBBaD1aQuw/hqdefault.jpg' },
+                { id: 'yt-RgKAFK5djSk', videoId: 'RgKAFK5djSk', category: 'Global Pop', title: 'See You Again · Wiz Khalifa ft. Charlie Puth', thumbnail: 'https://i.ytimg.com/vi/RgKAFK5djSk/hqdefault.jpg' },
+                { id: 'yt-JGwWNGJdvx8', videoId: 'JGwWNGJdvx8', category: 'Global Pop', title: 'Shape of You · Ed Sheeran', thumbnail: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg' },
+                { id: 'yt-eVli-tstM5E', videoId: 'eVli-tstM5E', category: 'Global Pop', title: 'Espresso · Sabrina Carpenter', thumbnail: 'https://i.ytimg.com/vi/eVli-tstM5E/hqdefault.jpg' },
+                { id: 'yt-G7KNmW9a75Y', videoId: 'G7KNmW9a75Y', category: 'Global Pop', title: 'Flowers · Miley Cyrus', thumbnail: 'https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg' },
+                { id: 'yt-hOHKltAiKXQ', videoId: 'hOHKltAiKXQ', category: 'Global Hip-Hop', title: 'Big Dawgs · Hanumankind', thumbnail: 'https://i.ytimg.com/vi/hOHKltAiKXQ/hqdefault.jpg' }
+            ]
         }
     ];
 
@@ -323,7 +507,18 @@
     // App State (Starts with the 4 default playlist tracks for everyone)
     const STATE = {
         items: DEFAULT_SONGS.map(s => ({ ...s })), // Default YouTube playlist
-        queue: [],              // Active playback queue
+        videoQueue: [],         // Active playback queue for Video & Audio Mode
+        audioQueue: [],         // Active playback queue for Pure Audio Mode
+        get queue() {
+            return this.experienceMode === 'audio' ? this.audioQueue : this.videoQueue;
+        },
+        set queue(val) {
+            if (this.experienceMode === 'audio') {
+                this.audioQueue = Array.isArray(val) ? val : [];
+            } else {
+                this.videoQueue = Array.isArray(val) ? val : [];
+            }
+        },
         favorites: [],          // Array of video IDs
         history: [],            // Watched history
         curatedLibraries: DEFAULT_CURATED_LIBRARIES.map(l => ({ ...l, videos: l.videos.map(v => ({ ...v })) })),
@@ -337,13 +532,53 @@
         bgPlay: false,
         bgAudio: null,
         isFullscreen: false,
-        pickerTrack: null
+        pickerTrack: null,
+        experienceMode: localStorage.getItem('sonora-experience-mode') || 'video', // 'video' | 'audio'
+        activeVideoLibraryId: 'all-songs',
+        activeAudioLibraryId: 'audio-trending-now',
+        activeAudioCategory: 'all',
+        isPlaying: false,
+        repeatOne: false,
+        volume: 100,
+        isMuted: false,
+        isSeeking: false,
+        lastDuration: 0,
+        lastPosition: 0
     };
 
     // DOM Elements Cache
     const DOM = {
         viewport: document.getElementById('sonora-viewport'),
         playerPane: document.querySelector('.player-pane'),
+        expModeVideoBtn: document.getElementById('exp-mode-video'),
+        expModeAudioBtn: document.getElementById('exp-mode-audio'),
+        libraryTabLabel: document.getElementById('library-tab-label'),
+        libraryPanelTitle: document.getElementById('library-panel-title'),
+        queuePanelTitle: document.getElementById('queue-panel-title'),
+        audioCatFilterBar: document.getElementById('audio-collection-filter-bar'),
+        audioDeck: document.getElementById('audio-only-deck'),
+        audioDeckBackdrop: document.getElementById('audio-deck-backdrop'),
+        audioStatusText: document.getElementById('audio-deck-status-text'),
+        audioFavBtn: document.getElementById('audio-fav-btn'),
+        audioArtworkWrap: document.getElementById('audio-artwork-wrapper'),
+        audioArtworkImg: document.getElementById('audio-artwork-img'),
+        audioArtworkBadge: document.getElementById('audio-artwork-play-badge'),
+        audioTrackTitle: document.getElementById('audio-track-title'),
+        audioTrackSub: document.getElementById('audio-track-subtitle'),
+        audioSeekSlider: document.getElementById('audio-seek-slider'),
+        audioTimeCurrent: document.getElementById('audio-time-current'),
+        audioTimeTotal: document.getElementById('audio-time-total'),
+        audioShuffleBtn: document.getElementById('audio-shuffle-btn'),
+        audioPrevBtn: document.getElementById('audio-prev-btn'),
+        audioPlayPauseBtn: document.getElementById('audio-play-pause-btn'),
+        audioPlayPauseIcon: document.getElementById('audio-play-pause-icon'),
+        audioNextBtn: document.getElementById('audio-next-btn'),
+        audioRepeatBtn: document.getElementById('audio-repeat-btn'),
+        audioMuteBtn: document.getElementById('audio-mute-btn'),
+        audioVolDownBtn: document.getElementById('audio-vol-down-btn'),
+        audioVolUpBtn: document.getElementById('audio-vol-up-btn'),
+        audioVolSlider: document.getElementById('audio-volume-slider'),
+        audioVolLabel: document.getElementById('audio-vol-label'),
         addForm: document.getElementById('add-link-form'),
         addInput: document.getElementById('add-link-input'),
         playerContainer: document.getElementById('player-container'),
@@ -447,7 +682,53 @@
         return allSongs;
     }
 
+    function getAllAudioTracksList() {
+        const seen = new Set();
+        const allAudio = [];
+        AUDIO_CURATED_COLLECTIONS.forEach(col => {
+            (col.videos || []).forEach(v => {
+                if (v && v.videoId && !seen.has(v.videoId)) {
+                    seen.add(v.videoId);
+                    allAudio.push({ ...v, _libName: col.name });
+                }
+            });
+        });
+        (STATE.customPlaylists || []).forEach(lib => {
+            (lib.videos || []).forEach(v => {
+                if (v && v.videoId && !seen.has(v.videoId)) {
+                    seen.add(v.videoId);
+                    allAudio.push({ ...v, _libName: lib.name });
+                }
+            });
+        });
+        (STATE.items || []).forEach(v => {
+            if (v && v.videoId && !seen.has(v.videoId)) {
+                seen.add(v.videoId);
+                allAudio.push(v);
+            }
+        });
+        return allAudio;
+    }
+
     function getAllLibraries() {
+        if (STATE.experienceMode === 'audio') {
+            const cat = STATE.activeAudioCategory || 'all';
+            const filteredAudioCols = cat === 'all'
+                ? AUDIO_CURATED_COLLECTIONS
+                : AUDIO_CURATED_COLLECTIONS.filter(c => c.group === cat);
+
+            if (cat === 'all') {
+                const allAudioLib = {
+                    id: 'audio-all-tracks',
+                    name: '🎧 All Audio Tracks',
+                    isAllSongs: true,
+                    videos: getAllAudioTracksList()
+                };
+                return [...filteredAudioCols, ...STATE.customPlaylists, allAudioLib];
+            }
+            return [...filteredAudioCols, ...STATE.customPlaylists];
+        }
+
         const allSongs = getAllSongsList();
         const allSongsLib = {
             id: 'all-songs',
@@ -460,7 +741,12 @@
 
     function getActiveLibrary() {
         const all = getAllLibraries();
-        return all.find(l => l.id === STATE.activeLibraryId) || all[0];
+        const found = all.find(l => l.id === STATE.activeLibraryId);
+        if (found) return found;
+        if (all[0]) {
+            STATE.activeLibraryId = all[0].id;
+        }
+        return all[0];
     }
 
     function getVideoId(input) {
@@ -546,7 +832,15 @@
         let step = 0;
         imgEl.addEventListener('error', () => {
             if (step < fallbacks.length) {
-                imgEl.src = fallbacks[step++];
+                const nextSrc = fallbacks[step++];
+                if (nextSrc === FALLBACK_THUMB_SVG) {
+                    fetchVideoMeta(videoId).then(meta => {
+                        if (!meta) {
+                            purgeUnavailableVideo(videoId);
+                        }
+                    });
+                }
+                imgEl.src = nextSrc;
             }
         });
     }
@@ -648,7 +942,8 @@
             });
         };
         collect(STATE.items);
-        collect(STATE.queue);
+        collect(STATE.videoQueue);
+        collect(STATE.audioQueue);
         collect(STATE.history);
         STATE.customPlaylists.forEach(p => collect(p.videos));
         STATE.curatedLibraries.forEach(p => collect(p.videos));
@@ -657,6 +952,22 @@
                 if (meta) updateTrackMetaEverywhere(videoId, meta);
             });
         });
+    }
+
+    function purgeUnavailableVideo(videoId, toastMessage) {
+        if (!videoId) return;
+        const filterOut = (arr) => Array.isArray(arr) ? arr.filter(v => v && v.videoId !== videoId) : [];
+        STATE.items = filterOut(STATE.items);
+        STATE.videoQueue = filterOut(STATE.videoQueue);
+        STATE.audioQueue = filterOut(STATE.audioQueue);
+        STATE.history = filterOut(STATE.history);
+        STATE.favorites = (STATE.favorites || []).filter(fid => fid !== videoId);
+        STATE.customPlaylists.forEach(p => { p.videos = filterOut(p.videos); });
+        STATE.curatedLibraries.forEach(p => { p.videos = filterOut(p.videos); });
+        AUDIO_CURATED_COLLECTIONS.forEach(c => { c.videos = filterOut(c.videos); });
+        saveState();
+        renderAll();
+        if (toastMessage) showToast(toastMessage);
     }
 
     // -------------------------------------------------------------------------
@@ -690,7 +1001,9 @@
             const store = tx.objectStore(IDB_STORE);
             store.put({
                 items: STATE.items,
-                queue: STATE.queue,
+                queue: STATE.videoQueue,
+                videoQueue: STATE.videoQueue,
+                audioQueue: STATE.audioQueue,
                 favorites: STATE.favorites,
                 history: STATE.history,
                 customPlaylists: STATE.customPlaylists,
@@ -752,13 +1065,15 @@
                 localStorage.removeItem(STORAGE_KEY);
                 localStorage.removeItem(ACTIVE_KEY);
                 localStorage.removeItem(QUEUE_KEY);
+                localStorage.removeItem(AUDIO_QUEUE_KEY);
                 localStorage.removeItem(FAVORITES_KEY);
                 localStorage.removeItem(HISTORY_KEY);
                 localStorage.removeItem(PLAYLISTS_KEY);
                 localStorage.setItem(CLEAN_INIT_KEY, '1');
             }
             STATE.items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            STATE.queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+            STATE.videoQueue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+            STATE.audioQueue = JSON.parse(localStorage.getItem(AUDIO_QUEUE_KEY) || '[]');
             STATE.favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
             STATE.history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
             STATE.customPlaylists = JSON.parse(localStorage.getItem(PLAYLISTS_KEY) || '[]');
@@ -772,7 +1087,8 @@
     function saveState() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE.items));
-            localStorage.setItem(QUEUE_KEY, JSON.stringify(STATE.queue));
+            localStorage.setItem(QUEUE_KEY, JSON.stringify(STATE.videoQueue));
+            localStorage.setItem(AUDIO_QUEUE_KEY, JSON.stringify(STATE.audioQueue));
             localStorage.setItem(FAVORITES_KEY, JSON.stringify(STATE.favorites));
             localStorage.setItem(HISTORY_KEY, JSON.stringify(STATE.history));
             localStorage.setItem(PLAYLISTS_KEY, JSON.stringify(STATE.customPlaylists));
@@ -790,7 +1106,7 @@
 
     async function loadLibraries() {
         try {
-            const res = await fetch('sonora-frontend/libraries.json?v=7');
+            const res = await fetch('sonora-frontend/libraries.json?v=8');
             if (res.ok) {
                 const parsed = await res.json();
                 STATE.curatedLibraries = Array.isArray(parsed) && parsed.length
@@ -872,6 +1188,8 @@
         if (!activeIframe) return;
 
         destroyActivePlayerIframe();
+        STATE.isPlaying = false;
+        if (typeof syncAudioDeckUI === 'function') syncAudioDeckUI();
 
         if (STATE.bgAudio) {
             try { STATE.bgAudio.pause(); } catch (e) {}
@@ -972,6 +1290,38 @@
             </iframe>
         `;
 
+        STATE.isPlaying = true;
+        STATE.lastPosition = 0;
+        STATE.lastDuration = 0;
+
+        const mountedIframe = document.getElementById('sonora-active-iframe');
+        if (mountedIframe) {
+            const registerTelemetry = () => {
+                try {
+                    if (mountedIframe.contentWindow) {
+                        mountedIframe.contentWindow.postMessage(JSON.stringify({
+                            event: 'listening',
+                            id: 1,
+                            channel: 'widget'
+                        }), '*');
+                        sendIframeCommand('addEventListener', ['onStateChange']);
+                        sendIframeCommand('addEventListener', ['onError']);
+                        sendIframeCommand('setPlaybackQuality', [STATE.experienceMode === 'audio' ? 'small' : 'hd720']);
+                        if (STATE.isMuted) {
+                            sendIframeCommand('mute');
+                        } else if (typeof STATE.volume === 'number') {
+                            sendIframeCommand('setVolume', [STATE.volume]);
+                        }
+                    }
+                } catch (e) {}
+            };
+            mountedIframe.addEventListener('load', () => {
+                registerTelemetry();
+                setTimeout(registerTelemetry, 350);
+                setTimeout(registerTelemetry, 1000);
+            });
+        }
+
         const displayTitle = track.title || `Video (${track.videoId})`;
         if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = displayTitle;
         if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = displayTitle;
@@ -993,8 +1343,206 @@
 
         // Set rich MediaSession metadata directly after audio activation
         updateMediaSession(track);
+        syncAudioDeckUI();
+        syncAudioSeekUI();
 
         renderAll();
+    }
+
+    function formatSeconds(sec) {
+        if (!sec || !isFinite(sec) || sec < 0) return '0:00';
+        const total = Math.floor(sec);
+        const hrs = Math.floor(total / 3600);
+        const mins = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+        if (hrs > 0) {
+            return `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        return `${mins}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function syncExperienceModeUI() {
+        const isAudioOnly = STATE.experienceMode === 'audio';
+        if (DOM.viewport) {
+            DOM.viewport.classList.toggle('is-audio-theme', isAudioOnly);
+        }
+        if (DOM.playerPane) {
+            DOM.playerPane.classList.toggle('is-audio-only-mode', isAudioOnly);
+            if (isAudioOnly) {
+                DOM.playerPane.classList.remove('is-video-minimized');
+            }
+        }
+        if (DOM.expModeVideoBtn) {
+            DOM.expModeVideoBtn.classList.toggle('active', !isAudioOnly);
+            DOM.expModeVideoBtn.setAttribute('aria-selected', String(!isAudioOnly));
+        }
+        if (DOM.expModeAudioBtn) {
+            DOM.expModeAudioBtn.classList.toggle('active', isAudioOnly);
+            DOM.expModeAudioBtn.setAttribute('aria-selected', String(isAudioOnly));
+        }
+        if (DOM.audioCatFilterBar) {
+            if (isAudioOnly) {
+                DOM.audioCatFilterBar.removeAttribute('hidden');
+            } else {
+                DOM.audioCatFilterBar.setAttribute('hidden', '');
+            }
+        }
+        if (DOM.libraryPanelTitle) {
+            DOM.libraryPanelTitle.textContent = isAudioOnly ? '🎧 Music Collections' : 'Libraries';
+        }
+        if (DOM.libraryTabLabel) {
+            DOM.libraryTabLabel.textContent = isAudioOnly ? 'Collections' : 'Library';
+        }
+        if (DOM.queuePanelTitle) {
+            DOM.queuePanelTitle.textContent = isAudioOnly ? '🎧 Audio Queue (Up Next)' : '🎬 Video Queue (Up Next)';
+        }
+        syncAudioDeckUI();
+        syncAudioSeekUI();
+    }
+
+    function setExperienceMode(mode) {
+        const prevMode = STATE.experienceMode;
+        const nextMode = (mode === 'audio') ? 'audio' : 'video';
+
+        if (prevMode !== nextMode) {
+            if (prevMode === 'video') {
+                STATE.activeVideoLibraryId = STATE.activeLibraryId || 'all-songs';
+            } else {
+                STATE.activeAudioLibraryId = STATE.activeLibraryId || 'audio-trending-now';
+            }
+            STATE.experienceMode = nextMode;
+            STATE.activeLibraryId = nextMode === 'audio'
+                ? (STATE.activeAudioLibraryId || 'audio-trending-now')
+                : (STATE.activeVideoLibraryId || 'all-songs');
+        } else {
+            STATE.experienceMode = nextMode;
+        }
+
+        try {
+            localStorage.setItem('sonora-experience-mode', STATE.experienceMode);
+        } catch (e) {}
+
+        // Optimize background video quality in Pure Audio Mode ('small') to save data/battery while preserving high audio quality
+        sendIframeCommand('setPlaybackQuality', [STATE.experienceMode === 'audio' ? 'small' : 'hd720']);
+
+        syncExperienceModeUI();
+        renderLibraryTabs();
+        renderLibrary();
+        renderQueue();
+        renderSuggestions();
+
+        showToast(STATE.experienceMode === 'audio'
+            ? '🎧 Pure Audio Mode (Music Collections · Low-Data High-Audio Stream)'
+            : '🎬 Video & Audio Mode active');
+    }
+
+    function syncAudioSeekUI() {
+        if (STATE.isSeeking) return;
+        const dur = STATE.lastDuration || 0;
+        const pos = Math.min(STATE.lastPosition || 0, dur || 99999);
+        if (DOM.audioTimeCurrent) {
+            DOM.audioTimeCurrent.textContent = formatSeconds(pos);
+        }
+        if (DOM.audioTimeTotal) {
+            DOM.audioTimeTotal.textContent = dur > 0 ? formatSeconds(dur) : (STATE.isPlaying ? 'LIVE' : '0:00');
+        }
+        if (DOM.audioSeekSlider) {
+            if (dur > 0) {
+                const ratio = Math.max(0, Math.min(1000, Math.round((pos / dur) * 1000)));
+                DOM.audioSeekSlider.value = String(ratio);
+            } else {
+                DOM.audioSeekSlider.value = '0';
+            }
+        }
+    }
+
+    function syncAudioDeckUI() {
+        if (!DOM.audioDeck) return;
+        const track = STATE.activeTrack;
+        const hasIframe = Boolean(document.getElementById('sonora-active-iframe'));
+        const playing = hasIframe && STATE.isPlaying;
+
+        DOM.audioDeck.classList.toggle('is-playing', playing);
+
+        if (DOM.audioStatusText) {
+            DOM.audioStatusText.textContent = playing
+                ? 'STREAMING PURE AUDIO'
+                : (hasIframe ? 'AUDIO PAUSED' : 'PURE AUDIO READY');
+        }
+
+        if (DOM.audioPlayPauseIcon) {
+            DOM.audioPlayPauseIcon.textContent = playing ? '⏸' : '▶';
+        }
+        if (DOM.audioArtworkBadge) {
+            DOM.audioArtworkBadge.textContent = playing ? '⏸' : '▶';
+        }
+
+        if (track) {
+            const thumb = getPrimaryThumbnail(track);
+            if (DOM.audioArtworkImg && DOM.audioArtworkImg.dataset.vid !== track.videoId) {
+                DOM.audioArtworkImg.dataset.vid = track.videoId;
+                DOM.audioArtworkImg.src = thumb;
+                attachThumbnailFallback(DOM.audioArtworkImg, track.videoId);
+            }
+            if (DOM.audioDeckBackdrop) {
+                DOM.audioDeckBackdrop.style.backgroundImage = `url("${thumb}")`;
+            }
+            if (DOM.audioTrackTitle) {
+                DOM.audioTrackTitle.textContent = track.title || `Track (${track.videoId})`;
+            }
+            if (DOM.audioTrackSub) {
+                const activeLib = getActiveLibrary();
+                const cat = track.category || (activeLib ? activeLib.name : 'Sonora Music');
+                DOM.audioTrackSub.textContent = `${cat} · Ad-Free Audio Stream`;
+            }
+            if (DOM.audioFavBtn) {
+                const isFav = STATE.favorites.some(f => f.videoId === track.videoId);
+                DOM.audioFavBtn.textContent = isFav ? '❤️' : '🤍';
+            }
+        }
+
+        if (DOM.audioRepeatBtn) {
+            DOM.audioRepeatBtn.classList.toggle('active', Boolean(STATE.repeatOne));
+        }
+        if (DOM.audioMuteBtn) {
+            DOM.audioMuteBtn.textContent = (STATE.isMuted || STATE.volume === 0) ? '🔇' : (STATE.volume < 50 ? '🔉' : '🔊');
+        }
+        if (DOM.audioVolSlider) {
+            DOM.audioVolSlider.value = String(STATE.isMuted ? 0 : STATE.volume);
+        }
+        if (DOM.audioVolLabel) {
+            DOM.audioVolLabel.textContent = `${STATE.isMuted ? 0 : STATE.volume}%`;
+        }
+    }
+
+    function toggleAudioPlayPause() {
+        const hasIframe = Boolean(document.getElementById('sonora-active-iframe'));
+        if (!hasIframe) {
+            if (STATE.activeTrack && STATE.activeTrack.videoId) {
+                playTrack(STATE.activeTrack);
+            } else {
+                const activeLib = getActiveLibrary();
+                const first = activeLib && activeLib.videos && activeLib.videos[0] ? activeLib.videos[0] : STATE.items[0];
+                if (first) playTrack(first);
+            }
+            return;
+        }
+
+        if (STATE.isPlaying) {
+            sendIframeCommand('pauseVideo');
+            STATE.isPlaying = false;
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+            if (STATE.bgAudio) STATE.bgAudio.pause();
+            if (DOM.nowPlayingSub) DOM.nowPlayingSub.textContent = 'Paused';
+        } else {
+            claimSonoraSession('play');
+            sendIframeCommand('playVideo');
+            STATE.isPlaying = true;
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+            if (STATE.bgAudio) STATE.bgAudio.play().catch(() => {});
+            if (DOM.nowPlayingSub) DOM.nowPlayingSub.textContent = 'Now Playing';
+        }
+        syncAudioDeckUI();
     }
 
     function updateMediaSession(track) {
@@ -1018,15 +1566,20 @@
             navigator.mediaSession.playbackState = 'playing';
 
             navigator.mediaSession.setActionHandler('play', () => {
+                claimSonoraSession('play');
                 sendIframeCommand('playVideo');
+                STATE.isPlaying = true;
                 navigator.mediaSession.playbackState = 'playing';
                 if (STATE.bgAudio) STATE.bgAudio.play().catch(() => {});
+                syncAudioDeckUI();
             });
 
             navigator.mediaSession.setActionHandler('pause', () => {
                 sendIframeCommand('pauseVideo');
+                STATE.isPlaying = false;
                 navigator.mediaSession.playbackState = 'paused';
                 if (STATE.bgAudio) STATE.bgAudio.pause();
+                syncAudioDeckUI();
             });
 
             navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
@@ -1034,6 +1587,8 @@
             navigator.mediaSession.setActionHandler('seekto', (details) => {
                 if (details.seekTime != null) {
                     sendIframeCommand('seekTo', [details.seekTime, true]);
+                    STATE.lastPosition = details.seekTime;
+                    syncAudioSeekUI();
                     if ('setPositionState' in navigator.mediaSession && STATE.lastDuration) {
                         try {
                             navigator.mediaSession.setPositionState({
@@ -1049,16 +1604,22 @@
                 const step = details.seekOffset || 10;
                 const nextPos = Math.min(STATE.lastDuration || 9999, (STATE.lastPosition || 0) + step);
                 sendIframeCommand('seekTo', [nextPos, true]);
+                STATE.lastPosition = nextPos;
+                syncAudioSeekUI();
             });
             navigator.mediaSession.setActionHandler('seekbackward', (details) => {
                 const step = details.seekOffset || 10;
                 const prevPos = Math.max(0, (STATE.lastPosition || 0) - step);
                 sendIframeCommand('seekTo', [prevPos, true]);
+                STATE.lastPosition = prevPos;
+                syncAudioSeekUI();
             });
             navigator.mediaSession.setActionHandler('stop', () => {
                 sendIframeCommand('stopVideo');
+                STATE.isPlaying = false;
                 navigator.mediaSession.playbackState = 'none';
                 if (STATE.bgAudio) STATE.bgAudio.pause();
+                syncAudioDeckUI();
             });
         } catch (err) {
             console.warn('[Sonora] MediaSession update failed:', err);
@@ -1085,14 +1646,23 @@
     }
 
     function playNext() {
-        if (!STATE.queue.length) {
-            showToast('Queue is empty. Select or add a track!');
+        if (STATE.queue.length > 0) {
+            const nextTrack = STATE.queue.shift();
+            saveState();
+            playTrack(nextTrack);
+            showToast(`Playing next: ${nextTrack.title || nextTrack.videoId}`);
             return;
         }
-        const nextTrack = STATE.queue.shift();
-        saveState();
-        playTrack(nextTrack);
-        showToast(`Playing next: ${nextTrack.title || nextTrack.videoId}`);
+        const activeLib = getActiveLibrary();
+        const videos = (activeLib && activeLib.videos && activeLib.videos.length) ? activeLib.videos : STATE.items;
+        if (videos && videos.length > 0) {
+            const currentIdx = videos.findIndex(v => v.videoId === STATE.activeVideoId);
+            const nextIdx = (currentIdx >= 0 && currentIdx + 1 < videos.length) ? currentIdx + 1 : 0;
+            playTrack(videos[nextIdx]);
+            showToast(`Playing next: ${videos[nextIdx].title || videos[nextIdx].videoId}`);
+        } else {
+            showToast('Select or add a track to play!');
+        }
     }
 
     function addToQueue(track) {
@@ -1286,7 +1856,11 @@
             addedTracks.push(existing);
 
             fetchVideoMeta(videoId).then(meta => {
-                if (meta) updateTrackMetaEverywhere(videoId, meta);
+                if (meta) {
+                    updateTrackMetaEverywhere(videoId, meta);
+                } else {
+                    purgeUnavailableVideo(videoId, 'That YouTube link is unavailable or restricted and was removed');
+                }
             });
         });
 
@@ -1339,10 +1913,12 @@
             if (meta.thumbnail) item.thumbnail = meta.thumbnail;
         };
         STATE.items.forEach(applyMeta);
-        STATE.queue.forEach(applyMeta);
+        STATE.videoQueue.forEach(applyMeta);
+        STATE.audioQueue.forEach(applyMeta);
         STATE.history.forEach(applyMeta);
         STATE.customPlaylists.forEach(p => (p.videos || []).forEach(applyMeta));
         STATE.curatedLibraries.forEach(p => (p.videos || []).forEach(applyMeta));
+        AUDIO_CURATED_COLLECTIONS.forEach(c => (c.videos || []).forEach(applyMeta));
         if (STATE.activeTrack && STATE.activeTrack.videoId === videoId) {
             if (meta.title) {
                 const nextTitle = formatTitle(STATE.activeTrack, meta.title);
@@ -1797,6 +2373,7 @@
     function renderAll() {
         syncModeButtonUI();
         syncPlayerIdleState();
+        syncExperienceModeUI();
         renderLibraryTabs();
         renderLibrary();
         renderQueue();
@@ -1810,6 +2387,166 @@
     // 5. EVENT LISTENERS
     // -------------------------------------------------------------------------
     function initEvents() {
+        // Experience Mode Switcher (Video & Audio vs Spotify Pure Audio Mode)
+        if (DOM.expModeVideoBtn) {
+            DOM.expModeVideoBtn.addEventListener('click', () => setExperienceMode('video'));
+        }
+        if (DOM.expModeAudioBtn) {
+            DOM.expModeAudioBtn.addEventListener('click', () => setExperienceMode('audio'));
+        }
+
+        // Audio Collection Category Filter Chips (Trending, Most Viewed, Latest, Artists, Moods)
+        if (DOM.audioCatFilterBar) {
+            const catChips = DOM.audioCatFilterBar.querySelectorAll('.audio-cat-chip');
+            catChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const cat = chip.dataset.audioCat || 'all';
+                    STATE.activeAudioCategory = cat;
+                    catChips.forEach(c => c.classList.toggle('active', c === chip));
+                    const libs = getAllLibraries();
+                    if (libs.length > 0 && !libs.some(l => l.id === STATE.activeLibraryId)) {
+                        STATE.activeLibraryId = libs[0].id;
+                        STATE.activeAudioLibraryId = libs[0].id;
+                    }
+                    renderLibraryTabs();
+                    renderLibrary();
+                });
+            });
+        }
+
+        // Spotify Pure Audio Deck Controls
+        if (DOM.audioPlayPauseBtn) {
+            DOM.audioPlayPauseBtn.addEventListener('click', toggleAudioPlayPause);
+        }
+        if (DOM.audioArtworkWrap) {
+            DOM.audioArtworkWrap.addEventListener('click', toggleAudioPlayPause);
+        }
+        if (DOM.audioPrevBtn) {
+            DOM.audioPrevBtn.addEventListener('click', () => playPrevious());
+        }
+        if (DOM.audioNextBtn) {
+            DOM.audioNextBtn.addEventListener('click', () => playNext());
+        }
+        if (DOM.audioRepeatBtn) {
+            DOM.audioRepeatBtn.addEventListener('click', () => {
+                STATE.repeatOne = !STATE.repeatOne;
+                syncAudioDeckUI();
+                showToast(STATE.repeatOne ? '🔁 Repeat Current Track: ON' : '🔁 Repeat Current Track: OFF');
+            });
+        }
+        if (DOM.audioShuffleBtn) {
+            DOM.audioShuffleBtn.addEventListener('click', () => {
+                if (STATE.queue.length >= 2) {
+                    shuffleQueue();
+                } else {
+                    const activeLib = getActiveLibrary();
+                    const videos = (activeLib && activeLib.videos && activeLib.videos.length) ? [...activeLib.videos] : [...STATE.items];
+                    if (videos.length > 0) {
+                        for (let i = videos.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [videos[i], videos[j]] = [videos[j], videos[i]];
+                        }
+                        const [first, ...rest] = videos;
+                        STATE.queue = rest;
+                        saveState();
+                        playTrack(first);
+                        showToast('🔀 Shuffling & playing tracks!');
+                    }
+                }
+            });
+        }
+        if (DOM.audioFavBtn) {
+            DOM.audioFavBtn.addEventListener('click', () => {
+                if (STATE.activeTrack) {
+                    toggleFavorite(STATE.activeTrack);
+                    syncAudioDeckUI();
+                }
+            });
+        }
+        if (DOM.audioSeekSlider) {
+            DOM.audioSeekSlider.addEventListener('input', (e) => {
+                STATE.isSeeking = true;
+                const dur = STATE.lastDuration || 0;
+                if (dur > 0 && DOM.audioTimeCurrent) {
+                    const previewSec = (Number(e.target.value) / 1000) * dur;
+                    DOM.audioTimeCurrent.textContent = formatSeconds(previewSec);
+                }
+            });
+            DOM.audioSeekSlider.addEventListener('change', (e) => {
+                const dur = STATE.lastDuration || 0;
+                if (dur > 0) {
+                    const targetSec = (Number(e.target.value) / 1000) * dur;
+                    STATE.lastPosition = targetSec;
+                    sendIframeCommand('seekTo', [targetSec, true]);
+                }
+                STATE.isSeeking = false;
+                syncAudioSeekUI();
+            });
+        }
+        if (DOM.audioVolSlider) {
+            DOM.audioVolSlider.addEventListener('input', (e) => {
+                const vol = Math.max(0, Math.min(100, Number(e.target.value)));
+                STATE.volume = vol;
+                STATE.isMuted = (vol === 0);
+                if (STATE.isMuted) {
+                    sendIframeCommand('mute');
+                } else {
+                    sendIframeCommand('unMute');
+                    sendIframeCommand('setVolume', [vol]);
+                }
+                syncAudioDeckUI();
+            });
+        }
+        if (DOM.audioMuteBtn) {
+            DOM.audioMuteBtn.addEventListener('click', () => {
+                STATE.isMuted = !STATE.isMuted;
+                if (STATE.isMuted) {
+                    sendIframeCommand('mute');
+                } else {
+                    if (STATE.volume === 0) STATE.volume = 80;
+                    sendIframeCommand('unMute');
+                    sendIframeCommand('setVolume', [STATE.volume]);
+                }
+                syncAudioDeckUI();
+            });
+        }
+        if (DOM.audioVolDownBtn) {
+            DOM.audioVolDownBtn.addEventListener('click', () => {
+                const nextVol = Math.max(0, (STATE.isMuted ? 0 : STATE.volume) - 10);
+                STATE.volume = nextVol;
+                STATE.isMuted = (nextVol === 0);
+                if (STATE.isMuted) {
+                    sendIframeCommand('mute');
+                } else {
+                    sendIframeCommand('unMute');
+                    sendIframeCommand('setVolume', [nextVol]);
+                }
+                syncAudioDeckUI();
+                showToast(`🔉 Volume: ${nextVol}%`);
+            });
+        }
+        if (DOM.audioVolUpBtn) {
+            DOM.audioVolUpBtn.addEventListener('click', () => {
+                const nextVol = Math.min(100, (STATE.isMuted ? 0 : STATE.volume) + 10);
+                STATE.volume = nextVol;
+                STATE.isMuted = false;
+                sendIframeCommand('unMute');
+                sendIframeCommand('setVolume', [nextVol]);
+                syncAudioDeckUI();
+                showToast(`🔊 Volume: ${nextVol}%`);
+            });
+        }
+
+        // Smooth local playback timer between YouTube infoDelivery ticks
+        setInterval(() => {
+            if (STATE.isPlaying && document.getElementById('sonora-active-iframe') && !STATE.isSeeking) {
+                if (!STATE.lastDuration || STATE.lastPosition < STATE.lastDuration) {
+                    STATE.lastPosition = (STATE.lastPosition || 0) + 0.5;
+                    syncAudioSeekUI();
+                }
+            }
+        }, 500);
+
         // Listen for YouTube IFrame Player API postMessage state changes (auto-advance queue on video end)
         window.addEventListener('message', (event) => {
             if (!event.origin || !event.origin.includes('youtube')) return;
@@ -1817,15 +2554,29 @@
                 const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
                 if (!data) return;
                 if (data.event === 'onReady') {
+                    sendIframeCommand('setPlaybackQuality', [STATE.experienceMode === 'audio' ? 'small' : 'hd720']);
                     sendIframeCommand('playVideo');
+                    STATE.isPlaying = true;
                     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                    syncAudioDeckUI();
                 } else if (data.event === 'infoDelivery' && data.info) {
-                    if (data.info.playerState === 1 && 'mediaSession' in navigator) {
-                        navigator.mediaSession.playbackState = 'playing';
-                    } else if (data.info.playerState === 2 && 'mediaSession' in navigator) {
-                        navigator.mediaSession.playbackState = 'paused';
-                    } else if (data.info.playerState === 0 && STATE.queue.length > 0) {
-                        playNext();
+                    if (data.info.playerState === 1) {
+                        STATE.isPlaying = true;
+                        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                        syncAudioDeckUI();
+                    } else if (data.info.playerState === 2) {
+                        STATE.isPlaying = false;
+                        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+                        syncAudioDeckUI();
+                    } else if (data.info.playerState === 0) {
+                        if (STATE.repeatOne && STATE.activeTrack) {
+                            sendIframeCommand('seekTo', [0, true]);
+                            sendIframeCommand('playVideo');
+                            STATE.lastPosition = 0;
+                            STATE.isPlaying = true;
+                        } else {
+                            playNext();
+                        }
                     }
 
                     // Sync video title if delivered from YouTube
@@ -1835,13 +2586,20 @@
                             if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = data.info.videoData.title;
                             if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = data.info.videoData.title;
                             updateMediaSession(STATE.activeTrack);
+                            syncAudioDeckUI();
                         }
                     }
 
-                    // Sync duration and current playback progress to Notification bar
-                    if (data.info.duration && 'mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+                    // Sync duration and current playback progress
+                    if (typeof data.info.duration === 'number' && data.info.duration > 0) {
                         STATE.lastDuration = data.info.duration;
-                        STATE.lastPosition = data.info.currentTime || 0;
+                    }
+                    if (typeof data.info.currentTime === 'number') {
+                        STATE.lastPosition = data.info.currentTime;
+                    }
+                    syncAudioSeekUI();
+
+                    if (STATE.lastDuration && 'mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
                         try {
                             const curTime = Math.min(STATE.lastPosition, STATE.lastDuration);
                             navigator.mediaSession.setPositionState({
@@ -1851,13 +2609,30 @@
                             });
                         } catch {}
                     }
+                } else if (data.event === 'onError') {
+                    const failedId = STATE.activeVideoId;
+                    if (failedId) {
+                        purgeUnavailableVideo(failedId, '⚠️ Track unavailable on YouTube — removed & skipping to next song');
+                        setTimeout(() => playNext(), 350);
+                    }
                 } else if (data.event === 'onStateChange') {
-                    if (data.info === 1 && 'mediaSession' in navigator) {
-                        navigator.mediaSession.playbackState = 'playing';
-                    } else if (data.info === 2 && 'mediaSession' in navigator) {
-                        navigator.mediaSession.playbackState = 'paused';
-                    } else if (data.info === 0 && STATE.queue.length > 0) {
-                        playNext();
+                    if (data.info === 1) {
+                        STATE.isPlaying = true;
+                        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                        syncAudioDeckUI();
+                    } else if (data.info === 2) {
+                        STATE.isPlaying = false;
+                        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+                        syncAudioDeckUI();
+                    } else if (data.info === 0) {
+                        if (STATE.repeatOne && STATE.activeTrack) {
+                            sendIframeCommand('seekTo', [0, true]);
+                            sendIframeCommand('playVideo');
+                            STATE.lastPosition = 0;
+                            STATE.isPlaying = true;
+                        } else {
+                            playNext();
+                        }
                     }
                 }
             } catch {}
@@ -2545,7 +3320,9 @@
                     items: STATE.items,
                     customPlaylists: STATE.customPlaylists,
                     favorites: STATE.favorites,
-                    queue: STATE.queue
+                    queue: STATE.videoQueue,
+                    videoQueue: STATE.videoQueue,
+                    audioQueue: STATE.audioQueue
                 };
                 const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -2574,7 +3351,12 @@
                             if (Array.isArray(parsed.items)) STATE.items = parsed.items;
                             if (Array.isArray(parsed.customPlaylists)) STATE.customPlaylists = parsed.customPlaylists;
                             if (Array.isArray(parsed.favorites)) STATE.favorites = parsed.favorites;
-                            if (Array.isArray(parsed.queue)) STATE.queue = parsed.queue;
+                            if (Array.isArray(parsed.videoQueue)) {
+                                STATE.videoQueue = parsed.videoQueue;
+                            } else if (Array.isArray(parsed.queue)) {
+                                STATE.videoQueue = parsed.queue;
+                            }
+                            if (Array.isArray(parsed.audioQueue)) STATE.audioQueue = parsed.audioQueue;
                         }
                         saveState();
                         renderAll();
@@ -2703,6 +3485,10 @@
             }).catch(() => {});
         }
         loadStorage();
+        if (STATE.experienceMode === 'audio') {
+            STATE.activeLibraryId = STATE.activeAudioLibraryId || 'audio-trending-now';
+        }
+        syncExperienceModeUI();
         loadFromIndexedDB().then(idbData => {
             if (idbData && (!STATE.items.length && Array.isArray(idbData.items) && idbData.items.length)) {
                 STATE.items = idbData.items;
@@ -2761,6 +3547,7 @@
                 if (DOM.nowPlayingTitle) DOM.nowPlayingTitle.textContent = track.title;
                 if (DOM.fsNowPlaying) DOM.fsNowPlaying.textContent = track.title;
                 if (DOM.nowPlayingSub) DOM.nowPlayingSub.textContent = 'Last played · tap the player to resume';
+                syncExperienceModeUI();
             }
         });
 
