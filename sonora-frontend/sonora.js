@@ -2092,6 +2092,7 @@
 
                 DOM.tabs.forEach(t => t.classList.toggle('active', t === tab));
                 DOM.tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${target}`));
+                try { tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } catch (e) {}
             });
         });
 
