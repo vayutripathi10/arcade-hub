@@ -115,7 +115,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=25">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=28">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora — Ad-Free YouTube Music Streaming & Background Audio Player | Arcade Hub">
@@ -315,6 +315,15 @@
                             <button type="submit" class="panel-action-btn accent" id="library-add-song-btn" title="Add YouTube song(s) to this library">➕ Add</button>
                             <button type="button" class="panel-action-btn" id="cancel-add-song-btn">Cancel</button>
                         </form>
+                        <!-- Regional Sonora Spotlight Bar -->
+                        <div class="regional-spotlight-bar" id="regionalSpotlightBar" style="display: none;">
+                            <div class="regional-spotlight-info">
+                                <span class="spotlight-tag" id="spotlightTag">📍 REGIONAL SPOTLIGHT</span>
+                                <span class="spotlight-text" id="spotlightText">Trending near you: <strong id="spotlightLibTitle">Karan Aujla Hits</strong></span>
+                            </div>
+                            <button type="button" class="spotlight-switch-btn" id="spotlightSwitchBtn">Play Spotlight</button>
+                        </div>
+
                         <div class="playlist-chips" id="library-tabs"></div>
                         <div class="list-scroll" id="library-list"></div>
                     </div>
@@ -480,7 +489,9 @@
     </div>
 
     <!-- Scripts -->
-    <script src="sonora-frontend/sonora.js?v=27"></script>
+    <script src="shared/ambient-geo.js?v=1"></script>
+    <script src="shared/device-experience.js?v=1" defer></script>
+    <script src="sonora-frontend/sonora.js?v=29"></script>
     <script src="shared/pwa-setup.js?v=325"></script>
 </body>
 </html>

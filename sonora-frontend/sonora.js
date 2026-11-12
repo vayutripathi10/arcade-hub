@@ -1340,7 +1340,8 @@
         allLibraries.forEach(lib => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = `playlist-chip ${lib.id === STATE.activeLibraryId ? 'active' : ''}`;
+            const isRegional = Boolean(STATE.regionalSpotlightId && lib.id === STATE.regionalSpotlightId);
+            btn.className = `playlist-chip ${lib.id === STATE.activeLibraryId ? 'active' : ''} ${isRegional ? 'featured-regional' : ''}`;
             const label = document.createElement('span');
             label.textContent = `${lib.custom ? '📁 ' : ''}${lib.name} (${(lib.videos || []).length})`;
             btn.appendChild(label);
@@ -2092,6 +2093,7 @@
 
                 DOM.tabs.forEach(t => t.classList.toggle('active', t === tab));
                 DOM.tabPanels.forEach(p => p.classList.toggle('active', p.id === `tab-${target}`));
+                try { tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } catch (e) {}
             });
         });
 
@@ -2455,6 +2457,53 @@
     // -------------------------------------------------------------------------
     // 6. INITIAL RUN
     // -------------------------------------------------------------------------
+    
+    async function initSonoraRegionalSpotlight() {
+        if (!window.ArcadeAmbient) return;
+        const timeVibe = window.ArcadeAmbient.getTimeVibe();
+        const fallbackGeo = window.ArcadeAmbient.getLocationFromTimezone();
+        updateSpotlightUI(fallbackGeo, timeVibe);
+
+        const geo = await window.ArcadeAmbient.resolveGeo();
+        if (geo && geo.city !== fallbackGeo.city) {
+            updateSpotlightUI(geo, timeVibe);
+        }
+    }
+
+    function updateSpotlightUI(geo, timeVibe) {
+        if (!window.ArcadeAmbient) return;
+        const spotlight = window.ArcadeAmbient.getRegionalSpotlight(geo, timeVibe);
+        STATE.regionalSpotlightId = spotlight.libId;
+        renderLibraryTabs();
+
+        const bar = document.getElementById('regionalSpotlightBar');
+        const tag = document.getElementById('spotlightTag');
+        const text = document.getElementById('spotlightText');
+        const btn = document.getElementById('spotlightSwitchBtn');
+
+        if (bar && tag && text) {
+            tag.textContent = spotlight.badgeText || '📍 SPOTLIGHT';
+            const locName = (geo.city && geo.city !== 'Cyber City' && geo.city !== 'India') ? geo.city : 'you';
+            text.innerHTML = `Trending near ${escapeHtml(locName)}: <strong>${escapeHtml(spotlight.title)}</strong>`;
+            bar.style.display = 'flex';
+
+            if (btn && !btn._hasSpotlightListener) {
+                btn._hasSpotlightListener = true;
+                btn.addEventListener('click', () => {
+                    const matchedLib = getAllLibraries().find(l => l.id === spotlight.libId);
+                    if (matchedLib) {
+                        STATE.activeLibraryId = matchedLib.id;
+                        renderLibraryTabs();
+                        renderLibrary();
+                        if (matchedLib.videos && matchedLib.videos.length > 0) {
+                            playTrack(matchedLib.videos[0]);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistration().then(reg => {
@@ -2475,6 +2524,27 @@
         hydratePlaceholderTitles();
         initEvents();
         loadLibraries().then(async () => {
+            // URL Library Parameter Support (?lib=karan-aujla)
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const libParam = urlParams.get('lib');
+                if (libParam) {
+                    const matched = getAllLibraries().find(l => l.id === libParam || l.id === `default-${libParam}` || l.name.toLowerCase().includes(libParam.toLowerCase()));
+                    if (matched) {
+                        STATE.activeLibraryId = matched.id;
+                        renderLibraryTabs();
+                        renderLibrary();
+                    }
+                }
+            } catch (e) {}
+
+            // Regional Spotlight Init
+            try {
+                if (window.ArcadeAmbient) {
+                    initSonoraRegionalSpotlight();
+                }
+            } catch (e) {}
+
             const wasHandled = await handleIncomingSharedTarget();
             if (wasHandled) return;
 
