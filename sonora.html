@@ -129,6 +129,33 @@
     <meta name="twitter:description" content="Stream ad-free YouTube music with continuous background audio. 100% free, zero registration.">
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
 
+    <!-- Prevent nested Sonora instances inside #sonora-hub-frame or any iframe -->
+    <script>
+      (function() {
+        if (window.self !== window.top) {
+          try {
+            if (window.top && typeof window.top.handleSonoraRedirect === 'function') {
+              window.top.handleSonoraRedirect(window.location.href);
+              window.location.replace('about:blank');
+              return;
+            }
+            if (window.top && window.top.document) {
+              var overlay = window.top.document.getElementById('sonora-hub-overlay');
+              if (overlay) {
+                overlay.setAttribute('hidden', '');
+                var frame = window.top.document.getElementById('sonora-hub-frame');
+                if (frame) frame.src = 'about:blank';
+                return;
+              }
+            }
+            window.top.location.href = window.location.href;
+          } catch (e) {
+            try { window.top.location.href = window.location.href; } catch (_) {}
+          }
+        }
+      })();
+    </script>
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
@@ -490,8 +517,8 @@
 
     <!-- Scripts -->
     <script src="shared/ambient-geo.js?v=1"></script>
-    <script src="shared/device-experience.js?v=1" defer></script>
-    <script src="sonora-frontend/sonora.js?v=29"></script>
-    <script src="shared/pwa-setup.js?v=325"></script>
+    <script src="shared/device-experience.js?v=2" defer></script>
+    <script src="sonora-frontend/sonora.js?v=30"></script>
+    <script src="shared/pwa-setup.js?v=326"></script>
 </body>
 </html>
