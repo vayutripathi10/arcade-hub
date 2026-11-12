@@ -1932,3 +1932,39 @@ updateHubButton();
 
 // Start loop empty for background menu drawing
 animationFrameId = requestAnimationFrame(loop);
+
+// --- In-Game Fullscreen Toggle Controller ---
+const btnFs = document.getElementById('btn-fs');
+function updateInGameFsUI(isFS) {
+    if (btnFs) {
+        btnFs.textContent = isFS ? '✕' : '⛶';
+        btnFs.title = isFS ? 'Exit Fullscreen' : 'Toggle Fullscreen';
+    }
+}
+if (btnFs) {
+    btnFs.addEventListener('click', (e) => {
+        e.stopPropagation();
+        try {
+            if (window.parent && window.parent !== window && typeof window.parent.toggleFullscreen === 'function') {
+                window.parent.toggleFullscreen();
+                return;
+            }
+        } catch(err) {}
+        try {
+            window.parent.postMessage({ type: 'TOGGLE_FULLSCREEN' }, '*');
+        } catch(err) {}
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.().catch(() => {});
+        } else {
+            document.exitFullscreen?.().catch(() => {});
+        }
+    });
+}
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'FULLSCREEN_CHANGE') {
+        updateInGameFsUI(!!e.data.isFullscreen);
+    }
+});
+document.addEventListener('fullscreenchange', () => {
+    updateInGameFsUI(!!document.fullscreenElement);
+});

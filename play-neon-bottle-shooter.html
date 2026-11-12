@@ -10,22 +10,102 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="hub-style.css">
     <style>
-        .play-root { background-color: #06070a; color: #cbd5e1; font-family: 'Outfit', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
-        .play-main-container { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px; }
-        .play-console-wrapper { width: 100%; display: flex; justify-content: center; }
-        .play-console-holder { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 12px; }
-        .play-console { width: 100%; height: 750px; background: #0d0e12; border: 3px solid #00f3ff; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); border-radius: 16px; overflow: hidden; position: relative; }
-        .play-console:fullscreen { height: 100dvh; border-radius: 0; border: none; }
-        .play-console:-webkit-full-screen { height: 100dvh; border-radius: 0; border: none; }
+        .play-root { 
+            background-color: #06070a; 
+            color: #cbd5e1; 
+            font-family: 'Outfit', sans-serif; 
+            min-height: 100vh; 
+            min-height: 100dvh; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .play-main-container { 
+            max-width: 1040px; 
+            width: 100%; 
+            margin: 0 auto; 
+            padding: 14px 16px 28px 16px; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+        }
+        .play-console-wrapper { 
+            width: 100%; 
+            display: flex; 
+            justify-content: center; 
+        }
+        .play-console-holder { 
+            width: 100%; 
+            max-width: 840px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+        }
+        .play-console { 
+            width: 100%; 
+            height: 620px; 
+            height: min(650px, calc(100vh - 120px)); 
+            height: min(650px, calc(100dvh - 120px)); 
+            background: #0d0e12; 
+            border: 2px solid #00f3ff; 
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.22); 
+            border-radius: 14px; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .play-console:fullscreen,
+        .play-console:-webkit-full-screen { 
+            height: 100vh !important; 
+            height: 100dvh !important; 
+            border-radius: 0 !important; 
+            border: none !important; 
+        }
+        .fullscreen-exit-btn {
+            display: none;
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 9999999;
+            background: rgba(13, 14, 18, 0.88);
+            border: 2px solid #00f3ff;
+            color: #00f3ff;
+            padding: 8px 16px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 999px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 14px rgba(0, 243, 255, 0.4);
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .play-console:fullscreen .fullscreen-exit-btn,
+        .play-console:-webkit-full-screen .fullscreen-exit-btn,
+        .play-console.css-fullscreen-active .fullscreen-exit-btn {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 6px;
+        }
+        .fullscreen-exit-btn:hover,
+        .fullscreen-exit-btn:active {
+            background: #00f3ff;
+            color: #06070a;
+            box-shadow: 0 0 22px #00f3ff;
+            transform: scale(1.04);
+        }
         .play-iframe { width: 100%; height: 100%; border: none; display: block; }
         .console-actions { display: flex; justify-content: flex-end; }
         .fullscreen-btn {
             background: rgba(13, 14, 18, 0.7);
             border: 1px solid #00f3ff;
             color: #00f3ff;
-            padding: 8px 16px;
+            padding: 7px 16px;
             font-family: 'Outfit', sans-serif;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
@@ -42,22 +122,35 @@
             color: #000;
             box-shadow: 0 0 15px #00f3ff;
         }
-        .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-sizing: border-box; }
-        .play-info-section h1, .play-info-section h1, .play-info-section h2 { color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 12px; }
-        .play-info-section h3 { color: #00f3ff; font-size: 1.2rem; font-weight: 600; margin-top: 24px; margin-bottom: 10px; }
-        .play-info-section p { font-size: 0.98rem; line-height: 1.7; margin-bottom: 16px; color: rgba(255,255,255,0.75); }
-        .play-info-section ul { padding-left: 20px; margin-bottom: 16px; }
-        .play-info-section li { margin-bottom: 8px; font-size: 0.98rem; color: rgba(255,255,255,0.75); }
-        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .faq-accordion { margin-top: 20px; }
-        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 16px 0; }
-        .faq-question { font-weight: 700; color: #fff; font-size: 1rem; cursor: pointer; }
-        .faq-answer { margin-top: 8px; font-size: 0.92rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
-        @media (max-width: 768px) {
-            .play-main-container { padding: 10px 0; gap: 16px; }
-            .play-console { height: 85dvh; border-left: none; border-right: none; border-radius: 0; }
-            .play-info-section { padding: 20px; margin: 0 10px; }
-            .play-grid-2 { grid-template-columns: 1fr; gap: 16px; }
+        .play-info-section { background: rgba(13, 14, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 26px; box-sizing: border-box; }
+        .play-info-section h1, .play-info-section h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+        .play-info-section h3 { color: #00f3ff; font-size: 1.15rem; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }
+        .play-info-section p { font-size: 0.95rem; line-height: 1.65; margin-bottom: 14px; color: rgba(255,255,255,0.75); }
+        .play-info-section ul { padding-left: 20px; margin-bottom: 14px; }
+        .play-info-section li { margin-bottom: 8px; font-size: 0.95rem; color: rgba(255,255,255,0.75); }
+        .play-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .faq-accordion { margin-top: 16px; }
+        .faq-item { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 14px 0; }
+        .faq-question { font-weight: 700; color: #fff; font-size: 0.98rem; cursor: pointer; }
+        .faq-answer { margin-top: 6px; font-size: 0.9rem; color: rgba(255,255,255,0.55); line-height: 1.6; }
+        
+        @media (max-width: 900px) {
+            .play-console-holder { max-width: 100%; }
+            .play-console { height: min(620px, calc(100dvh - 110px)); }
+        }
+        @media (max-width: 600px) {
+            .play-main-container { padding: 8px 8px 20px 8px; gap: 10px; }
+            .play-console-holder { gap: 6px; }
+            .play-console { 
+                height: calc(100dvh - 75px); 
+                min-height: 480px; 
+                max-height: 90dvh; 
+                border-radius: 12px; 
+            }
+            .fullscreen-btn { padding: 6px 12px; font-size: 0.78rem; }
+            .play-info-section { padding: 18px 14px; margin: 0; }
+            .play-grid-2 { grid-template-columns: 1fr; gap: 12px; }
+        }
         }
 
         /* Mobile Zoom and Accidental Text Selection Locks */
@@ -210,10 +303,15 @@
             <div class="play-console-wrapper">
                 <div class="play-console-holder">
                     <div class="play-console" id="playConsoleContainer">
-                        <iframe class="play-iframe" id="gameIframe" src="neon-bottle-shooter-frontend/index.html?v=ArcadeHub_Bottle_ToastFix" title="Neon Bottle Shooter"></iframe>
+                        <button type="button" class="fullscreen-exit-btn" id="fsExitBtn" onclick="toggleFullscreen()" aria-label="Exit Fullscreen Mode">
+                            ✕ <span>Exit Fullscreen</span>
+                        </button>
+                        <iframe class="play-iframe" id="gameIframe" src="neon-bottle-shooter-frontend/index.html?v=ArcadeHub_Bottle_ResponsiveV2" title="Neon Bottle Shooter" allow="autoplay; fullscreen"></iframe>
                     </div>
                     <div class="console-actions">
-                        <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Play in Fullscreen">⛶ Fullscreen</button>
+                        <button class="fullscreen-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">
+                            <span>⛶ Fullscreen</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -269,81 +367,59 @@
     <script>
         function toggleFullscreen() {
             const container = document.getElementById('playConsoleContainer');
-            
-            const hasRequestFullscreen = !!(container.requestFullscreen || 
-                                            container.webkitRequestFullscreen || 
-                                            container.mozRequestFullScreen || 
-                                            container.msRequestFullscreen);
-            
-            if (hasRequestFullscreen) {
-                const requestFS = container.requestFullscreen || 
-                                  container.webkitRequestFullscreen || 
-                                  container.mozRequestFullScreen || 
-                                  container.msRequestFullscreen;
-                
-                const exitFS = document.exitFullscreen || 
-                               document.webkitExitFullscreen || 
-                               document.mozCancelFullScreen || 
-                               document.msExitFullscreen;
-                
-                const fsElement = document.fullscreenElement || 
-                                  document.webkitFullscreenElement || 
-                                  document.mozFullScreenElement || 
-                                  document.msFullscreenElement;
-                
-                if (!fsElement) {
-                    requestFS.call(container).catch(err => {
-                        console.warn(`Fullscreen API failed, falling back to CSS fullscreen: ${err.message}`);
-                        toggleCssFullscreen(container);
-                    });
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || container.classList.contains('css-fullscreen-active'));
+            if (!isFS) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(() => toggleCssFullscreen(container));
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
                 } else {
-                    exitFS.call(document);
+                    toggleCssFullscreen(container);
                 }
             } else {
-                toggleCssFullscreen(container);
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                }
+                if (container.classList.contains('css-fullscreen-active')) {
+                    toggleCssFullscreen(container);
+                }
             }
+            setTimeout(updateFullscreenState, 100);
         }
 
         function toggleCssFullscreen(container) {
             container.classList.toggle('css-fullscreen-active');
             document.body.classList.toggle('css-fullscreen-open');
-            
-            let exitBtn = document.getElementById('css-fullscreen-exit-btn');
-            if (container.classList.contains('css-fullscreen-active')) {
-                if (!exitBtn) {
-                    exitBtn = document.createElement('button');
-                    exitBtn.id = 'css-fullscreen-exit-btn';
-                    exitBtn.innerHTML = '✕ Exit Fullscreen';
-                    exitBtn.style.position = 'fixed';
-                    exitBtn.style.top = '16px';
-                    exitBtn.style.right = '16px';
-                    exitBtn.style.zIndex = '9999999';
-                    exitBtn.style.background = 'rgba(13, 14, 18, 0.85)';
-                    exitBtn.style.border = '2px solid #00f3ff';
-                    exitBtn.style.color = '#00f3ff';
-                    exitBtn.style.padding = '8px 16px';
-                    exitBtn.style.fontFamily = "'Outfit', sans-serif";
-                    exitBtn.style.fontWeight = '700';
-                    exitBtn.style.fontSize = '0.85rem';
-                    exitBtn.style.textTransform = 'uppercase';
-                    exitBtn.style.borderRadius = '8px';
-                    exitBtn.style.cursor = 'pointer';
-                    exitBtn.style.boxShadow = '0 0 15px rgba(0, 243, 255, 0.2)';
-                    
-                    exitBtn.addEventListener('click', () => {
-                        toggleCssFullscreen(container);
-                    });
-                    
-                    document.body.appendChild(exitBtn);
-                } else {
-                    exitBtn.style.display = 'block';
-                }
-            } else {
-                if (exitBtn) {
-                    exitBtn.style.display = 'none';
-                }
-            }
+            updateFullscreenState();
         }
+
+        function updateFullscreenState() {
+            const container = document.getElementById('playConsoleContainer');
+            const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || (container && container.classList.contains('css-fullscreen-active')));
+            const bottomBtn = document.getElementById('fullscreen-btn');
+            if (bottomBtn) {
+                bottomBtn.innerHTML = isFS ? '<span>✕ Exit Fullscreen</span>' : '<span>⛶ Fullscreen</span>';
+            }
+            try {
+                const iframe = document.getElementById('gameIframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.dispatchEvent(new Event('resize'));
+                    iframe.contentWindow.postMessage({ type: 'FULLSCREEN_CHANGE', isFullscreen: isFS }, '*');
+                }
+            } catch(e) {}
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenState);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'TOGGLE_FULLSCREEN') {
+                toggleFullscreen();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             const menuToggle = document.getElementById('menu-toggle');
