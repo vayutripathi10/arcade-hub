@@ -150,6 +150,61 @@ body {
     color: #c7d2fe;
 }
 
+/* Ambient Time & City Vibe Bar */
+.ambient-vibe-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(18, 24, 38, 0.75);
+    border: 1px solid rgba(99, 102, 241, 0.28);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease;
+    animation: ambientBarFadeIn 0.5s ease-out;
+}
+
+@keyframes ambientBarFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ambient-vibe-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.45);
+    color: #ffffff;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.ambient-vibe-text {
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ambient-vibe-dot {
+    color: rgba(99, 102, 241, 0.6);
+    font-size: 0.8rem;
+}
+
+.ambient-vibe-sub {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
 .main-title {
     font-size: clamp(2.6rem, 6.5vw, 4.2rem);
     font-weight: 800;
@@ -1264,6 +1319,28 @@ body.has-sonora-banner .menu-toggle-btn {
     .stats-bar {
         flex-direction: column;
         gap: 2rem;
+    }
+
+    .ambient-vibe-bar {
+        gap: 6px;
+        padding: 5px 10px;
+        max-width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .ambient-vibe-sub,
+    .ambient-vibe-dot {
+        display: none;
+    }
+
+    .ambient-vibe-text {
+        font-size: 0.72rem;
+    }
+
+    .ambient-vibe-pill {
+        font-size: 0.68rem;
+        padding: 2px 7px;
     }
 
     .category-filter-bar {
