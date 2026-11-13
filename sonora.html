@@ -115,7 +115,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=31">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=35">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora — Ad-Free YouTube Music Streaming & Background Audio Player | Arcade Hub">
@@ -355,15 +355,15 @@
                     </div>
                 </div>
 
-                <!-- SUGGESTED SONGS (UP NEXT) -->
+                <!-- VIBE PICKS / YOU MAY ALSO LIKE -->
                 <div class="suggested-card" id="suggested-card">
                     <div class="suggested-card-header">
                         <div class="suggested-title-group">
-                            <span class="suggested-icon">✨</span>
-                            <span class="suggested-title">Suggested Songs</span>
-                            <span class="suggested-badge" id="suggested-badge">Up Next</span>
+                            <span class="suggested-icon">🔥</span>
+                            <span class="suggested-title" id="suggested-title"><span class="sug-c1">You May</span> <span class="sug-c2">Also Like</span></span>
+                            <span class="suggested-badge" id="suggested-badge">Vibe Picks</span>
                         </div>
-                        <span class="suggested-hint">Tap to play instantly</span>
+                        <span class="suggested-hint">Tap to play</span>
                     </div>
                     <div class="suggested-track-list" id="suggested-track-list"></div>
                 </div>
@@ -427,15 +427,22 @@
 
                         <!-- Spotify-Style Audio Collection Category Filter Bar (Visible only in Audio Mode) -->
                         <div class="audio-collection-filter-bar" id="audio-collection-filter-bar" hidden>
-                            <button type="button" class="audio-cat-chip active" data-audio-cat="all">✨ All Collections</button>
+                            <button type="button" class="audio-cat-chip active" data-audio-cat="all">✨ All</button>
                             <button type="button" class="audio-cat-chip" data-audio-cat="trending">🔥 Trending</button>
                             <button type="button" class="audio-cat-chip" data-audio-cat="most-viewed">🏆 Most Viewed</button>
                             <button type="button" class="audio-cat-chip" data-audio-cat="latest">🆕 Latest</button>
                             <button type="button" class="audio-cat-chip" data-audio-cat="artists">🎤 Artists</button>
-                            <button type="button" class="audio-cat-chip" data-audio-cat="moods">🌙 Moods &amp; Vibes</button>
+                            <button type="button" class="audio-cat-chip" data-audio-cat="moods">🌙 Moods</button>
                         </div>
 
-                        <div class="playlist-chips" id="library-tabs"></div>
+                        <!-- Library & Collection Selector Bar + Expandable Bento Grid -->
+                        <div class="library-selector-wrap" id="library-selector-wrap">
+                            <div class="playlist-chips" id="library-tabs"></div>
+                            <button type="button" class="chips-grid-toggle-btn" id="toggle-chips-grid-btn" title="Browse all collections in a clean 2-column grid" aria-expanded="false">
+                                <span class="grid-toggle-icon" id="grid-toggle-icon">⊞</span>
+                                <span class="grid-toggle-text" id="grid-toggle-text">All</span>
+                            </button>
+                        </div>
                         <div class="list-scroll" id="library-list"></div>
                     </div>
 
@@ -602,7 +609,7 @@
     <!-- Scripts -->
     <script src="shared/ambient-geo.js?v=1"></script>
     <script src="shared/device-experience.js?v=2" defer></script>
-    <script src="sonora-frontend/sonora.js?v=35"></script>
+    <script src="sonora-frontend/sonora.js?v=39"></script>
     <script src="shared/pwa-setup.js?v=326"></script>
 </body>
 </html>

@@ -2533,25 +2533,166 @@ body.eco-mode .player-pane {
     border-color: rgba(0, 255, 204, 0.48);
 }
 
-@media (max-width: 768px) {
-    .player-pane.is-audio-only-mode .audio-only-deck {
-        padding: 12px 14px;
-    }
-    .audio-artwork-wrapper {
-        width: 72px;
-        height: 72px;
-        border-radius: 12px;
-    }
-    .audio-track-title {
-        font-size: 0.92rem;
-    }
-    .audio-ctrl-btn.play-main {
-        width: 44px;
-        height: 44px;
-        font-size: 1.05rem;
-    }
+/* Hide Regional Video Spotlight Banner in Pure Audio Mode so Audio Collections & Track List stay uncluttered */
+.sonora-viewport.is-audio-theme .regional-spotlight-bar {
+    display: none !important;
 }
 
+/* ==========================================================================
+   PLAYLIST & COLLECTION SELECTOR BAR + BENTO GRID VIEW
+   ========================================================================== */
+.library-selector-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.015);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.library-selector-wrap .playlist-chips {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 2px 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1 1 0%;
+    min-width: 0;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+.library-selector-wrap .playlist-chips::-webkit-scrollbar { display: none; }
+
+.library-selector-wrap .playlist-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+    padding: 5px 10px 5px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.045);
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+}
+
+.library-selector-wrap .playlist-chip:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.24);
+    color: #fff;
+}
+
+.library-selector-wrap .playlist-chip .chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.library-selector-wrap .playlist-chip .chip-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--sonora-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.library-selector-wrap .playlist-chip.active {
+    border-color: var(--sonora-cyan);
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.26), rgba(0, 255, 204, 0.14));
+    box-shadow: 0 2px 10px rgba(0, 255, 204, 0.16);
+}
+
+.library-selector-wrap .playlist-chip.active .chip-badge {
+    background: rgba(0, 255, 204, 0.2);
+    border-color: rgba(0, 255, 204, 0.45);
+    color: #a7f3d0;
+}
+
+.chips-grid-toggle-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 9px;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.15);
+    color: #e2e8f0;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+}
+
+.chips-grid-toggle-btn:hover,
+.chips-grid-toggle-btn.active {
+    background: rgba(0, 255, 204, 0.18);
+    border-color: rgba(0, 255, 204, 0.55);
+    color: #ffffff;
+}
+
+.sonora-viewport.is-audio-theme .chips-grid-toggle-btn {
+    border-color: rgba(0, 255, 204, 0.38);
+    background: rgba(16, 185, 129, 0.18);
+    color: #d1fae5;
+}
+
+/* Expanded Bento Grid View for All Libraries / Collections */
+.library-selector-wrap.is-grid-expanded {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 12px 10px;
+    background: rgba(10, 14, 24, 0.96);
+    border-bottom: 1px solid rgba(0, 255, 204, 0.25);
+}
+
+.sonora-viewport.is-audio-theme .library-selector-wrap.is-grid-expanded {
+    background: rgba(6, 22, 18, 0.96);
+}
+
+.library-selector-wrap.is-grid-expanded .playlist-chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 7px;
+    max-height: 195px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px;
+    scrollbar-width: thin;
+}
+
+.library-selector-wrap.is-grid-expanded .playlist-chip {
+    width: 100%;
+    min-width: 0;
+    padding: 7px 10px;
+    border-radius: 10px;
+}
+
+.library-selector-wrap.is-grid-expanded .chips-grid-toggle-btn {
+    align-self: flex-end;
+    padding: 4px 12px;
+}
 
 /* ==========================================================================
    SPOTIFY AUDIO COLLECTION CATEGORY FILTER BAR
@@ -2612,4 +2753,469 @@ body.eco-mode .player-pane {
     border-color: var(--sonora-cyan);
     color: #fff;
     box-shadow: 0 2px 12px rgba(0, 255, 204, 0.25);
+}
+
+/* ==========================================================================
+   ULTRA-COMPACT MOBILE AUDIO PLAYER & OPTIMIZED COLLECTION PILLS (<= 900px)
+   ========================================================================== */
+@media (max-width: 900px) {
+    /* 1. Compact Video & Audio Mode Toggle Buttons across BOTH modes on Mobile */
+    .experience-mode-switcher {
+        gap: 4px;
+        padding: 2px;
+        border-radius: 8px;
+        max-width: 250px;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .exp-mode-btn {
+        padding: 3px 8px;
+        font-size: 0.66rem;
+        gap: 4px;
+        border-radius: 6px;
+        line-height: 1.15;
+    }
+
+    .exp-mode-icon {
+        font-size: 0.76rem;
+    }
+
+    .exp-mode-pill {
+        display: none;
+    }
+
+    /* 2. Ultra-Compact Player Pane in Audio Mode on Mobile */
+    .player-pane.is-audio-only-mode {
+        gap: 4px;
+        padding: 4px 6px;
+    }
+
+    /* Hide extra URL bar & suggested strip inside Audio player pane on mobile (top search & +Add Song handle links) */
+    .player-pane.is-audio-only-mode .add-link-card,
+    .player-pane.is-audio-only-mode .suggested-card {
+        display: none !important;
+    }
+
+    /* 3. Sleek Compact Mobile Audio Player Deck (~88px total height) */
+    .player-pane.is-audio-only-mode .audio-only-deck {
+        padding: 6px 8px;
+        border-radius: 10px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-deck-inner {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-areas:
+            "hero hero"
+            "seek seek"
+            "transport volume";
+        align-items: center;
+        gap: 3px 6px;
+    }
+
+    /* Float Favorite Button to Top-Right of Hero Row & hide status pill on mobile */
+    .player-pane.is-audio-only-mode .audio-deck-top {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 3;
+        width: auto;
+    }
+
+    .player-pane.is-audio-only-mode .audio-deck-status-pill {
+        display: none;
+    }
+
+    .player-pane.is-audio-only-mode .audio-icon-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 0.76rem;
+        border-radius: 6px;
+    }
+
+    /* Compact Album Art + Track Title Row */
+    .player-pane.is-audio-only-mode .audio-deck-hero {
+        grid-area: hero;
+        gap: 8px;
+        padding: 0 28px 0 0;
+    }
+
+    .player-pane.is-audio-only-mode .audio-artwork-wrapper {
+        width: 34px;
+        height: 34px;
+        border-radius: 7px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-vinyl-ring {
+        display: none;
+    }
+
+    .player-pane.is-audio-only-mode .audio-artwork-play-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 0.55rem;
+    }
+
+    .player-pane.is-audio-only-mode .audio-track-meta {
+        gap: 0;
+    }
+
+    .player-pane.is-audio-only-mode .audio-track-title {
+        font-size: 0.76rem;
+        line-height: 1.15;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+
+    .player-pane.is-audio-only-mode .audio-track-subtitle {
+        font-size: 0.61rem;
+        line-height: 1.15;
+    }
+
+    /* Slim Seek Bar + Timestamps */
+    .player-pane.is-audio-only-mode .audio-seek-section {
+        grid-area: seek;
+        gap: 1px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-seek-slider {
+        height: 3px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-seek-slider::-webkit-slider-thumb {
+        width: 10px;
+        height: 10px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-time-row {
+        font-size: 0.58rem;
+        line-height: 1;
+    }
+
+    /* Unified Single-Row Transport + Volume Controls on Mobile */
+    .player-pane.is-audio-only-mode .audio-transport-row {
+        grid-area: transport;
+        justify-content: flex-start;
+        gap: 4px;
+        padding: 0;
+    }
+
+    .player-pane.is-audio-only-mode .audio-ctrl-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 0.72rem;
+    }
+
+    .player-pane.is-audio-only-mode .audio-ctrl-btn.secondary {
+        width: 22px;
+        height: 22px;
+        font-size: 0.68rem;
+    }
+
+    .player-pane.is-audio-only-mode .audio-ctrl-btn.play-main {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    .player-pane.is-audio-only-mode .audio-volume-row {
+        grid-area: volume;
+        gap: 3px;
+        padding: 2px 5px;
+        border-radius: 7px;
+        min-width: 0;
+    }
+
+    .player-pane.is-audio-only-mode .audio-vol-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 0.68rem;
+        border-radius: 5px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-vol-step-btn {
+        padding: 1px 4px;
+        height: 20px;
+        font-size: 0.58rem;
+        border-radius: 4px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-volume-slider {
+        height: 3px;
+        min-width: 36px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-volume-slider::-webkit-slider-thumb {
+        width: 9px;
+        height: 9px;
+    }
+
+    .player-pane.is-audio-only-mode .audio-vol-label {
+        font-size: 0.58rem;
+        min-width: 24px;
+    }
+
+    /* 4. Mobile Collection & Library Selector Alignment */
+    #tab-library .panel-header {
+        padding: 4px 8px;
+    }
+
+    #tab-library .panel-action-btn {
+        padding: 3px 3px;
+        font-size: 0.66rem;
+    }
+
+    .audio-collection-filter-bar {
+        padding: 4px 8px 3px 8px;
+        gap: 4px;
+    }
+
+    .audio-cat-chip {
+        padding: 3px 8px;
+        font-size: 0.66rem;
+    }
+
+    .library-selector-wrap {
+        padding: 4px 8px;
+        gap: 5px;
+    }
+
+    .library-selector-wrap .playlist-chips {
+        padding: 0;
+        gap: 5px;
+    }
+
+    .library-selector-wrap .playlist-chip {
+        padding: 3px 8px;
+        font-size: 0.69rem;
+        border-radius: 8px;
+        gap: 5px;
+    }
+
+    .library-selector-wrap .playlist-chip .chip-badge {
+        min-width: 16px;
+        height: 15px;
+        padding: 0 4px;
+        font-size: 0.6rem;
+    }
+
+    .chips-grid-toggle-btn {
+        padding: 3px 7px;
+        font-size: 0.66rem;
+        border-radius: 7px;
+    }
+
+    /* 2-Column Bento Grid on Mobile when "⊞ All" is tapped */
+    .library-selector-wrap.is-grid-expanded {
+        padding: 5px 8px 7px;
+    }
+
+    .library-selector-wrap.is-grid-expanded .playlist-chips {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+        max-height: 165px;
+    }
+
+    .library-selector-wrap.is-grid-expanded .playlist-chip {
+        padding: 5px 7px;
+        font-size: 0.69rem;
+    }
+}
+
+/* Catchy Display Typography for "You May Also Like" + Mobile Small 1-Liner Multi-Color Typography */
+.suggested-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.015em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggested-title .sug-c1 {
+    color: #38bdf8;
+}
+
+.suggested-title .sug-c2 {
+    color: #fbbf24;
+}
+
+.suggested-badge {
+    color: #f472b6 !important;
+    border-color: rgba(244, 114, 182, 0.4) !important;
+    background: rgba(244, 114, 182, 0.14) !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    /* Strict 1-Line Small Fonts & Distinct Multi-Color Accents on Mobile */
+    .suggested-title {
+        font-size: 0.68rem;
+    }
+
+    .suggested-badge {
+        font-size: 0.54rem;
+        padding: 1px 5px;
+    }
+
+    .suggested-song-title {
+        font-size: 0.62rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        -webkit-line-clamp: 1 !important;
+        line-clamp: 1 !important;
+        color: #f1f5f9;
+    }
+
+    .suggested-song-source {
+        font-size: 0.54rem !important;
+        white-space: nowrap !important;
+        color: #c084fc !important;
+    }
+
+    /* Mode Switcher 1-Line Small Multi-Color Labels */
+    .exp-mode-btn {
+        font-size: 0.62rem !important;
+        padding: 2px 6px !important;
+        white-space: nowrap;
+    }
+
+    .exp-mode-btn[data-exp-mode="video"] .exp-mode-label {
+        color: #c4b5fd;
+    }
+
+    .exp-mode-btn[data-exp-mode="audio"] .exp-mode-label {
+        color: #6ee7b7;
+    }
+
+    /* Audio Player Deck 1-Liner Small Multi-Color Text */
+    .player-pane.is-audio-only-mode .audio-track-title {
+        font-size: 0.71rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        color: #ffffff;
+    }
+
+    .player-pane.is-audio-only-mode .audio-track-subtitle {
+        font-size: 0.57rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        color: #34d399 !important;
+    }
+
+    .player-pane.is-audio-only-mode .audio-time-row {
+        font-size: 0.54rem !important;
+        color: #38bdf8 !important;
+    }
+
+    /* Video Toolbar Now Playing 1-Liner Small Multi-Color Text */
+    .now-playing-title {
+        font-size: 0.72rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        color: #f8fafc;
+    }
+
+    .now-playing-sub {
+        font-size: 0.58rem !important;
+        white-space: nowrap !important;
+        color: #fbbf24 !important;
+    }
+
+    /* Library & Collection Pills 1-Liner Small Multi-Color Text */
+    .audio-cat-chip {
+        font-size: 0.62rem !important;
+        padding: 2px 7px !important;
+        white-space: nowrap !important;
+    }
+
+    .library-selector-wrap .playlist-chip {
+        font-size: 0.64rem !important;
+        padding: 3px 7px !important;
+        white-space: nowrap !important;
+    }
+
+    .library-selector-wrap .playlist-chip .chip-name {
+        color: #e2e8f0;
+    }
+
+    .library-selector-wrap .playlist-chip.active .chip-name {
+        color: #00ffcc;
+    }
+
+    .library-selector-wrap .playlist-chip .chip-badge {
+        font-size: 0.56rem !important;
+        color: #fbbf24 !important;
+        border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    /* Track List Items at Bottom: Ultra-Clean 1-Liner Small Multi-Color Fonts */
+    .list-scroll {
+        padding: 4px 8px !important;
+        gap: 5px !important;
+    }
+
+    .track-item {
+        padding: 5px 8px !important;
+        gap: 8px !important;
+        border-radius: 9px !important;
+    }
+
+    .track-thumb {
+        width: 48px !important;
+        height: 30px !important;
+        border-radius: 5px !important;
+    }
+
+    .track-title {
+        font-size: 0.71rem !important;
+        font-weight: 600 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        color: #f1f5f9;
+    }
+
+    .track-item.playing .track-title {
+        color: #00ffcc !important;
+    }
+
+    .track-sub {
+        font-size: 0.56rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        color: #38bdf8 !important;
+    }
+
+    .track-item.playing .track-sub {
+        color: #fbbf24 !important;
+        font-weight: 700;
+    }
+
+    .track-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.74rem !important;
+    }
+
+    /* Bottom Docked Tab Bar Small 1-Liner Pills */
+    .tab-pill {
+        font-size: 0.65rem !important;
+        padding: 4px 9px !important;
+        white-space: nowrap !important;
+    }
+
+    .tab-pill .pill-count {
+        font-size: 0.56rem !important;
+        color: #fbbf24;
+    }
 }

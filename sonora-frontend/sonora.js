@@ -537,6 +537,7 @@
         activeVideoLibraryId: 'all-songs',
         activeAudioLibraryId: 'audio-trending-now',
         activeAudioCategory: 'all',
+        isCollectionGridExpanded: false,
         isPlaying: false,
         repeatOne: false,
         volume: 100,
@@ -605,6 +606,10 @@
         // Lists
         libraryList: document.getElementById('library-list'),
         libraryTabs: document.getElementById('library-tabs'),
+        librarySelectorWrap: document.getElementById('library-selector-wrap'),
+        toggleChipsGridBtn: document.getElementById('toggle-chips-grid-btn'),
+        gridToggleIcon: document.getElementById('grid-toggle-icon'),
+        gridToggleText: document.getElementById('grid-toggle-text'),
         suggestedCard: document.getElementById('suggested-card'),
         suggestedList: document.getElementById('suggested-track-list'),
         suggestedBadge: document.getElementById('suggested-badge'),
@@ -1496,7 +1501,7 @@
                 DOM.audioTrackSub.textContent = `${cat} · Ad-Free Audio Stream`;
             }
             if (DOM.audioFavBtn) {
-                const isFav = STATE.favorites.some(f => f.videoId === track.videoId);
+                const isFav = STATE.favorites.includes(track.videoId) || STATE.favorites.some(f => f && f.videoId === track.videoId);
                 DOM.audioFavBtn.textContent = isFav ? '❤️' : '🤍';
             }
         }
@@ -2031,19 +2036,46 @@
         return box;
     }
 
+    function syncCollectionGridUI(totalCount) {
+        const expanded = Boolean(STATE.isCollectionGridExpanded);
+        if (DOM.librarySelectorWrap) {
+            DOM.librarySelectorWrap.classList.toggle('is-grid-expanded', expanded);
+        }
+        if (DOM.toggleChipsGridBtn) {
+            DOM.toggleChipsGridBtn.classList.toggle('active', expanded);
+            DOM.toggleChipsGridBtn.setAttribute('aria-expanded', String(expanded));
+        }
+        if (DOM.gridToggleIcon) {
+            DOM.gridToggleIcon.textContent = expanded ? '▴' : '⊞';
+        }
+        if (DOM.gridToggleText) {
+            const count = typeof totalCount === 'number' ? totalCount : getAllLibraries().length;
+            DOM.gridToggleText.textContent = expanded ? 'Less' : `All (${count})`;
+        }
+    }
+
     function renderLibraryTabs() {
         if (!DOM.libraryTabs) return;
         DOM.libraryTabs.innerHTML = '';
         const allLibraries = getAllLibraries();
+        syncCollectionGridUI(allLibraries.length);
 
         allLibraries.forEach(lib => {
             const btn = document.createElement('button');
             btn.type = 'button';
             const isRegional = Boolean(STATE.regionalSpotlightId && lib.id === STATE.regionalSpotlightId);
-            btn.className = `playlist-chip ${lib.id === STATE.activeLibraryId ? 'active' : ''} ${isRegional ? 'featured-regional' : ''}`;
+            const isAudioChip = Boolean(lib.audioCollection);
+            btn.className = `playlist-chip ${lib.id === STATE.activeLibraryId ? 'active' : ''} ${isRegional ? 'featured-regional' : ''} ${isAudioChip ? 'audio-collection-chip' : ''}`;
+
             const label = document.createElement('span');
-            label.textContent = `${lib.custom ? '📁 ' : ''}${lib.name} (${(lib.videos || []).length})`;
+            label.className = 'chip-name';
+            label.textContent = `${lib.custom ? '📁 ' : ''}${lib.name}`;
             btn.appendChild(label);
+
+            const badge = document.createElement('span');
+            badge.className = 'chip-badge';
+            badge.textContent = String((lib.videos || []).length);
+            btn.appendChild(badge);
 
             if (lib.custom) {
                 const del = document.createElement('span');
@@ -2059,10 +2091,27 @@
 
             btn.addEventListener('click', () => {
                 STATE.activeLibraryId = lib.id;
+                if (STATE.experienceMode === 'audio') {
+                    STATE.activeAudioLibraryId = lib.id;
+                } else {
+                    STATE.activeVideoLibraryId = lib.id;
+                }
+                if (STATE.isCollectionGridExpanded) {
+                    STATE.isCollectionGridExpanded = false;
+                }
                 renderLibraryTabs();
                 renderLibrary();
             });
             DOM.libraryTabs.appendChild(btn);
+        });
+
+        requestAnimationFrame(() => {
+            try {
+                const activeChip = DOM.libraryTabs.querySelector('.playlist-chip.active');
+                if (activeChip && !STATE.isCollectionGridExpanded) {
+                    activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            } catch (e) {}
         });
 
         const activeLib = getActiveLibrary();
@@ -2280,14 +2329,13 @@
         };
 
         // 1. Current active library (if any)
-        const activeLib = (STATE.curatedLibraries || []).find(l => l.id === STATE.activeLibraryId) ||
-                          (STATE.customPlaylists || []).find(l => l.id === STATE.activeLibraryId);
+        const activeLib = getActiveLibrary();
         if (activeLib && activeLib.videos) {
-            activeLib.videos.forEach(v => addTrack(v, activeLib.name || 'Current Library', 10));
+            activeLib.videos.forEach(v => addTrack(v, activeLib.name || 'Current Vibe', 10));
         }
 
-        // 2. Curated built-in libraries
-        (STATE.curatedLibraries || []).forEach(lib => {
+        // 2. Curated libraries for current experience mode
+        getAllLibraries().forEach(lib => {
             (lib.videos || []).forEach(v => addTrack(v, lib.name || 'Featured', 5));
         });
 
@@ -2333,7 +2381,7 @@
         if (DOM.suggestedCard) DOM.suggestedCard.style.display = 'flex';
 
         if (DOM.suggestedBadge) {
-            DOM.suggestedBadge.textContent = STATE.activeTrack ? 'Up Next' : 'Featured';
+            DOM.suggestedBadge.textContent = STATE.activeTrack ? 'Vibe Picks' : 'Hot Picks';
         }
 
         DOM.suggestedList.innerHTML = tracks.map(t => {
@@ -2411,6 +2459,22 @@
                     renderLibraryTabs();
                     renderLibrary();
                 });
+            });
+        }
+
+        // Toggle Collection / Library 2-Column Bento Grid vs Horizontal Strip
+        if (DOM.toggleChipsGridBtn) {
+            DOM.toggleChipsGridBtn.addEventListener('click', () => {
+                STATE.isCollectionGridExpanded = !STATE.isCollectionGridExpanded;
+                syncCollectionGridUI();
+                if (!STATE.isCollectionGridExpanded && DOM.libraryTabs) {
+                    requestAnimationFrame(() => {
+                        try {
+                            const activeChip = DOM.libraryTabs.querySelector('.playlist-chip.active');
+                            if (activeChip) activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                        } catch (e) {}
+                    });
+                }
             });
         }
 
@@ -3441,6 +3505,24 @@
         }
     }
 
+    let spotlightDismissTimer = null;
+    let isSpotlightDismissed = false;
+
+    function dismissSpotlightBar(bar) {
+        isSpotlightDismissed = true;
+        if (spotlightDismissTimer) {
+            clearTimeout(spotlightDismissTimer);
+            spotlightDismissTimer = null;
+        }
+        if (!bar) return;
+        bar.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        bar.style.opacity = '0';
+        bar.style.transform = 'translateY(-6px)';
+        setTimeout(() => {
+            bar.style.display = 'none';
+        }, 350);
+    }
+
     function updateSpotlightUI(geo, timeVibe) {
         if (!window.ArcadeAmbient) return;
         const spotlight = window.ArcadeAmbient.getRegionalSpotlight(geo, timeVibe);
@@ -3452,11 +3534,19 @@
         const text = document.getElementById('spotlightText');
         const btn = document.getElementById('spotlightSwitchBtn');
 
-        if (bar && tag && text) {
+        if (bar && tag && text && !isSpotlightDismissed) {
             tag.textContent = spotlight.badgeText || '📍 SPOTLIGHT';
             const locName = (geo.city && geo.city !== 'Cyber City' && geo.city !== 'India') ? geo.city : 'you';
             text.innerHTML = `Trending near ${escapeHtml(locName)}: <strong>${escapeHtml(spotlight.title)}</strong>`;
+            bar.style.opacity = '1';
+            bar.style.transform = 'translateY(0)';
             bar.style.display = 'flex';
+
+            if (!spotlightDismissTimer) {
+                spotlightDismissTimer = setTimeout(() => {
+                    dismissSpotlightBar(bar);
+                }, 10000);
+            }
 
             if (btn && !btn._hasSpotlightListener) {
                 btn._hasSpotlightListener = true;
@@ -3470,6 +3560,7 @@
                             playTrack(matchedLib.videos[0]);
                         }
                     }
+                    dismissSpotlightBar(bar);
                 });
             }
         }
