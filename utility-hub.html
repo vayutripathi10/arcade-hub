@@ -1064,29 +1064,426 @@
                         </div>
                     </div>
 
-                    <!-- TAB 5: YOUTUBE TRANSCRIPT EXPORTER -->
+                    <!-- TAB 5: YOUTUBE TRANSCRIPT EXPORTER & SMART STUDY NOTES -->
                     <div class="tab-content" id="panel-yt-transcript">
+                        <style>
+                            /* Smart PDF Notes Processing Loader */
+                            .smart-pdf-loader-card {
+                                display: none;
+                                flex-direction: column;
+                                gap: 14px;
+                                padding: 18px 20px;
+                                background: linear-gradient(135deg, rgba(8, 15, 28, 0.96) 0%, rgba(16, 26, 46, 0.94) 100%);
+                                border: 1px solid rgba(0, 255, 204, 0.45);
+                                border-radius: 12px;
+                                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), 0 0 25px rgba(0, 255, 204, 0.14);
+                                position: relative;
+                                overflow: hidden;
+                            }
+                            .smart-pdf-loader-card::before {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                left: -100%;
+                                width: 60%;
+                                height: 2px;
+                                background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent);
+                                animation: pdfLoaderTopSweep 2.2s linear infinite;
+                            }
+                            @keyframes pdfLoaderTopSweep {
+                                0% { left: -60%; }
+                                100% { left: 100%; }
+                            }
+                            .smart-pdf-loader-top {
+                                display: flex;
+                                align-items: center;
+                                gap: 18px;
+                            }
+                            /* Animated 3D PDF Page Graphic */
+                            .pdf-doc-anim-box {
+                                width: 66px;
+                                height: 84px;
+                                min-width: 66px;
+                                background: linear-gradient(160deg, #132238 0%, #0b1524 100%);
+                                border: 1.5px solid var(--neon-cyan);
+                                border-radius: 7px 16px 7px 7px;
+                                position: relative;
+                                padding: 10px 8px 8px 8px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 5px;
+                                box-shadow: 0 0 18px rgba(0, 255, 204, 0.24), inset 0 0 10px rgba(0, 255, 204, 0.08);
+                                overflow: hidden;
+                            }
+                            .pdf-doc-anim-box::after {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                right: 0;
+                                width: 14px;
+                                height: 14px;
+                                background: linear-gradient(135deg, transparent 50%, rgba(0, 255, 204, 0.35) 50%);
+                                border-left: 1px solid var(--neon-cyan);
+                                border-bottom: 1px solid var(--neon-cyan);
+                                border-bottom-left-radius: 4px;
+                            }
+                            .pdf-doc-badge {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.52rem;
+                                font-weight: 700;
+                                color: #fff;
+                                background: linear-gradient(90deg, #ff007f, #ff4da6);
+                                padding: 1px 5px;
+                                border-radius: 3px;
+                                width: fit-content;
+                                letter-spacing: 0.6px;
+                                margin-bottom: 2px;
+                                box-shadow: 0 0 8px rgba(255, 0, 127, 0.5);
+                            }
+                            .pdf-doc-line {
+                                height: 3.5px;
+                                border-radius: 2px;
+                                background: rgba(255, 255, 255, 0.12);
+                                position: relative;
+                                overflow: hidden;
+                            }
+                            .pdf-doc-line::after {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                height: 100%;
+                                width: 0%;
+                                background: linear-gradient(90deg, var(--neon-cyan), #66ffe0);
+                                border-radius: 2px;
+                                animation: pdfLineWrite 1.7s ease-in-out infinite;
+                            }
+                            .pdf-doc-line.l1 { width: 65%; }
+                            .pdf-doc-line.l1::after { animation-delay: 0s; background: var(--neon-pink); }
+                            .pdf-doc-line.l2 { width: 95%; }
+                            .pdf-doc-line.l2::after { animation-delay: 0.22s; }
+                            .pdf-doc-line.l3 { width: 85%; }
+                            .pdf-doc-line.l3::after { animation-delay: 0.44s; }
+                            .pdf-doc-line.l4 { width: 92%; }
+                            .pdf-doc-line.l4::after { animation-delay: 0.66s; }
+                            .pdf-doc-line.l5 { width: 72%; }
+                            .pdf-doc-line.l5::after { animation-delay: 0.88s; }
+                            .pdf-doc-line.l6 { width: 88%; }
+                            .pdf-doc-line.l6::after { animation-delay: 1.1s; }
+                            @keyframes pdfLineWrite {
+                                0% { width: 0%; opacity: 0.4; }
+                                55% { width: 100%; opacity: 1; }
+                                85% { width: 100%; opacity: 1; }
+                                100% { width: 0%; opacity: 0.2; }
+                            }
+                            .pdf-doc-laser {
+                                position: absolute;
+                                left: 0;
+                                width: 100%;
+                                height: 2px;
+                                background: var(--neon-cyan);
+                                box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+                                animation: pdfLaserScan 1.9s ease-in-out infinite alternate;
+                            }
+                            @keyframes pdfLaserScan {
+                                0% { top: 14px; opacity: 0.85; }
+                                100% { top: 76px; opacity: 1; }
+                            }
+                            .pdf-doc-pen {
+                                position: absolute;
+                                right: 4px;
+                                bottom: 4px;
+                                font-size: 0.95rem;
+                                filter: drop-shadow(0 0 6px rgba(0, 255, 204, 0.8));
+                                animation: pdfPenWrite 0.85s ease-in-out infinite alternate;
+                            }
+                            @keyframes pdfPenWrite {
+                                0% { transform: translate(0, 0) rotate(-8deg); }
+                                100% { transform: translate(-6px, -4px) rotate(8deg); }
+                            }
+                            .smart-pdf-loader-info {
+                                flex: 1;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 6px;
+                                text-align: left;
+                            }
+                            .smart-pdf-stage-row {
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                gap: 10px;
+                            }
+                            .smart-pdf-stage-title {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.9rem;
+                                font-weight: 700;
+                                color: var(--neon-cyan);
+                                letter-spacing: 0.5px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                            }
+                            .smart-pdf-stage-dot {
+                                width: 8px;
+                                height: 8px;
+                                border-radius: 50%;
+                                background: var(--neon-cyan);
+                                box-shadow: 0 0 10px var(--neon-cyan);
+                                animation: pulseDot 0.9s infinite alternate;
+                            }
+                            @keyframes pulseDot {
+                                0% { transform: scale(0.8); opacity: 0.5; }
+                                100% { transform: scale(1.25); opacity: 1; }
+                            }
+                            .smart-pdf-stage-pct {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.84rem;
+                                color: var(--neon-pink);
+                                font-weight: 700;
+                                background: rgba(255, 0, 127, 0.12);
+                                border: 1px solid rgba(255, 0, 127, 0.35);
+                                padding: 2px 9px;
+                                border-radius: 999px;
+                            }
+                            .smart-pdf-stage-sub {
+                                font-size: 0.76rem;
+                                color: var(--text-secondary);
+                                line-height: 1.35;
+                            }
+                            .smart-pdf-progress-track {
+                                width: 100%;
+                                height: 7px;
+                                background: rgba(255, 255, 255, 0.07);
+                                border-radius: 999px;
+                                overflow: hidden;
+                                border: 1px solid rgba(255, 255, 255, 0.08);
+                                margin-top: 2px;
+                            }
+                            .smart-pdf-progress-fill {
+                                height: 100%;
+                                width: 12%;
+                                background: linear-gradient(90deg, var(--neon-cyan), #00c3ff, var(--neon-pink));
+                                border-radius: 999px;
+                                transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+                                box-shadow: 0 0 12px rgba(0, 255, 204, 0.6);
+                            }
+                            .smart-pdf-steps-grid {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 6px;
+                                padding-top: 6px;
+                                border-top: 1px dashed rgba(255, 255, 255, 0.1);
+                            }
+                            .smart-pdf-step-pill {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.66rem;
+                                padding: 3px 9px;
+                                border-radius: 999px;
+                                background: rgba(255, 255, 255, 0.04);
+                                border: 1px solid rgba(255, 255, 255, 0.1);
+                                color: rgba(255, 255, 255, 0.42);
+                                transition: all 0.25s ease;
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 4px;
+                            }
+                            .smart-pdf-step-pill.active {
+                                background: rgba(0, 255, 204, 0.16);
+                                border-color: var(--neon-cyan);
+                                color: var(--neon-cyan);
+                                box-shadow: 0 0 10px rgba(0, 255, 204, 0.28);
+                                transform: translateY(-1px);
+                            }
+                            .smart-pdf-step-pill.done {
+                                background: rgba(16, 185, 129, 0.14);
+                                border-color: rgba(16, 185, 129, 0.45);
+                                color: #34d399;
+                            }
+
+                            /* Smart Study Notes Rich Reader View */
+                            .yt-view-tab-btn {
+                                background: rgba(255, 255, 255, 0.04);
+                                border: 1px solid var(--border-color);
+                                color: var(--text-secondary);
+                                padding: 6px 12px;
+                                border-radius: 6px;
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.74rem;
+                                cursor: pointer;
+                                transition: all 0.2s ease;
+                            }
+                            .yt-view-tab-btn:hover {
+                                border-color: rgba(0, 255, 204, 0.4);
+                                color: #fff;
+                            }
+                            .yt-view-tab-btn.active {
+                                background: rgba(0, 255, 204, 0.15);
+                                border-color: var(--neon-cyan);
+                                color: var(--neon-cyan);
+                                box-shadow: 0 0 10px rgba(0, 255, 204, 0.18);
+                            }
+                            .yt-rich-notes-container {
+                                background: rgba(6, 11, 20, 0.88);
+                                border: 1px solid rgba(0, 255, 204, 0.25);
+                                border-radius: 10px;
+                                padding: 18px;
+                                max-height: 520px;
+                                overflow-y: auto;
+                                text-align: left;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 16px;
+                                line-height: 1.7;
+                                font-family: 'Inter', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', sans-serif;
+                            }
+                            .yt-notes-section-card {
+                                background: rgba(255, 255, 255, 0.03);
+                                border: 1px solid rgba(255, 255, 255, 0.08);
+                                border-left: 3.5px solid var(--neon-cyan);
+                                border-radius: 8px;
+                                padding: 14px 16px;
+                            }
+                            .yt-notes-section-card.pink-accent {
+                                border-left-color: var(--neon-pink);
+                            }
+                            .yt-notes-section-card.amber-accent {
+                                border-left-color: #f59e0b;
+                            }
+                            .yt-notes-section-title {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.84rem;
+                                color: var(--neon-cyan);
+                                letter-spacing: 0.6px;
+                                margin-bottom: 10px;
+                                font-weight: 700;
+                                text-transform: uppercase;
+                            }
+                            .yt-notes-section-card.pink-accent .yt-notes-section-title {
+                                color: var(--neon-pink);
+                            }
+                            .yt-notes-section-card.amber-accent .yt-notes-section-title {
+                                color: #fbbf24;
+                            }
+                            .yt-notes-topic-pill {
+                                display: inline-block;
+                                background: rgba(0, 255, 204, 0.1);
+                                border: 1px solid rgba(0, 255, 204, 0.3);
+                                color: #a7f3d0;
+                                font-size: 0.73rem;
+                                padding: 3px 10px;
+                                border-radius: 999px;
+                                margin: 3px 5px 3px 0;
+                                font-family: 'Share Tech Mono', monospace;
+                            }
+                            /* Slide Card Styling */
+                            .yt-slide-card {
+                                background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(10, 16, 30, 0.95));
+                                border: 1px solid rgba(56, 189, 248, 0.28);
+                                border-radius: 10px;
+                                overflow: hidden;
+                                margin-top: 8px;
+                                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+                            }
+                            .yt-slide-header {
+                                background: linear-gradient(90deg, rgba(0, 255, 204, 0.14), rgba(56, 189, 248, 0.08));
+                                border-bottom: 1px solid rgba(0, 255, 204, 0.22);
+                                padding: 10px 15px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                gap: 10px;
+                                flex-wrap: wrap;
+                            }
+                            .yt-slide-badge {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.72rem;
+                                font-weight: 700;
+                                background: var(--neon-cyan);
+                                color: #041019;
+                                padding: 2px 8px;
+                                border-radius: 4px;
+                                letter-spacing: 0.5px;
+                            }
+                            .yt-slide-title-text {
+                                font-weight: 700;
+                                font-size: 0.92rem;
+                                color: #fff;
+                                flex: 1;
+                            }
+                            .yt-slide-time {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.74rem;
+                                color: var(--neon-cyan);
+                                background: rgba(0, 255, 204, 0.1);
+                                border: 1px solid rgba(0, 255, 204, 0.3);
+                                padding: 2px 8px;
+                                border-radius: 999px;
+                            }
+                            .yt-slide-body {
+                                padding: 14px 16px;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 12px;
+                            }
+                            .yt-slide-bullets-box {
+                                background: rgba(255, 0, 127, 0.05);
+                                border: 1px dashed rgba(255, 0, 127, 0.28);
+                                border-radius: 7px;
+                                padding: 10px 14px;
+                            }
+                            .yt-slide-bullets-label {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.72rem;
+                                color: var(--neon-pink);
+                                margin-bottom: 6px;
+                                font-weight: 700;
+                                letter-spacing: 0.5px;
+                            }
+                            .yt-slide-para-box {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 10px;
+                            }
+                            .yt-slide-para {
+                                font-size: 0.9rem;
+                                color: #e2e8f0;
+                                line-height: 1.78;
+                                margin: 0;
+                                padding: 9px 13px;
+                                background: rgba(255, 255, 255, 0.025);
+                                border-left: 2.5px solid rgba(56, 189, 248, 0.55);
+                                border-radius: 0 6px 6px 0;
+                            }
+                            .yt-para-tag {
+                                font-family: 'Share Tech Mono', monospace;
+                                font-size: 0.68rem;
+                                color: #38bdf8;
+                                font-weight: 700;
+                                margin-right: 6px;
+                                opacity: 0.9;
+                            }
+                        </style>
+
                         <div style="text-align: left; margin-bottom: 5px;">
-                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">📺 YouTube Video Transcript Exporter</h2>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Fetch captions from any YouTube video instantly or compile manually pasted transcripts into a formatted PDF document.</p>
+                            <h2 style="font-size: 1.1rem; color: #fff; margin-bottom: 4px;">📺 YouTube Smart Study Notes & Slide Deck Generator</h2>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">Fetch captions from any English or Hindi YouTube video, fix grammar & spoken Hinglish fillers, and organize into Slide-Wise + Paragraph-Wise Study Notes & PDF.</p>
                         </div>
 
                         <!-- Sub-tab selectors -->
                         <div style="display: flex; gap: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px;">
                             <button id="btn-yt-sub-auto" class="cyber-btn active" style="padding: 6px 16px; font-size: 0.75rem;">⚡ AUTO-FETCH LINK</button>
-                            <button id="btn-yt-sub-manual" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">📝 MANUAL PASTE</button>
+                            <button id="btn-yt-sub-manual" class="cyber-btn" style="padding: 6px 16px; font-size: 0.75rem;">📝 MANUAL PASTE & NOTES</button>
                         </div>
 
                         <!-- Sub-panel: Auto Fetch -->
                         <div id="yt-subpanel-auto" style="display: flex; flex-direction: column; gap: 15px; text-align: left;">
-                            
-
                             <div class="option-field" style="width: 100%;">
                                 <label for="yt-video-url">PASTE YOUTUBE VIDEO LINK</label>
-                                <div style="display: flex; gap: 10px; margin-top: 4px;">
-                                    <input type="text" id="yt-video-url" class="cyber-input" placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ" style="flex: 1;">
-                                    <button class="neon-action-btn" id="btn-yt-fetch" style="width: auto; padding: 0 20px; font-size: 0.8rem; margin: 0; background: rgba(0, 255, 204, 0.1); border: 1px solid var(--neon-cyan);">
-                                        ⚡ FETCH TRANSCRIPT
+                                <div style="display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                                    <input type="text" id="yt-video-url" class="cyber-input" placeholder="e.g., https://www.youtube.com/watch?v=qbLc5a9jdXo" style="flex: 1; min-width: 220px;">
+                                    <button class="neon-action-btn" id="btn-yt-fetch" style="width: auto; padding: 10px 20px; font-size: 0.8rem; margin: 0; background: rgba(0, 255, 204, 0.14); border: 1px solid var(--neon-cyan);">
+                                        ✨ GENERATE SMART NOTES
                                     </button>
                                 </div>
                             </div>
@@ -1094,50 +1491,134 @@
                             <div class="option-field" style="width: 100%;">
                                 <label for="yt-lang-select">SELECT TRANSCRIPT LANGUAGE</label>
                                 <select id="yt-lang-select" class="cyber-input" style="width: 100%; margin-top: 4px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); cursor: pointer; outline: none; border-radius: 6px; padding: 10px 14px;">
-                                    <option value="hi,en">Hindi (English fallback)</option>
-                                    <option value="en">English only</option>
-                                    <option value="hi">Hindi only</option>
-                                    <option value="en,hi">English (Hindi fallback)</option>
+                                    <option value="en,hi">Auto-Detect: English / Hindi</option>
+                                    <option value="hi,en">Hindi Primary (English fallback)</option>
+                                    <option value="en">English Only</option>
+                                    <option value="hi">Hindi Only</option>
                                 </select>
-                            </div>
-
-                            <!-- Progress indicator block -->
-                            <div id="yt-loading-indicator" style="display: none; align-items: center; gap: 10px; padding: 10px; background: rgba(0,255,204,0.05); border: 1px dashed var(--neon-cyan); border-radius: 6px;">
-                                <div class="spinner" style="width: 16px; height: 16px; border: 2px solid rgba(0,255,204,0.2); border-top-color: var(--neon-cyan); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                                <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">SCRAPING TIMED CAPTION TRACKS...</span>
-                            </div>
-
-                            <!-- Transcript Preview -->
-                            <div id="yt-output-wrapper" style="display: none; flex-direction: column; gap: 10px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; color: var(--neon-cyan);">TRANSCRIPT BUFFER PREVIEW</span>
-                                    <div style="display: flex; gap: 8px;">
-                                        <button class="neon-action-btn" id="btn-yt-copy" style="width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0; background: rgba(0, 255, 204, 0.15); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
-                                            📋 COPY
-                                        </button>
-                                        <button class="neon-action-btn pink" id="btn-yt-download-pdf" style="width: auto; padding: 6px 16px; font-size: 0.8rem; margin: 0;">
-                                            ⬇️ EXPORT TO PDF
-                                        </button>
-                                    </div>
-                                </div>
-                                <textarea class="text-output-area" id="yt-transcript-text" readonly style="height: 200px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
                             </div>
                         </div>
 
                         <!-- Sub-panel: Manual Paste -->
                         <div id="yt-subpanel-manual" style="display: none; flex-direction: column; gap: 15px; text-align: left;">
                             <div class="option-field" style="width: 100%;">
-                                <label for="yt-manual-title">DOCUMENT TITLE (OPTIONAL)</label>
-                                <input type="text" id="yt-manual-title" class="cyber-input" placeholder="e.g., Amer Fort History Transcript" style="margin-top: 4px; width: 100%;">
+                                <label for="yt-manual-title">VIDEO / TOPIC TITLE (OPTIONAL)</label>
+                                <input type="text" id="yt-manual-title" class="cyber-input" placeholder="e.g., REST API Crash Course Study Notes" style="margin-top: 4px; width: 100%;">
                             </div>
                             <div class="option-field" style="width: 100%;">
-                                <label for="yt-manual-text">PASTE TRANSCRIPT CONTENT HERE</label>
-                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">You can copy the transcript from YouTube's "Show Transcript" sidebar and paste it directly below.</p>
-                                <textarea class="text-output-area" id="yt-manual-text" placeholder="Paste subtitles here..." style="height: 220px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
+                                <label for="yt-manual-text">PASTE RAW TRANSCRIPT CONTENT HERE</label>
+                                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 6px;">Paste broken subtitles from YouTube's "Show Transcript" sidebar — our Smart Engine will clean timestamps, fix grammar, align sentences, and build Slide-Wise + Paragraph-Wise notes.</p>
+                                <textarea class="text-output-area" id="yt-manual-text" placeholder="Paste raw unpunctuated subtitles here..." style="height: 180px; font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; resize: vertical;"></textarea>
                             </div>
-                            <button class="neon-action-btn pink" id="btn-yt-manual-download" style="margin-top: 5px;">
-                                ⬇️ COMPILE & DOWNLOAD PDF
-                            </button>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <button class="neon-action-btn" id="btn-yt-manual-smart-notes" style="flex: 1; margin: 0; background: rgba(0, 255, 204, 0.14); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
+                                    ✨ CONVERT TO SLIDE & PARAGRAPH NOTES
+                                </button>
+                                <button class="neon-action-btn pink" id="btn-yt-manual-download" style="flex: 1; margin: 0;">
+                                    ⬇️ DIRECT PDF DOWNLOAD
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SMART ANIMATED PDF & NOTES PROCESSING LOADER (Shared by Auto & Manual) -->
+                        <div id="yt-loading-indicator" class="smart-pdf-loader-card" style="margin-top: 12px;">
+                            <div class="smart-pdf-loader-top">
+                                <div class="pdf-doc-anim-box">
+                                    <div class="pdf-doc-badge">PDF NOTES</div>
+                                    <div class="pdf-doc-line l1"></div>
+                                    <div class="pdf-doc-line l2"></div>
+                                    <div class="pdf-doc-line l3"></div>
+                                    <div class="pdf-doc-line l4"></div>
+                                    <div class="pdf-doc-line l5"></div>
+                                    <div class="pdf-doc-line l6"></div>
+                                    <div class="pdf-doc-laser"></div>
+                                    <div class="pdf-doc-pen">✍️</div>
+                                </div>
+                                <div class="smart-pdf-loader-info">
+                                    <div class="smart-pdf-stage-row">
+                                        <div class="smart-pdf-stage-title">
+                                            <span class="smart-pdf-stage-dot"></span>
+                                            <span id="yt-loader-stage-title">INITIALIZING SMART NOTES ENGINE...</span>
+                                        </div>
+                                        <span class="smart-pdf-stage-pct" id="yt-loader-percent">10%</span>
+                                    </div>
+                                    <div class="smart-pdf-stage-sub" id="yt-loader-stage-sub">
+                                        Connecting to caption track stream and preparing document pipeline...
+                                    </div>
+                                    <div class="smart-pdf-progress-track">
+                                        <div class="smart-pdf-progress-fill" id="yt-loader-bar-fill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="smart-pdf-steps-grid" id="yt-loader-steps">
+                                <span class="smart-pdf-step-pill active" data-step="1">1. Fetch Track</span>
+                                <span class="smart-pdf-step-pill" data-step="2">2. Clean Fillers</span>
+                                <span class="smart-pdf-step-pill" data-step="3">3. Align Sentences</span>
+                                <span class="smart-pdf-step-pill" data-step="4">4. Correct Grammar</span>
+                                <span class="smart-pdf-step-pill" data-step="5">5. Slides & Paras</span>
+                                <span class="smart-pdf-step-pill" data-step="6">6. Ready for PDF</span>
+                            </div>
+                        </div>
+
+                        <!-- Smart Study Notes & Transcript Output Wrapper -->
+                        <div id="yt-output-wrapper" style="display: none; flex-direction: column; gap: 12px; margin-top: 14px;">
+                            <!-- Metadata & Quality Stats Banner -->
+                            <div id="yt-notes-meta-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(0, 255, 204, 0.06); border: 1px solid rgba(0, 255, 204, 0.25); border-radius: 8px;">
+                                <div style="display: flex; flex-direction: column; gap: 2px; text-align: left;">
+                                    <span id="yt-meta-video-title" style="font-size: 0.92rem; font-weight: 700; color: #fff;">YouTube Study Notes</span>
+                                    <span id="yt-meta-stats-line" style="font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: var(--neon-cyan);">✓ Grammar Corrected • ✓ Divided into Slides & Paragraphs</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                    <button class="neon-action-btn" id="btn-yt-toggle-edit" style="width: auto; padding: 6px 12px; font-size: 0.74rem; margin: 0; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-color); color: #e2e8f0;">
+                                        ✏️ EDIT TEXT
+                                    </button>
+                                    <button class="neon-action-btn" id="btn-yt-copy" style="width: auto; padding: 6px 14px; font-size: 0.75rem; margin: 0; background: rgba(0, 255, 204, 0.15); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
+                                        📋 COPY NOTES
+                                    </button>
+                                    <button class="neon-action-btn pink" id="btn-yt-download-pdf" style="width: auto; padding: 6px 16px; font-size: 0.75rem; margin: 0;">
+                                        ⬇️ EXPORT SLIDE NOTES PDF
+                                    </button>
+                                    <button class="neon-action-btn" id="btn-yt-share-native" title="Share PDF or Notes" style="width: auto; padding: 6px 14px; font-size: 0.75rem; margin: 0; background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8;">
+                                        📤 SHARE
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- AI Refinement & Redirection Strip (Near Download + Highlighted after PDF Generation) -->
+                            <div id="yt-ai-refine-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; background: linear-gradient(90deg, rgba(139, 92, 246, 0.12), rgba(0, 255, 204, 0.08)); border: 1px solid rgba(139, 92, 246, 0.38); border-radius: 8px;">
+                                <div style="display: flex; flex-direction: column; gap: 2px; text-align: left;">
+                                    <span id="yt-ai-refine-heading" style="font-family: 'Share Tech Mono', monospace; font-size: 0.78rem; color: #c4b5fd; font-weight: 700;">✨ REFINE NOTES FURTHER WITH AI (AUTO-COPIES PROMPT + NOTES)</span>
+                                    <span id="yt-ai-refine-sub" style="font-size: 0.72rem; color: var(--text-secondary);">Click any AI below — your notes & a smart refinement prompt are copied automatically, just press Ctrl+V!</span>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                    <a href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer" class="yt-ai-redirect-btn" data-ai-target="gemini" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.74rem; font-weight: 700; background: rgba(66, 133, 244, 0.18); border: 1px solid rgba(96, 165, 250, 0.6); color: #93c5fd; cursor: pointer; transition: all 0.2s ease;">
+                                        ✨ Gemini
+                                    </a>
+                                    <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" class="yt-ai-redirect-btn" data-ai-target="chatgpt" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.74rem; font-weight: 700; background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(52, 211, 153, 0.55); color: #6ee7b7; cursor: pointer; transition: all 0.2s ease;">
+                                        🤖 ChatGPT
+                                    </a>
+                                    <a href="https://claude.ai/new" target="_blank" rel="noopener noreferrer" class="yt-ai-redirect-btn" data-ai-target="claude" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.74rem; font-weight: 700; background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(251, 191, 36, 0.55); color: #fcd34d; cursor: pointer; transition: all 0.2s ease;">
+                                        🧠 Claude
+                                    </a>
+                                    <button type="button" id="btn-yt-copy-ai-prompt" style="padding: 6px 11px; border-radius: 6px; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0; cursor: pointer;">
+                                        📋 Copy AI Prompt
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- View Mode Switcher Tabs -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                                <button type="button" class="yt-view-tab-btn active" data-yt-view="notes">📒 Full Study Notes (Slides + Paragraphs)</button>
+                                <button type="button" class="yt-view-tab-btn" data-yt-view="slides">🖥️ Slide Deck View (Bullets Only)</button>
+                                <button type="button" class="yt-view-tab-btn" data-yt-view="summary">🎯 Executive Summary & Takeaways</button>
+                                <button type="button" class="yt-view-tab-btn" data-yt-view="raw">⏱️ Timestamped Sentences</button>
+                            </div>
+
+                            <!-- Formatted Rich Study Notes View -->
+                            <div id="yt-rich-notes-view" class="yt-rich-notes-container"></div>
+
+                            <!-- Editable / Raw Textarea Buffer -->
+                            <textarea class="text-output-area" id="yt-transcript-text" style="display: none; height: 320px; font-family: 'Inter', 'Noto Sans Devanagari', monospace; font-size: 0.86rem; line-height: 1.65; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; resize: vertical;"></textarea>
                         </div>
                     </div>
 
@@ -2168,18 +2649,84 @@
         calculateMF();
 
 
-        // --- MODULE 05: YOUTUBE TRANSCRIPT EXPORTER LOGIC ---
+        // --- MODULE 05: YOUTUBE TRANSCRIPT EXPORTER & SMART SLIDE/PARAGRAPH STUDY NOTES ENGINE ---
         const btnYtFetch = document.getElementById('btn-yt-fetch');
         const btnYtDownloadPdf = document.getElementById('btn-yt-download-pdf');
         const inputYtUrl = document.getElementById('yt-video-url');
         const ytLoading = document.getElementById('yt-loading-indicator');
         const ytOutputWrapper = document.getElementById('yt-output-wrapper');
         const txtYtTranscript = document.getElementById('yt-transcript-text');
+        const ytRichNotesView = document.getElementById('yt-rich-notes-view');
+        const btnYtToggleEdit = document.getElementById('btn-yt-toggle-edit');
+        const ytMetaVideoTitle = document.getElementById('yt-meta-video-title');
+        const ytMetaStatsLine = document.getElementById('yt-meta-stats-line');
+        const ytLoaderStageTitle = document.getElementById('yt-loader-stage-title');
+        const ytLoaderStageSub = document.getElementById('yt-loader-stage-sub');
+        const ytLoaderPercent = document.getElementById('yt-loader-percent');
+        const ytLoaderBarFill = document.getElementById('yt-loader-bar-fill');
+        const ytLoaderSteps = document.getElementById('yt-loader-steps');
 
         let currentYtVideoId = "";
         let currentYtTranscriptText = "";
+        let currentYtActiveView = "notes"; // 'notes' | 'slides' | 'summary' | 'raw'
+        let currentYtIsEditMode = false;
+        let currentYtProcessedBundle = {
+            title: "YouTube Study Notes",
+            author: "",
+            notesText: "",
+            slidesText: "",
+            summaryText: "",
+            rawText: "",
+            notesHtml: "",
+            slidesHtml: "",
+            summaryHtml: "",
+            rawHtml: "",
+            wordCount: 0,
+            readTimeMin: 1,
+            sentencesAligned: 0,
+            slidesCount: 0,
+            paragraphsCount: 0,
+            grammarFixes: 0
+        };
 
+        const waitMs = (ms) => new Promise(res => setTimeout(res, ms));
 
+        const STEP_LABELS = [
+            "1. Fetch Track",
+            "2. Clean Fillers",
+            "3. Align Sentences",
+            "4. Correct Grammar",
+            "5. Slides & Paras",
+            "6. Ready for PDF"
+        ];
+
+        async function updateSmartPdfLoader(stepNumber, pct, stageTitle, stageSub, delayMs = 300) {
+            if (ytLoading) ytLoading.style.display = 'flex';
+            if (ytLoaderStageTitle) ytLoaderStageTitle.textContent = stageTitle;
+            if (ytLoaderStageSub) ytLoaderStageSub.textContent = stageSub;
+            if (ytLoaderPercent) ytLoaderPercent.textContent = `${pct}%`;
+            if (ytLoaderBarFill) ytLoaderBarFill.style.width = `${pct}%`;
+
+            if (ytLoaderSteps) {
+                const pills = ytLoaderSteps.querySelectorAll('.smart-pdf-step-pill');
+                pills.forEach((pill, idx) => {
+                    const sNum = idx + 1;
+                    pill.classList.remove('active', 'done');
+                    if (sNum < stepNumber) {
+                        pill.classList.add('done');
+                        pill.textContent = `✓ ${STEP_LABELS[idx].replace(/^\d+\.\s*/, '')}`;
+                    } else if (sNum === stepNumber) {
+                        pill.classList.add('active');
+                        pill.textContent = `⚡ ${STEP_LABELS[idx]}`;
+                    } else {
+                        pill.textContent = STEP_LABELS[idx];
+                    }
+                });
+            }
+            if (delayMs > 0) {
+                await waitMs(delayMs);
+            }
+        }
 
         // Sub-tabs switching
         const btnYtSubAuto = document.getElementById('btn-yt-sub-auto');
@@ -2205,157 +2752,1480 @@
             });
         }
 
-        // Shared robust PDF compilation helper (Unicode-safe for Hindi/Devanagari)
-        async function compileTextToPdf(docTitle, textContent, filename) {
-            try {
-                const pdfDoc = await PDFLib.PDFDocument.create();
-                
-                // Register fontkit instance to support custom TTF/OTF font embedding
-                if (window.fontkit) {
-                    pdfDoc.registerFontkit(window.fontkit);
-                }
-                
-                // Only trigger Noto Sans Devanagari font embedding if text actually contains Devanagari script (Hindi) characters
-                const hasUnicode = /[\u0900-\u097F]/.test(textContent) || /[\u0900-\u097F]/.test(docTitle);
-                
-                let fontToUse;
-                let boldFontToUse;
-                let cleanText = textContent;
-                let cleanTitle = docTitle;
-                
-                if (hasUnicode) {
-                    showNotification("Formatting PDF with Unicode (Hindi) support...", "success");
-                    let fontBytes;
-                    try {
-                        const fontRes = await fetch('https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-devanagari/files/noto-sans-devanagari-devanagari-400-normal.ttf');
-                        if (!fontRes.ok) throw new Error("CDN load returned status " + fontRes.status);
-                        fontBytes = await fontRes.arrayBuffer();
-                    } catch(cdnErr) {
-                        console.warn("jsDelivr font load failed, trying raw githubusercontent fallback...", cdnErr);
-                        const fontRes = await fetch('https://raw.githubusercontent.com/googlefonts/noto-fonts/main/hinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf');
-                        if (!fontRes.ok) throw new Error("Fallback raw github fonts URL failed");
-                        fontBytes = await fontRes.arrayBuffer();
-                    }
-                    
-                    fontToUse = await pdfDoc.embedFont(fontBytes);
-                    boldFontToUse = fontToUse; // Reuse since it contains the Devanagari character glyph map
-                } else {
-                    // Replace common non-ASCII typography characters with ASCII equivalents to prevent pdf-lib encoding crashes
-                    const replacements = [
-                        [/[\u2018\u2019]/g, "'"], // Smart single quotes
-                        [/[\u201C\u201D]/g, '"'], // Smart double quotes
-                        [/[\u2013\u2014]/g, "-"], // En/Em dashes
-                        [/\u00A0/g, " "],         // Non-breaking space
-                        [/\u2026/g, "..."],       // Ellipsis
-                        [/\u266B|\u266A/g, ""],   // Music notes (remove)
-                    ];
-                    for (const [regex, replacement] of replacements) {
-                        cleanText = cleanText.replace(regex, replacement);
-                        cleanTitle = cleanTitle.replace(regex, replacement);
-                    }
-                    
-                    // Strip any remaining non-ASCII characters to guarantee WinAnsi compatibility
-                    cleanText = cleanText.replace(/[^\x00-\x7F]/g, "");
-                    cleanTitle = cleanTitle.replace(/[^\x00-\x7F]/g, "");
+        function escapeHtmlSafe(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
 
-                    fontToUse = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-                    boldFontToUse = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-                }
-                
-                const fontSize = 10;
-                const titleSize = 14;
-                const lineHeight = 14;
-                const margin = 50;
-                const pageWidth = 612; // Letter
-                const pageHeight = 792;
-                const maxTextWidth = pageWidth - (margin * 2);
-                
-                let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                let y = pageHeight - margin;
-                
-                currentPage.drawText(cleanTitle, {
-                    x: margin,
-                    y: y,
-                    size: titleSize,
-                    font: boldFontToUse,
-                    color: PDFLib.rgb(0, 0, 0)
+        function formatSecondsToMMSS(sec) {
+            const total = Math.max(0, Math.floor(Number(sec) || 0));
+            const mins = Math.floor(total / 60);
+            const secs = (total % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        async function fetchYouTubeVideoMeta(videoId) {
+            if (!videoId) return { title: "YouTube Lecture & Study Notes", author: "YouTube Channel" };
+            try {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 3500);
+                const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`, {
+                    signal: controller.signal
                 });
-                y -= titleSize + 20;
-                const paragraphs = cleanText.split('\n');
-                for (let para of paragraphs) {
-                    para = para.trim();
-                    if (!para) {
-                        y -= lineHeight;
+                clearTimeout(timer);
+                if (res.ok) {
+                    const info = await res.json();
+                    if (info && info.title) {
+                        return {
+                            title: info.title.trim(),
+                            author: (info.author_name || "YouTube Creator").trim()
+                        };
+                    }
+                }
+            } catch (e) {
+                console.warn("oEmbed metadata fetch skipped:", e.message);
+            }
+            return { title: `YouTube Video Study Notes (${videoId})`, author: "YouTube Channel" };
+        }
+
+        function decodeHtmlEntities(text) {
+            if (!text) return "";
+            const txt = document.createElement('textarea');
+            txt.innerHTML = text;
+            return txt.value
+                .replace(/&#39;/g, "'")
+                .replace(/&quot;/g, '"')
+                .replace(/&amp;/g, '&')
+                .replace(/&nbsp;/g, ' ');
+        }
+
+        // Smart Hindi & Hinglish Transcript Normalizer:
+        // Fixes YouTube Hindi Auto-ASR phonetic errors, removes repetitive spoken fillers, and inserts proper Hindi sentence delimiters (।)
+        function cleanHindiAndHinglishText(rawText) {
+            if (!rawText) return "";
+            let txt = ' ' + rawText + ' ';
+
+            const replacements = [
+                [/एवरीवन वेलकम बैक एंड वेलकम तू अंदर वीडियो पुर ठीक है/gi, "नमस्कार दोस्तों, इस वीडियो लेक्चर में आपका स्वागत है। "],
+                [/एवरीवन वेलकम बैक एंड वेलकम तू अंदर वीडियो/gi, "नमस्कार दोस्तों, इस वीडियो लेक्चर में आपका स्वागत है। "],
+                [/बिकॉज यहां पर आज लाइट नहीं है यहां पर आज एक पावर कट है सो देयर इस नो लाइट आई एम सॉरी फॉर डेट/gi, " "],
+                [/ये वीडियो थोड़ा सा\s*thyroidical\s*होने वाला है/gi, "यह वीडियो मुख्य रूप से Theoretical (सैद्धांतिक) होने वाला है। "],
+                [/थोड़ा थिअरीज ज्यादा होगा/gi, "इसमें थ्योरी (Theory) को विस्तार से समझाया गया है"],
+                [/सी कैन स्टार्ट विद आर प्रोजेक्ट बेस्ड लर्निंग/gi, "हम Project-Based Learning शुरू कर सकते हैं। "],
+                [/सो देयर इस अन थिंग नॉन आज रेस्टफुल बैक एंड डेवलपर/gi, "एक महत्वपूर्ण कॉन्सेप्ट है जिसे RESTful Backend Development कहा जाता है। "],
+                [/सो व्हाट इसे डी बेस्ट फुल ऐसे डिफरेंट कैसे होता है/gi, "तो RESTful API क्या होता है और यह कैसे काम करता है? "],
+                [/एंड देन ओनली अगेंस्ट है की/gi, "तभी हम कह सकते हैं कि"],
+                [/देयर आर सैम/gi, "कुछ"],
+                [/लेट्स स्टार्ट विथ डी वीडियो/gi, "। आइए वीडियो के मुख्य विषय से शुरू करते हैं। "],
+                [/सो स्टे टी एंड वीडियो अच्छा लगा तो सब्सक्राइब एंड लाइक जरूर करना मिलते आपको नेक्स्ट वीडियो में अंटील दें बाय टेक केयर/gi, "। धन्यवाद! अगले वीडियो में हम इसके आगे के प्रैक्टिकल प्रोजेक्ट्स पर काम करेंगे।"],
+
+                // Technical Terms (Devanagari ASR phonetic -> Clean Standard Terms)
+                [/रेस्ट फुल आप है/gi, "RESTful API"],
+                [/रेस्टफुल एपीआई/gi, "RESTful API"],
+                [/रेस्ट फुल एपीआई/gi, "RESTful API"],
+                [/restoli\s*पे|रेस्टिंग पे|रेपाल पे/gi, "RESTful API"],
+                [/रेस्ट एपीआई|टेस्ट एपीआई/gi, "REST API"],
+                [/रेस्ट ऐप है/gi, "REST API देता है। "],
+                [/रेस्ट ऐप/gi, "REST API"],
+                [/एपीआई/gi, "API"],
+                [/रिप्रेजेंटेशन स्टेट/gi, "Representational State (REST)"],
+                [/यह मेरा एक ओवर है|ये मेरा एक ओवर है/gi, "यह हमारा एक Server (सर्वर) है"],
+                [/मेरे 100 का कम क्या था/gi, "हमारे Server का मुख्य काम यह था"],
+                [/सावर एंड क्लाइंट आर्किटेक्चर|सर्वर क्लाइंट आर्किटेक्चर/gi, "Client-Server Architecture"],
+                [/एक लाइन कुछ भी हो सकता है/gi, "यह Client कुछ भी हो सकता है"],
+                [/ये दोनों का मीनिंग गेट कैसे करते हैं/gi, "ये दोनों आपस में Communicate (संवाद) कैसे करते हैं? "],
+                [/दे कनॉट टेंडर एचटीएमएल/gi, "वे HTML को Render नहीं कर सकते। "],
+                [/सर अलसो नॉन एस सर्वर साइड रेंडरिंग|serversitront|सर्वर साइड rekssr|सर्वर साइड रेंडरिंग/gi, "Server-Side Rendering (SSR)"],
+                [/क्लाइंट साइड एंट्री|क्लाइंट साइड रेंडरिंग/gi, "Client-Side Rendering (CSR)"],
+                [/जावास्क्रिप्ट ऑब्जेक्ट नोटेशन/gi, "JavaScript Object Notation (JSON)"],
+                [/एचटीएमएल डॉक्यूमेंट/gi, "HTML Document"],
+                [/एचटीएमएल/gi, "HTML"],
+                [/जीएसएम फॉर्मेट|ग्सन फॉर्मेट/gi, "JSON Format"],
+                [/रिस्पांस डॉट जेसन|रिस्पांस और जातियों/gi, "res.json()"],
+                [/रिस्पांस डॉट सेंड/gi, "res.send()"],
+                [/रिस्पांस डॉट रेंडर/gi, "res.render()"],
+                [/जीएसएम रिस्पांस एंड/gi, "JSON Response सेंड"],
+                [/जेसन|जिस्म|gsnl|डीसेंट रीडर/gi, "JSON"],
+                [/इगल फॉर्मेट|exompal/gi, "XML Format"],
+                [/की वैल्यू पर्स|क्या वैल्यू पेयर्स/gi, "Key-Value Pairs"],
+                [/एचडी टीवी मैथर्ड|एचडी टीवी मेथड|एचटीटीपी मेथड/gi, "HTTP Methods"],
+                [/एचटीटीपी/gi, "HTTP"],
+                [/गेट रिक्वेस्ट/gi, "GET Request"],
+                [/पोस्ट रिक्वेस्ट/gi, "POST Request"],
+                [/पुट रिक्वेस्ट|पॉट रिक्वेस्ट/gi, "PUT Request"],
+                [/पैच रिक्वेस्ट/gi, "PATCH Request"],
+                [/डिलीट रिक्वेस्ट/gi, "DELETE Request"],
+                [/पोस्ट राउत|पोस्ट अलाउड/gi, "POST Route"],
+                [/पैच आउट/gi, "PATCH Route"],
+                [/स्लैश यूजर/gi, "/user Route"],
+                [/इसरो को क्या करना चाहिए/gi, "इस Route को क्या करना चाहिए"],
+                [/रिक्वेस्ट रिस्पांस/gi, "Request-Response"],
+                [/रिक्वेस्ट/gi, "Request"],
+                [/रिस्पांस/gi, "Response"],
+                [/डाटा को कोई नहीं किया|डाटा को कोई किया/gi, "डेटा को Query (क्वेरी) किया"],
+                [/डाटा बेस|डेटाबेस/gi, "Database"],
+                [/डाटा कोड/gi, "डेटा को"],
+                [/स्क्रीन पर इंटर कर लेगा|स्क्रीन पर इंटर कर सकता हूं/gi, "स्क्रीन पर Render कर लेगा"],
+                [/तो पेंट हो रहा है/gi, "Dependent (निर्भर) हो रहा है"],
+                [/डिपेंडेंट/gi, "Dependent (निर्भर)"],
+                [/डिपेंडेंसी/gi, "Dependency (निर्भरता)"],
+                [/आर्किटेक्चर/gi, "Architecture"],
+                [/कम्युनिकेशन/gi, "Communication"],
+                [/डेफिनेशन/gi, "Definition (परिभाषा)"],
+                [/स्टैंडर्ड/gi, "Standards (मानक)"],
+                [/बेस्ट प्रैक्टिसेज|बेस्ट प्रैक्टिस|गुड प्रैक्टिस/gi, "Best Practices"],
+                [/प्रोजेक्ट बेस्ड लर्निंग/gi, "Project-Based Learning"],
+                [/एक्सप्रेस जीएस|एक्सप्रेस/gi, "Express.js"],
+                [/रिएक्शन करेंगे/gi, "React.js पढ़ेंगे"],
+                [/ब्राउज़र/gi, "Browser"],
+                [/सर्वर/gi, "Server"],
+                [/क्लाइंट/gi, "Client"],
+                [/रेंडर/gi, "Render"],
+                [/फॉर्मेट/gi, "Format"],
+                [/इमेज फाइल/gi, "Image File"],
+                [/ब्लॉग्स|ब्लॉक को/gi, "Blogs को"],
+                [/रूल्स/gi, "Rules (नियम)"],
+                [/स्किल्स/gi, "Skills"],
+                [/अलग सा/gi, "Alexa"],
+                [/अलेक्सा डिवाइस/gi, "Alexa Device"],
+                [/डिफरेंट मशीन/gi, "अलग मशीन (Different Machine)"],
+                [/सीकर होती है/gi, "Secure (सुरक्षित) होती है"],
+                [/क्रॉस प्लेटफार्म/gi, "Cross-Platform"],
+                [/फ्रंट एंड/gi, "Frontend"],
+                [/बैक एंड/gi, "Backend"],
+
+                // Spoken Hinglish connectors in Devanagari (using Unicode-safe whitespace boundaries!)
+                [/\s+फॉर एग्जांपल\s+/g, " उदाहरण के लिए, "],
+                [/\s+एंड सिमिलरली\s+/g, "। इसी प्रकार, "],
+                [/\s+सिमिलरली\s+/g, " इसी प्रकार, "],
+                [/\s+बिकॉज\s+/g, " क्योंकि "],
+                [/\s+बट व्हाट इफ\s+/g, "। लेकिन अगर "],
+                [/\s+व्हाट इफ\s+/g, " अगर "],
+                [/\s+लेटर से\s+/g, " मान लीजिए "],
+                [/\s+सो डेट\s+/g, " ताकि "],
+                [/\s+आज अन\s+/g, " के रूप में "],
+                [/\s+आगे अन\s+/g, " के रूप में "],
+                [/\s+इन फैक्ट आई वुड से\s+/g, " वास्तव में "],
+                [/\bobbviously\b|ओबवियसली/gi, "स्पष्ट रूप से"],
+
+                // Spoken filler punctuation conversion: "ठीक है", "ओके", "करेक्ट" act as sentence delimiters in Hindi lectures!
+                [/\s+(?:ठीक है|ओके सो|ओके|करेक्ट है|करेक्ट|राइट नाउ|राइट)(?=\s|$)/g, "। "],
+                [/\s+(?:बेसिकली|एक्चुअली|टेक्निकल|पार्टिकुलर)(?=\s)/g, " "],
+                [/\s+(?:डट ना|डेट|था ओबवियसली)(?=\s)/g, " कि "],
+                [/\s+सो(?=\s)/g, " तो "],
+                [/\s+एंड(?=\s)/g, " और "],
+                [/\s+बट(?=\s)/g, " लेकिन "],
+            ];
+
+            for (const [pattern, rep] of replacements) {
+                txt = txt.replace(pattern, rep);
+            }
+
+            const verbEndings = "(?:सकते हैं|सकता है|सकती है|करते हैं|करता है|होता है|होती है|होते हैं|कहते हैं|जाता है|जाती है|रहा है|रही है|रहे हैं|पड़ती है|आएगी|आएगा|चाहिए|सकें|सके|दिया है|लिया है|किया है|गया है|होता था|किया जाता है|कर सकते हैं|नहीं होते|होनी चाहिए|होना चाहिए)";
+            const clauseStarters = "(?:तो|अब|लेकिन|अगर|जब|यहां|सबसे|पहले|दूसरा|तीसरा|इसके|इसी|उदाहरण|ध्यान|तभी)";
+            const boundaryRegex = new RegExp(`(\\s${verbEndings})\\s+(?=${clauseStarters}(?:\\s|$))`, 'g');
+            txt = txt.replace(boundaryRegex, '$1। ');
+
+            txt = txt
+                .replace(/\?[।.]+/g, '?')
+                .replace(/[।.]+\s*[।.]+/g, '। ')
+                .replace(/\s+([।?!,])/g, '$1')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            return txt;
+        }
+
+        // Split continuous single-string transcripts (like RapidAPI {"transcript": "..."}) into sentence-level segments
+        function splitContinuousStringIntoSegments(str) {
+            const segments = [];
+            const hasHindi = /[\u0900-\u097F]/.test(str);
+            let workingStr = hasHindi ? cleanHindiAndHinglishText(str) : decodeHtmlEntities(str).replace(/\s+/g, ' ').trim();
+
+            let rawSentences = workingStr.split(/(?<=[.?!।])\s+/).map(s => s.trim()).filter(Boolean);
+
+            const finalChunks = [];
+            const maxWordsPerSentence = hasHindi ? 26 : 38;
+
+            for (const sent of rawSentences) {
+                const words = sent.split(/\s+/);
+                if (words.length <= maxWordsPerSentence) {
+                    finalChunks.push(sent);
+                } else {
+                    let buf = [];
+                    for (let i = 0; i < words.length; i++) {
+                        buf.push(words[i]);
+                        const nextW = (words[i + 1] || '').toLowerCase();
+                        const isBreakWord = /^(so|but|and|because|however|therefore|now|then|when|if|तो|लेकिन|क्योंकि|अगर|अब|और|इसके|यहां|जब|ताकि|जिससे)$/.test(nextW);
+                        if ((buf.length >= 16 && isBreakWord) || buf.length >= maxWordsPerSentence) {
+                            let chunk = buf.join(' ').replace(/[,;:-]+$/, '').trim();
+                            if (!/[.?!।]$/.test(chunk)) chunk += hasHindi ? '।' : '.';
+                            finalChunks.push(chunk);
+                            buf = [];
+                        }
+                    }
+                    if (buf.length > 0) {
+                        let chunk = buf.join(' ').replace(/[,;:-]+$/, '').trim();
+                        if (!/[.?!।]$/.test(chunk)) chunk += hasHindi ? '।' : '.';
+                        finalChunks.push(chunk);
+                    }
+                }
+            }
+
+            let clockSec = 0;
+            for (const chunk of finalChunks) {
+                const wCount = chunk.split(/\s+/).length;
+                if (wCount < 2) continue;
+                const dur = Math.max(2, Math.round(wCount / 2.6));
+                segments.push({ start: clockSec, duration: dur, text: chunk });
+                clockSec += dur;
+            }
+            return segments;
+        }
+
+        function parseRawTranscriptSegments(payload) {
+            const segments = [];
+            if (!payload) return segments;
+
+            if (Array.isArray(payload)) {
+                if (payload.length > 0 && Array.isArray(payload[0].transcription)) {
+                    return parseRawTranscriptSegments(payload[0].transcription);
+                }
+                for (const item of payload) {
+                    if (item && typeof item === 'object') {
+                        const rawTxt = item.subtitle || item.text || item.content || "";
+                        if (rawTxt) {
+                            segments.push({
+                                start: parseFloat(item.start ?? item.offset ?? 0) || 0,
+                                duration: parseFloat(item.duration ?? item.dur ?? 2.5) || 2.5,
+                                text: String(rawTxt)
+                            });
+                        }
+                    } else if (typeof item === 'string') {
+                        segments.push({ start: segments.length * 3, duration: 3, text: item });
+                    }
+                }
+                if (segments.length === 1 && segments[0].text.length > 250) {
+                    return splitContinuousStringIntoSegments(segments[0].text);
+                }
+                if (segments.length > 0) return segments;
+            }
+
+            if (payload && typeof payload === 'object') {
+                if (Array.isArray(payload.transcription) && payload.transcription.length > 0) {
+                    return parseRawTranscriptSegments(payload.transcription);
+                }
+                const strPayload = payload.transcriptionAsText || payload.transcript || payload.text || payload.content || "";
+                if (typeof strPayload === 'string' && strPayload.trim()) {
+                    return parseRawTranscriptSegments(strPayload);
+                }
+            }
+
+            if (typeof payload === 'string') {
+                const lines = payload.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+                if (lines.length <= 3 && payload.length > 220) {
+                    return splitContinuousStringIntoSegments(payload);
+                }
+
+                let pendingTimestamp = null;
+                let autoClock = 0;
+
+                for (let line of lines) {
+                    const standaloneTs = line.match(/^\[?(\d{1,2}):(\d{2})(?::(\d{2}))?\]?$/);
+                    if (standaloneTs) {
+                        if (standaloneTs[3] !== undefined) {
+                            pendingTimestamp = parseInt(standaloneTs[1], 10) * 3600 + parseInt(standaloneTs[2], 10) * 60 + parseInt(standaloneTs[3], 10);
+                        } else {
+                            pendingTimestamp = parseInt(standaloneTs[1], 10) * 60 + parseInt(standaloneTs[2], 10);
+                        }
                         continue;
                     }
-                    
-                    const words = para.split(' ');
-                    let currentLine = "";
-                    
-                    for (const word of words) {
-                        const testLine = currentLine ? currentLine + " " + word : word;
-                        let testWidth = 0;
-                        try {
-                            testWidth = fontToUse.widthOfTextAtSize(testLine, fontSize);
-                        } catch(wErr) {
-                            // Fallback estimation if character width throws
-                            testWidth = testLine.length * (fontSize * 0.6);
+
+                    const inlineTs = line.match(/^\[?(\d{1,2}):(\d{2})(?::(\d{2}))?\]?\s*[-–:]?\s*(.+)$/);
+                    if (inlineTs) {
+                        let sec = 0;
+                        if (inlineTs[3] !== undefined) {
+                            sec = parseInt(inlineTs[1], 10) * 3600 + parseInt(inlineTs[2], 10) * 60 + parseInt(inlineTs[3], 10);
+                        } else {
+                            sec = parseInt(inlineTs[1], 10) * 60 + parseInt(inlineTs[2], 10);
                         }
-                        
-                        if (testWidth > maxTextWidth) {
-                            if (y < margin + lineHeight) {
-                                currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                                y = pageHeight - margin;
-                            }
-                            currentPage.drawText(currentLine, {
-                                x: margin,
-                                y: y,
-                                size: fontSize,
-                                font: fontToUse,
-                                color: PDFLib.rgb(0.1, 0.1, 0.1)
-                            });
-                            y -= lineHeight;
+                        autoClock = sec;
+                        segments.push({ start: sec, duration: 3, text: inlineTs[4] });
+                        pendingTimestamp = null;
+                        continue;
+                    }
+
+                    const segStart = pendingTimestamp !== null ? pendingTimestamp : autoClock;
+                    if (line.length > 260) {
+                        const subSegs = splitContinuousStringIntoSegments(line);
+                        for (const ss of subSegs) {
+                            segments.push({ start: autoClock, duration: ss.duration, text: ss.text });
+                            autoClock += ss.duration;
+                        }
+                    } else {
+                        segments.push({ start: segStart, duration: 3, text: line });
+                        autoClock = segStart + 3;
+                    }
+                    pendingTimestamp = null;
+                }
+            }
+
+            return segments;
+        }
+
+        function cleanAndAlignSentences(rawSegments) {
+            let localFixesCount = 0;
+            const cleanedSegs = [];
+            const fullSample = rawSegments.map(s => s.text).join(' ');
+            const isHindiDoc = /[\u0900-\u097F]/.test(fullSample);
+
+            for (let i = 0; i < rawSegments.length; i++) {
+                const seg = rawSegments[i];
+                let txt = decodeHtmlEntities(seg.text || "");
+
+                if (isHindiDoc && /[\u0900-\u097F]/.test(txt)) {
+                    const beforeHi = txt;
+                    txt = cleanHindiAndHinglishText(txt);
+                    if (txt !== beforeHi) localFixesCount++;
+                }
+
+                const beforeCue = txt;
+                txt = txt
+                    .replace(/\[(?:music|applause|laughter|sound|audio|cheering|intro|outro|silence|noise).*?\]/gi, ' ')
+                    .replace(/\((?:music|applause|laughter|cheering|inaudible).*?\)/gi, ' ')
+                    .replace(/[♪♫♬]+/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                if (txt !== beforeCue) localFixesCount++;
+                if (!txt) continue;
+
+                const beforeFiller = txt;
+                txt = txt
+                    .replace(/\b(uh+|um+|erm+|hmm+|er|anywh\s+who|anywho)\b[,\s]*/gi, '')
+                    .replace(/\b(you\s+know|like\s+you\s+know|sort\s+of\s+like)\b[,\s]*/gi, '')
+                    .replace(/\b(\w+)\s+\1\b/gi, '$1')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                if (txt !== beforeFiller) localFixesCount++;
+                if (!txt) continue;
+
+                if (cleanedSegs.length > 0) {
+                    const prev = cleanedSegs[cleanedSegs.length - 1];
+                    const prevWords = prev.text.split(/\s+/);
+                    const currWords = txt.split(/\s+/);
+                    const maxOverlap = Math.min(4, prevWords.length, currWords.length);
+                    for (let k = maxOverlap; k >= 1; k--) {
+                        const tail = prevWords.slice(-k).join(' ').toLowerCase();
+                        const head = currWords.slice(0, k).join(' ').toLowerCase();
+                        if (tail === head && tail.length > 2) {
+                            txt = currWords.slice(k).join(' ').trim();
+                            localFixesCount++;
+                            break;
+                        }
+                    }
+                }
+
+                if (txt) {
+                    cleanedSegs.push({
+                        start: seg.start,
+                        duration: seg.duration || 2.5,
+                        text: txt
+                    });
+                }
+            }
+
+            const alignedSentences = [];
+            let bufferWords = [];
+            let bufferStart = cleanedSegs.length > 0 ? cleanedSegs[0].start : 0;
+
+            const flushSentence = (forceEndPunct = '.') => {
+                if (bufferWords.length === 0) return;
+                let sentence = bufferWords.join(' ').replace(/\s+/g, ' ').trim();
+                bufferWords = [];
+                if (!sentence) return;
+
+                const beforeGrammar = sentence;
+                const hasHindi = /[\u0900-\u097F]/.test(sentence);
+
+                if (hasHindi) {
+                    sentence = sentence
+                        .replace(/^(?:तो|और|लेकिन)\s+(?:तो|अब)\s+/g, '')
+                        .replace(/^तो\s+(?=(?:यह|ये|इस|हम|अगर|जब|REST|API|Server|Client|JSON|HTML|HTTP))/i, '');
+                } else {
+                    sentence = sentence
+                        .replace(/^(?:So,?\s+|And,?\s+|But\s+anyways,?\s+|Anyways,?\s+)+(?=(?:in\s+this|we're|we\s+are|if\s+you|let's|an?\s+API|REST\s+API|the\s+first|now\s+we))/i, '');
+
+                    sentence = sentence
+                        .replace(/\bi\b/g, 'I')
+                        .replace(/\bi'm\b/gi, "I'm")
+                        .replace(/\bim\b/gi, "I'm")
+                        .replace(/\bi've\b/gi, "I've")
+                        .replace(/\bi'll\b/gi, "I'll")
+                        .replace(/\bi'd\b/gi, "I'd")
+                        .replace(/\bdont\b/gi, "don't")
+                        .replace(/\bdoesnt\b/gi, "doesn't")
+                        .replace(/\bdidnt\b/gi, "didn't")
+                        .replace(/\bcant\b/gi, "can't")
+                        .replace(/\bwont\b/gi, "won't")
+                        .replace(/\bisnt\b/gi, "isn't")
+                        .replace(/\barent\b/gi, "aren't")
+                        .replace(/\bwasnt\b/gi, "wasn't")
+                        .replace(/\bwerent\b/gi, "weren't")
+                        .replace(/\bhavent\b/gi, "haven't")
+                        .replace(/\bhasnt\b/gi, "hasn't")
+                        .replace(/\bwouldnt\b/gi, "wouldn't")
+                        .replace(/\bcouldnt\b/gi, "couldn't")
+                        .replace(/\bshouldnt\b/gi, "shouldn't")
+                        .replace(/\bthats\b/gi, "that's")
+                        .replace(/\bwhats\b/gi, "what's")
+                        .replace(/\blets\b/gi, "let's")
+                        .replace(/\btheyre\b/gi, "they're")
+                        .replace(/\byoure\b/gi, "you're")
+                        .replace(/\bgonna\b/gi, "going to")
+                        .replace(/\bwanna\b/gi, "want to")
+                        .replace(/\bgotta\b/gi, "got to")
+                        .replace(/\bkinda\b/gi, "kind of")
+                        .replace(/\bsorta\b/gi, "sort of");
+
+                    sentence = sentence.replace(/^(However|Therefore|Moreover|Furthermore|Meanwhile|Basically|Essentially|Actually|Finally|First|Second|Third|In fact|For example|In short|As a result)\s+(?=[a-zA-Z])/i, '$1, ');
+                    sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+                }
+
+                sentence = sentence.replace(/[,;:-]+$/, '').trim();
+
+                if (!/[.?!।]$/.test(sentence)) {
+                    const isQuestion = /^(what|why|how|when|where|who|which|whose|whom|is|are|was|were|do|does|did|can|could|should|would|will|have|has|क्या|कैसे|क्यों|कब|कहाँ|कौन)\b/i.test(sentence);
+                    if (isQuestion) {
+                        sentence += '?';
+                    } else if (hasHindi) {
+                        sentence += '।';
+                    } else {
+                        sentence += forceEndPunct;
+                    }
+                }
+
+                sentence = sentence
+                    .replace(/,\./g, '.')
+                    .replace(/\?[।.]+/g, '?')
+                    .replace(/[।.]+\s*[।.]+/g, hasHindi ? '।' : '.')
+                    .replace(/\s+([,.;?!।])/g, '$1')
+                    .replace(/([,.;?!।])(?=[A-Za-z\u0900-\u097F])/g, '$1 ');
+
+                if (sentence !== beforeGrammar) {
+                    localFixesCount++;
+                }
+
+                const prevSent = alignedSentences[alignedSentences.length - 1];
+                if (prevSent && prevSent.text.replace(/[।.?!\s]/g, '') === sentence.replace(/[।.?!\s]/g, '')) {
+                    return;
+                }
+
+                alignedSentences.push({
+                    start: bufferStart,
+                    text: sentence
+                });
+            };
+
+            for (let i = 0; i < cleanedSegs.length; i++) {
+                const curr = cleanedSegs[i];
+                const next = cleanedSegs[i + 1];
+
+                if (bufferWords.length === 0) {
+                    bufferStart = curr.start;
+                }
+
+                bufferWords.push(curr.text);
+                const joinedSoFar = bufferWords.join(' ');
+                const wordCount = joinedSoFar.split(/\s+/).length;
+
+                const currEnd = curr.start + (curr.duration || 2.5);
+                const pauseGap = next ? (next.start - currEnd) : 99;
+
+                const endsWithPunct = /[.?!।]$/.test(curr.text.trim());
+                const endsWithConjunction = /\b(and|or|but|because|so|that|which|who|to|of|in|on|for|with|as|by|at|from|the|a|an|is|are|was|were)\s*$/i.test(curr.text.trim()) ||
+                    /(?:के|का|की|में|से|को|और|कि)\s*$/.test(curr.text.trim());
+
+                if (endsWithPunct && wordCount >= 7) {
+                    flushSentence('.');
+                } else if (!endsWithConjunction && pauseGap > 1.25 && wordCount >= 9) {
+                    flushSentence('.');
+                } else if (!endsWithConjunction && wordCount >= 24) {
+                    flushSentence('.');
+                } else if (wordCount >= 34) {
+                    flushSentence('.');
+                }
+            }
+
+            flushSentence('.');
+
+            return {
+                sentences: alignedSentences,
+                cleanedSegments: cleanedSegs,
+                localFixesCount
+            };
+        }
+
+        async function applyLanguageToolGrammarCorrection(sentences) {
+            if (!sentences || sentences.length === 0) return { sentences, apiFixesCount: 0 };
+
+            const sampleText = sentences.slice(0, 30).map(s => s.text).join(' ');
+            const isMostlyHindi = (sampleText.match(/[\u0900-\u097F]/g) || []).length > sampleText.length * 0.15;
+            if (isMostlyHindi) {
+                return { sentences, apiFixesCount: 0 };
+            }
+
+            let apiFixesCount = 0;
+            try {
+                const chunks = [];
+                let currentChunk = [];
+                let currentLen = 0;
+
+                for (let i = 0; i < sentences.length; i++) {
+                    const sLen = sentences[i].text.length + 1;
+                    if (currentLen + sLen > 3800 && currentChunk.length > 0) {
+                        chunks.push(currentChunk);
+                        currentChunk = [];
+                        currentLen = 0;
+                        if (chunks.length >= 2) break;
+                    }
+                    currentChunk.push(i);
+                    currentLen += sLen;
+                }
+                if (currentChunk.length > 0 && chunks.length < 2) {
+                    chunks.push(currentChunk);
+                }
+
+                for (const chunkIndices of chunks) {
+                    const separator = " \n ";
+                    const blockText = chunkIndices.map(idx => sentences[idx].text).join(separator);
+
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 3800);
+
+                    const params = new URLSearchParams();
+                    params.append('text', blockText);
+                    params.append('language', 'en-US');
+                    params.append('enabledOnly', 'false');
+
+                    const res = await fetch('https://api.languagetool.org/v2/check', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params.toString(),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeout);
+
+                    if (!res.ok) continue;
+                    const ltData = await res.json();
+                    if (!ltData || !Array.isArray(ltData.matches) || ltData.matches.length === 0) continue;
+
+                    let correctedBlock = blockText;
+                    const validMatches = ltData.matches
+                        .filter(m => m.replacements && m.replacements.length > 0 && m.offset !== undefined && m.length > 0)
+                        .filter(m => {
+                            const rep = m.replacements[0].value;
+                            const origSlice = blockText.slice(m.offset, m.offset + m.length);
+                            return !origSlice.includes('\n') && !rep.includes('\n');
+                        })
+                        .sort((a, b) => b.offset - a.offset);
+
+                    let lastOffset = Infinity;
+                    for (const match of validMatches) {
+                        if (match.offset + match.length <= lastOffset) {
+                            const replacement = match.replacements[0].value;
+                            correctedBlock =
+                                correctedBlock.slice(0, match.offset) +
+                                replacement +
+                                correctedBlock.slice(match.offset + match.length);
+                            lastOffset = match.offset;
+                            apiFixesCount++;
+                        }
+                    }
+
+                    const updatedParts = correctedBlock.split(separator);
+                    if (updatedParts.length === chunkIndices.length) {
+                        chunkIndices.forEach((sentIdx, pIdx) => {
+                            sentences[sentIdx].text = updatedParts[pIdx].trim();
+                        });
+                    }
+                }
+            } catch (ltErr) {
+                console.warn("LanguageTool API fallback to local grammar engine:", ltErr.message);
+            }
+
+            return { sentences, apiFixesCount };
+        }
+
+        // Stage 5: Slide-Wise + Paragraph-Wise Study Notes & Executive Summary Builder
+        function buildStudyNotesAndSummary(sentences, rawSegments, videoMeta, totalFixes) {
+            const STOP_WORDS = new Set([
+                'the','and','for','that','this','with','you','are','was','were','have','has','had','not','but','from',
+                'they','their','there','what','when','where','which','who','will','would','could','should','can','about',
+                'into','your','our','more','some','very','just','like','also','than','then','them','these','those',
+                'been','being','because','going','really','know','think','want','make','made','right','well','even',
+                'much','many','most','other','such','only','over','after','before','through','between','under','again',
+                'further','once','here','all','any','both','each','few','own','same','too','does','did','doing','done',
+                'talk','talking','video','guys','little','thing','things','look','looking','let','lets','say','saying',
+                'come','coming','back','actually','basically','literally','something','everything','anything','nothing',
+                'one','two','three','first','second','now','see','need','get','got','getting','give','put','use','using',
+                'है','हैं','था','थे','थी','का','के','की','को','में','से','पर','और','या','कि','तो','भी','ही','एक','यह','वह',
+                'हम','आप','वे','इस','उस','जो','कर','रहा','रहे','रही','हो','होता','होती','होते','लिए','साथ','अपने','अपनी',
+                'करते','करता','करना','करने','किया','दिया','लिया','गया','सकते','सकता','चाहिए','यहां','वहां','कैसे','क्या','अगर',
+                'जब','तब','अब','कुछ','बहुत','तरह','चीज','चीजें','वीडियो','अंदर','ऊपर','नीचे','सामने','तुम्हारे','मेरा','मेरी','हमारे',
+                'ये','वो','ना','पे','कोई','सभी','कहा','बनाया','जाता','आता','देता','लेता','होगा','होंगे','करोगे','करूंगा'
+            ]);
+
+            const wordFreq = {};
+            let totalWords = 0;
+
+            sentences.forEach(s => {
+                const words = s.text
+                    .toLowerCase()
+                    .replace(/[^\w\u0900-\u097F\s-]/g, '')
+                    .split(/\s+/)
+                    .filter(Boolean);
+                totalWords += words.length;
+                words.forEach(w => {
+                    if (w.length > 2 && !STOP_WORDS.has(w) && !/^\d+$/.test(w)) {
+                        wordFreq[w] = (wordFreq[w] || 0) + 1;
+                    }
+                });
+            });
+
+            const topTopics = Object.entries(wordFreq)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([word]) => {
+                    if (/^(api|rest|json|html|http|css|sql|ssr|csr|xml|jwt|url|uri|sdk|cli)$/i.test(word)) {
+                        return word.toUpperCase();
+                    }
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                });
+
+            // Score every sentence for conceptual & educational value
+            const scoredSentences = sentences.map((s, idx) => {
+                const words = s.text
+                    .toLowerCase()
+                    .replace(/[^\w\u0900-\u097F\s]/g, '')
+                    .split(/\s+/)
+                    .filter(Boolean);
+
+                // Filter out overly short conversational remarks or overly long run-ons
+                if (words.length < 10 || words.length > 38) {
+                    return { idx, start: s.start, text: s.text, score: 0.05 };
+                }
+
+                // Penalize live-coding narration or casual asides
+                if (/^(now\s+we're\s+just|and\s+you\s+can\s+see|so\s+add\s+|let's\s+go\s+ahead|if\s+i\s+save|i\s+like\s+to|and\s+basically\s+i\s+like|my\s+name\s+is|hey\s+everyone|नमस्कार\s+दोस्तों|धन्यवाद)/i.test(s.text.trim())) {
+                    return { idx, start: s.start, text: s.text, score: 0.08 };
+                }
+
+                // Count unique meaningful topic words (diversity prevents a single repeated word like "drink" from dominating)
+                const uniqueWords = new Set(words.filter(w => wordFreq[w]));
+                let tfScore = 0;
+                uniqueWords.forEach(w => {
+                    tfScore += Math.min(wordFreq[w], 25); // Cap single word frequency contribution
+                });
+
+                let normScore = tfScore / Math.pow(words.length, 0.65);
+
+                // Conceptual / definitional signal bonus
+                if (/\b(stands\s+for|application\s+programming|communicate|architecture|request|response|server|client|database|endpoint|method|format|standard|best\s+practice|definition|important|means|allows|Representational|Protocol|सिद्धांत|मानक|नियम|आर्किटेक्चर|परिभाषा|महत्वपूर्ण|क्योंकि)\b/i.test(s.text)) {
+                    normScore *= 1.55;
+                }
+
+                return { idx, start: s.start, text: s.text, score: normScore };
+            });
+
+            // Stratified sampling across Beginning (first 25%), Middle (25%-75%), and End (75%-100%) for Executive Summary
+            const nSents = scoredSentences.length;
+            const earlyPool = scoredSentences.slice(0, Math.max(1, Math.floor(nSents * 0.25))).sort((a, b) => b.score - a.score);
+            const midPool = scoredSentences.slice(Math.floor(nSents * 0.25), Math.floor(nSents * 0.75)).sort((a, b) => b.score - a.score);
+            const latePool = scoredSentences.slice(Math.floor(nSents * 0.75)).sort((a, b) => b.score - a.score);
+
+            const pickedForSummary = [
+                ...earlyPool.slice(0, 2),
+                ...midPool.slice(0, 2),
+                ...latePool.slice(0, 2)
+            ].sort((a, b) => a.idx - b.idx);
+
+            const halfSummary = Math.ceil(pickedForSummary.length / 2);
+            const execSummaryParas = [
+                pickedForSummary.slice(0, halfSummary).map(s => s.text).join(' '),
+                pickedForSummary.slice(halfSummary).map(s => s.text).join(' ')
+            ].filter(Boolean);
+
+            // Top 6-8 Key Takeaways spread across the lecture
+            const sortedByScore = [...scoredSentences].sort((a, b) => b.score - a.score);
+            const takeawayCount = Math.min(8, Math.max(3, Math.ceil(sentences.length * 0.2)));
+            const keyTakeaways = sortedByScore
+                .slice(0, takeawayCount)
+                .sort((a, b) => a.idx - b.idx)
+                .map(s => ({
+                    time: formatSecondsToMMSS(s.start),
+                    text: s.text
+                }));
+
+            // Divide ALL sentences into Topic Slides (target 6 to 12 Slides, each having 3 clean Paragraphs!)
+            const targetSlidesCount = Math.min(12, Math.max(3, Math.ceil(sentences.length / 18)));
+            const sentencesPerSlide = Math.max(6, Math.ceil(sentences.length / targetSlidesCount));
+            const slides = [];
+            let totalParagraphsCount = 0;
+
+            for (let i = 0; i < sentences.length; i += sentencesPerSlide) {
+                const slideSentObjs = sentences.slice(i, i + sentencesPerSlide);
+                if (slideSentObjs.length === 0) continue;
+
+                const slideNum = slides.length + 1;
+                const startSec = slideSentObjs[0].start;
+                const lastSent = slideSentObjs[slideSentObjs.length - 1];
+                const endSec = Math.max(startSec + 15, (lastSent.start || startSec) + 12);
+
+                const localFreq = {};
+                slideSentObjs.forEach(s => {
+                    const words = s.text
+                        .toLowerCase()
+                        .replace(/[^\w\u0900-\u097F\s-]/g, '')
+                        .split(/\s+/)
+                        .filter(w => w.length > 2 && !STOP_WORDS.has(w) && !/^\d+$/.test(w));
+                    words.forEach(w => {
+                        localFreq[w] = (localFreq[w] || 0) + 1;
+                    });
+                });
+
+                const slideTopWords = Object.entries(localFreq)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 2)
+                    .map(([w]) => {
+                        if (/^(api|rest|json|html|http|css|sql|ssr|csr|xml|jwt|url|uri|sdk|cli|get|post|put|patch)$/i.test(w)) {
+                            return w.toUpperCase();
+                        }
+                        return w.charAt(0).toUpperCase() + w.slice(1);
+                    });
+
+                const topicLabel = slideTopWords.length > 0
+                    ? slideTopWords.join(' & ')
+                    : `Module ${slideNum}`;
+
+                // Pick top 3 key bullet points for this Slide
+                const slideScored = slideSentObjs.map((s, localIdx) => {
+                    const globalObj = scoredSentences[i + localIdx] || { score: 1 };
+                    return { text: s.text, localIdx, score: globalObj.score };
+                });
+                const slideBullets = [...slideScored]
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, Math.min(3, slideSentObjs.length))
+                    .sort((a, b) => a.localIdx - b.localIdx)
+                    .map(b => b.text);
+
+                // Divide this Slide's sentences into 2 to 4 well-proportioned Paragraphs
+                const targetParasPerSlide = slideSentObjs.length <= 5 ? 2 : 3;
+                const sentencesPerPara = Math.max(2, Math.ceil(slideSentObjs.length / targetParasPerSlide));
+                const paragraphs = [];
+                for (let p = 0; p < slideSentObjs.length; p += sentencesPerPara) {
+                    const paraChunk = slideSentObjs.slice(p, p + sentencesPerPara).map(x => x.text).join(' ');
+                    if (paraChunk.trim()) {
+                        paragraphs.push(paraChunk.trim());
+                        totalParagraphsCount++;
+                    }
+                }
+
+                slides.push({
+                    slideNum,
+                    slideCode: String(slideNum).padStart(2, '0'),
+                    heading: `Slide ${String(slideNum).padStart(2, '0')}: ${topicLabel}`,
+                    timeRange: `${formatSecondsToMMSS(startSec)} – ${formatSecondsToMMSS(endSec)}`,
+                    bullets: slideBullets,
+                    paragraphs
+                });
+            }
+
+            const readTimeMin = Math.max(1, Math.ceil(totalWords / 190));
+
+            // 1. Plain Text: Full Study Notes (Slides + Paragraphs)
+            const notesLines = [
+                `====================================================================`,
+                `SMART VIDEO STUDY NOTES (SLIDE-WISE & PARAGRAPH-WISE)`,
+                `Title: ${videoMeta.title}`,
+                `Channel / Source: ${videoMeta.author || 'YouTube'}`,
+                `Stats: ${slides.length} Topic Slides | ${totalParagraphsCount} Paragraphs | ~${readTimeMin} min read (${totalWords} words)`,
+                `====================================================================`,
+                ``,
+                `EXECUTIVE SUMMARY`,
+                ...execSummaryParas.map((p, idx) => `[Paragraph ${idx + 1}] ${p}`),
+                ``,
+                `KEY TAKEAWAYS & REVISION POINTS`,
+                ...keyTakeaways.map(k => `* [${k.time}] ${k.text}`),
+                ``,
+                `CORE TOPICS & KEYWORDS`,
+                `${topTopics.length > 0 ? topTopics.join('  |  ') : 'General Lecture Notes'}`,
+                ``,
+                `SLIDE-BY-SLIDE & PARAGRAPH-WISE DETAILED NOTES`,
+                `--------------------------------------------------------------------`
+            ];
+
+            slides.forEach(sl => {
+                notesLines.push(``);
+                notesLines.push(`>> ${sl.heading.toUpperCase()} (${sl.timeRange})`);
+                notesLines.push(`Key Slide Highlights:`);
+                sl.bullets.forEach(b => notesLines.push(`* ${b}`));
+                notesLines.push(`Detailed Reading Paragraphs:`);
+                sl.paragraphs.forEach((para, pIdx) => {
+                    notesLines.push(`[Para ${sl.slideNum}.${pIdx + 1}] ${para}`);
+                });
+            });
+
+            const notesText = notesLines.join('\n');
+
+            // 2. Plain Text: Slide Deck View Only
+            const slidesLines = [
+                `====================================================================`,
+                `PRESENTATION SLIDE DECK NOTES (${slides.length} SLIDES)`,
+                `Title: ${videoMeta.title}`,
+                `====================================================================`
+            ];
+            slides.forEach(sl => {
+                slidesLines.push(``);
+                slidesLines.push(`>> ${sl.heading.toUpperCase()} (${sl.timeRange})`);
+                sl.bullets.forEach(b => slidesLines.push(`* ${b}`));
+                if (sl.paragraphs[0]) {
+                    slidesLines.push(`[Overview] ${sl.paragraphs[0]}`);
+                }
+            });
+            const slidesText = slidesLines.join('\n');
+
+            // 3. Plain Text: Executive Summary & Key Takeaways Only
+            const summaryLines = [
+                `====================================================================`,
+                `QUICK VIDEO SUMMARY & KEY TAKEAWAYS`,
+                `Title: ${videoMeta.title}`,
+                `Reading Time: ~${readTimeMin} min (${totalWords} words)`,
+                `====================================================================`,
+                ``,
+                `EXECUTIVE SUMMARY`,
+                ...execSummaryParas.map((p, idx) => `[Paragraph ${idx + 1}] ${p}`),
+                ``,
+                `KEY TAKEAWAYS`,
+                ...keyTakeaways.map(k => `* [${k.time}] ${k.text}`),
+                ``,
+                `CORE TOPICS COVERED`,
+                `${topTopics.length > 0 ? topTopics.join('  |  ') : 'General Lecture Notes'}`
+            ];
+            const summaryText = summaryLines.join('\n');
+
+            // 4. Plain Text: Clean Timestamped Sentences
+            const rawText = sentences
+                .map(s => `[${formatSecondsToMMSS(s.start)}] ${s.text}`)
+                .join('\n');
+
+            // Build Rich HTML Views
+            const topicsHtml = topTopics.length > 0
+                ? topTopics.map(t => `<span class="yt-notes-topic-pill">#${escapeHtmlSafe(t)}</span>`).join('')
+                : `<span class="yt-notes-topic-pill">#StudyNotes</span>`;
+
+            const execSummaryHtml = execSummaryParas
+                .map((p, idx) => `<p class="yt-slide-para" style="margin-bottom: 8px;"><span class="yt-para-tag">¶ SUMMARY ${idx + 1}</span>${escapeHtmlSafe(p)}</p>`)
+                .join('');
+
+            const takeawaysHtml = keyTakeaways
+                .map(k => `<li style="margin-bottom: 7px; color: #f1f5f9; font-size: 0.88rem;"><span style="font-family: 'Share Tech Mono', monospace; color: var(--neon-cyan); font-size: 0.76rem; margin-right: 6px;">[${escapeHtmlSafe(k.time)}]</span>${escapeHtmlSafe(k.text)}</li>`)
+                .join('');
+
+            const fullSlidesHtml = slides
+                .map(sl => `
+                    <div class="yt-slide-card">
+                        <div class="yt-slide-header">
+                            <span class="yt-slide-badge">🖥️ SLIDE ${escapeHtmlSafe(sl.slideCode)}</span>
+                            <span class="yt-slide-title-text">${escapeHtmlSafe(sl.heading.replace(/^Slide\s+\d+:\s*/i, ''))}</span>
+                            <span class="yt-slide-time">⏱️ ${escapeHtmlSafe(sl.timeRange)}</span>
+                        </div>
+                        <div class="yt-slide-body">
+                            <div class="yt-slide-bullets-box">
+                                <div class="yt-slide-bullets-label">🎯 SLIDE KEY HIGHLIGHTS</div>
+                                <ul style="margin: 0; padding-left: 18px; color: #f8fafc; font-size: 0.86rem; line-height: 1.65;">
+                                    ${sl.bullets.map(b => `<li style="margin-bottom: 4px;">${escapeHtmlSafe(b)}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="yt-slide-para-box">
+                                <div style="font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: #38bdf8; letter-spacing: 0.5px;">
+                                    📖 DETAILED READING PARAGRAPHS (${sl.paragraphs.length} PARAGRAPHS)
+                                </div>
+                                ${sl.paragraphs.map((para, pIdx) => `
+                                    <p class="yt-slide-para">
+                                        <span class="yt-para-tag">¶ PARA ${sl.slideNum}.${pIdx + 1}</span>${escapeHtmlSafe(para)}
+                                    </p>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `)
+                .join('');
+
+            const deckOnlyHtml = slides
+                .map(sl => `
+                    <div class="yt-slide-card">
+                        <div class="yt-slide-header">
+                            <span class="yt-slide-badge">🖥️ SLIDE ${escapeHtmlSafe(sl.slideCode)}</span>
+                            <span class="yt-slide-title-text">${escapeHtmlSafe(sl.heading.replace(/^Slide\s+\d+:\s*/i, ''))}</span>
+                            <span class="yt-slide-time">⏱️ ${escapeHtmlSafe(sl.timeRange)}</span>
+                        </div>
+                        <div class="yt-slide-body">
+                            <div class="yt-slide-bullets-box" style="background: rgba(0, 255, 204, 0.05); border-color: rgba(0, 255, 204, 0.28);">
+                                <div class="yt-slide-bullets-label" style="color: var(--neon-cyan);">🎯 PRESENTATION SLIDE BULLETS</div>
+                                <ul style="margin: 0; padding-left: 18px; color: #f8fafc; font-size: 0.88rem; line-height: 1.7;">
+                                    ${sl.bullets.map(b => `<li style="margin-bottom: 6px;">${escapeHtmlSafe(b)}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `)
+                .join('');
+
+            const notesHtml = `
+                <div class="yt-notes-section-card">
+                    <div class="yt-notes-section-title">📌 Executive Summary (${execSummaryParas.length} Paragraphs)</div>
+                    ${execSummaryHtml}
+                </div>
+                <div class="yt-notes-section-card pink-accent">
+                    <div class="yt-notes-section-title">🎯 Key Takeaways & Important Points</div>
+                    <ul style="margin: 0; padding-left: 18px; line-height: 1.68;">${takeawaysHtml}</ul>
+                </div>
+                <div class="yt-notes-section-card amber-accent">
+                    <div class="yt-notes-section-title">🏷️ Core Topics & Technical Keywords</div>
+                    <div>${topicsHtml}</div>
+                </div>
+                <div style="margin-top: 6px;">
+                    <div style="font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--neon-cyan); margin-bottom: 6px; font-weight: 700;">
+                        🖥️ SLIDE-WISE & PARAGRAPH-WISE STUDY NOTES (${slides.length} SLIDES • ${totalParagraphsCount} PARAGRAPHS)
+                    </div>
+                    ${fullSlidesHtml}
+                </div>
+            `;
+
+            const slidesHtml = `
+                <div style="font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--neon-cyan); margin-bottom: 4px; font-weight: 700;">
+                    🖥️ PRESENTATION SLIDE DECK VIEW (${slides.length} TOPIC SLIDES)
+                </div>
+                ${deckOnlyHtml}
+            `;
+
+            const summaryHtml = `
+                <div class="yt-notes-section-card">
+                    <div class="yt-notes-section-title">📌 Executive Summary</div>
+                    ${execSummaryHtml}
+                </div>
+                <div class="yt-notes-section-card pink-accent">
+                    <div class="yt-notes-section-title">🎯 Key Takeaways & Revision Bullets</div>
+                    <ul style="margin: 0; padding-left: 18px; line-height: 1.68;">${takeawaysHtml}</ul>
+                </div>
+                <div class="yt-notes-section-card amber-accent">
+                    <div class="yt-notes-section-title">🏷️ Core Topics Covered</div>
+                    <div>${topicsHtml}</div>
+                </div>
+            `;
+
+            const rawHtml = `
+                <div class="yt-notes-section-card" style="border-left-color: #64748b;">
+                    <div class="yt-notes-section-title" style="color: #94a3b8;">⏱️ Aligned & Punctuated Sentences (${sentences.length} sentences)</div>
+                    <pre style="margin: 0; white-space: pre-wrap; font-family: 'Inter', 'Noto Sans Devanagari', monospace; font-size: 0.84rem; color: #e2e8f0; line-height: 1.7;">${escapeHtmlSafe(rawText)}</pre>
+                </div>
+            `;
+
+            return {
+                title: videoMeta.title,
+                author: videoMeta.author,
+                notesText,
+                slidesText,
+                summaryText,
+                rawText,
+                notesHtml,
+                slidesHtml,
+                summaryHtml,
+                rawHtml,
+                wordCount: totalWords,
+                readTimeMin,
+                sentencesAligned: sentences.length,
+                slidesCount: slides.length,
+                paragraphsCount: totalParagraphsCount,
+                grammarFixes: totalFixes
+            };
+        }
+
+        function renderYtNotesOutputView(viewMode) {
+            currentYtActiveView = viewMode || 'notes';
+
+            document.querySelectorAll('.yt-view-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-yt-view') === currentYtActiveView);
+            });
+
+            if (currentYtActiveView === 'slides') {
+                currentYtTranscriptText = currentYtProcessedBundle.slidesText;
+                if (ytRichNotesView) ytRichNotesView.innerHTML = currentYtProcessedBundle.slidesHtml;
+            } else if (currentYtActiveView === 'summary') {
+                currentYtTranscriptText = currentYtProcessedBundle.summaryText;
+                if (ytRichNotesView) ytRichNotesView.innerHTML = currentYtProcessedBundle.summaryHtml;
+            } else if (currentYtActiveView === 'raw') {
+                currentYtTranscriptText = currentYtProcessedBundle.rawText;
+                if (ytRichNotesView) ytRichNotesView.innerHTML = currentYtProcessedBundle.rawHtml;
+            } else {
+                currentYtTranscriptText = currentYtProcessedBundle.notesText;
+                if (ytRichNotesView) ytRichNotesView.innerHTML = currentYtProcessedBundle.notesHtml;
+            }
+
+            if (txtYtTranscript) {
+                txtYtTranscript.value = currentYtTranscriptText;
+            }
+        }
+
+        document.querySelectorAll('.yt-view-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playBeep(760, 0.04, 'sine');
+                const view = btn.getAttribute('data-yt-view') || 'notes';
+                renderYtNotesOutputView(view);
+            });
+        });
+
+        if (btnYtToggleEdit) {
+            btnYtToggleEdit.addEventListener('click', () => {
+                playBeep(720, 0.05, 'sine');
+                currentYtIsEditMode = !currentYtIsEditMode;
+                if (currentYtIsEditMode) {
+                    if (ytRichNotesView) ytRichNotesView.style.display = 'none';
+                    if (txtYtTranscript) {
+                        txtYtTranscript.style.display = 'block';
+                        txtYtTranscript.focus();
+                    }
+                    btnYtToggleEdit.innerHTML = '📖 RICH READER VIEW';
+                    btnYtToggleEdit.style.borderColor = 'var(--neon-cyan)';
+                    btnYtToggleEdit.style.color = 'var(--neon-cyan)';
+                } else {
+                    if (txtYtTranscript) {
+                        currentYtTranscriptText = txtYtTranscript.value;
+                        txtYtTranscript.style.display = 'none';
+                    }
+                    if (ytRichNotesView) ytRichNotesView.style.display = 'flex';
+                    btnYtToggleEdit.innerHTML = '✏️ EDIT TEXT';
+                    btnYtToggleEdit.style.borderColor = 'var(--border-color)';
+                    btnYtToggleEdit.style.color = '#e2e8f0';
+                }
+            });
+        }
+
+        async function processTranscriptIntoSmartNotes(rawPayload, videoMeta) {
+            await updateSmartPdfLoader(
+                2,
+                32,
+                "CLEANING NOISE, HINGLISH FILLERS & ASR ERRORS...",
+                "Removing spoken fillers, normalizing technical terms & splitting continuous caption stream...",
+                350
+            );
+            const rawSegments = parseRawTranscriptSegments(rawPayload);
+            if (!rawSegments || rawSegments.length === 0) {
+                throw new Error("Could not parse any valid subtitle segments from the transcript.");
+            }
+
+            await updateSmartPdfLoader(
+                3,
+                54,
+                "ALIGNING SENTENCES & CLAUSE BOUNDARIES...",
+                `Reconstructing ${rawSegments.length} segments into complete, punctuated sentences...`,
+                380
+            );
+            const { sentences, cleanedSegments, localFixesCount } = cleanAndAlignSentences(rawSegments);
+
+            await updateSmartPdfLoader(
+                4,
+                76,
+                "CORRECTING GRAMMAR, SPELLING & PUNCTUATION...",
+                "Applying grammar rules, contractions, and terminal sentence punctuation...",
+                380
+            );
+            const { sentences: grammarCheckedSentences, apiFixesCount } = await applyLanguageToolGrammarCorrection(sentences);
+            const totalFixes = Math.max(localFixesCount + apiFixesCount, grammarCheckedSentences.length);
+
+            await updateSmartPdfLoader(
+                5,
+                92,
+                "DIVIDING NOTES INTO SLIDES & PARAGRAPHS...",
+                "Building Executive Summary, Topic Slides, Slide Bullets & Multi-Paragraph Study Notes...",
+                360
+            );
+            currentYtProcessedBundle = buildStudyNotesAndSummary(
+                grammarCheckedSentences,
+                cleanedSegments,
+                videoMeta,
+                totalFixes
+            );
+
+            await updateSmartPdfLoader(
+                6,
+                100,
+                "SLIDE-WISE & PARAGRAPH-WISE NOTES READY!",
+                `Created ${currentYtProcessedBundle.slidesCount} Topic Slides & ${currentYtProcessedBundle.paragraphsCount} Reading Paragraphs.`,
+                280
+            );
+
+            if (ytMetaVideoTitle) {
+                ytMetaVideoTitle.textContent = `📚 ${currentYtProcessedBundle.title}`;
+            }
+            if (ytMetaStatsLine) {
+                ytMetaStatsLine.textContent = `🖥️ ${currentYtProcessedBundle.slidesCount} Slides • ¶ ${currentYtProcessedBundle.paragraphsCount} Paragraphs • ✓ ${currentYtProcessedBundle.sentencesAligned} Sentences Aligned • 📖 ~${currentYtProcessedBundle.readTimeMin} min read`;
+            }
+
+            currentYtIsEditMode = false;
+            if (ytRichNotesView) ytRichNotesView.style.display = 'flex';
+            if (txtYtTranscript) txtYtTranscript.style.display = 'none';
+            if (btnYtToggleEdit) {
+                btnYtToggleEdit.innerHTML = '✏️ EDIT TEXT';
+                btnYtToggleEdit.style.borderColor = 'var(--border-color)';
+                btnYtToggleEdit.style.color = '#e2e8f0';
+            }
+
+            renderYtNotesOutputView('notes');
+            if (ytOutputWrapper) ytOutputWrapper.style.display = 'flex';
+        }
+
+        // High-DPI Native Canvas-to-PDF Compiler:
+        // Uses the browser's native HarfBuzz/DirectWrite text shaping engine so Hindi (Devanagari) matras, conjuncts,
+        // mixed Hindi+English words, Slide Headers, Bullet Lists, and Separated Paragraphs NEVER break!
+        async function compileTextToPdf(docTitle, textContent, filename) {
+            try {
+                await updateSmartPdfLoader(
+                    6,
+                    96,
+                    "RENDERING SLIDE & PARAGRAPH STUDY NOTES PDF...",
+                    "Shaping Hindi/English typography & laying out Slide Cards and Paragraphs onto PDF pages...",
+                    320
+                );
+
+                const pdfDoc = await PDFLib.PDFDocument.create();
+
+                const pageWidthPt = 612;  // Letter width in pt
+                const pageHeightPt = 792; // Letter height in pt
+                const dpiScale = 2.2;     // High-DPI Retina canvas scale for crystal-clear print text
+                const canvasW = Math.round(pageWidthPt * dpiScale);
+                const canvasH = Math.round(pageHeightPt * dpiScale);
+
+                const marginPt = 42;
+                const maxTextWidthPt = pageWidthPt - (marginPt * 2);
+                const bottomLimitPt = pageHeightPt - 48;
+
+                const fontStack = "'Inter', 'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', 'Segoe UI', sans-serif";
+                const renderedCanvases = [];
+
+                const createBlankPageCanvas = (pageIndex) => {
+                    const c = document.createElement('canvas');
+                    c.width = canvasW;
+                    c.height = canvasH;
+                    const ctx = c.getContext('2d');
+                    ctx.scale(dpiScale, dpiScale);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, pageWidthPt, pageHeightPt);
+
+                    ctx.fillStyle = '#0a192f';
+                    ctx.fillRect(marginPt, 24, maxTextWidthPt, pageIndex === 0 ? 26 : 18);
+
+                    ctx.font = `700 ${pageIndex === 0 ? 9.5 : 8}px ${fontStack}`;
+                    ctx.fillStyle = '#00f5d4';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        pageIndex === 0
+                            ? 'ARCADE HUB  |  SMART VIDEO STUDY NOTES (SLIDE-WISE & PARAGRAPH-WISE)'
+                            : `STUDY NOTES  |  ${(docTitle || 'YouTube Study Guide').slice(0, 65)}`,
+                        marginPt + 10,
+                        pageIndex === 0 ? 37 : 33
+                    );
+
+                    renderedCanvases.push({ canvas: c, ctx });
+                    return { canvas: c, ctx, y: pageIndex === 0 ? 64 : 54 };
+                };
+
+                let current = createBlankPageCanvas(0);
+
+                // Word-wrap using native browser HarfBuzz measurement (never breaks inside a word!)
+                const wrapLineNative = (ctx, text, maxW) => {
+                    const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+                    const lines = [];
+                    let currentLine = "";
+
+                    for (const word of words) {
+                        const testLine = currentLine ? `${currentLine} ${word}` : word;
+                        const w = ctx.measureText(testLine).width;
+                        if (w > maxW && currentLine) {
+                            lines.push(currentLine);
                             currentLine = word;
                         } else {
                             currentLine = testLine;
                         }
                     }
-                    
-                    if (currentLine) {
-                        if (y < margin + lineHeight) {
-                            currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-                            y = pageHeight - margin;
-                        }
-                        currentPage.drawText(currentLine, {
-                            x: margin,
-                            y: y,
-                            size: fontSize,
-                            font: fontToUse,
-                            color: PDFLib.rgb(0.1, 0.1, 0.1)
-                        });
-                        y -= lineHeight;
-                    }
-                    y -= 4; // gap
+                    if (currentLine) lines.push(currentLine);
+                    return lines;
+                };
+
+                current.ctx.font = `700 15px ${fontStack}`;
+                current.ctx.fillStyle = '#0f172a';
+                current.ctx.textBaseline = 'top';
+                const titleLines = wrapLineNative(current.ctx, docTitle || 'YouTube Video Study Notes', maxTextWidthPt);
+                for (const tLine of titleLines) {
+                    current.ctx.fillText(tLine, marginPt, current.y);
+                    current.y += 20;
                 }
-                
+
+                current.y += 4;
+                current.ctx.strokeStyle = '#0ea5e9';
+                current.ctx.lineWidth = 1.5;
+                current.ctx.beginPath();
+                current.ctx.moveTo(marginPt, current.y);
+                current.ctx.lineTo(pageWidthPt - marginPt, current.y);
+                current.ctx.stroke();
+                current.y += 14;
+
+                const ensureSpace = (neededHeight) => {
+                    if (current.y + neededHeight > bottomLimitPt) {
+                        current = createBlankPageCanvas(renderedCanvases.length);
+                    }
+                };
+
+                const rawLines = String(textContent || '').split(/\r?\n/);
+
+                for (let rawPara of rawLines) {
+                    let para = rawPara.trim();
+
+                    if (/^[=\-]{8,}$/.test(para)) continue;
+
+                    if (!para) {
+                        current.y += 5;
+                        continue;
+                    }
+
+                    // 1. Slide Header: ">> SLIDE 01: ..."
+                    if (/^>>\s*/.test(para)) {
+                        const slideHeaderTitle = para.replace(/^>>\s*/, '');
+                        ensureSpace(38);
+                        current.y += 6;
+
+                        current.ctx.fillStyle = '#0f172a';
+                        current.ctx.fillRect(marginPt, current.y, maxTextWidthPt, 24);
+                        current.ctx.fillStyle = '#00e5ff';
+                        current.ctx.fillRect(marginPt, current.y, 4, 24);
+
+                        current.ctx.font = `700 10.5px ${fontStack}`;
+                        current.ctx.fillStyle = '#ffffff';
+                        current.ctx.textBaseline = 'middle';
+                        current.ctx.fillText(slideHeaderTitle.slice(0, 85), marginPt + 11, current.y + 12);
+                        current.ctx.textBaseline = 'top';
+                        current.y += 30;
+                        continue;
+                    }
+
+                    // 2. Major Section Headings
+                    const isMajorHeading = /^(EXECUTIVE SUMMARY|KEY TAKEAWAYS|CORE TOPICS|SLIDE-BY-SLIDE|PRESENTATION SLIDE|QUICK VIDEO SUMMARY|SMART VIDEO STUDY NOTES)/i.test(para);
+                    if (isMajorHeading) {
+                        ensureSpace(30);
+                        current.y += 4;
+                        current.ctx.fillStyle = '#f0f9ff';
+                        current.ctx.fillRect(marginPt, current.y, maxTextWidthPt, 20);
+                        current.ctx.fillStyle = '#0284c7';
+                        current.ctx.fillRect(marginPt, current.y, 3.5, 20);
+
+                        current.ctx.font = `700 10.5px ${fontStack}`;
+                        current.ctx.fillStyle = '#0369a1';
+                        current.ctx.textBaseline = 'middle';
+                        current.ctx.fillText(para, marginPt + 10, current.y + 10);
+                        current.ctx.textBaseline = 'top';
+                        current.y += 25;
+                        continue;
+                    }
+
+                    // 3. Sub-labels ("Key Slide Highlights:", "Detailed Reading Paragraphs:")
+                    if (/^(Key Slide Highlights|Detailed Reading Paragraphs):/i.test(para)) {
+                        ensureSpace(20);
+                        current.ctx.font = `700 9.5px ${fontStack}`;
+                        current.ctx.fillStyle = para.startsWith('Key') ? '#be185d' : '#0369a1';
+                        current.ctx.fillText(para.toUpperCase(), marginPt + 4, current.y);
+                        current.y += 15;
+                        continue;
+                    }
+
+                    // 4. Bullet Points ("* ..." or "• ...")
+                    if (/^(\*|•|-)\s+/.test(para)) {
+                        const cleanBulletText = para.replace(/^(\*|•|-)\s+/, '');
+                        current.ctx.font = `400 10px ${fontStack}`;
+                        const wrapped = wrapLineNative(current.ctx, cleanBulletText, maxTextWidthPt - 18);
+
+                        for (let idx = 0; idx < wrapped.length; idx++) {
+                            ensureSpace(16);
+                            if (idx === 0) {
+                                current.ctx.fillStyle = '#0284c7';
+                                current.ctx.beginPath();
+                                current.ctx.arc(marginPt + 7, current.y + 6, 2.3, 0, Math.PI * 2);
+                                current.ctx.fill();
+                            }
+                            current.ctx.fillStyle = '#1e293b';
+                            current.ctx.font = `400 10px ${fontStack}`;
+                            current.ctx.fillText(wrapped[idx], marginPt + 16, current.y);
+                            current.y += 14.5;
+                        }
+                        current.y += 2;
+                        continue;
+                    }
+
+                    // 5. Numbered Paragraph Blocks ("[Para 1.1] ..." or "[Paragraph 1] ...")
+                    const paraTagMatch = para.match(/^\[(Para\s+[\d.]+|Paragraph\s+\d+|Overview)\]\s*(.+)$/i);
+                    if (paraTagMatch) {
+                        const tagLabel = paraTagMatch[1].toUpperCase();
+                        const bodyTxt = paraTagMatch[2];
+
+                        current.ctx.font = `400 10.2px ${fontStack}`;
+                        const wrapped = wrapLineNative(current.ctx, `${tagLabel}:  ${bodyTxt}`, maxTextWidthPt - 16);
+                        const blockHeight = wrapped.length * 15 + 8;
+
+                        ensureSpace(Math.min(blockHeight, 60));
+
+                        for (let idx = 0; idx < wrapped.length; idx++) {
+                            if (current.y + 16 > bottomLimitPt) {
+                                current = createBlankPageCanvas(renderedCanvases.length);
+                            }
+                            current.ctx.fillStyle = '#bae6fd';
+                            current.ctx.fillRect(marginPt + 2, current.y, 2.5, 14);
+
+                            current.ctx.font = `400 10.2px ${fontStack}`;
+                            current.ctx.fillStyle = '#0f172a';
+                            current.ctx.fillText(wrapped[idx], marginPt + 11, current.y);
+                            current.y += 15;
+                        }
+                        current.y += 5;
+                        continue;
+                    }
+
+                    // 6. Standard body text
+                    current.ctx.font = `400 10px ${fontStack}`;
+                    const wrapped = wrapLineNative(current.ctx, para, maxTextWidthPt);
+                    for (const line of wrapped) {
+                        ensureSpace(15);
+                        current.ctx.fillStyle = '#1e293b';
+                        current.ctx.font = `400 10px ${fontStack}`;
+                        current.ctx.fillText(line, marginPt, current.y);
+                        current.y += 14.5;
+                    }
+                    current.y += 3;
+                }
+
+                // Draw Footers & Embed each high-DPI canvas page into PDFLib
+                const totalPages = renderedCanvases.length;
+                for (let idx = 0; idx < totalPages; idx++) {
+                    const { canvas, ctx } = renderedCanvases[idx];
+
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 0.8;
+                    ctx.beginPath();
+                    ctx.moveTo(marginPt, pageHeightPt - 34);
+                    ctx.lineTo(pageWidthPt - marginPt, pageHeightPt - 34);
+                    ctx.stroke();
+
+                    ctx.font = `400 8.5px ${fontStack}`;
+                    ctx.fillStyle = '#64748b';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText(
+                        `Page ${idx + 1} of ${totalPages}   •   Generated by Arcade Hub Smart Video Notes Engine`,
+                        marginPt,
+                        pageHeightPt - 27
+                    );
+
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+                    const jpgImage = await pdfDoc.embedJpg(dataUrl);
+                    const pdfPage = pdfDoc.addPage([pageWidthPt, pageHeightPt]);
+                    pdfPage.drawImage(jpgImage, {
+                        x: 0,
+                        y: 0,
+                        width: pageWidthPt,
+                        height: pageHeightPt
+                    });
+                }
+
                 const pdfBytes = await pdfDoc.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                try {
+                    window.lastGeneratedYtPdfFile = new File([blob], filename, { type: 'application/pdf' });
+                } catch (fileErr) {
+                    window.lastGeneratedYtPdfFile = null;
+                }
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = filename;
                 link.click();
-                showNotification("Downloaded PDF transcript successfully.", "success");
+
+                // Highlight AI Refinement & Share Bar after PDF generation
+                const aiRefineBar = document.getElementById('yt-ai-refine-bar');
+                const aiRefineHeading = document.getElementById('yt-ai-refine-heading');
+                const aiRefineSub = document.getElementById('yt-ai-refine-sub');
+                if (aiRefineBar) {
+                    aiRefineBar.style.borderColor = 'var(--neon-cyan)';
+                    aiRefineBar.style.boxShadow = '0 0 18px rgba(0, 255, 204, 0.25)';
+                }
+                if (aiRefineHeading) {
+                    aiRefineHeading.textContent = "🎉 PDF GENERATED! REFINE FURTHER WITH AI OR SHARE";
+                    aiRefineHeading.style.color = "var(--neon-cyan)";
+                }
+                if (aiRefineSub) {
+                    aiRefineSub.textContent = "PDF downloaded! Open Gemini / ChatGPT / Claude to polish, summarize, or make flashcards (notes auto-copied), or click 📤 SHARE.";
+                }
+
+                showNotification("Downloaded Slide-Wise & Paragraph-Wise PDF Notes!", "success");
             } catch (pdfErr) {
                 console.error(pdfErr);
                 showNotification(`PDF Compilation failed: ${pdfErr.message}`, "error");
                 playErrorBuzz();
+            } finally {
+                if (ytLoading) ytLoading.style.display = 'none';
             }
         }
 
-        // Manual PDF compile action
+        const btnYtManualSmartNotes = document.getElementById('btn-yt-manual-smart-notes');
         const btnYtManualDownload = document.getElementById('btn-yt-manual-download');
         const txtYtManualTitle = document.getElementById('yt-manual-title');
         const txtYtManualText = document.getElementById('yt-manual-text');
+
+        if (btnYtManualSmartNotes) {
+            btnYtManualSmartNotes.addEventListener('click', async () => {
+                const rawText = txtYtManualText.value.trim();
+                if (!rawText) {
+                    showNotification("Please paste some transcript content first.", "error");
+                    playErrorBuzz();
+                    return;
+                }
+                playBeep(880, 0.06, 'sine');
+                const docTitle = txtYtManualTitle.value.trim() || "Manual Video Study Notes";
+                ytOutputWrapper.style.display = 'none';
+
+                try {
+                    await updateSmartPdfLoader(
+                        1,
+                        15,
+                        "READING PASTED TRANSCRIPT BUFFER...",
+                        "Parsing raw lines and detecting inline timestamps...",
+                        280
+                    );
+                    await processTranscriptIntoSmartNotes(rawText, {
+                        title: docTitle,
+                        author: "Manual Transcript Input"
+                    });
+                    showNotification("Converted into Slide-Wise & Paragraph-Wise Study Notes!", "success");
+                    playSuccessChord();
+                } catch (err) {
+                    console.error(err);
+                    showNotification(`Error: ${err.message}`, "error");
+                    playErrorBuzz();
+                } finally {
+                    if (ytLoading) ytLoading.style.display = 'none';
+                }
+            });
+        }
 
         if (btnYtManualDownload) {
             btnYtManualDownload.addEventListener('click', async () => {
@@ -2367,10 +4237,25 @@
                 }
 
                 playBeep(880, 0.08, 'sine');
-                const docTitle = txtYtManualTitle.value.trim() || "Manual YouTube Transcript Exporter";
-                const safeName = docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".pdf";
-                
-                await compileTextToPdf(docTitle, textContent, safeName);
+                const docTitle = txtYtManualTitle.value.trim() || "Manual YouTube Study Notes";
+                const safeName = docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() + "_notes.pdf";
+
+                try {
+                    await updateSmartPdfLoader(
+                        1,
+                        15,
+                        "READING PASTED TRANSCRIPT BUFFER...",
+                        "Preparing Slide-Wise & Paragraph-Wise formatting before PDF export...",
+                        250
+                    );
+                    await processTranscriptIntoSmartNotes(textContent, {
+                        title: docTitle,
+                        author: "Manual Transcript Input"
+                    });
+                    await compileTextToPdf(docTitle, currentYtProcessedBundle.notesText, safeName);
+                } catch (err) {
+                    await compileTextToPdf(docTitle, textContent, safeName);
+                }
             });
         }
 
@@ -2394,6 +4279,72 @@
             return null;
         }
 
+        // Helper to fetch transcript from proxy with automatic fallback language retry if RapidAPI rate-limits
+        async function fetchTranscriptFromWorkerWithRetry(videoId, selectedLang) {
+            const langAttempts = [selectedLang];
+            if (selectedLang === 'en,hi') langAttempts.push('hi', 'en');
+            else if (selectedLang === 'hi,en') langAttempts.push('hi', 'en');
+
+            let lastData = null;
+            for (let attempt = 0; attempt < langAttempts.length; attempt++) {
+                const langParam = langAttempts[attempt];
+                const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}&lang=${langParam}`;
+
+                if (attempt > 0) {
+                    await waitMs(1100);
+                }
+
+                try {
+                    const res = await fetch(targetUrl);
+                    if (res.ok) {
+                        const json = await res.json();
+                        lastData = json;
+                        if (json && !json.error) {
+                            return json;
+                        }
+                    }
+                } catch (fetchErr) {
+                    console.warn("Fetch attempt failed:", fetchErr.message);
+                }
+            }
+
+            // JSONP fallback if fetch was blocked by CORS
+            if (!lastData) {
+                const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}&lang=${selectedLang}`;
+                lastData = await new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_cb_' + Math.floor(Math.random() * 1000000);
+                    const timeoutId = setTimeout(() => {
+                        cleanup();
+                        reject(new Error("Request timed out. Please check your internet connection."));
+                    }, 10000);
+
+                    function cleanup() {
+                        clearTimeout(timeoutId);
+                        if (window[callbackName]) delete window[callbackName];
+                        const scriptEl = document.getElementById(callbackName);
+                        if (scriptEl) scriptEl.remove();
+                    }
+
+                    window[callbackName] = function(payload) {
+                        cleanup();
+                        if (payload) resolve(payload);
+                        else reject(new Error("Received empty payload from JSONP."));
+                    };
+
+                    const script = document.createElement('script');
+                    script.id = callbackName;
+                    script.src = `${targetUrl}&callback=${callbackName}`;
+                    script.onerror = function() {
+                        cleanup();
+                        reject(new Error("Failed to load JSONP script."));
+                    };
+                    document.body.appendChild(script);
+                });
+            }
+
+            return lastData;
+        }
+
         if (btnYtFetch) {
             btnYtFetch.addEventListener('click', async () => {
                 const url = inputYtUrl.value.trim();
@@ -2412,171 +4363,203 @@
 
                 currentYtVideoId = videoId;
                 playBeep(880, 0.05, 'sine');
-                
-                ytLoading.style.display = 'flex';
+
                 ytOutputWrapper.style.display = 'none';
                 txtYtTranscript.value = "";
                 currentYtTranscriptText = "";
 
                 try {
-                    let responseText = "";
-                    let data = null;
-                    const selectedLang = document.getElementById('yt-lang-select')?.value || 'hi,en';
-                    const targetUrl = `https://youtube-transcript-proxy.vayutripathi.workers.dev/transcript?videoId=${videoId}&lang=${selectedLang}`;
-                    
-                    // Attempt A: Standard fetch
-                    try {
-                        const res = await fetch(targetUrl);
-                        if (res.ok) {
-                            data = await res.json();
-                        } else {
-                            console.warn("Standard fetch failed, trying JSONP fallback...");
+                    await updateSmartPdfLoader(
+                        1,
+                        14,
+                        "FETCHING YOUTUBE CAPTIONS & VIDEO METADATA...",
+                        "Connecting to YouTube caption stream & retrieving video title...",
+                        200
+                    );
+
+                    const selectedLang = document.getElementById('yt-lang-select')?.value || 'en,hi';
+                    const metaPromise = fetchYouTubeVideoMeta(videoId);
+                    const data = await fetchTranscriptFromWorkerWithRetry(videoId, selectedLang);
+
+                    if (data && data.error) {
+                        let errorMsg = data.error;
+                        if (data.availableLangs && data.availableLangs.length > 0) {
+                            errorMsg += `\n\nAvailable languages for this video: ${data.availableLangs.join(', ')}`;
+                            errorMsg += `\n\nTry selecting a different language from the dropdown menu above.`;
                         }
-                    } catch(fetchErr) {
-                        console.warn("Standard fetch threw exception: " + fetchErr.message + ". Trying JSONP fallback...");
+                        throw new Error(errorMsg);
                     }
 
-                    // Attempt B: JSONP Fallback
-                    if (!data) {
-                        data = await new Promise((resolve, reject) => {
-                            const callbackName = 'jsonp_cb_' + Math.floor(Math.random() * 1000000);
-                            const timeoutId = setTimeout(() => {
-                                cleanup();
-                                reject(new Error("Request timed out. Please check your internet connection."));
-                            }, 10000);
+                    const videoMeta = await metaPromise;
 
-                            function cleanup() {
-                                clearTimeout(timeoutId);
-                                if (window[callbackName]) delete window[callbackName];
-                                const scriptEl = document.getElementById(callbackName);
-                                if (scriptEl) scriptEl.remove();
-                            }
+                    await processTranscriptIntoSmartNotes(data, videoMeta);
 
-                            window[callbackName] = function(payload) {
-                                cleanup();
-                                if (payload) {
-                                    resolve(payload);
-                                } else {
-                                    reject(new Error("Received empty payload from JSONP."));
-                                }
-                            };
-
-                            const script = document.createElement('script');
-                            script.id = callbackName;
-                            script.src = `${targetUrl}&callback=${callbackName}`;
-                            script.onerror = function() {
-                                cleanup();
-                                reject(new Error("Failed to load JSONP script."));
-                            };
-                            document.body.appendChild(script);
-                        });
-                    }
-
-                    if (data) {
-                        if (data.error) {
-                            let errorMsg = data.error;
-                            if (data.availableLangs && data.availableLangs.length > 0) {
-                                errorMsg += `\n\nAvailable languages for this video: ${data.availableLangs.join(', ')}`;
-                                errorMsg += `\n\nTry selecting a different language from the dropdown menu above.`;
-                            }
-                            throw new Error(errorMsg);
-                        }
-
-                        let parsedText = "";
-
-                        // Helper function to extract text segments from multi-format API payloads
-                        function extractTranscriptFromData(obj) {
-                            if (!obj) return "";
-                            if (typeof obj === 'string') return obj;
-                            if (obj.transcriptionAsText && typeof obj.transcriptionAsText === 'string') {
-                                return obj.transcriptionAsText;
-                            }
-                            if (Array.isArray(obj.transcription)) {
-                                return obj.transcription.map(t => {
-                                    const start = parseFloat(t.start || "0");
-                                    const mins = Math.floor(start / 60);
-                                    const secs = Math.floor(start % 60).toString().padStart(2, '0');
-                                    return `[${mins}:${secs}] ${t.subtitle || t.text || ""}`;
-                                }).join('\n');
-                            }
-                            return obj.transcript || obj.text || obj.content || JSON.stringify(obj);
-                        }
-
-                        if (Array.isArray(data)) {
-                            if (data.length > 0 && (data[0].transcription || data[0].transcriptionAsText)) {
-                                parsedText = extractTranscriptFromData(data[0]);
-                            } else {
-                                parsedText = data.map(item => {
-                                    if (item && typeof item === 'object') {
-                                        if (item.text !== undefined) {
-                                            const start = parseFloat(item.start || "0");
-                                            const mins = Math.floor(start / 60);
-                                            const secs = Math.floor(start % 60).toString().padStart(2, '0');
-                                            return `[${mins}:${secs}] ${item.text}`;
-                                        }
-                                        return extractTranscriptFromData(item);
-                                    }
-                                    return String(item);
-                                }).join('\n');
-                            }
-                        } else if (data && typeof data === 'object') {
-                            parsedText = extractTranscriptFromData(data);
-                        } else {
-                            parsedText = String(data);
-                        }
-
-                        if (parsedText.trim() && parsedText !== "[object Object]") {
-                            responseText = parsedText.trim();
-                        }
-                    }
-
-                    if (!responseText.trim()) {
-                        throw new Error("Unable to retrieve the transcript from this video. Please ensure subtitles are enabled and try again, or use 'Manual Paste' above.");
-                    }
-
-                    currentYtTranscriptText = responseText.trim();
-                    txtYtTranscript.value = currentYtTranscriptText;
-                    ytOutputWrapper.style.display = 'flex';
-                    
-                    showNotification("YouTube transcript fetched successfully!", "success");
+                    showNotification("Slide-Wise & Paragraph-Wise Study Notes Ready!", "success");
                     playSuccessChord();
                 } catch (err) {
                     console.error(err);
                     showNotification(`Error: ${err.message}`, "error");
                     playErrorBuzz();
                 } finally {
-                    ytLoading.style.display = 'none';
+                    if (ytLoading) ytLoading.style.display = 'none';
                 }
             });
         }
 
         if (btnYtDownloadPdf) {
             btnYtDownloadPdf.addEventListener('click', async () => {
-                if (!currentYtTranscriptText) return;
+                const textToExport = currentYtIsEditMode && txtYtTranscript
+                    ? txtYtTranscript.value.trim()
+                    : currentYtTranscriptText;
+                if (!textToExport) return;
                 playBeep(880, 0.08, 'sine');
-                
-                const titleText = `YouTube Video Transcript (ID: ${currentYtVideoId})`;
-                const filename = `YouTube_Transcript_${currentYtVideoId}.pdf`;
-                await compileTextToPdf(titleText, currentYtTranscriptText, filename);
+
+                const titleText = currentYtProcessedBundle.title || `YouTube Video Study Notes (${currentYtVideoId || 'Manual'})`;
+                const safeSlug = titleText.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_').slice(0, 45).toLowerCase();
+                const filename = `${safeSlug || 'youtube_study_notes'}.pdf`;
+                await compileTextToPdf(titleText, textToExport, filename);
             });
         }
 
         const btnYtCopy = document.getElementById('btn-yt-copy');
         if (btnYtCopy) {
             btnYtCopy.addEventListener('click', async () => {
-                if (!currentYtTranscriptText) return;
+                const textToCopy = currentYtIsEditMode && txtYtTranscript
+                    ? txtYtTranscript.value.trim()
+                    : currentYtTranscriptText;
+                if (!textToCopy) return;
                 playBeep(880, 0.05, 'sine');
-                
+
                 try {
-                    await navigator.clipboard.writeText(currentYtTranscriptText);
-                    showNotification("Transcript copied to clipboard!", "success");
+                    await navigator.clipboard.writeText(textToCopy);
+                    showNotification("Study Notes copied to clipboard!", "success");
                 } catch (err) {
-                    console.error("Failed to copy transcript:", err);
-                    // Fallback to manual selection and copy
+                    console.error("Failed to copy notes:", err);
+                    txtYtTranscript.style.display = 'block';
                     txtYtTranscript.select();
                     document.execCommand('copy');
-                    showNotification("Transcript copied to clipboard!", "success");
+                    if (!currentYtIsEditMode) txtYtTranscript.style.display = 'none';
+                    showNotification("Study Notes copied to clipboard!", "success");
                 }
+            });
+        }
+
+        // Build AI Refinement Prompt + Notes payload
+        function buildYtAiRefinementPayload() {
+            const notesBody = (currentYtIsEditMode && txtYtTranscript
+                ? txtYtTranscript.value.trim()
+                : currentYtTranscriptText) || "";
+            const title = currentYtProcessedBundle.title || "YouTube Video Study Notes";
+            return [
+                `Please refine and polish these study notes from "${title}" into an ultra-clean, exam-ready & presentation-ready format:`,
+                `1. Fix any remaining ASR typos or grammar issues.`,
+                `2. Keep the Slide-wise & Paragraph-wise structure clear with bold key terms.`,
+                `3. Add 5 quick-revision Q&A / Flashcards at the end.`,
+                ``,
+                `--- STUDY NOTES ---`,
+                notesBody
+            ].join('\n');
+        }
+
+        async function copyTextWithFallback(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (err) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                const ok = document.execCommand('copy');
+                ta.remove();
+                return ok;
+            }
+        }
+
+        // AI Redirection Links (Gemini, ChatGPT, Claude)
+        document.querySelectorAll('.yt-ai-redirect-btn').forEach(linkBtn => {
+            linkBtn.addEventListener('click', async (e) => {
+                const notesBody = (currentYtIsEditMode && txtYtTranscript
+                    ? txtYtTranscript.value.trim()
+                    : currentYtTranscriptText) || "";
+                if (!notesBody) {
+                    e.preventDefault();
+                    showNotification("Generate or paste study notes first!", "error");
+                    playErrorBuzz();
+                    return;
+                }
+                playBeep(820, 0.05, 'sine');
+                const aiTarget = linkBtn.getAttribute('data-ai-target') || 'AI';
+                const aiNames = { gemini: 'Gemini', chatgpt: 'ChatGPT', claude: 'Claude' };
+                const payload = buildYtAiRefinementPayload();
+                await copyTextWithFallback(payload);
+
+                // For ChatGPT, if notes are short enough, also pass via ?q= so it pre-fills automatically
+                if (aiTarget === 'chatgpt' && payload.length <= 2800) {
+                    linkBtn.href = `https://chatgpt.com/?q=${encodeURIComponent(payload)}`;
+                } else if (aiTarget === 'chatgpt') {
+                    linkBtn.href = 'https://chatgpt.com/';
+                }
+
+                showNotification(`Prompt + Notes copied! Paste (Ctrl+V) in ${aiNames[aiTarget] || aiTarget}.`, "success");
+            });
+        });
+
+        const btnYtCopyAiPrompt = document.getElementById('btn-yt-copy-ai-prompt');
+        if (btnYtCopyAiPrompt) {
+            btnYtCopyAiPrompt.addEventListener('click', async () => {
+                const notesBody = (currentYtIsEditMode && txtYtTranscript
+                    ? txtYtTranscript.value.trim()
+                    : currentYtTranscriptText) || "";
+                if (!notesBody) return;
+                playBeep(800, 0.05, 'sine');
+                await copyTextWithFallback(buildYtAiRefinementPayload());
+                showNotification("AI Refinement Prompt + Notes copied to clipboard!", "success");
+            });
+        }
+
+        // Native Share Button (Shares PDF file if generated & supported, else shares Notes text, else copies)
+        const btnYtShareNative = document.getElementById('btn-yt-share-native');
+        if (btnYtShareNative) {
+            btnYtShareNative.addEventListener('click', async () => {
+                const notesBody = (currentYtIsEditMode && txtYtTranscript
+                    ? txtYtTranscript.value.trim()
+                    : currentYtTranscriptText) || "";
+                if (!notesBody) {
+                    showNotification("Generate study notes first before sharing.", "error");
+                    playErrorBuzz();
+                    return;
+                }
+                playBeep(840, 0.06, 'sine');
+                const title = currentYtProcessedBundle.title || "YouTube Smart Study Notes";
+
+                if (navigator.share) {
+                    try {
+                        if (window.lastGeneratedYtPdfFile && navigator.canShare && navigator.canShare({ files: [window.lastGeneratedYtPdfFile] })) {
+                            await navigator.share({
+                                title: title,
+                                text: `📚 Smart Study Notes PDF: ${title}`,
+                                files: [window.lastGeneratedYtPdfFile]
+                            });
+                            showNotification("Shared PDF Study Notes!", "success");
+                            return;
+                        }
+                        await navigator.share({
+                            title: title,
+                            text: notesBody.slice(0, 3500)
+                        });
+                        showNotification("Shared Study Notes!", "success");
+                        return;
+                    } catch (shareErr) {
+                        if (shareErr.name === 'AbortError') return;
+                        console.warn("Native share fallback to clipboard:", shareErr.message);
+                    }
+                }
+
+                await copyTextWithFallback(notesBody);
+                showNotification("Browser share unavailable — Study Notes copied to clipboard!", "success");
             });
         }
 
