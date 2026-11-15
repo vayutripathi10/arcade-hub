@@ -1645,3 +1645,62 @@ body.gray-sad {
     height: 100% !important;
     will-change: transform;
 }
+
+
+/* Laptop & Compact Viewport Zero-Scroll Adjustments */
+@media (max-height: 660px) {
+    .screen {
+        padding: 54px 12px 10px 12px;
+        overflow-y: hidden;
+    }
+    .glow-title {
+        font-size: clamp(1.5rem, 3.5vh, 2rem);
+    }
+    .subtitle {
+        font-size: 0.78rem;
+        margin-top: 4px;
+    }
+    .menu-card {
+        padding: 16px 18px;
+        margin-bottom: 10px;
+    }
+    .menu-intro-text {
+        margin-bottom: 10px;
+        font-size: 0.82rem;
+    }
+    .menu-buttons-group {
+        gap: 10px;
+    }
+    .btn-main {
+        padding: 11px 30px;
+        font-size: 0.95rem;
+    }
+    .viewport-wrapper {
+        height: clamp(180px, 34dvh, 250px);
+    }
+    .progress-bar-container {
+        margin-top: 6px;
+    }
+    .stats-panel {
+        margin-top: 6px;
+        gap: 6px;
+    }
+    .stat-box {
+        padding: 6px 8px;
+    }
+    .action-wrapper {
+        margin-top: 8px;
+    }
+    .how-to-play-hint {
+        margin-top: 6px;
+        padding-top: 6px;
+    }
+    .coin-stage {
+        height: 125px;
+        margin-bottom: 8px;
+    }
+    .prediction-card {
+        padding: 8px 14px;
+        margin-bottom: 8px;
+    }
+}
