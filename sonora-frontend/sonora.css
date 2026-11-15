@@ -2797,10 +2797,10 @@ body.eco-mode .player-pane {
         display: none !important;
     }
 
-    /* 3. Sleek Compact Mobile Audio Player Deck (~88px total height) */
+    /* 3. Sleek Mobile Audio Player Deck (slightly taller for comfortable view) */
     .player-pane.is-audio-only-mode .audio-only-deck {
-        padding: 6px 8px;
-        border-radius: 10px;
+        padding: 12px 10px;
+        border-radius: 12px;
     }
 
     .player-pane.is-audio-only-mode .audio-deck-inner {
@@ -2812,7 +2812,7 @@ body.eco-mode .player-pane {
             "seek seek"
             "transport volume";
         align-items: center;
-        gap: 3px 6px;
+        gap: 7px 6px;
     }
 
     /* Float Favorite Button to Top-Right of Hero Row & hide status pill on mobile */
@@ -2843,9 +2843,9 @@ body.eco-mode .player-pane {
     }
 
     .player-pane.is-audio-only-mode .audio-artwork-wrapper {
-        width: 34px;
-        height: 34px;
-        border-radius: 7px;
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
     }
 
     .player-pane.is-audio-only-mode .audio-vinyl-ring {

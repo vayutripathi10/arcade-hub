@@ -585,6 +585,7 @@
         playerContainer: document.getElementById('player-container'),
         playerStage: document.getElementById('player-stage'),
         fsNowPlaying: document.getElementById('fs-now-playing'),
+        fsPipBtn: document.getElementById('fs-pip-btn'),
         fsNextBtn: document.getElementById('fs-next-btn'),
         fsReloadBtn: document.getElementById('fs-reload-btn'),
         fsExitBtn: document.getElementById('fs-exit-btn'),
@@ -595,6 +596,7 @@
         skipBtn: document.getElementById('skip-btn'),
         reloadBtn: document.getElementById('reload-btn'),
         minVideoBtn: document.getElementById('min-video-btn'),
+        pipBtn: document.getElementById('pip-btn'),
         fullscreenBtn: document.getElementById('fullscreen-btn'),
         bgPlayBtn: document.getElementById('bg-play-btn'),
         searchForm: document.getElementById('header-search-form'),
@@ -1611,6 +1613,15 @@
                 sendIframeCommand('seekTo', [nextPos, true]);
                 STATE.lastPosition = nextPos;
                 syncAudioSeekUI();
+                if ('setPositionState' in navigator.mediaSession && STATE.lastDuration) {
+                    try {
+                        navigator.mediaSession.setPositionState({
+                            duration: STATE.lastDuration,
+                            playbackRate: 1,
+                            position: nextPos
+                        });
+                    } catch {}
+                }
             });
             navigator.mediaSession.setActionHandler('seekbackward', (details) => {
                 const step = details.seekOffset || 10;
@@ -1618,6 +1629,15 @@
                 sendIframeCommand('seekTo', [prevPos, true]);
                 STATE.lastPosition = prevPos;
                 syncAudioSeekUI();
+                if ('setPositionState' in navigator.mediaSession && STATE.lastDuration) {
+                    try {
+                        navigator.mediaSession.setPositionState({
+                            duration: STATE.lastDuration,
+                            playbackRate: 1,
+                            position: prevPos
+                        });
+                    } catch {}
+                }
             });
             navigator.mediaSession.setActionHandler('stop', () => {
                 sendIframeCommand('stopVideo');
@@ -2683,8 +2703,19 @@
                     if (data.info === 1) {
                         STATE.isPlaying = true;
                         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+                        if (STATE.bgAudio && STATE.bgAudio.paused) {
+                            STATE.bgAudio.play().catch(() => {});
+                        }
                         syncAudioDeckUI();
                     } else if (data.info === 2) {
+                        // Prevent mobile browser backgrounding / screen-lock from auto-pausing active audio
+                        if (document.hidden && STATE.isPlaying && STATE.lastBackgroundAt && (Date.now() - STATE.lastBackgroundAt) < 2500) {
+                            sendIframeCommand('playVideo');
+                            if (STATE.bgAudio && STATE.bgAudio.paused) {
+                                STATE.bgAudio.play().catch(() => {});
+                            }
+                            return;
+                        }
                         STATE.isPlaying = false;
                         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
                         syncAudioDeckUI();
@@ -3300,6 +3331,158 @@
                 exitFullscreen();
             }
         });
+
+        // Keep background audio & MediaSession alive when switching tabs or locking screen (never auto-pause)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && STATE.isPlaying) {
+                STATE.lastBackgroundAt = Date.now();
+                if (STATE.bgAudio && STATE.bgAudio.paused) {
+                    STATE.bgAudio.play().catch(() => {});
+                }
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.playbackState = 'playing';
+                }
+            }
+        });
+
+        // Picture-in-Picture (Android Chrome / Desktop Web PiP API + iOS WebKit playsinline compatibility)
+        (function initPictureInPicture() {
+            const pipButtons = [DOM.pipBtn, DOM.fsPipBtn].filter(Boolean);
+            if (!pipButtons.length) return;
+
+            const isStandardPiPSupported = Boolean(document.pictureInPictureEnabled);
+            const getStageVideo = () => (DOM.playerStage ? DOM.playerStage.querySelector('video') : null);
+            const hasWebKitPiP = () => {
+                const v = getStageVideo();
+                return Boolean(v && typeof v.webkitSetPresentationMode === 'function');
+            };
+
+            if (!isStandardPiPSupported && !hasWebKitPiP()) {
+                pipButtons.forEach(btn => {
+                    btn.hidden = true;
+                    btn.style.display = 'none';
+                });
+                return;
+            }
+
+            let pipCanvas = null;
+            let pipVideo = null;
+            let pipRenderTimer = null;
+
+            const setPipButtonsActive = (active) => {
+                pipButtons.forEach(btn => btn.classList.toggle('active', Boolean(active)));
+            };
+
+            const drawPipCanvasFrame = () => {
+                if (!pipCanvas) return;
+                const ctx = pipCanvas.getContext('2d');
+                if (!ctx) return;
+                const w = pipCanvas.width;
+                const h = pipCanvas.height;
+
+                const grad = ctx.createLinearGradient(0, 0, w, h);
+                grad.addColorStop(0, '#0f0c1d');
+                grad.addColorStop(1, '#1e163b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.fillStyle = '#00f5a0';
+                ctx.font = '700 13px sans-serif';
+                ctx.fillText('SONORA PLAYER · LIVE', 16, 30);
+
+                const title = (STATE.activeTrack && STATE.activeTrack.title) || 'Sonora Music';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '700 16px sans-serif';
+                ctx.fillText(title.slice(0, 34), 16, 78);
+                if (title.length > 34) {
+                    ctx.fillStyle = '#cbd5e1';
+                    ctx.font = '600 14px sans-serif';
+                    ctx.fillText(title.slice(34, 68), 16, 102);
+                }
+
+                ctx.fillStyle = STATE.isPlaying ? '#00f5a0' : '#f59e0b';
+                ctx.font = '600 13px sans-serif';
+                ctx.fillText(STATE.isPlaying ? '▶ Playing in Picture-in-Picture' : '⏸ Paused', 16, 148);
+            };
+
+            const getOrCreatePipVideo = () => {
+                if (pipVideo) return pipVideo;
+                pipCanvas = document.createElement('canvas');
+                pipCanvas.width = 320;
+                pipCanvas.height = 180;
+                drawPipCanvasFrame();
+
+                pipVideo = document.createElement('video');
+                pipVideo.muted = true;
+                pipVideo.playsInline = true;
+                pipVideo.setAttribute('playsinline', '');
+                pipVideo.setAttribute('webkit-playsinline', '');
+                pipVideo.style.position = 'fixed';
+                pipVideo.style.width = '1px';
+                pipVideo.style.height = '1px';
+                pipVideo.style.opacity = '0';
+                pipVideo.style.pointerEvents = 'none';
+                document.body.appendChild(pipVideo);
+
+                if (typeof pipCanvas.captureStream === 'function') {
+                    pipVideo.srcObject = pipCanvas.captureStream(1);
+                }
+
+                pipVideo.addEventListener('enterpictureinpicture', () => {
+                    setPipButtonsActive(true);
+                    clearInterval(pipRenderTimer);
+                    pipRenderTimer = setInterval(drawPipCanvasFrame, 1000);
+                });
+                pipVideo.addEventListener('leavepictureinpicture', () => {
+                    setPipButtonsActive(false);
+                    clearInterval(pipRenderTimer);
+                });
+                return pipVideo;
+            };
+
+            const togglePictureInPicture = async () => {
+                try {
+                    if (document.pictureInPictureElement) {
+                        await document.exitPictureInPicture();
+                        setPipButtonsActive(false);
+                        return;
+                    }
+
+                    const nativeVideo = getStageVideo();
+                    if (nativeVideo) {
+                        nativeVideo.playsInline = true;
+                        nativeVideo.setAttribute('playsinline', '');
+                        nativeVideo.setAttribute('webkit-playsinline', '');
+                        if (document.pictureInPictureEnabled && typeof nativeVideo.requestPictureInPicture === 'function') {
+                            await nativeVideo.requestPictureInPicture();
+                            setPipButtonsActive(true);
+                            return;
+                        }
+                        if (typeof nativeVideo.webkitSetPresentationMode === 'function') {
+                            const nextMode = nativeVideo.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture';
+                            nativeVideo.webkitSetPresentationMode(nextMode);
+                            setPipButtonsActive(nextMode === 'picture-in-picture');
+                            return;
+                        }
+                    }
+
+                    if (!document.pictureInPictureEnabled) {
+                        showToast('Picture-in-Picture is not supported on this browser');
+                        return;
+                    }
+
+                    const bridgeVideo = getOrCreatePipVideo();
+                    drawPipCanvasFrame();
+                    await bridgeVideo.play();
+                    await bridgeVideo.requestPictureInPicture();
+                } catch (err) {
+                    console.warn('[Sonora] Picture-in-Picture failed:', err);
+                    showToast('Start playing a track first to open Picture-in-Picture');
+                }
+            };
+
+            pipButtons.forEach(btn => btn.addEventListener('click', togglePictureInPicture));
+        })();
 
         // Background play helper (silent WAV audio keeps WebAudio / MediaSession alive on mobile)
         if (DOM.bgPlayBtn) {

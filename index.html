@@ -153,7 +153,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="hub-style.css?v=12">
+    <link rel="stylesheet" href="hub-style.css?v=15">
 
     <style>
         .retro-card {
@@ -256,102 +256,97 @@
     </nav>
 
     <div class="header-container">
-        <div class="hero-badge">
-            <span class="badge-dot"></span>
-            <span class="badge-text">Curated Browser Gaming Platform</span>
-        </div>
-        <div class="ambient-vibe-bar" id="ambientVibeBar" style="display: none;" aria-live="polite">
-            <div class="ambient-vibe-pill">
-                <span class="ambient-vibe-icon" id="ambientVibeIcon">🌙</span>
-                <span class="ambient-vibe-location" id="ambientVibeLocation">Detecting City…</span>
+        <!-- Top Utility Header Bar: Badge/Brand + Top-Bar Weather Temperature Pill -->
+        <div class="top-utility-bar">
+            <div class="top-utility-left">
+                <div class="hero-badge">
+                    <span class="badge-text">Curated Browser Gaming Platform</span>
+                </div>
             </div>
-            <span class="ambient-vibe-text" id="ambientVibeText">Late Night Session</span>
-            <span class="ambient-vibe-dot">·</span>
-            <span class="ambient-vibe-sub" id="ambientVibeSub">28+ High-FPS Browser Games Ready</span>
+            <div class="top-brand-mobile" aria-hidden="true">Arcade Hub</div>
+            <div class="top-utility-right">
+                <div class="ambient-vibe-bar" id="ambientVibeBar" style="display: none;" aria-live="polite">
+                    <span class="ambient-vibe-icon" id="ambientVibeIcon">🌙</span>
+                    <span class="ambient-vibe-location" id="ambientVibeLocation">Detecting City…</span>
+                    <span class="ambient-vibe-text" id="ambientVibeText">Late Night Session</span>
+                    <span class="ambient-vibe-sub" id="ambientVibeSub">28+ High-FPS Browser Games Ready</span>
+                </div>
+                <!-- Compact Top-Bar Weather & Temperature Pill (PC & Mobile) -->
+                <div class="hero-live-card weather-live-card topbar-weather-pill" id="heroWeatherCard" aria-label="Live Weather & Temperature">
+                    <span class="weather-temp-icon" id="weatherCardIcon">☀️</span>
+                    <div class="topbar-weather-meta">
+                        <span class="live-card-loc" id="weatherCardLoc">Detecting…</span>
+                        <span class="weather-temp-val" id="weatherCardTemp">--°C</span>
+                    </div>
+                    <span class="weather-condition sr-only" id="weatherCardCond">Checking weather…</span>
+                    <span class="live-card-hint sr-only" id="weatherCardMood">Cozy gaming &amp; retro puzzles</span>
+                </div>
+            </div>
         </div>
+
+        <!-- Slim Strip 1: Streak & Resume Bar -->
         <div class="welcome-back-bar" id="welcomeBackBar" style="display: none;" aria-live="polite">
-            <div class="welcome-badge">
-                <span class="welcome-icon">🔥</span>
-                <span class="welcome-streak" id="welcomeStreakText">Day 1 Streak</span>
-            </div>
-            <div class="welcome-info">
-                <span class="welcome-greeting" id="welcomeGreeting">Welcome back, Player!</span>
-                <span class="welcome-resume" id="welcomeResumeWrap"></span>
+            <div class="welcome-bar-center">
+                <div class="welcome-badge">
+                    <span class="welcome-streak" id="welcomeStreakText">Day 1 Streak</span>
+                </div>
+                <span class="strip-dot" aria-hidden="true">•</span>
+                <div class="welcome-info">
+                    <span class="welcome-greeting" id="welcomeGreeting">Welcome back, Player!</span>
+                    <span class="welcome-resume" id="welcomeResumeWrap"></span>
+                </div>
             </div>
             <button type="button" class="welcome-dismiss-btn" id="welcomeDismissBtn" title="Dismiss" aria-label="Dismiss">✕</button>
         </div>
-        <!-- HERO SHOWCASE: LEFT (WEATHER) + CENTER (TITLE) + RIGHT (FESTIVALS) -->
-        <div class="hero-showcase-row">
-            <!-- Left Card: Live Weather & Mood -->
-            <div class="hero-live-card weather-live-card" id="heroWeatherCard" aria-label="Live Weather & Mood">
-                <div class="live-card-header">
-                    <span class="live-card-tag"><span class="live-pulse-dot"></span> LIVE WEATHER</span>
-                    <span class="live-card-loc" id="weatherCardLoc">Detecting…</span>
-                </div>
-                <div class="live-card-body">
-                    <div class="weather-temp-row">
-                        <span class="weather-temp-icon" id="weatherCardIcon">🌦️</span>
-                        <span class="weather-temp-val" id="weatherCardTemp">--°C</span>
-                    </div>
-                    <div class="weather-condition" id="weatherCardCond">Checking weather…</div>
-                </div>
-                <div class="live-card-footer">
-                    <span class="live-card-hint" id="weatherCardMood">🎧 Cozy vibes &amp; retro games</span>
-                </div>
-            </div>
 
-            <!-- Center Block: Title & Subtitle -->
-            <div class="hero-center-block">
-                <h1 class="main-title">Arcade Hub</h1>
-                <p class="subtitle">Instant play. Zero downloads. Experience 28+ high-FPS browser arcade games, client-side PDF utilities, and ad-free YouTube music streaming.</p>
-            </div>
-
-            <!-- Right Card: Local Festivals & Events -->
-            <div class="hero-live-card festival-live-card" id="heroFestivalCard" aria-label="Festivals and Cultural Events">
-                <div class="live-card-header">
-                    <span class="live-card-tag festival-tag">🪔 FESTIVALS &amp; EVENTS</span>
-                    <span class="live-card-loc" id="festivalCardLoc">India 🇮🇳</span>
-                </div>
-                <div class="live-card-body">
-                    <div class="festival-name-row">
-                        <span class="festival-icon" id="festivalCardIcon">🎉</span>
-                        <div class="festival-title-group">
-                            <span class="festival-name" id="festivalCardName">Festive Calendar</span>
-                            <span class="festival-countdown" id="festivalCardCountdown">Loading…</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="live-card-footer">
-                    <span class="live-card-hint" id="festivalCardVibe">✨ Festive mood &amp; music unlocked</span>
-                </div>
+        <!-- Slim Strip 2: Colorful Festivals & Events Strip (PC & Mobile, auto-hides in 10s on Mobile) -->
+        <div class="hero-live-card festival-live-card festival-strip-banner" id="heroFestivalCard" aria-label="Festivals and Cultural Events">
+            <div class="festival-strip-progress" id="festivalStripProgress" aria-hidden="true"></div>
+            <div class="festival-strip-inner">
+                <span class="festival-icon" id="festivalCardIcon">🪔</span>
+                <span class="festival-name" id="festivalCardName">Festive Calendar</span>
+                <span class="festival-countdown" id="festivalCardCountdown">Loading…</span>
+                <span class="strip-dot" aria-hidden="true">•</span>
+                <span class="live-card-loc" id="festivalCardLoc">India IN</span>
+                <span class="live-card-hint festival-strip-vibe" id="festivalCardVibe">✨ Festive mood &amp; music unlocked</span>
             </div>
         </div>
 
-        <div class="stats-overview">
-            <div class="stat-pill">
-                <span class="pill-icon">🏆</span>
-                <span class="pill-label">Badges</span>
-                <span class="pill-value" id="badge-count">0/24</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-icon">⚡</span>
-                <span class="pill-label">Library</span>
-                <span class="pill-value">28 Games</span>
-            </div>
-            <div class="stat-pill">
-                <span class="pill-icon">🚀</span>
-                <span class="pill-label">Refresh</span>
-                <span class="pill-value">120 FPS</span>
+        <!-- Centered Hero Showcase (PC & Mobile) -->
+        <div class="hero-showcase-row">
+            <div class="hero-center-block">
+                <h1 class="main-title">Arcade Hub</h1>
+                <p class="subtitle">28+ high-FPS browser games, client-side PDF tools &amp; ad-free YouTube music streaming.</p>
+
+                <div class="stats-overview">
+                    <div class="stat-pill">
+                        <span class="pill-icon">🏆</span>
+                        <span class="pill-value" id="badge-count">0/24</span>
+                        <span class="pill-label">Badges</span>
+                    </div>
+                    <span class="stat-divider" aria-hidden="true"></span>
+                    <div class="stat-pill">
+                        <span class="pill-icon">⚡</span>
+                        <span class="pill-value">28</span>
+                        <span class="pill-label">Games</span>
+                    </div>
+                    <span class="stat-divider" aria-hidden="true"></span>
+                    <div class="stat-pill">
+                        <span class="pill-icon">↻</span>
+                        <span class="pill-value">120</span>
+                        <span class="pill-label">FPS</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <nav class="category-filter-bar" id="categoryFilterBar" aria-label="Game Categories">
-            <button type="button" class="filter-btn active" data-filter="all">🔥 All Games</button>
-            <button type="button" class="filter-btn" data-filter="action">⚡ Action</button>
-            <button type="button" class="filter-btn" data-filter="puzzle">🧠 Puzzle & Logic</button>
-            <button type="button" class="filter-btn" data-filter="arcade">🕹️ Classic Arcade</button>
-            <button type="button" class="filter-btn" data-filter="casual">✨ Casual & Chill</button>
-            <button type="button" class="filter-btn" data-filter="retro">💾 Retro 8-Bit</button>
+            <button type="button" class="filter-btn active" data-filter="all">All Games</button>
+            <button type="button" class="filter-btn" data-filter="action">Action</button>
+            <button type="button" class="filter-btn" data-filter="puzzle">Puzzle &amp; Logic</button>
+            <button type="button" class="filter-btn" data-filter="arcade">Classic Arcade</button>
+            <button type="button" class="filter-btn" data-filter="casual">Casual &amp; Chill</button>
+            <button type="button" class="filter-btn" data-filter="retro">Retro 8-Bit</button>
         </nav>
     </div>
 
@@ -1150,6 +1145,34 @@
     <script src="shared/device-experience.js?v=2" defer></script>
     <!-- Live Weather & Festivals Engine -->
     <script src="shared/live-widgets.js?v=3" defer></script>
+
+    <!-- Auto-dismiss Festival Card after 10 seconds on Mobile -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const festivalCard = document.getElementById('heroFestivalCard');
+        const progressEl = document.getElementById('festivalStripProgress');
+        if (!festivalCard) return;
+
+        if (window.matchMedia('(max-width: 768px)').matches) {
+            const DURATION_MS = 10000;
+            const start = performance.now();
+            const tick = (now) => {
+                const elapsed = now - start;
+                const pct = Math.max(0, 100 - (elapsed / DURATION_MS) * 100);
+                if (progressEl) progressEl.style.width = `${pct}%`;
+                if (elapsed < DURATION_MS) {
+                    requestAnimationFrame(tick);
+                } else {
+                    festivalCard.classList.add('is-dismissing');
+                    setTimeout(() => {
+                        festivalCard.style.display = 'none';
+                    }, 350);
+                }
+            };
+            requestAnimationFrame(tick);
+        }
+    });
+    </script>
 </body>
 
 </html>
