@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arcade-hub-cache-v356';
+const CACHE_NAME = 'arcade-hub-cache-v357';
 const CORE_ASSETS = [
     'about.html',
     'achievements.html',
@@ -75,6 +75,10 @@ const CORE_ASSETS = [
     'neon-drawbridge-frontend/script.js',
     'neon-drawbridge-frontend/style.css',
     'neon-drawbridge-frontend/thumbnail.jpg',
+    'neon-ghat-drift-frontend/index.html',
+    'neon-ghat-drift-frontend/script.js',
+    'neon-ghat-drift-frontend/style.css',
+    'neon-ghat-drift-frontend/thumbnail.jpg',
     'neon-helix-drop-frontend/index.html',
     'neon-helix-drop-frontend/script.js',
     'neon-helix-drop-frontend/style.css',
@@ -129,6 +133,7 @@ const CORE_ASSETS = [
     'play-neon-cypher.html',
     'play-neon-dice-destiny.html',
     'play-neon-drawbridge.html',
+    'play-neon-ghat-drift.html',
     'play-neon-helix-drop.html',
     'play-neon-invaders.html',
     'play-neon-pin-pull.html',

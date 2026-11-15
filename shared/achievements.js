@@ -212,7 +212,14 @@ class AchievementSystem {
             { id: 'arrows_master', game: 'arrows', title: 'Mainframe Master', desc: 'Solve all 14 security sectors in Neon Arrows', icon: '👑' },
             // Neon Pin Pull
             { id: 'neon_pin_pull_perfect_solve', game: 'neon_pin_pull', title: 'Perfect Solve', desc: 'Get a 3-star rating on any level in Neon Pin Pull', icon: '✨' },
-            { id: 'neon_pin_pull_complete_all', game: 'neon_pin_pull', title: 'Cyberspace Master', desc: 'Solve all 26 mainframe sectors in Neon Pin Pull', icon: '👑' }
+            { id: 'neon_pin_pull_complete_all', game: 'neon_pin_pull', title: 'Cyberspace Master', desc: 'Solve all 26 mainframe sectors in Neon Pin Pull', icon: '👑' },
+            // Neon Ghat Drift: Mountain Dash
+            { id: 'ghat_first_drift', game: 'ghat', title: 'Ghat Rookie', desc: 'Clear your first mountain Hairpin Bend in Neon Ghat Drift', icon: '🏎️' },
+            { id: 'ghat_cliffhanger', game: 'ghat', title: 'Cliffhanger', desc: 'Spark along the outer cliff guardrail while drifting', icon: '⚡' },
+            { id: 'ghat_hairpin_10', game: 'ghat', title: 'Hairpin King', desc: 'Conquer 10 Hairpin Bends in a single run', icon: '🏔️' },
+            { id: 'ghat_combo_10', game: 'ghat', title: 'Tire Smoker', desc: 'Reach a x10 Drift Chain Multiplier in Neon Ghat Drift', icon: '🔥' },
+            { id: 'ghat_near_miss_5', game: 'ghat', title: 'Horn OK Please!', desc: 'Pull off 5 Near-Misses past Ghat Cyber-Trucks', icon: '🚛' },
+            { id: 'ghat_legend_5000', game: 'ghat', title: 'King of the Ghats', desc: 'Score 5,000+ points in a single run of Neon Ghat Drift', icon: '👑' }
         ];
     }
 

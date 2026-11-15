@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Ghat Drift: Mountain Dash | Arcade Hub</title>
+
+    <meta name="description" content="Drift around hairpin mountain bends in Neon Ghat Drift: Mountain Dash! Pull off cliffhanger drifts, dodge Horn-OK-Please cyber trucks, and unlock trophy milestones.">
+    <meta name="keywords" content="neon ghat drift, mountain dash, drift game, racing game, browser game, arcade hub">
+    <link rel="icon" type="image/png" href="../favicon.png">
+    
+    <!-- Open Graph / Twitter -->
+    <meta property="og:title" content="Neon Ghat Drift: Mountain Dash | Arcade Hub">
+    <meta property="og:description" content="Master tight mountain hairpin bends, spark off cliffside guardrails, and chain high-speed neon drifts!">
+    <meta property="og:image" content="https://arcadehubplay.com/neon-ghat-drift-frontend/thumbnail.jpg">
+    <meta property="og:url" content="https://arcadehubplay.com/neon-ghat-drift-frontend/">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-B8XQ759LPH');
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_GhatDrift_V1">
+
+    <style id="adsense-compliance-styles">
+        body.show-info-overlay {
+            overflow: hidden !important;
+            height: 100dvh !important;
+        }
+        body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
+            display: none !important;
+        }
+        .game-info-overlay {
+            display: none;
+            background: #07080d;
+            width: 100%;
+            height: 100dvh;
+            position: fixed;
+            inset: 0;
+            z-index: 999999;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            touch-action: pan-y !important;
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255,255,255,0.78);
+            line-height: 1.65;
+            padding: 32px 20px;
+            box-sizing: border-box;
+        }
+        body.show-info-overlay .game-info-overlay {
+            display: block !important;
+        }
+        .game-info-container { max-width: 760px; margin: 0 auto; }
+        .brand-header {
+            text-align: center;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0,243,255,0.18);
+        }
+        .brand-header .brand-title {
+            color: #00f3ff;
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(0,243,255,0.4);
+            margin: 0 0 4px 0;
+        }
+        .brand-header .brand-sub {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .continue-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 28px;
+            position: sticky;
+            top: 12px;
+            z-index: 1000000;
+        }
+        .continue-game-btn {
+            background: linear-gradient(135deg, #00f3ff, #00ff9d);
+            color: #04060a;
+            border: none;
+            padding: 15px 48px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 28px rgba(0,243,255,0.55);
+            transition: all 0.22s ease;
+            letter-spacing: 1.5px;
+        }
+        .continue-game-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 38px rgba(0,255,157,0.75);
+        }
+        .game-info-container h2 { color: #fff; font-size: 1.75rem; text-align: center; margin-bottom: 12px; }
+        .game-info-container h3 { color: #00f3ff; font-size: 1.1rem; margin-top: 22px; margin-bottom: 8px; }
+        .game-info-container p, .game-info-container li { font-size: 0.92rem; margin-bottom: 8px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+        .info-card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; }
+        @media (max-width: 768px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .continue-game-btn { width: 100%; }
+        }
+    </style>
+</head>
+<body class="show-info-overlay">
+
+<!-- PRE-GAME INFO OVERLAY -->
+<div class="game-info-overlay" id="game-info-overlay">
+    <div class="game-info-container">
+        <div class="brand-header">
+            <p class="brand-title">🕹️ Arcade Hub</p>
+            <p class="brand-sub">Free Browser Games &mdash; No Download Required</p>
+        </div>
+
+        <div class="continue-btn-wrapper">
+            <button class="continue-game-btn" onclick="continueToGame()">START DRIFTING &#x2794;</button>
+        </div>
+
+        <h2>Neon Ghat Drift: Mountain Dash</h2>
+        <p>Neon Ghat Drift: Mountain Dash is a high-adrenaline cyberpunk touge &amp; mountain road drifting game inspired by winding Indian ghat hairpin roads. Slide around razor-sharp cliffside bends, grind inches away from glowing guardrails for Cliffhanger bonuses, weave past decorated Horn-OK-Please cyber-trucks, and unleash Overdrive Nitro!</p>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🎮 Controls</h3>
+                <ul>
+                    <li><strong>One-Button Drift:</strong> Hold <strong>Spacebar</strong>, <strong>Left-Click</strong>, or <strong>Touch &amp; Hold</strong> to kick the tail out around corners; release to straighten out for an Apex Boost!</li>
+                    <li><strong>Manual Steer:</strong> Use <strong>A / D</strong> or <strong>Left / Right Arrows</strong> anytime for precision lane positioning.</li>
+                    <li><strong>Nitro Overdrive:</strong> Press <strong>Shift</strong>, <strong>W / Up</strong>, or tap the <strong>NITRO</strong> bar when charged.</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>🏆 Trophy Milestones</h3>
+                <ul>
+                    <li><strong>Ghat Rookie:</strong> Complete your first hairpin drift</li>
+                    <li><strong>Cliffhanger:</strong> Spark along the outer cliff edge</li>
+                    <li><strong>Hairpin King:</strong> Clear 10 hairpins in one run</li>
+                    <li><strong>Horn OK Please!:</strong> Pull off 5 traffic near-misses</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- TOP HUD BAR -->
+    <header class="header">
+        <div class="nav-left">
+            <button class="home-btn" id="hud-hub-btn">← Arcade Hub</button>
+        </div>
+        <div class="header-center">
+            <h1 class="game-title">🏔️ Neon Ghat Drift</h1>
+            <span class="zone-pill" id="ui-zone-badge">MISTY FOOTHILLS</span>
+        </div>
+        <div class="header-right">
+            <button id="btn-trophies" class="icon-btn trophy-btn" title="Trophy Milestones">🏆 <span id="ui-trophy-count">0/6</span></button>
+            <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
+            <button id="btn-fs" class="icon-btn" title="Toggle Fullscreen">⛶</button>
+        </div>
+    </header>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="stat-item">SCORE: <span id="ui-score">0</span></div>
+        <div class="stat-item stat-center" id="ui-center-stat">HAIRPINS: <span id="ui-hairpins">0</span></div>
+        <div class="stat-item stat-combo">COMBO: <span id="ui-combo">x1</span></div>
+        <div class="stat-item stat-coins">🪙 <span id="ui-coins">0</span></div>
+    </div>
+
+    <!-- MAIN GAME AREA (ZERO SCROLL) -->
+    <div class="game-wrapper" id="gameWrapper">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- In-Game Floating HUD Callouts -->
+        <div id="hud" class="hud-layer hud-hidden">
+            <div class="drift-meter-pill" id="ui-drift-pill">
+                <span id="ui-drift-label">DRIFTING</span>
+                <span id="ui-drift-pts">+0</span>
+            </div>
+            <div class="trophy-toast" id="ui-trophy-toast">
+                <span class="toast-icon" id="toast-icon">🏆</span>
+                <div class="toast-body">
+                    <span class="toast-tag">TROPHY MILESTONE UNLOCKED!</span>
+                    <strong class="toast-title" id="toast-title">Ghat Rookie</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN MENU OVERLAY -->
+        <div id="mainMenu" class="menu-overlay">
+            <div class="menu-card-shell">
+                <div class="menu-header-row">
+                    <div>
+                        <h2 class="menu-main-heading">Mountain Dash</h2>
+                        <p class="menu-sub-heading">Hold to Drift Hairpins &bull; Skim Cliff Guardrails for 2x Sparks</p>
+                    </div>
+                    <div class="wallet-pill" title="Total Ghat Coins Collected">
+                        🪙 <span id="menu-total-coins">0</span> Coins
+                    </div>
+                </div>
+
+                <!-- 3 Game Modes -->
+                <div class="mode-buttons">
+                    <button class="mode-btn" data-mode="endless">
+                        <div class="mode-card-top">
+                            <h3>🏔️ Endless Ghat Dash</h3>
+                            <span class="mode-rank" id="rank-endless">Rookie</span>
+                        </div>
+                        <p>Ascend infinite switchbacks through 4 mountain biomes.</p>
+                        <div class="mode-meta">
+                            <span class="mode-best" id="best-endless">🏆 Best: 0</span>
+                            <span class="mode-play-cta">DRIFT ➔</span>
+                        </div>
+                    </button>
+
+                    <button class="mode-btn" data-mode="timeattack">
+                        <div class="mode-card-top">
+                            <h3>⏱️ Time Attack (12 Bends)</h3>
+                            <span class="mode-rank" id="rank-timeattack">Rookie</span>
+                        </div>
+                        <p>Beat the checkpoint clock across 12 deadly hairpin turns.</p>
+                        <div class="mode-meta">
+                            <span class="mode-best" id="best-timeattack">🏆 Best: 0</span>
+                            <span class="mode-play-cta">RACE ➔</span>
+                        </div>
+                    </button>
+
+                    <button class="mode-btn" data-mode="traffic">
+                        <div class="mode-card-top">
+                            <h3>🚛 Highway Traffic Rush</h3>
+                            <span class="mode-rank" id="rank-traffic">Rookie</span>
+                        </div>
+                        <p>Weave past Horn-OK-Please cyber-trucks for 2x Near-Misses!</p>
+                        <div class="mode-meta">
+                            <span class="mode-best" id="best-traffic">🏆 Best: 0</span>
+                            <span class="mode-play-cta">RUSH ➔</span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Unlockable Vehicles Garage -->
+                <div class="garage-panel" id="garageSelector">
+                    <div class="panel-header">
+                        <span class="panel-title">🏎️ GHAT GARAGE (SELECT RIDE)</span>
+                        <span class="panel-badge" id="ui-total-hairpins">🏔️ 0 Hairpins Career</span>
+                    </div>
+                    <div class="car-list">
+                        <button type="button" class="car-btn active" data-car="ghat800" title="Ghat 800 GT — Balanced Grip & Drift (Default)">
+                            <span class="car-swatch" style="background:#00f3ff;box-shadow:0 0 8px #00f3ff;"></span>
+                            <span class="car-name">800 GT</span>
+                            <span class="car-perk">Balanced</span>
+                            <span class="car-req" id="car-req-ghat800">EQUIPPED</span>
+                        </button>
+                        <button type="button" class="car-btn" data-car="auto3w" title="Cyber Auto-3W — Razor-Sharp Hairpin Handling (Unlocks at 25 Coins or 15 Hairpins)">
+                            <span class="car-swatch" style="background:#ffd700;box-shadow:0 0 8px #ffd700;"></span>
+                            <span class="car-name">Auto-3W</span>
+                            <span class="car-perk">+Agile</span>
+                            <span class="car-req" id="car-req-auto3w">🔒 25🪙</span>
+                        </button>
+                        <button type="button" class="car-btn" data-car="suprax" title="Touge Supra X — +15% Top Speed & Nitro Charge (Unlocks at 60 Coins or 40 Hairpins)">
+                            <span class="car-swatch" style="background:#ff007f;box-shadow:0 0 8px #ff007f;"></span>
+                            <span class="car-name">Supra X</span>
+                            <span class="car-perk">+Speed</span>
+                            <span class="car-req" id="car-req-suprax">🔒 60🪙</span>
+                        </button>
+                        <button type="button" class="car-btn" data-car="hornrig" title="Horn-OK Rig — +1 Free Guardrail Shield per Run (Unlocks at 120 Coins or 80 Hairpins)">
+                            <span class="car-swatch" style="background:#39ff14;box-shadow:0 0 8px #39ff14;"></span>
+                            <span class="car-name">Horn Rig</span>
+                            <span class="car-perk">🛡️ +1 Shield</span>
+                            <span class="car-req" id="car-req-hornrig">🔒 120🪙</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Trophy Milestones Strip -->
+                <div class="trophy-strip" id="menuTrophyStrip">
+                    <div class="panel-header">
+                        <span class="panel-title">🏆 TROPHY MILESTONES</span>
+                        <button type="button" class="view-all-link" id="btn-open-trophies">View All 6 ➔</button>
+                    </div>
+                    <div class="trophy-mini-row" id="trophyMiniRow">
+                        <!-- Populated dynamically by script.js -->
+                    </div>
+                </div>
+
+                <div class="controls-hint">
+                    ⚡ <strong>Controls:</strong> Hold <strong>[SPACE]</strong> / <strong>Click</strong> / <strong>Touch</strong> to Drift &bull; <strong>[A/D]</strong> or <strong>[←/→]</strong> Steer &bull; <strong>[SHIFT]</strong> Nitro Overdrive
+                </div>
+            </div>
+        </div>
+
+        <!-- TROPHY MILESTONES MODAL -->
+        <div id="trophyModal" class="menu-overlay hidden">
+            <div class="menu-card-shell trophy-modal-shell">
+                <div class="menu-header-row">
+                    <div>
+                        <h2 class="menu-main-heading">🏆 Trophy Milestones</h2>
+                        <p class="menu-sub-heading">Unlock badges across your Neon Ghat Drift career</p>
+                    </div>
+                    <button type="button" class="icon-btn" id="btn-close-trophies" title="Close">✕</button>
+                </div>
+                <div class="trophy-full-grid" id="trophyFullGrid">
+                    <!-- Populated dynamically by script.js -->
+                </div>
+                <button type="button" id="btn-back-from-trophies" class="play-btn" style="margin-top:8px;">Back to Garage</button>
+            </div>
+        </div>
+
+        <!-- GAME OVER OVERLAY -->
+        <div id="gameOverMenu" class="menu-overlay hidden">
+            <div class="menu-card-shell gameover-shell">
+                <h2 id="go-title" class="menu-main-heading">Cliff Wipeout!</h2>
+                <p id="go-subtitle" class="menu-sub-heading">Watch the hairpin apex speed!</p>
+
+                <div id="gameOverStats" class="stats-grid">
+                    <div class="stats-box">
+                        <span class="stats-label">Final Score</span>
+                        <span id="go-score" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Personal Best</span>
+                        <span id="go-best" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Hairpins Cleared</span>
+                        <span id="go-hairpins" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Max Drift Combo</span>
+                        <span id="go-combo" class="stats-value">x1</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Cliffhangers ⚡</span>
+                        <span id="go-cliffhangers" class="stats-value">0</span>
+                    </div>
+                    <div class="stats-box">
+                        <span class="stats-label">Coins Earned 🪙</span>
+                        <span id="go-coins" class="stats-value">+0</span>
+                    </div>
+                </div>
+
+                <div class="share-container" id="shareContainer">
+                    <button class="btn share-btn twitter" id="tweetBtn">Share on X</button>
+                    <button class="btn share-btn whatsapp" id="waBtn">WhatsApp</button>
+                </div>
+
+                <div class="go-actions-row">
+                    <button id="btn-restart" class="play-btn">Drift Again ↻</button>
+                    <button id="btn-menu" class="secondary-btn">Garage / Modes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAUSE MENU -->
+        <div id="pauseMenu" class="menu-overlay hidden">
+            <div class="menu-card-shell pause-shell">
+                <h2 class="menu-main-heading">Paused</h2>
+                <p class="menu-sub-heading">Take a breather on the mountain overlook</p>
+                <div class="go-actions-row" style="margin-top: 14px;">
+                    <button id="btn-resume" class="play-btn">Resume Drift</button>
+                    <button id="btn-quit" class="secondary-btn">Quit to Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM ACTION BAR -->
+    <div class="bottom-bar">
+        <div class="nitro-widget">
+            <div class="nitro-bar-track">
+                <div class="nitro-bar-fill" id="ui-nitro-fill" style="width: 0%;"></div>
+            </div>
+            <button type="button" id="btn-nitro" class="nitro-btn" title="Activate Overdrive Nitro [Shift]">⚡ NITRO</button>
+        </div>
+
+        <button type="button" id="btn-drift-hold" class="action-btn drift-hold-btn">
+            🔥 HOLD TO DRIFT [SPACE]
+        </button>
+
+        <div class="bottom-right-controls">
+            <span class="shield-indicator" id="ui-shield-badge" title="Guardrail Bumper Shield">🛡️ 1</span>
+            <button type="button" id="btn-pause" class="icon-btn-square" title="Pause [P]">||</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../shared/audio-fx.js"></script>
+    <script src="../shared/achievements.js"></script>
+    <script src="script.js?v=ArcadeHub_GhatDrift_V1"></script>
+    <script>
+        (function() {
+            var gameId = 'neon-ghat-drift';
+            if (localStorage.getItem('arcade_seen_' + gameId) === '1') {
+                continueToGame(true);
+            }
+        })();
+        function continueToGame(isReturning) {
+            var gameId = 'neon-ghat-drift';
+            localStorage.setItem('arcade_seen_' + gameId, '1');
+            document.body.classList.remove('show-info-overlay');
+            window.dispatchEvent(new Event('resize'));
+            var overlay = document.getElementById('game-info-overlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
