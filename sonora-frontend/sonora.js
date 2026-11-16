@@ -3538,14 +3538,22 @@
         }
     }
 
+    function extractDeepLinkVideoId() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const rawParam = (params.get('v') || params.get('video') || params.get('id') || '').trim();
+            if (!rawParam) return '';
+            if (/^[a-zA-Z0-9_-]{11}$/.test(rawParam)) return rawParam;
+            return getVideoId(rawParam);
+        } catch {
+            return '';
+        }
+    }
+
     // Handle direct video deep-link (?v=VIDEO_ID or ?video=VIDEO_ID or ?id=VIDEO_ID)
     async function handleDeepLinkVideoParam() {
         try {
-            const params = new URLSearchParams(window.location.search);
-            const rawParam = params.get('v') || params.get('video') || params.get('id') || '';
-            if (!rawParam) return false;
-
-            const videoId = getVideoId(rawParam);
+            const videoId = extractDeepLinkVideoId();
             if (!videoId) return false;
 
             const allKnown = [...STATE.items, ...STATE.history];
@@ -3717,6 +3725,11 @@
             }).catch(() => {});
         }
         loadStorage();
+        const initialDeepLinkId = extractDeepLinkVideoId();
+        if (initialDeepLinkId) {
+            STATE.activeVideoId = initialDeepLinkId;
+            STATE.activeTrack = null;
+        }
         if (STATE.experienceMode === 'audio') {
             STATE.activeLibraryId = STATE.activeAudioLibraryId || 'audio-trending-now';
         }
