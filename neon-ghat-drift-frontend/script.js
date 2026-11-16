@@ -625,7 +625,10 @@ function appendRoadSegment() {
         hairpinId: genState.currentHairpinId,
         hairpinCleared: false,
         kmNumber: (genState.segCounter % 55 === 0) ? Math.floor(genState.segCounter / 55) : 0,
-        hasChevron: Math.abs(genState.currentCurvature) > 0.022 && (genState.segCounter % 4 === 0)
+        hasChevron: Math.abs(genState.currentCurvature) > 0.022 && (genState.segCounter % 4 === 0),
+        hasLamp: (genState.segCounter % 12 === 0),
+        lampSide: (genState.segCounter % 24 === 0) ? 1 : -1,
+        treeSeed: (genState.segCounter % 5 === 0) ? ((genState.segCounter * 37) % 100) / 100 : -1
     };
     roadSegments.push(seg);
 
@@ -937,23 +940,48 @@ function update(dt) {
             }
         }
 
-        // Neon Tire Skid Marks & Smoke
+        // Continuous Dual-Tire Skid Ribbons & Volumetric Drift Smoke
         const visualAngle = car.heading + car.driftAngle;
-        const rearX = car.x - Math.sin(visualAngle) * 16;
-        const rearY = car.y + Math.cos(visualAngle) * 16;
-        const perpX = Math.cos(visualAngle) * 9;
-        const perpY = Math.sin(visualAngle) * 9;
+        const rearX = car.x - Math.sin(visualAngle) * 18;
+        const rearY = car.y + Math.cos(visualAngle) * 18;
+        const perpX = Math.cos(visualAngle) * 12.5;
+        const perpY = Math.sin(visualAngle) * 12.5;
+        const lx = rearX - perpX;
+        const ly = rearY - perpY;
+        const rx = rearX + perpX;
+        const ry = rearY + perpY;
         const trailCol = nitroActiveTimer > 0
             ? `hsl(${Math.floor((Date.now() * 0.5) % 360)}, 100%, 60%)`
             : (isCliff ? '#ff007f' : carCfg.color);
 
-        skidMarks.push({
-            x1: rearX - perpX, y1: rearY - perpY,
-            x2: rearX + perpX, y2: rearY + perpY,
-            color: trailCol,
-            alpha: 0.75
-        });
-        if (skidMarks.length > 220) skidMarks.shift();
+        if (car._lastSkidX1 !== undefined && Math.hypot(lx - car._lastSkidX1, ly - car._lastSkidY1) < 48) {
+            skidMarks.push({
+                px1: car._lastSkidX1, py1: car._lastSkidY1,
+                x1: lx, y1: ly,
+                px2: car._lastSkidX2, py2: car._lastSkidY2,
+                x2: rx, y2: ry,
+                color: trailCol,
+                alpha: 0.72
+            });
+            if (skidMarks.length > 240) skidMarks.shift();
+        }
+        car._lastSkidX1 = lx; car._lastSkidY1 = ly;
+        car._lastSkidX2 = rx; car._lastSkidY2 = ry;
+
+        // Billowy tire smoke clouds from both rear tires
+        if (Math.random() < 0.65) {
+            const sidePick = Math.random() > 0.5 ? 1 : -1;
+            particles.push({
+                x: rearX + sidePick * perpX + (Math.random() - 0.5) * 4,
+                y: rearY + sidePick * perpY + (Math.random() - 0.5) * 4,
+                vx: (Math.random() - 0.5) * 1.4,
+                vy: (Math.random() - 0.5) * 1.4,
+                color: isCliff ? 'rgba(255, 160, 220, 0.35)' : 'rgba(200, 225, 255, 0.28)',
+                size: Math.random() * 5 + 5,
+                grow: 0.35,
+                life: 0.85
+            });
+        }
 
         if (uiDriftPill) {
             uiDriftPill.classList.add('active');
@@ -961,8 +989,9 @@ function update(dt) {
             uiDriftLabel.textContent = isCliff ? '⚡ CLIFFHANGER 2x!' : '🔥 DRIFTING';
             uiDriftPts.textContent = `+${Math.round(activeDriftScore)}`;
         }
-    } else if (uiDriftPill) {
-        uiDriftPill.classList.remove('active', 'cliff-mode');
+    } else {
+        car._lastSkidX1 = undefined;
+        if (uiDriftPill) uiDriftPill.classList.remove('active', 'cliff-mode');
     }
 
     // Check Guardrail / Cliff Edge Collision
@@ -1074,7 +1103,8 @@ function update(dt) {
     particles.forEach(p => {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
-        p.life -= 0.045 * dt;
+        if (p.grow) p.size += p.grow * dt;
+        p.life -= (p.grow ? 0.032 : 0.045) * dt;
     });
     particles = particles.filter(p => p.life > 0);
 
@@ -1146,33 +1176,52 @@ function draw() {
     const camY = canvas.height * 0.74 - car.y;
     ctx.translate(camX, camY);
 
-    // 3. Draw Winding Mountain Road Ribbon
+    // 3. Draw Winding Mountain Road Ribbon & Environment
     if (roadSegments.length > 2) {
-        // Outer Cliff Abyss Drop Shadow / Cliff Wall
+        // 3a. Outer Rocky Mountain Cliff Ledge & Drop Shadow
         ctx.beginPath();
         for (let i = 0; i < roadSegments.length; i++) {
             const s = roadSegments[i];
-            const lx = s.x - s.nx * (s.halfWidth + 14);
-            const ly = s.y - s.ny * (s.halfWidth + 14);
+            const lx = s.x - s.nx * (s.halfWidth + 28);
+            const ly = s.y - s.ny * (s.halfWidth + 28);
             if (i === 0) ctx.moveTo(lx, ly);
             else ctx.lineTo(lx, ly);
         }
         for (let i = roadSegments.length - 1; i >= 0; i--) {
             const s = roadSegments[i];
-            const rx = s.x + s.nx * (s.halfWidth + 14);
-            const ry = s.y + s.ny * (s.halfWidth + 14);
+            const rx = s.x + s.nx * (s.halfWidth + 28);
+            const ry = s.y + s.ny * (s.halfWidth + 28);
             ctx.lineTo(rx, ry);
         }
         ctx.closePath();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillStyle = 'rgba(4, 6, 14, 0.85)';
         ctx.fill();
 
-        // Main Asphalt Surface
+        // 3b. Gravel / Stone Shoulder Verge
+        ctx.beginPath();
+        for (let i = 0; i < roadSegments.length; i++) {
+            const s = roadSegments[i];
+            const lx = s.x - s.nx * (s.halfWidth + 9);
+            const ly = s.y - s.ny * (s.halfWidth + 9);
+            if (i === 0) ctx.moveTo(lx, ly);
+            else ctx.lineTo(lx, ly);
+        }
+        for (let i = roadSegments.length - 1; i >= 0; i--) {
+            const s = roadSegments[i];
+            const rx = s.x + s.nx * (s.halfWidth + 9);
+            const ry = s.y + s.ny * (s.halfWidth + 9);
+            ctx.lineTo(rx, ry);
+        }
+        ctx.closePath();
+        ctx.fillStyle = '#141929';
+        ctx.fill();
+
+        // 3c. Main Asphalt Surface
         ctx.beginPath();
         for (let i = 0; i < roadSegments.length; i++) {
             const s = roadSegments[i];
             const lx = s.x - s.nx * s.halfWidth;
-            const ly = s.y - s.ny * s.halfWidth;
+            const ly = s.y - s.ny * (s.halfWidth);
             if (i === 0) ctx.moveTo(lx, ly);
             else ctx.lineTo(lx, ly);
         }
@@ -1186,23 +1235,55 @@ function draw() {
         ctx.fillStyle = biome.roadTint;
         ctx.fill();
 
-        // Cliffhanger Outer Danger Zones (Subtle Glowing Strips)
+        // 3d. Red & White Touge Apex Rumble Curbs on Curves
+        for (let i = 0; i < roadSegments.length - 1; i++) {
+            const s1 = roadSegments[i];
+            const s2 = roadSegments[i + 1];
+            if (Math.abs(s1.curvature) > 0.015) {
+                const curbCol = (s1.index % 2 === 0) ? '#ff2a55' : '#e2e8f0';
+                [-1, 1].forEach(side => {
+                    ctx.beginPath();
+                    ctx.moveTo(s1.x + side * s1.nx * (s1.halfWidth - 3), s1.y + side * s1.ny * (s1.halfWidth - 3));
+                    ctx.lineTo(s2.x + side * s2.nx * (s2.halfWidth - 3), s2.y + side * s2.ny * (s2.halfWidth - 3));
+                    ctx.strokeStyle = curbCol;
+                    ctx.lineWidth = 6;
+                    ctx.stroke();
+                });
+            }
+        }
+
+        // 3e. Cliffhanger Outer Danger Zones (Subtle Glowing Strips)
         ['left', 'right'].forEach(side => {
             const sign = side === 'left' ? -1 : 1;
             ctx.beginPath();
             for (let i = 0; i < roadSegments.length; i++) {
                 const s = roadSegments[i];
-                const px = s.x + sign * s.nx * (s.halfWidth * 0.76);
-                const py = s.y + sign * s.ny * (s.halfWidth * 0.76);
+                const px = s.x + sign * s.nx * (s.halfWidth * 0.78);
+                const py = s.y + sign * s.ny * (s.halfWidth * 0.78);
                 if (i === 0) ctx.moveTo(px, py);
                 else ctx.lineTo(px, py);
             }
-            ctx.strokeStyle = 'rgba(255, 0, 127, 0.14)';
-            ctx.lineWidth = 18;
+            ctx.strokeStyle = 'rgba(255, 0, 127, 0.13)';
+            ctx.lineWidth = 16;
             ctx.stroke();
         });
 
-        // Dashed Center Ghat Highway Line
+        // 3f. Double Center Yellow/Gold Ghat Highway Line + Side White Edge Lines
+        ['leftEdge', 'rightEdge'].forEach(edge => {
+            const sign = edge === 'leftEdge' ? -1 : 1;
+            ctx.beginPath();
+            for (let i = 0; i < roadSegments.length; i++) {
+                const s = roadSegments[i];
+                const ex = s.x + sign * s.nx * (s.halfWidth - 7);
+                const ey = s.y + sign * s.ny * (s.halfWidth - 7);
+                if (i === 0) ctx.moveTo(ex, ey);
+                else ctx.lineTo(ex, ey);
+            }
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+
         ctx.save();
         ctx.beginPath();
         for (let i = 0; i < roadSegments.length; i++) {
@@ -1210,13 +1291,13 @@ function draw() {
             if (i === 0) ctx.moveTo(s.x, s.y);
             else ctx.lineTo(s.x, s.y);
         }
-        ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.55)';
         ctx.lineWidth = 3;
         ctx.setLineDash([18, 20]);
         ctx.stroke();
         ctx.restore();
 
-        // Glowing Left & Right Neon Guardrails
+        // 3g. Glowing Left & Right Neon Guardrails with Steel Posts
         const railCol = nitroActiveTimer > 0
             ? `hsl(${Math.floor((Date.now() * 0.4) % 360)}, 100%, 60%)`
             : biome.railColor;
@@ -1233,22 +1314,69 @@ function draw() {
                 else ctx.lineTo(gx, gy);
             }
             ctx.strokeStyle = railCol;
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 4.5;
             ctx.shadowBlur = 14;
             ctx.shadowColor = railCol;
             ctx.stroke();
             ctx.restore();
         });
 
-        // Roadside Ghat KM Milestones & Outer Curve Neon Chevrons
+        // 3h. Roadside Mountain Pines, Streetlamps, KM Milestones & Chevrons
         for (let i = 0; i < roadSegments.length; i++) {
             const s = roadSegments[i];
+
+            // Roadside Deodar / Pine Tree Silhouettes
+            if (s.treeSeed >= 0) {
+                const tSide = s.treeSeed > 0.5 ? 1 : -1;
+                const distOut = s.halfWidth + 36 + (s.treeSeed * 26);
+                const tx = s.x + tSide * s.nx * distOut;
+                const ty = s.y + tSide * s.ny * distOut;
+                ctx.save();
+                ctx.translate(tx, ty);
+                // Tree canopy layers
+                ctx.fillStyle = '#071521';
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.22)';
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#0c2436';
+                ctx.beginPath();
+                ctx.arc(-2, -2, 9, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Roadside Glowing Sodium/Neon Ghat Streetlamp
+            if (s.hasLamp) {
+                const lx = s.x + s.lampSide * s.nx * (s.halfWidth + 8);
+                const ly = s.y + s.lampSide * s.ny * (s.halfWidth + 8);
+                const poolX = s.x + s.lampSide * s.nx * (s.halfWidth * 0.65);
+                const poolY = s.y + s.lampSide * s.ny * (s.halfWidth * 0.65);
+                ctx.save();
+                const lampGrad = ctx.createRadialGradient(poolX, poolY, 2, poolX, poolY, 34);
+                lampGrad.addColorStop(0, 'rgba(255, 190, 80, 0.16)');
+                lampGrad.addColorStop(1, 'rgba(255, 190, 80, 0)');
+                ctx.fillStyle = lampGrad;
+                ctx.beginPath();
+                ctx.arc(poolX, poolY, 34, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ffbe50';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ffbe50';
+                ctx.beginPath();
+                ctx.arc(lx, ly, 3.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
             if (s.kmNumber > 0) {
-                const mx = s.x - s.nx * (s.halfWidth + 22);
-                const my = s.y - s.ny * (s.halfWidth + 22);
+                const mx = s.x - s.nx * (s.halfWidth + 24);
+                const my = s.y - s.ny * (s.halfWidth + 24);
                 ctx.save();
                 ctx.translate(mx, my);
-                // Classic Indian Highway Milestone (Yellow dome top + White base)
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(-11, -6, 22, 14);
                 ctx.fillStyle = '#ffd700';
@@ -1264,15 +1392,20 @@ function draw() {
 
             if (s.hasChevron) {
                 const outerSign = s.curvature > 0 ? -1 : 1;
-                const cx = s.x + outerSign * s.nx * (s.halfWidth + 16);
-                const cy = s.y + outerSign * s.ny * (s.halfWidth + 16);
+                const cx = s.x + outerSign * s.nx * (s.halfWidth + 18);
+                const cy = s.y + outerSign * s.ny * (s.halfWidth + 18);
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(s.angle);
+                ctx.fillStyle = '#111';
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 1.5;
+                ctx.fillRect(-13, -7, 26, 14);
+                ctx.strokeRect(-13, -7, 26, 14);
                 ctx.fillStyle = '#ffd700';
                 ctx.shadowBlur = 8;
                 ctx.shadowColor = '#ffd700';
-                ctx.font = 'bold 12px Outfit';
+                ctx.font = 'bold 11px Outfit';
                 ctx.textAlign = 'center';
                 ctx.fillText(s.curvature > 0 ? '>>>' : '<<<', 0, 4);
                 ctx.restore();
@@ -1280,17 +1413,25 @@ function draw() {
         }
     }
 
-    // 4. Draw Neon Tire Skid Marks
+    // 4. Draw Connected Neon Tire Skid Tracks
     skidMarks.forEach(sk => {
         ctx.save();
         ctx.strokeStyle = sk.color;
         ctx.globalAlpha = sk.alpha;
-        ctx.lineWidth = 3.5;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(sk.x1, sk.y1);
-        ctx.lineTo(sk.x1 + 1, sk.y1 + 1);
-        ctx.moveTo(sk.x2, sk.y2);
-        ctx.lineTo(sk.x2 + 1, sk.y2 + 1);
+        if (sk.px1 !== undefined) {
+            ctx.moveTo(sk.px1, sk.py1);
+            ctx.lineTo(sk.x1, sk.y1);
+            ctx.moveTo(sk.px2, sk.py2);
+            ctx.lineTo(sk.x2, sk.y2);
+        } else {
+            ctx.moveTo(sk.x1, sk.y1);
+            ctx.lineTo(sk.x1 + 1, sk.y1 + 1);
+            ctx.moveTo(sk.x2, sk.y2);
+            ctx.lineTo(sk.x2 + 1, sk.y2 + 1);
+        }
         ctx.stroke();
         ctx.restore();
     });
@@ -1324,53 +1465,29 @@ function draw() {
         ctx.restore();
     });
 
-    // 6. Draw "Horn OK Please" Ghat Cyber-Trucks
+    // 6. Draw Detailed "Horn OK Please" Ghat Cyber-Trucks
     trafficTrucks.forEach(tr => {
         if (tr.x === undefined) return;
-        ctx.save();
-        ctx.translate(tr.x, tr.y);
-        ctx.rotate(tr.angle);
-
-        // Truck Shadow & Decorative Neon Body
-        ctx.fillStyle = '#181020';
-        ctx.strokeStyle = tr.color;
-        ctx.lineWidth = 2.5;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = tr.color;
-        ctx.beginPath();
-        ctx.roundRect(-16, -28, 32, 56, 6);
-        ctx.fill();
-        ctx.stroke();
-
-        // Colorful Indian Truck Cab Roof Lights
-        ['#00f3ff', '#ffd700', '#39ff14', '#ff007f'].forEach((c, idx) => {
-            ctx.fillStyle = c;
-            ctx.fillRect(-12 + idx * 7, -25, 4, 4);
-        });
-
-        // "HORN OK" Rear Sign
-        ctx.fillStyle = '#ffd700';
-        ctx.font = 'bold 7px Outfit';
-        ctx.textAlign = 'center';
-        ctx.fillText('HORN OK', 0, 22);
-        ctx.restore();
+        drawTrafficTruck(tr);
     });
 
-    // 7. Draw Player Drift Vehicle
-    drawPlayerCar();
-
-    // 8. Draw Sparks & Particles
+    // 7. Draw Smoke & Sparks (Behind/Around Car)
     particles.forEach(p => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, p.life);
         ctx.fillStyle = p.color;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color;
+        if (!p.grow) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = p.color;
+        }
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     });
+
+    // 8. Draw Player Drift Vehicle
+    drawPlayerCar();
 
     // 9. Draw Floating Callouts
     floatingTexts.forEach(ft => {
@@ -1388,77 +1505,525 @@ function draw() {
     ctx.restore();
 }
 
+function drawTrafficTruck(tr) {
+    ctx.save();
+    ctx.translate(tr.x, tr.y);
+    ctx.rotate(tr.angle);
+
+    // Ground Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    ctx.beginPath();
+    ctx.roundRect(-21, -34, 42, 68, 8);
+    ctx.fill();
+
+    // 6 Protruding Heavy Truck Tires
+    ctx.fillStyle = '#08090d';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    const wheelY = [-20, 8, 21];
+    wheelY.forEach(wy => {
+        ctx.fillRect(-20, wy - 5, 4, 10);
+        ctx.strokeRect(-20, wy - 5, 4, 10);
+        ctx.fillRect(16, wy - 5, 4, 10);
+        ctx.strokeRect(16, wy - 5, 4, 10);
+    });
+
+    // Front Headlight Cones
+    const hGrad = ctx.createLinearGradient(0, -32, 0, -90);
+    hGrad.addColorStop(0, 'rgba(255, 230, 140, 0.25)');
+    hGrad.addColorStop(1, 'rgba(255, 230, 140, 0)');
+    ctx.fillStyle = hGrad;
+    ctx.beginPath();
+    ctx.moveTo(-14, -32);
+    ctx.lineTo(-28, -90);
+    ctx.lineTo(28, -90);
+    ctx.lineTo(14, -32);
+    ctx.closePath();
+    ctx.fill();
+
+    // Chrome Front Bullbar Bumper
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-16, -32);
+    ctx.lineTo(16, -32);
+    ctx.stroke();
+
+    // Sculpted Driver Cab (Front Section)
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = tr.color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-15, -31);
+    ctx.lineTo(15, -31);
+    ctx.lineTo(17, -12);
+    ctx.lineTo(-17, -12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Split Front Windshield
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillRect(-13, -27, 11, 6);
+    ctx.fillRect(2, -27, 11, 6);
+
+    // Side Mirrors
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-16, -24); ctx.lineTo(-21, -22);
+    ctx.moveTo(16, -24);  ctx.lineTo(21, -22);
+    ctx.stroke();
+
+    // Colorful Indian Truck Cab Crown Lights
+    ['#00f3ff', '#ffd700', '#39ff14', '#ff007f', '#00f3ff'].forEach((c, idx) => {
+        ctx.fillStyle = c;
+        ctx.fillRect(-12 + idx * 5.5, -20, 3.5, 3.5);
+    });
+
+    // Corrugated Decorated Cargo Bed (Rear Section)
+    const bedGrad = ctx.createLinearGradient(-18, -11, 18, -11);
+    bedGrad.addColorStop(0, '#140c1c');
+    bedGrad.addColorStop(0.5, '#271736');
+    bedGrad.addColorStop(1, '#140c1c');
+    ctx.fillStyle = bedGrad;
+    ctx.strokeStyle = tr.color;
+    ctx.lineWidth = 2.2;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = tr.color;
+    ctx.beginPath();
+    ctx.roundRect(-17, -11, 34, 41, 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Cargo Roof Ribs & Colorful Truck-Art Inner Panel
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(-12, -6, 24, 26);
+    for (let ry = -2; ry <= 16; ry += 6) {
+        ctx.beginPath();
+        ctx.moveTo(-16, ry);
+        ctx.lineTo(16, ry);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.stroke();
+    }
+
+    // "HORN OK" Rear Signplate & Red Brake Tail-Lights
+    ctx.fillStyle = '#ffd700';
+    ctx.font = '900 6.5px Outfit';
+    ctx.textAlign = 'center';
+    ctx.fillText('HORN OK', 0, 26);
+
+    ctx.fillStyle = '#ff0044';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#ff0044';
+    ctx.fillRect(-15, 28, 7, 3);
+    ctx.fillRect(8, 28, 7, 3);
+
+    ctx.restore();
+}
+
+function drawWheel(x, y, w, h, angle, rimColor) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    // Rubber Tire
+    ctx.fillStyle = '#090b10';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(-w / 2, -h / 2, w, h, 2.5);
+    ctx.fill();
+    ctx.stroke();
+    // Glowing Alloy Rim Edge
+    ctx.fillStyle = rimColor;
+    ctx.fillRect(-w / 2 + 0.5, -h * 0.22, 1.5, h * 0.44);
+    ctx.fillRect(w / 2 - 2, -h * 0.22, 1.5, h * 0.44);
+    ctx.restore();
+}
+
 function drawPlayerCar() {
     const carCfg = VEHICLES[selectedCarKey] || VEHICLES.ghat800;
     ctx.save();
     ctx.translate(car.x, car.y);
     ctx.rotate(car.heading + car.driftAngle);
 
-    // Shield Aura
+    const primaryCol = nitroActiveTimer > 0
+        ? `hsl(${Math.floor((Date.now() * 0.6) % 360)}, 100%, 60%)`
+        : carCfg.color;
+    const secondaryCol = carCfg.secondary;
+
+    // 1. Shield Energy Bubble (if active)
     if (shields > 0 || shieldInvulnTimer > 0) {
         ctx.save();
-        ctx.strokeStyle = shieldInvulnTimer > 0 ? '#ffd700' : 'rgba(57, 255, 20, 0.38)';
+        ctx.strokeStyle = shieldInvulnTimer > 0 ? '#ffd700' : 'rgba(57, 255, 20, 0.35)';
         ctx.lineWidth = 2;
+        ctx.setLineDash([8, 6]);
         ctx.beginPath();
-        ctx.arc(0, 0, 26, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 24, 32, 0, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
     }
 
-    // Dual Headlight Beams cutting through the mountain night
-    const beamGrad = ctx.createLinearGradient(0, -18, 0, -135);
-    beamGrad.addColorStop(0, 'rgba(0, 243, 255, 0.32)');
+    // 2. Dual Volumetric Xenon Headlight Cones
+    const beamGrad = ctx.createLinearGradient(0, -24, 0, -155);
+    beamGrad.addColorStop(0, 'rgba(0, 243, 255, 0.34)');
+    beamGrad.addColorStop(0.6, 'rgba(0, 243, 255, 0.08)');
     beamGrad.addColorStop(1, 'rgba(0, 243, 255, 0)');
     ctx.fillStyle = beamGrad;
     ctx.beginPath();
-    ctx.moveTo(-10, -18);
-    ctx.lineTo(-42, -135);
-    ctx.lineTo(42, -135);
-    ctx.lineTo(10, -18);
+    ctx.moveTo(-12, -24);
+    ctx.lineTo(-48, -155);
+    ctx.lineTo(-4, -155);
+    ctx.lineTo(-5, -24);
+    ctx.moveTo(5, -24);
+    ctx.lineTo(4, -155);
+    ctx.lineTo(48, -155);
+    ctx.lineTo(12, -24);
     ctx.closePath();
     ctx.fill();
 
-    // Nitro Afterburner Flame
-    if (nitroActiveTimer > 0) {
-        ctx.fillStyle = '#00f3ff';
-        ctx.shadowBlur = 16;
-        ctx.shadowColor = '#00f3ff';
-        ctx.beginPath();
-        ctx.moveTo(-7, 20);
-        ctx.lineTo(0, 38 + Math.random() * 14);
-        ctx.lineTo(7, 20);
-        ctx.closePath();
-        ctx.fill();
+    // 3. Soft Neon Underglow Aura beneath Chassis
+    ctx.save();
+    const underGrad = ctx.createRadialGradient(0, 0, 4, 0, 0, 28);
+    underGrad.addColorStop(0, primaryCol);
+    underGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.globalAlpha = 0.32;
+    ctx.fillStyle = underGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 22, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 4. Twin Exhaust Turbo Backfire Flames (During Drift or Nitro)
+    if (nitroActiveTimer > 0 || Math.abs(car.driftAngle) > 0.2) {
+        const flameLen = nitroActiveTimer > 0 ? (20 + Math.random() * 14) : (8 + Math.random() * 8);
+        const flameCol = nitroActiveTimer > 0 ? '#00f3ff' : '#ff6600';
+        [-6, 6].forEach(ex => {
+            ctx.save();
+            ctx.fillStyle = flameCol;
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = flameCol;
+            ctx.beginPath();
+            ctx.moveTo(ex - 2.5, 25);
+            ctx.lineTo(ex, 25 + flameLen);
+            ctx.lineTo(ex + 2.5, 25);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        });
     }
 
-    // Vehicle Body
-    const bodyCol = nitroActiveTimer > 0
-        ? `hsl(${Math.floor((Date.now() * 0.6) % 360)}, 100%, 60%)`
-        : carCfg.color;
+    // Counter-steer angle for the front wheels!
+    const steerWheelAngle = Math.max(-0.48, Math.min(0.48, -car.driftAngle * 0.65));
 
-    ctx.fillStyle = '#0a0e1a';
-    ctx.strokeStyle = bodyCol;
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 16;
-    ctx.shadowColor = bodyCol;
+    // ========================================================================
+    // VEHICLE MODEL A: CYBER AUTO-3W (Authentic 3-Wheeler Rickshaw Silhouette)
+    // ========================================================================
+    if (selectedCarKey === 'auto3w') {
+        // Single Steerable Front Wheel + Dual Rear Wheels
+        drawWheel(0, -23, 5.5, 11, steerWheelAngle, primaryCol);
+        drawWheel(-14.5, 14, 6, 12, 0, primaryCol);
+        drawWheel(14.5, 14, 6, 12, 0, primaryCol);
 
+        // Front Mudguard & Fork Nose
+        ctx.fillStyle = '#ffd700';
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(-5, -27, 10, 11, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Sculpted Triangular-Front Rickshaw Body Chassis
+        ctx.fillStyle = '#141418';
+        ctx.strokeStyle = primaryCol;
+        ctx.lineWidth = 2.2;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = primaryCol;
+        ctx.beginPath();
+        ctx.moveTo(-7, -18);
+        ctx.lineTo(7, -18);
+        ctx.lineTo(14, -4);
+        ctx.lineTo(15, 21);
+        ctx.lineTo(-15, 21);
+        ctx.lineTo(-14, -4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Curved Front Driver Windshield & Handlebar Bar
+        ctx.fillStyle = 'rgba(0, 243, 255, 0.75)';
+        ctx.beginPath();
+        ctx.moveTo(-9, -14);
+        ctx.quadraticCurveTo(0, -18, 9, -14);
+        ctx.lineTo(11, -8);
+        ctx.lineTo(-11, -8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Yellow & Black Ribbed Canopy Roof
+        const roofGrad = ctx.createLinearGradient(-13, 0, 13, 0);
+        roofGrad.addColorStop(0, '#cca300');
+        roofGrad.addColorStop(0.5, '#ffe033');
+        roofGrad.addColorStop(1, '#cca300');
+        ctx.fillStyle = roofGrad;
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(-12.5, -7, 25, 25, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Canopy Seam Ribs
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+        ctx.lineWidth = 1.2;
+        [-1, 6, 13].forEach(ry => {
+            ctx.beginPath();
+            ctx.moveTo(-11.5, ry);
+            ctx.lineTo(11.5, ry);
+            ctx.stroke();
+        });
+
+        // Dual Round Chrome Headlamps + Rear Brake Lights
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-8.5, -16, 2.2, 0, Math.PI * 2);
+        ctx.arc(8.5, -16, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ff0044';
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#ff0044';
+        ctx.fillRect(-12, 20, 6, 2.5);
+        ctx.fillRect(6, 20, 6, 2.5);
+
+        ctx.restore();
+        return;
+    }
+
+    // ========================================================================
+    // VEHICLE MODEL B: HORN-OK RIG (Muscular 6-Wheel Racing Mountain Truck)
+    // ========================================================================
+    if (selectedCarKey === 'hornrig') {
+        drawWheel(-16.5, -15, 6, 11, steerWheelAngle, primaryCol);
+        drawWheel(16.5, -15, 6, 11, steerWheelAngle, primaryCol);
+        drawWheel(-17, 8, 6.5, 11, 0, primaryCol);
+        drawWheel(17, 8, 6.5, 11, 0, primaryCol);
+        drawWheel(-17, 19, 6.5, 11, 0, primaryCol);
+        drawWheel(17, 19, 6.5, 11, 0, primaryCol);
+
+        // Chrome Front Bullbar
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-15, -26);
+        ctx.lineTo(15, -26);
+        ctx.stroke();
+
+        // Muscular Cab + Rear Bed Silhouette
+        const rigGrad = ctx.createLinearGradient(-16, 0, 16, 0);
+        rigGrad.addColorStop(0, '#0b2912');
+        rigGrad.addColorStop(0.5, '#194d25');
+        rigGrad.addColorStop(1, '#0b2912');
+        ctx.fillStyle = rigGrad;
+        ctx.strokeStyle = primaryCol;
+        ctx.lineWidth = 2.4;
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = primaryCol;
+        ctx.beginPath();
+        ctx.roundRect(-15.5, -24, 31, 49, 5);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Cab Windshield & Dual Chrome Roof Horns
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(-12, -20, 24, 6);
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(-9, -13, 3, 6);
+        ctx.fillRect(6, -13, 3, 6);
+
+        // Decorated Orange/Gold Truck Art Cargo Deck
+        ctx.fillStyle = secondaryCol;
+        ctx.fillRect(-12, -4, 24, 25);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-10, -2, 20, 21);
+
+        ctx.fillStyle = '#ff0044';
+        ctx.fillRect(-13, 23, 7, 3);
+        ctx.fillRect(6, 23, 7, 3);
+
+        ctx.restore();
+        return;
+    }
+
+    // ========================================================================
+    // VEHICLE MODELS C & D: GHAT 800 GT & TOUGE SUPRA X (Sculpted Sports Cars)
+    // ========================================================================
+    const isSupra = selectedCarKey === 'suprax';
+
+    // 4 Protruding Rubber Tires (Front wheels visibly counter-steer!)
+    drawWheel(-15.5, -14.5, 6, 12, steerWheelAngle, primaryCol);
+    drawWheel(15.5, -14.5, 6, 12, steerWheelAngle, primaryCol);
+    drawWheel(-16.2, 14.5, 6.8, 13, 0, primaryCol);
+    drawWheel(16.2, 14.5, 6.8, 13, 0, primaryCol);
+
+    // Front Carbon Aero Splitter Lip
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = primaryCol;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.roundRect(-13, -22, 26, 44, 7);
+    ctx.moveTo(-11, -25);
+    ctx.quadraticCurveTo(0, -28.5, 11, -25);
+    ctx.lineTo(13, -22);
+    ctx.lineTo(-13, -22);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Windshield & Roof Racing Stripe
-    ctx.fillStyle = carCfg.secondary;
-    ctx.fillRect(-4, -20, 8, 40);
-    ctx.fillStyle = 'rgba(0, 243, 255, 0.75)';
-    ctx.fillRect(-9, -10, 18, 9);
+    // Sculpted Hourglass Sports Car Body (Flared Fenders + Pinched Doors)
+    const bodyGrad = ctx.createLinearGradient(-16, 0, 16, 0);
+    bodyGrad.addColorStop(0, '#091326');
+    bodyGrad.addColorStop(0.25, isSupra ? '#3b0a2c' : '#0f2942');
+    bodyGrad.addColorStop(0.5, isSupra ? '#611046' : '#163e63');
+    bodyGrad.addColorStop(0.75, isSupra ? '#3b0a2c' : '#0f2942');
+    bodyGrad.addColorStop(1, '#091326');
 
-    // Glowing Rear Brake / Drift Tail-Lights
-    ctx.fillStyle = '#ff0055';
+    ctx.fillStyle = bodyGrad;
+    ctx.strokeStyle = primaryCol;
+    ctx.lineWidth = 2.4;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = primaryCol;
+
+    ctx.beginPath();
+    ctx.moveTo(-9, -25);               // Front left nose corner
+    ctx.quadraticCurveTo(0, -27, 9, -25); // Curved front bumper
+    ctx.lineTo(14.5, -19);             // Front-right fender flare start
+    ctx.lineTo(15, -10);               // Front-right wheel arch
+    ctx.lineTo(12.5, -2);              // Pinched right door waist
+    ctx.lineTo(13, 7);                 // Rear-right intake flare
+    ctx.lineTo(15.5, 12);              // Rear-right widebody arch
+    ctx.lineTo(14.5, 22);              // Rear-right quarter panel
+    ctx.lineTo(10, 25);                // Rear-right bumper corner
+    ctx.lineTo(-10, 25);               // Rear-left bumper corner
+    ctx.lineTo(-14.5, 22);             // Rear-left quarter panel
+    ctx.lineTo(-15.5, 12);             // Rear-left widebody arch
+    ctx.lineTo(-13, 7);                // Rear-left intake flare
+    ctx.lineTo(-12.5, -2);             // Pinched left door waist
+    ctx.lineTo(-15, -10);              // Front-left wheel arch
+    ctx.lineTo(-14.5, -19);            // Front-left fender flare
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Dual Center Racing Stripes along Hood & Trunk
+    ctx.fillStyle = secondaryCol;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(-4.5, -24.5, 3, 48);
+    ctx.fillRect(1.5, -24.5, 3, 48);
+    ctx.globalAlpha = 1.0;
+
+    // Sculpted Hood Lines & Vents
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-8, -23); ctx.lineTo(-10, -11);
+    ctx.moveTo(8, -23);  ctx.lineTo(10, -11);
+    ctx.stroke();
+
+    // Hood Air Scoop / Intercooler Vent
+    ctx.fillStyle = '#05070e';
+    ctx.beginPath();
+    ctx.moveTo(-5, -18);
+    ctx.lineTo(5, -18);
+    ctx.lineTo(6.5, -14);
+    ctx.lineTo(-6.5, -14);
+    ctx.closePath();
+    ctx.fill();
+
+    // Protruding Side Wing Mirrors (Left & Right)
+    ctx.fillStyle = primaryCol;
+    ctx.beginPath();
+    ctx.moveTo(-12.5, -7); ctx.lineTo(-17.5, -5.5); ctx.lineTo(-16.5, -3.5); ctx.lineTo(-12.5, -4.5);
+    ctx.moveTo(12.5, -7);  ctx.lineTo(17.5, -5.5);  ctx.lineTo(16.5, -3.5);  ctx.lineTo(12.5, -4.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Wrap-Around Angled Front Windshield Glass
+    const glassGrad = ctx.createLinearGradient(-10, -11, 10, -2);
+    glassGrad.addColorStop(0, '#0f172a');
+    glassGrad.addColorStop(0.45, '#38bdf8');
+    glassGrad.addColorStop(1, '#0c192c');
+    ctx.fillStyle = glassGrad;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-9.5, -11);
+    ctx.quadraticCurveTo(0, -12.5, 9.5, -11);
+    ctx.lineTo(11, -3.5);
+    ctx.quadraticCurveTo(0, -4.5, -11, -3.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Cockpit Roof Panel
+    ctx.fillStyle = '#0b1324';
+    ctx.strokeStyle = primaryCol;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.roundRect(-9.5, -3.5, 19, 12, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    // Fastback Rear Window with GT Louvers
+    ctx.fillStyle = '#09101d';
+    ctx.beginPath();
+    ctx.moveTo(-9, 9);
+    ctx.lineTo(9, 9);
+    ctx.lineTo(7.5, 17.5);
+    ctx.lineTo(-7.5, 17.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.lineWidth = 1;
+    [11.5, 14, 16.2].forEach(ly => {
+        ctx.beginPath();
+        ctx.moveTo(-7.5, ly);
+        ctx.lineTo(7.5, ly);
+        ctx.stroke();
+    });
+
+    // Rear GT Wing Spoiler Mounted on Struts
+    ctx.fillStyle = '#05070d';
+    ctx.strokeStyle = isSupra ? '#00f3ff' : primaryCol;
+    ctx.lineWidth = 1.8;
+    ctx.fillRect(-6.5, 19.5, 2, 3.5);
+    ctx.fillRect(4.5, 19.5, 2, 3.5);
+    ctx.beginPath();
+    ctx.roundRect(-14.5, 21, 29, 4, 1.5);
+    ctx.fill();
+    ctx.stroke();
+
+    // Angled Xenon Headlight Lenses (Front)
+    ctx.fillStyle = '#ffffff';
     ctx.shadowBlur = 10;
-    ctx.shadowColor = '#ff0055';
-    ctx.fillRect(-11, 19, 7, 3);
-    ctx.fillRect(4, 19, 7, 3);
+    ctx.shadowColor = '#00f3ff';
+    ctx.beginPath();
+    ctx.moveTo(-12.5, -21); ctx.lineTo(-7.5, -23.5); ctx.lineTo(-8, -20.5); ctx.closePath();
+    ctx.moveTo(12.5, -21);  ctx.lineTo(7.5, -23.5);  ctx.lineTo(8, -20.5);  ctx.closePath();
+    ctx.fill();
+
+    // Glowing LED Afterburner Tail-Light Bar (Rear)
+    ctx.fillStyle = '#ff0044';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#ff0044';
+    ctx.fillRect(-12.5, 23.5, 8.5, 2.5);
+    ctx.fillRect(4, 23.5, 8.5, 2.5);
 
     ctx.restore();
 }
