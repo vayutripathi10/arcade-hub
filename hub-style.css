@@ -2738,3 +2738,149 @@ body {
         font-size: 0.82rem;
     }
 }
+
+/* Top-Bar Compact Colorful Festival Pill (same size as Curated Browser Gaming Platform pill) */
+.top-utility-right {
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.hero-live-card.topbar-festival-pill {
+    display: inline-flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+    padding: 6px 14px !important;
+    border-radius: 999px !important;
+    width: auto;
+    min-width: 0;
+    grid-column: auto !important;
+    background: linear-gradient(120deg, rgba(245, 158, 11, 0.28) 0%, rgba(236, 72, 153, 0.26) 50%, rgba(124, 58, 237, 0.3) 100%) !important;
+    border: 1px solid rgba(251, 191, 36, 0.52) !important;
+    box-shadow: 0 0 18px rgba(236, 72, 153, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    transition: opacity 0.35s ease, transform 0.35s ease, max-width 0.35s ease, padding 0.35s ease;
+}
+
+.hero-live-card.topbar-festival-pill.is-dismissing {
+    opacity: 0;
+    transform: scale(0.92);
+    max-width: 0;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-width: 0 !important;
+}
+
+.topbar-festival-pill .festival-icon {
+    font-size: 0.92rem;
+    line-height: 1;
+}
+
+.topbar-festival-pill .festival-name {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    background: linear-gradient(90deg, #fef08a 0%, #f9a8d4 55%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+}
+
+.topbar-festival-pill .festival-countdown {
+    margin-top: 0;
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #fef3c7;
+    background: rgba(245, 158, 11, 0.32);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    padding: 1px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.topbar-festival-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 768px) {
+    html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    .top-utility-bar {
+        flex-wrap: wrap !important;
+        row-gap: 6px;
+        padding: 4px 0 10px 48px !important;
+    }
+
+    .top-brand-mobile {
+        order: 1;
+    }
+
+    .top-utility-right {
+        display: contents;
+    }
+
+    .hero-live-card.topbar-weather-pill {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .hero-live-card.topbar-festival-pill {
+        order: 3;
+        display: inline-flex !important;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        margin: 2px auto 0 auto;
+        padding: 5px 10px !important;
+        border-radius: 12px !important;
+        max-width: calc(100vw - 32px);
+    }
+
+    .topbar-festival-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        line-height: 1.15;
+        gap: 1px;
+        min-width: 0;
+    }
+
+    .hero-live-card.topbar-festival-pill.is-dismissing {
+        margin-top: 0;
+        max-height: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    .topbar-festival-pill .festival-icon {
+        font-size: 1.1rem;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .topbar-festival-pill .festival-name {
+        font-size: 0.64rem;
+        font-weight: 700;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .topbar-festival-pill .festival-countdown {
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 0;
+        background: transparent;
+        border: none;
+        color: #fef08a;
+        flex-shrink: 0;
+    }
+}

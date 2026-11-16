@@ -236,7 +236,6 @@
                     <div class="fs-overlay-bar" id="fs-overlay-bar">
                         <span class="fs-now-playing" id="fs-now-playing">Sonora Fullscreen</span>
                         <div class="fs-overlay-actions">
-                            <button type="button" class="fs-btn" id="fs-pip-btn" title="Picture-in-Picture" aria-label="Picture-in-Picture">📺 <span>PiP</span></button>
                             <button type="button" class="fs-btn" id="fs-next-btn" title="Play next in queue">⏭️ <span>Next</span></button>
                             <button type="button" class="fs-btn" id="fs-reload-btn" title="Reload player">🔄</button>
                             <button type="button" class="fs-btn fs-exit-btn" id="fs-exit-btn" title="Exit Fullscreen">✕ <span>Exit</span></button>
@@ -275,6 +274,7 @@
                                 <span id="audio-deck-status-text">PURE AUDIO MODE</span>
                             </div>
                             <div class="audio-deck-top-actions">
+                                <button type="button" class="audio-icon-btn" id="audio-share-btn" title="Share Song Link" aria-label="Share Song Link">🔗</button>
                                 <button type="button" class="audio-icon-btn" id="audio-fav-btn" title="Save to Favorites" aria-label="Save to Favorites">🤍</button>
                             </div>
                         </div>
@@ -350,8 +350,8 @@
                         <button class="toolbar-btn" id="fullscreen-btn" title="Play Fullscreen on any device">
                             ⛶ <span>Full</span>
                         </button>
-                        <button class="toolbar-btn" id="pip-btn" title="Picture-in-Picture (Floating Video)" aria-label="Picture-in-Picture">
-                            📺 <span>PiP</span>
+                        <button class="toolbar-btn" id="share-track-btn" title="Copy or Share direct Sonora song link">
+                            🔗 <span>Share</span>
                         </button>
                         <button class="toolbar-btn" id="min-video-btn" title="Toggle Mini Player (Floating Picture-in-Picture on desktop, compact view on mobile)">
                             🗗 <span>Mini</span>
@@ -613,7 +613,7 @@
     <!-- Scripts -->
     <script src="shared/ambient-geo.js?v=1"></script>
     <script src="shared/device-experience.js?v=2" defer></script>
-    <script src="sonora-frontend/sonora.js?v=40"></script>
+    <script src="sonora-frontend/sonora.js?v=43"></script>
     <script src="shared/pwa-setup.js?v=326"></script>
 </body>
 </html>
