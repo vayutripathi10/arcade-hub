@@ -281,12 +281,16 @@
             </div>
             <div class="header-center">
                 <div class="hud-pill">
+                    <span class="pill-label">Stage</span>
+                    <span id="ui-stage" class="pill-value" style="color:#00ffcc;">1</span>
+                </div>
+                <div class="hud-pill">
                     <span class="pill-label">Score</span>
                     <span id="ui-score" class="pill-value">0</span>
                 </div>
-                <div class="hud-pill">
-                    <span class="pill-label">Time</span>
-                    <span id="ui-time" class="pill-value">30</span>
+                <div class="hud-pill fuel-pill">
+                    <span class="pill-label">⛽ Petrol</span>
+                    <span id="ui-time" class="pill-value">100%</span>
                 </div>
             </div>
             <div class="header-right">
@@ -329,7 +333,7 @@
             </div>
 
             <div id="gameOverMenu" class="menu-overlay hidden">
-                <h1 id="go-title">OUT OF TIME!</h1>
+                <h1 id="go-title">OUT OF PETROL!</h1>
                 <div class="go-stats">
                     <p>FINAL SCORE: <span id="go-score">0</span></p>
                     <p>HIGH SCORE: <span id="go-best">0</span></p>
@@ -357,16 +361,17 @@
         <div class="modal-content">
             <h2>HOW TO PLAY</h2>
             <ul>
-                <li>Drive as far as you can before the <b>Timer</b> hits 0.</li>
-                <li>Dodge the <b>Blue Traffic Cars</b> to avoid losing your 3 Lives!</li>
-                <li>Hit the <b>Yellow Petrol Trucks</b> to replenish your Time!</li>
+                <li>Drive into glowing <b>⛽ PETROL Trucks</b> to refill your fuel tank!</li>
+                <li><b>Stage 1 Goal:</b> Catch both <b>Petrol Trucks (2/2)</b> &mdash; missing one means you won't have enough fuel to reach the finish line!</li>
+                <li>If your <b>Petrol hits 0%</b>, your car will sputter, slow down, and stop on the highway!</li>
+                <li>Dodge the <b>Enemy Traffic Cars</b> to protect your 3 Lives.</li>
             </ul>
             <button id="btn-close-htp" class="arcade-btn">GOT IT</button>
         </div>
     </div>
 
     <script src="../shared/achievements.js"></script>
-    <script src="script.js?v=ArcadeHub_Racing_Juiced_v3"></script>
+    <script src="script.js?v=ArcadeHub_Racing_Petrol_v4"></script>
     <script>
         const wakeUpAudio = () => {
             if (window.audioFX && typeof window.audioFX.init === 'function') {

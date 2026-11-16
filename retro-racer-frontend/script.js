@@ -55,11 +55,36 @@ class AudioFX {
 
     playEat() {
         if (!this.enabled) return; this.init(); if (!this.ctx) return;
-        const { osc, gain } = this.createOscillator(523.25, 'square');
         const now = this.ctx.currentTime;
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-        osc.start(now); osc.stop(now + 0.2);
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+            const { osc, gain } = this.createOscillator(freq, 'square');
+            gain.gain.setValueAtTime(0.32, now + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.06 + 0.16);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.17);
+        });
+    }
+
+    playPetrolAlert() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [660, 880].forEach((freq, i) => {
+            const { osc, gain } = this.createOscillator(freq, 'triangle');
+            gain.gain.setValueAtTime(0.22, now + i * 0.11);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.11 + 0.1);
+            osc.start(now + i * 0.11);
+            osc.stop(now + i * 0.11 + 0.11);
+        });
+    }
+
+    playLowFuelBeep() {
+        if (!this.enabled) return; this.init(); if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const { osc, gain } = this.createOscillator(240, 'sawtooth');
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.13);
     }
 
     playGameOver() {
@@ -134,6 +159,7 @@ window.audioFX = new AudioFX();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+const uiStage = document.getElementById('ui-stage');
 const uiScore = document.getElementById('ui-score');
 const uiLives = document.getElementById('ui-lives');
 const uiTime = document.getElementById('ui-time');
@@ -366,7 +392,7 @@ function initUI() {
 }
 
 // Input handling
-const keys = { ArrowLeft: false, ArrowRight: false };
+const keys = { ArrowLeft: false, ArrowRight: false, KeyA: false, KeyD: false };
 window.addEventListener('keydown', e => {
     if (keys.hasOwnProperty(e.code)) keys[e.code] = true;
     if (e.code === 'Escape' && gameState === 'playing') togglePause();
@@ -384,7 +410,62 @@ canvas.addEventListener('touchmove', e => {
     player.x += (currentX - touchX) * 1.5;
     touchX = currentX;
 }, {passive:false});
-canvas.addEventListener('touchend', () => { touchX = null; });
+canvas.addE// Stage & Fuel Alignment Globals
+let fuel = 100; // 0 to 100%
+let fuelDrainPerUnit = 0.06;
+let petrolSchedule = [];
+let nextPetrolIndex = 0;
+let requiredPetrolCount = 2;
+let totalStagePetrolCount = 2;
+let collectedPetrolThisStage = 0;
+let missedPetrolThisStage = 0;
+let outOfFuelStopTimer = 0;
+let lowFuelBeepTimer = 0;
+const PETROL_REFILL_AMOUNT = 46; // +46% fuel per Petrol Truck
+
+function configureStageFuelAndSchedule(stage) {
+    currentStage = stage;
+    stageDistanceTarget = 2600 + (stage - 1) * 600;
+    runDistance = 0;
+    finishLineY = -1;
+    finishedStage = false;
+    obstacles = [];
+    outOfFuelStopTimer = 0;
+    collectedPetrolThisStage = 0;
+    missedPetrolThisStage = 0;
+    nextPetrolIndex = 0;
+
+    // Stage 1: Give exactly 2 Petrol Trucks; player MUST collect both (2/2) to finish Stage 1!
+    // Stage 2+: Give requiredPetrolCount + 1 extra backup Petrol Truck!
+    if (stage === 1) {
+        requiredPetrolCount = 2;
+        totalStagePetrolCount = 2;
+    } else {
+        requiredPetrolCount = 2 + Math.floor((stage - 1) / 2);
+        totalStagePetrolCount = requiredPetrolCount + 1; // +1 extra truck in Stage 2+
+    }
+
+    // Always start each stage with a full 100% Fuel Tank
+    fuel = 100;
+
+    // Calculate fuel drain rate so that:
+    // - Collecting (requiredPetrolCount - 1) trucks leaves the player ~18% short of the finish line (car slows & stops!).
+    // - Collecting requiredPetrolCount trucks lets the player cross the finish line with ~22% fuel to spare!
+    const totalFuelNeededForStage = 100 + (requiredPetrolCount * PETROL_REFILL_AMOUNT) - 24;
+    fuelDrainPerUnit = totalFuelNeededForStage / stageDistanceTarget;
+
+    // Schedule Petrol Trucks at evenly spaced distance milestones along the stage
+    petrolSchedule = [];
+    if (stage === 1) {
+        petrolSchedule.push(stageDistanceTarget * 0.30);
+        petrolSchedule.push(stageDistanceTarget * 0.64);
+    } else {
+        for (let i = 0; i < totalStagePetrolCount; i++) {
+            const frac = (i + 0.65) / (totalStagePetrolCount + 0.45);
+            petrolSchedule.push(stageDistanceTarget * frac);
+        }
+    }
+}
 
 function initGame() {
     if (!assetsLoaded) {
@@ -395,98 +476,162 @@ function initGame() {
         document.getElementById('btn-pause').classList.remove('hidden');
         return;
     }
-    score = 0; lives = 3; timer = 30; timeAccumulator = 0; speed = 60; runDistance = 0;
-    obstacles = []; particles = []; floatingTexts = []; roadOffset = 0;
-    screenShake = 0; flashColor = null; flashDuration = 0; speedLines = [];
-    currentStage = 1; stageDistanceTarget = 2800; finishLineY = -1; finishedStage = false;
-    
+    score = 0;
+    lives = 3;
+    speed = 65;
+    particles = [];
+    floatingTexts = [];
+    roadOffset = 0;
+    screenShake = 0;
+    flashColor = null;
+    flashDuration = 0;
+    speedLines = [];
+
+    configureStageFuelAndSchedule(1);
+    timer = Math.ceil(fuel);
+
     player.x = canvas.width / 2;
     player.y = canvas.height - 150;
-    
+
     updateHUD();
     mainMenu.classList.add('hidden');
     gameOverMenu.classList.add('hidden');
     pauseMenu.classList.add('hidden');
     document.getElementById('btn-pause').classList.remove('hidden');
-    
+
     gameState = 'playing';
     if (window.audioFX) {
         window.audioFX.init();
-        window.audioFX.playJump(); // Start sound
+        window.audioFX.playJump();
         if (window.audioFX.startEngine) window.audioFX.startEngine();
     }
     lastTime = performance.now();
 }
 
 function startNextStage() {
-    stageDistanceTarget += 600;
-    runDistance = 0;
-    timer += 20;
-    finishLineY = -1;
-    finishedStage = false;
-    obstacles = [];
+    configureStageFuelAndSchedule(currentStage);
+    speed = Math.max(speed, 75);
     gameState = 'playing';
     if (window.audioFX && window.audioFX.startEngine) window.audioFX.startEngine();
     lastTime = performance.now();
     updateHUD();
 }
 
-function spawnObstacle() {
-    for (const obs of obstacles) { if (obs.active && obs.y < 50) return; }
-    const isPetrol = Math.random() < Math.max(0.04, 0.1 - (currentStage * 0.01));
+function spawnScheduledPetrolTruck() {
+    const lanes = 3;
+    const laneWidth = roadWidth / lanes;
+
+    // Pick a lane that isn't blocked by a nearby enemy car at the top
+    const candidateLanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+    let chosenLane = candidateLanes[0];
+    for (const ln of candidateLanes) {
+        const laneCenterX = grassWidth + ln * laneWidth + laneWidth / 2;
+        const blocked = obstacles.some(o => o.active && o.y < 160 && Math.abs(o.x - laneCenterX) < laneWidth * 0.6);
+        if (!blocked) {
+            chosenLane = ln;
+            break;
+        }
+    }
+
+    const x = grassWidth + (chosenLane * laneWidth) + (laneWidth / 2);
+    // Clear any overlapping enemy at spawn height so petrol truck is never hidden inside an enemy car
+    obstacles.forEach(o => {
+        if (o.active && o.type === 'enemy' && o.y < 80 && Math.abs(o.x - x) < laneWidth * 0.7) {
+            o.active = false;
+        }
+    });
+
+    obstacles.push({
+        type: 'petrol',
+        lane: chosenLane,
+        x: x,
+        y: -110,
+        w: 40,
+        h: 76,
+        vx: 0,
+        speed: 35,
+        active: true,
+        crashed: false
+    });
+
+    if (window.audioFX && window.audioFX.playPetrolAlert) {
+        window.audioFX.playPetrolAlert();
+    }
+    spawnFloatingText(canvas.width / 2, 115, '⛽ PETROL TRUCK AHEAD! HIT IT!', '#00ffcc');
+}
+
+function spawnEnemyObstacle() {
+    for (const obs of obstacles) {
+        if (obs.active && obs.y < 65) return;
+    }
     const lanes = 3;
     const laneWidth = roadWidth / lanes;
     const lane = Math.floor(Math.random() * lanes);
-    const varianceMultiplier = isPetrol ? 0.3 : 0.85; 
-    const variance = (Math.random() - 0.5) * (laneWidth * varianceMultiplier);
+    const variance = (Math.random() - 0.5) * (laneWidth * 0.65);
     const x = grassWidth + (lane * laneWidth) + (laneWidth / 2) + variance;
-    
+
+    // Do not spawn an enemy right on top of an active petrol truck
+    const nearPetrol = obstacles.some(o => o.active && o.type === 'petrol' && o.y < 180 && Math.abs(o.x - x) < laneWidth * 0.85);
+    if (nearPetrol) return;
+
     let vx = 0;
-    if (!isPetrol && currentStage >= 2 && Math.random() < 0.4) {
-        vx = (Math.random() > 0.5 ? 1 : -1) * (30 + (currentStage * 15));
+    if (currentStage >= 2 && Math.random() < 0.35) {
+        vx = (Math.random() > 0.5 ? 1 : -1) * (25 + (currentStage * 12));
     }
-    
+
     obstacles.push({
-        type: isPetrol ? 'petrol' : 'enemy',
-        x: x, y: -100, w: 35, h: 70, vx: vx,
-        speed: speed * 0.4 + (Math.random() * 20) + (currentStage * 5),
-        active: true, crashed: false
+        type: 'enemy',
+        x: x,
+        y: -100,
+        w: 35,
+        h: 70,
+        vx: vx,
+        speed: speed * 0.38 + (Math.random() * 18) + (currentStage * 4),
+        active: true,
+        crashed: false
     });
 }
 
 function updateHUD() {
+    if (uiStage) uiStage.textContent = currentStage;
     uiScore.textContent = Math.floor(score);
     uiLives.textContent = lives;
-    uiTime.textContent = timer;
+    const fuelPct = Math.max(0, Math.ceil(fuel));
+    timer = fuelPct;
+    uiTime.textContent = fuelPct + '%';
     uiSpeed.textContent = Math.floor(speed);
-    
-    if (timer <= 10) uiTime.style.color = '#ff0055';
-    else uiTime.style.color = '#ffd700';
-    
+
+    if (fuelPct <= 25) uiTime.style.color = '#ff0055';
+    else if (fuelPct <= 50) uiTime.style.color = '#ffaa00';
+    else uiTime.style.color = '#00ffcc';
+
     const pFill = document.getElementById('ui-progress-fill');
     if (pFill) {
         let pct = Math.min(100, Math.max(0, (runDistance / stageDistanceTarget) * 100));
-        pFill.style.width = pct + "%";
+        pFill.style.width = pct + '%';
     }
 }
 
-function gameOver() {
+function gameOver(reasonText) {
     gameState = 'gameover';
     document.getElementById('btn-pause').classList.add('hidden');
     if (window.audioFX && window.audioFX.stopEngine) window.audioFX.stopEngine();
-    
+
     const bestKey = 'retroRacerBest';
     let best = parseInt(localStorage.getItem(bestKey)) || 0;
-    if (score > best) { best = Math.floor(score); localStorage.setItem(bestKey, best); }
-    
+    if (score > best) {
+        best = Math.floor(score);
+        localStorage.setItem(bestKey, best);
+    }
+
     document.getElementById('go-score').textContent = Math.floor(score);
     document.getElementById('go-best').textContent = best;
-    document.getElementById('go-title').textContent = (lives <= 0) ? "CRASHED OUT!" : "OUT OF TIME!";
-    
+    document.getElementById('go-title').textContent = reasonText || ((lives <= 0) ? 'CRASHED OUT!' : 'OUT OF PETROL!');
+
     if (score > 5000 && window.achievements) window.achievements.unlock('racer', 'score_5000', 'Speed Demon');
-    
+
     gameOverMenu.classList.remove('hidden');
-    if (window.audioFX && window.audioFX.playExplosion) window.audioFX.playExplosion();
+    if (window.audioFX && window.audioFX.playGameOver) window.audioFX.playGameOver();
 }
 
 function togglePause() {
@@ -503,36 +648,95 @@ function togglePause() {
 }
 
 function update(deltaTime) {
-    // Decay screen shake and flash duration globally
     if (screenShake > 0) screenShake -= deltaTime * 0.5;
     if (flashDuration > 0) flashDuration -= deltaTime;
-    
+
     if (gameState !== 'playing') return;
-    
-    // dt was in ms, deltaTime is normalized (1.0 = 16.67ms)
-    const dtSeconds = deltaTime * 0.01667; 
-    
-    const maxSpeed = Math.min(250, 150 + (currentStage * 20));
-    speed = Math.min(maxSpeed, 60 + (score / 100));
-    if (window.audioFX && window.audioFX.updateEngine) window.audioFX.updateEngine(speed);
-    
-    if (keys.ArrowLeft) player.x -= 5.0 * deltaTime; // 300/60 approx
-    if (keys.ArrowRight) player.x += 5.0 * deltaTime;
-    
-    if (player.x < grassWidth + player.w/2) player.x = grassWidth + player.w/2;
-    if (player.x > canvas.width - grassWidth - player.w/2) player.x = canvas.width - grassWidth - player.w/2;
-    
-    const scrollAmount = speed * (deltaTime / 6.0); // Adjust to maintain original feel
+
+    const dtSeconds = deltaTime * 0.01667;
+    const maxSpeed = Math.min(230, 140 + (currentStage * 18));
+
+    // Speed & Fuel Physics:
+    // If fuel > 0, accelerate up to cruising speed (or slightly reduced power when fuel <= 20%).
+    // If fuel <= 0, the engine sputters and the car gradually slows down and stops!
+    if (fuel > 0) {
+        outOfFuelStopTimer = 0;
+        const lowFuelFactor = fuel <= 20 ? 0.78 : 1.0;
+        const targetSpd = Math.min(maxSpeed, 95 + (score / 120)) * lowFuelFactor;
+        speed += (targetSpd - speed) * 0.08 * deltaTime;
+
+        if (fuel <= 22) {
+            lowFuelBeepTimer += dtSeconds;
+            if (lowFuelBeepTimer >= 1.1) {
+                lowFuelBeepTimer = 0;
+                if (window.audioFX && window.audioFX.playLowFuelBeep) window.audioFX.playLowFuelBeep();
+            }
+        }
+    } else {
+        // Out of petrol: gradually decelerate to 0 MPH!
+        fuel = 0;
+        speed = Math.max(0, speed - 34 * dtSeconds);
+
+        // Sputtering dark exhaust smoke while slowing down
+        if (speed > 2 && Math.random() < 0.35 * deltaTime) {
+            particles.push({
+                x: player.x + (Math.random() - 0.5) * 16,
+                y: player.y + player.h / 2,
+                vx: (Math.random() - 0.5) * 2,
+                vy: 1.5 + Math.random() * 1.5,
+                life: 0.9,
+                color: 'rgba(90, 90, 90, 0.65)',
+                size: Math.random() * 6 + 4
+            });
+        }
+
+        if (speed <= 0.8) {
+            speed = 0;
+            outOfFuelStopTimer += dtSeconds;
+            if (outOfFuelStopTimer >= 0.85) {
+                gameOver('OUT OF PETROL!');
+                return;
+            }
+        }
+    }
+
+    if (window.audioFX && window.audioFX.updateEngine) {
+        window.audioFX.updateEngine(speed);
+    }
+
+    // Steering responsiveness scales so a completely stopped car cannot slide sideways across lanes
+    const steerRatio = Math.min(1, Math.max(0.15, speed / 55));
+    if (keys.ArrowLeft || keys.KeyA) player.x -= 5.2 * steerRatio * deltaTime;
+    if (keys.ArrowRight || keys.KeyD) player.x += 5.2 * steerRatio * deltaTime;
+
+    if (player.x < grassWidth + player.w / 2) player.x = grassWidth + player.w / 2;
+    if (player.x > canvas.width - grassWidth - player.w / 2) player.x = canvas.width - grassWidth - player.w / 2;
+
+    const scrollAmount = speed * (deltaTime / 6.0);
     roadOffset += scrollAmount;
-    runDistance += 100 * dtSeconds; // Constant stage progress rate (100 units/second), independent of speed
-    
-    // Spawn finish line 80 units of distance early so it rolls down naturally at 1:1 speed with the road
+
+    // Distance advances proportional to actual car speed!
+    const distDelta = (speed / 95) * 105 * dtSeconds;
+    runDistance += distDelta;
+
+    // Drain fuel proportional to distance traveled
+    if (fuel > 0 && !finishedStage) {
+        fuel = Math.max(0, fuel - distDelta * fuelDrainPerUnit);
+    }
+
+    // Check Scheduled Petrol Truck Spawns for this Stage
+    if (nextPetrolIndex < petrolSchedule.length && runDistance >= petrolSchedule[nextPetrolIndex]) {
+        nextPetrolIndex++;
+        spawnScheduledPetrolTruck();
+    }
+
+    // Spawn finish line 80 units of distance early so it rolls down naturally with the road
     if (runDistance >= stageDistanceTarget - 80 && !finishedStage) {
         if (finishLineY === -1) {
-            finishLineY = player.y - 800; // Start off-screen top (approx -250px)
+            finishLineY = player.y - 800;
         }
         finishLineY += scrollAmount;
-        
+
         if (finishLineY > player.y && !finishedStage) {
             finishedStage = true;
             gameState = 'stage_clear';
@@ -546,61 +750,81 @@ function update(deltaTime) {
             }, 2000);
             return;
         }
-    } else {
-        if (Math.random() < (0.02 + (speed / 10000))) spawnObstacle();
+    } else if (speed > 25) {
+        if (Math.random() < (0.018 + (speed / 12000))) spawnEnemyObstacle();
     }
-    
+
     for (let i = obstacles.length - 1; i >= 0; i--) {
         let obs = obstacles[i];
-        if (!obs.active) { obstacles.splice(i, 1); continue; }
-        obs.y += speed * 0.05 * deltaTime; // Balanced to original speed * 3 * (dt/1000)
-        if (obs.y > canvas.height + 100) obs.active = false;
+        if (!obs.active) {
+            obstacles.splice(i, 1);
+            continue;
+        }
+        // Obstacles move down screen based on road scroll speed
+        const relScroll = obs.type === 'petrol'
+            ? Math.max(1.6, speed * 0.038) * deltaTime
+            : Math.max(1.2, speed * 0.048) * deltaTime;
+        obs.y += relScroll;
+
+        if (obs.y > canvas.height + 90) {
+            if (obs.type === 'petrol' && !obs.crashed) {
+                missedPetrolThisStage++;
+                spawnFloatingText(canvas.width / 2, player.y - 60, '⚠️ MISSED PETROL TRUCK!', '#ff3355');
+            }
+            obs.active = false;
+            continue;
+        }
+
         if (obs.vx) {
             obs.x += obs.vx * dtSeconds;
             if (obs.x < grassWidth + obs.w) { obs.x = grassWidth + obs.w; obs.vx *= -1; }
             if (obs.x > canvas.width - grassWidth - obs.w) { obs.x = canvas.width - grassWidth - obs.w; obs.vx *= -1; }
         }
+
         if (!obs.crashed) {
-            const padding = 10;
-            if (Math.abs(player.x - obs.x) < (player.w/2 + obs.w/2 - padding) &&
-                Math.abs(player.y - obs.y) < (player.h/2 + obs.h/2 - padding)) {
+            const padding = obs.type === 'petrol' ? 4 : 10; // Generous hitbox for collecting Petrol Trucks
+            if (Math.abs(player.x - obs.x) < (player.w / 2 + obs.w / 2 - padding) &&
+                Math.abs(player.y - obs.y) < (player.h / 2 + obs.h / 2 - padding)) {
                 obs.crashed = true;
                 if (obs.type === 'enemy') {
                     lives--;
                     if (window.audioFX && window.audioFX.playExplosion) window.audioFX.playExplosion();
-                    createExplosion(player.x, player.y - player.h/2);
+                    createExplosion(player.x, player.y - player.h / 2);
                     obs.active = false;
-                    
-                    // Trigger camera shake and red flash
+
                     screenShake = 12;
                     flashColor = 'rgba(255, 0, 85, 0.45)';
                     flashDuration = 10;
-                    
-                    if (lives <= 0) { gameOver(); return; }
+
+                    if (lives <= 0) {
+                        gameOver('CRASHED OUT!');
+                        return;
+                    }
                 } else if (obs.type === 'petrol') {
-                    timer += 10; obs.active = false; 
+                    fuel = Math.min(100, fuel + PETROL_REFILL_AMOUNT);
+                    collectedPetrolThisStage++;
+                    score += 250;
+                    obs.active = false;
                     if (window.audioFX && window.audioFX.playEat) window.audioFX.playEat();
-                    spawnFloatingText(player.x, player.y - 40, "+10 SEC!", "#00ff00");
-                    
-                    // Trigger green/cyan flash on petrol collection
-                    flashColor = 'rgba(0, 255, 204, 0.25)';
-                    flashDuration = 6;
-                    
+                    spawnFloatingText(player.x, player.y - 45, `⛽ +PETROL! (${collectedPetrolThisStage}/${requiredPetrolCount})`, '#00ffcc');
+
+                    flashColor = 'rgba(0, 255, 204, 0.28)';
+                    flashDuration = 7;
+
                     if (window.achievements) window.achievements.unlock('racer', 'fuel_up', 'Gas Guzzler');
                 }
             }
         }
     }
-    
-    // Update existing speed lines
+
+    // Update speed lines
     for (let i = speedLines.length - 1; i >= 0; i--) {
         let line = speedLines[i];
         line.y += line.speed * deltaTime;
         if (line.y > canvas.height + 100) speedLines.splice(i, 1);
     }
 
-    // Spawn speed lines at high speed
-    if (speed > 120 && Math.random() < 0.15 * deltaTime) {
+    if (speed > 110 && Math.random() < 0.15 * deltaTime) {
         const isLeft = Math.random() > 0.5;
         const minX = isLeft ? 5 : canvas.width - grassWidth + 5;
         const maxX = isLeft ? grassWidth - 5 : canvas.width - 5;
@@ -613,12 +837,11 @@ function update(deltaTime) {
         });
     }
 
-    // Spawn exhaust flame and smoke particles
-    if (Math.random() < 0.3 * deltaTime) {
+    // Exhaust flames when fuel > 0 and moving fast
+    if (fuel > 0 && speed > 40 && Math.random() < 0.3 * deltaTime) {
         const lx = player.x - 12;
         const rx = player.x + 12;
         const ly = player.y + player.h / 2;
-        // Left exhaust
         particles.push({
             x: lx, y: ly,
             vx: (Math.random() - 0.5) * 1,
@@ -627,7 +850,6 @@ function update(deltaTime) {
             color: Math.random() > 0.4 ? '#ff3300' : '#ffaa00',
             size: Math.random() * 3 + 2
         });
-        // Right exhaust
         particles.push({
             x: rx, y: ly,
             vx: (Math.random() - 0.5) * 1,
@@ -638,54 +860,22 @@ function update(deltaTime) {
         });
     }
 
-    // Occasional exhaust grey smoke
-    if (Math.random() < 0.15 * deltaTime) {
-        const lx = player.x + (Math.random() > 0.5 ? 12 : -12);
-        const ly = player.y + player.h / 2;
-        particles.push({
-            x: lx, y: ly,
-            vx: (Math.random() - 0.5) * 1.5,
-            vy: 1 + Math.random() * 1.5,
-            life: 0.8 + Math.random() * 0.4,
-            color: 'rgba(150, 150, 150, 0.4)',
-            size: Math.random() * 4 + 3
-        });
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx * deltaTime;
+        p.y += p.vy * deltaTime;
+        p.y += speed * 0.008 * deltaTime;
+        p.life -= 0.02 * deltaTime;
+        if (p.life <= 0) particles.splice(i, 1);
     }
 
-    // Steer skid marks
-    if (keys.ArrowLeft || keys.ArrowRight) {
-        if (Math.random() < 0.4 * deltaTime) {
-            const side = keys.ArrowLeft ? 1 : -1;
-            particles.push({
-                x: player.x - 14, y: player.y + player.h / 2 - 10,
-                vx: side * (1 + Math.random() * 2),
-                vy: 0.5 + Math.random() * 1.5,
-                life: 0.5 + Math.random() * 0.3,
-                color: 'rgba(255, 255, 255, 0.5)',
-                size: Math.random() * 5 + 3
-            });
-            particles.push({
-                x: player.x + 14, y: player.y + player.h / 2 - 10,
-                vx: side * (1 + Math.random() * 2),
-                vy: 0.5 + Math.random() * 1.5,
-                life: 0.5 + Math.random() * 0.3,
-                color: 'rgba(255, 255, 255, 0.5)',
-                size: Math.random() * 5 + 3
-            });
-        }
-    }
-    
-    for (let i = particles.length - 1; i >= 0; i--) {
-        let p = particles[i]; p.x += p.vx * deltaTime; p.y += p.vy * deltaTime; p.y += speed * 0.008 * deltaTime;
-        p.life -= 0.02 * deltaTime; if (p.life <= 0) particles.splice(i, 1);
-    }
-    
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        let t = floatingTexts[i]; t.y -= 1 * deltaTime; t.life -= 0.02 * deltaTime; if (t.life <= 0) floatingTexts.splice(i, 1);
+        let t = floatingTexts[i];
+        t.y -= 1 * deltaTime;
+        t.life -= 0.018 * deltaTime;
+        if (t.life <= 0) floatingTexts.splice(i, 1);
     }
-    
-    timeAccumulator += deltaTime * 16.67;
-    if (timeAccumulator > 1000) { timeAccumulator -= 1000; timer--; if (timer <= 0) gameOver(); }
+
     score += speed * dtSeconds;
     updateHUD();
 }
@@ -705,22 +895,20 @@ function spawnFloatingText(x, y, text, color) {
 
 function draw() {
     ctx.save();
-    
-    // Apply camera shake translation
+
     if (screenShake > 0) {
         const dx = (Math.random() - 0.5) * screenShake;
         const dy = (Math.random() - 0.5) * screenShake;
         ctx.translate(dx, dy);
     }
-    
-    ctx.fillStyle = '#00a800'; 
+
+    ctx.fillStyle = '#00a800';
     ctx.fillRect(0, 0, grassWidth, canvas.height);
     ctx.fillRect(canvas.width - grassWidth, 0, grassWidth, canvas.height);
-    
-    ctx.fillStyle = '#444444';
+
+    ctx.fillStyle = '#3a3d45';
     ctx.fillRect(grassWidth, 0, roadWidth, canvas.height);
-    
-    // Adaptive motion-blur road lines: stretch dashes at high speeds to prevent stroboscopic optical illusions and eye strain
+
     let dashLen = 40;
     let gapLen = 40;
     if (speed > 120 && speed <= 180) {
@@ -731,22 +919,27 @@ function draw() {
         gapLen = 100;
     }
     const period = dashLen + gapLen;
-    
-    ctx.strokeStyle = '#ffffff'; 
-    ctx.lineWidth = 4; 
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
     ctx.setLineDash([dashLen, gapLen]);
     ctx.lineDashOffset = -(roadOffset % period);
-    
-    const lanes = 3; const laneWidth = roadWidth / lanes;
+
+    const lanes = 3;
+    const laneWidth = roadWidth / lanes;
     for (let i = 1; i < lanes; i++) {
-        ctx.beginPath(); ctx.moveTo(grassWidth + i * laneWidth, 0); ctx.lineTo(grassWidth + i * laneWidth, canvas.height); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(grassWidth + i * laneWidth, 0);
+        ctx.lineTo(grassWidth + i * laneWidth, canvas.height);
+        ctx.stroke();
     }
     ctx.setLineDash([]);
-    
+
     if (finishLineY > -1) {
-        const sqSize = 25; let toggle = false;
+        const sqSize = 25;
+        let toggle = false;
         for (let x = grassWidth; x < canvas.width - grassWidth; x += sqSize) {
-            for (let y = finishLineY; y < finishLineY + sqSize*3; y += sqSize) {
+            for (let y = finishLineY; y < finishLineY + sqSize * 3; y += sqSize) {
                 ctx.fillStyle = toggle ? '#ffffff' : '#000000';
                 ctx.fillRect(x, y, Math.min(sqSize, canvas.width - grassWidth - x), sqSize);
                 toggle = !toggle;
@@ -754,17 +947,75 @@ function draw() {
             toggle = !toggle;
         }
     }
-    
+
+    // Draw Obstacles & Highlighted Petrol Trucks
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.01);
+    let activePetrolObs = null;
+
     for (const obs of obstacles) {
+        if (obs.type === 'petrol') {
+            activePetrolObs = obs;
+            ctx.save();
+            // Glowing green/gold target ring beneath Petrol Truck so user knows to collide with it!
+            ctx.strokeStyle = pulse > 0.5 ? '#00ffcc' : '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = '#00ffcc';
+            ctx.beginPath();
+            ctx.ellipse(obs.x, obs.y, obs.w * 0.72, obs.h * 0.64, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
         const img = obs.type === 'enemy' ? finalImages.enemy : finalImages.petrol;
-        if (img) ctx.drawImage(img, obs.x - obs.w/2, obs.y - obs.h/2, obs.w, obs.h);
+        if (img) {
+            ctx.drawImage(img, obs.x - obs.w / 2, obs.y - obs.h / 2, obs.w, obs.h);
+        }
+
+        // Prominent floating "⛽ PETROL" indicator badge directly above the Petrol Truck!
+        if (obs.type === 'petrol') {
+            ctx.save();
+            const bounceOffset = Math.sin(Date.now() * 0.012) * 4;
+            const badgeY = obs.y - obs.h / 2 - 26 + bounceOffset;
+
+            // Pill background
+            ctx.fillStyle = 'rgba(0, 20, 15, 0.92)';
+            ctx.strokeStyle = '#00ffcc';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ffcc';
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(obs.x - 42, badgeY - 14, 84, 22, 6);
+            } else {
+                ctx.rect(obs.x - 42, badgeY - 14, 84, 22);
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            // "⛽ PETROL" Label
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffd700';
+            ctx.font = '900 11px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⛽ PETROL', obs.x, badgeY + 1);
+
+            // Pointer arrow pointing down to the truck
+            ctx.fillStyle = '#00ffcc';
+            ctx.font = 'bold 12px "Outfit", sans-serif';
+            ctx.fillText('▼', obs.x, badgeY + 14);
+            ctx.restore();
+        }
     }
-    
-    if (finalImages.player) ctx.drawImage(finalImages.player, player.x - player.w/2, player.y - player.h/2, player.w, player.h);
-    
-    // Draw speed lines (warp effect)
+
+    // Draw Player Car
+    if (finalImages.player) {
+        ctx.drawImage(finalImages.player, player.x - player.w / 2, player.y - player.h / 2, player.w, player.h);
+    }
+
+    // Draw Speed Lines
     if (speed > 120) {
-        ctx.strokeStyle = 'rgba(0, 255, 204, 0.35)'; // Cyan neon speed lines
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.35)';
         ctx.lineWidth = 1.5;
         for (const line of speedLines) {
             ctx.beginPath();
@@ -773,29 +1024,107 @@ function draw() {
             ctx.stroke();
         }
     }
-    
+
     for (const p of particles) {
-        ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fillRect(p.x, p.y, p.size, p.size);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillRect(p.x, p.y, p.size, p.size);
     }
     ctx.globalAlpha = 1.0;
-    
-    ctx.font = 'bold 20px "Outfit", sans-serif'; ctx.textAlign = 'center';
+
+    // On-Canvas Top Fuel Bar & Stage Petrol Requirement Tracker
+    if (gameState === 'playing' || gameState === 'paused') {
+        ctx.save();
+        // Top HUD Status Strip on Road
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+        ctx.fillRect(grassWidth + 6, 8, roadWidth - 12, 34);
+        ctx.strokeStyle = fuel <= 25 ? '#ff0055' : 'rgba(0, 255, 204, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(grassWidth + 6, 8, roadWidth - 12, 34);
+
+        // Fuel Bar Track
+        const barX = grassWidth + 14;
+        const barY = 26;
+        const barW = 135;
+        const barH = 10;
+        ctx.fillStyle = '#222';
+        ctx.fillRect(barX, barY, barW, barH);
+
+        const fuelColor = fuel <= 25 ? '#ff0055' : (fuel <= 50 ? '#ffaa00' : '#00ffcc');
+        ctx.fillStyle = fuelColor;
+        ctx.fillRect(barX, barY, barW * (Math.max(0, fuel) / 100), barH);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 10px "Outfit", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`⛽ FUEL: ${Math.ceil(fuel)}%`, barX, 21);
+
+        // Stage Petrol Truck Goal Counter on Right
+        ctx.textAlign = 'right';
+        const reqDone = collectedPetrolThisStage >= requiredPetrolCount;
+        ctx.fillStyle = reqDone ? '#00ff88' : '#ffd700';
+        ctx.font = '800 10.5px "Outfit", sans-serif';
+        ctx.fillText(`STAGE ${currentStage} PETROL: ${collectedPetrolThisStage}/${requiredPetrolCount}`, grassWidth + roadWidth - 14, 21);
+
+        ctx.fillStyle = '#cccccc';
+        ctx.font = '600 9px "Outfit", sans-serif';
+        ctx.fillText(reqDone ? '✓ FUEL READY FOR FINISH' : 'HIT ⛽ TRUCK TO REFUEL', grassWidth + roadWidth - 14, 34);
+
+        // Incoming Petrol Truck Lane Indicator Banner
+        if (activePetrolObs && activePetrolObs.y < player.y) {
+            ctx.fillStyle = pulse > 0.5 ? '#00ffcc' : '#ffd700';
+            ctx.font = '900 12px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('▼ ⛽ PETROL TRUCK IN LANE — COLLIDE TO REFUEL! ▼', canvas.width / 2, 58);
+        }
+
+        // Low Fuel / Out of Petrol Slowdown Warning
+        if (fuel <= 0) {
+            ctx.fillStyle = 'rgba(255, 0, 60, 0.88)';
+            ctx.fillRect(grassWidth + 16, player.y - 95, roadWidth - 32, 32);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 12.5px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(speed > 1 ? '⛽ OUT OF PETROL! SLOWING DOWN...' : '🛑 OUT OF PETROL — STOPPED!', canvas.width / 2, player.y - 75);
+        } else if (fuel <= 22 && pulse > 0.35) {
+            ctx.fillStyle = '#ff3355';
+            ctx.font = '900 12px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('⚠️ LOW PETROL! CATCH NEXT ⛽ PETROL TRUCK!', canvas.width / 2, player.y - 68);
+        }
+        ctx.restore();
+    }
+
+    ctx.font = 'bold 18px "Outfit", sans-serif';
+    ctx.textAlign = 'center';
     for (const t of floatingTexts) {
-        ctx.fillStyle = t.color; ctx.globalAlpha = t.life; ctx.shadowBlur = 5; ctx.shadowColor = '#000';
-        ctx.fillText(t.text, t.x, t.y); ctx.shadowBlur = 0;
+        ctx.fillStyle = t.color;
+        ctx.globalAlpha = Math.max(0, t.life);
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#000';
+        ctx.fillText(t.text, t.x, t.y);
+        ctx.shadowBlur = 0;
     }
     ctx.globalAlpha = 1.0;
-    
+
     if (gameState === 'stage_clear' || gameState === 'stage_starting') {
-        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ffd700'; ctx.font = 'bold 22px "Outfit", sans-serif';
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 22px "Outfit", sans-serif';
+        ctx.textAlign = 'center';
         let msg = gameState === 'stage_clear' ? `STAGE ${currentStage} CLEAR!` : `STAGE ${currentStage} STARTING...`;
-        ctx.fillText(msg, canvas.width/2, canvas.height/2);
+        ctx.fillText(msg, canvas.width / 2, canvas.height / 2 - 12);
+        ctx.fillStyle = '#00ffcc';
+        ctx.font = 'bold 14px "Outfit", sans-serif';
+        const subMsg = gameState === 'stage_clear'
+            ? `⛽ Petrol Collected: ${collectedPetrolThisStage}/${requiredPetrolCount} • Bonus +${1000 * currentStage}`
+            : `Collect at least ${2 + Math.floor((currentStage - 1) / 2)} ⛽ Petrol Trucks to finish Stage ${currentStage}!`;
+        ctx.fillText(subMsg, canvas.width / 2, canvas.height / 2 + 18);
     }
-    
+
     ctx.restore();
-    
-    // Full screen hit/petrol flash overlay
+
     if (flashDuration > 0 && flashColor) {
         ctx.fillStyle = flashColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
