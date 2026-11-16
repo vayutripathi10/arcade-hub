@@ -560,6 +560,7 @@
         audioDeck: document.getElementById('audio-only-deck'),
         audioDeckBackdrop: document.getElementById('audio-deck-backdrop'),
         audioStatusText: document.getElementById('audio-deck-status-text'),
+        audioShareBtn: document.getElementById('audio-share-btn'),
         audioFavBtn: document.getElementById('audio-fav-btn'),
         audioArtworkWrap: document.getElementById('audio-artwork-wrapper'),
         audioArtworkImg: document.getElementById('audio-artwork-img'),
@@ -585,7 +586,6 @@
         playerContainer: document.getElementById('player-container'),
         playerStage: document.getElementById('player-stage'),
         fsNowPlaying: document.getElementById('fs-now-playing'),
-        fsPipBtn: document.getElementById('fs-pip-btn'),
         fsNextBtn: document.getElementById('fs-next-btn'),
         fsReloadBtn: document.getElementById('fs-reload-btn'),
         fsExitBtn: document.getElementById('fs-exit-btn'),
@@ -596,7 +596,7 @@
         skipBtn: document.getElementById('skip-btn'),
         reloadBtn: document.getElementById('reload-btn'),
         minVideoBtn: document.getElementById('min-video-btn'),
-        pipBtn: document.getElementById('pip-btn'),
+        shareTrackBtn: document.getElementById('share-track-btn'),
         fullscreenBtn: document.getElementById('fullscreen-btn'),
         bgPlayBtn: document.getElementById('bg-play-btn'),
         searchForm: document.getElementById('header-search-form'),
@@ -3345,144 +3345,64 @@
             }
         });
 
-        // Picture-in-Picture (Android Chrome / Desktop Web PiP API + iOS WebKit playsinline compatibility)
-        (function initPictureInPicture() {
-            const pipButtons = [DOM.pipBtn, DOM.fsPipBtn].filter(Boolean);
-            if (!pipButtons.length) return;
+        // Share Direct Sonora Song Link (?v=VIDEO_ID)
+        const copyTextFallback = async (text) => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch {}
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.setAttribute('readonly', '');
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                ta.setSelectionRange(0, text.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (ok) return true;
+            } catch {}
+            return false;
+        };
 
-            const isStandardPiPSupported = Boolean(document.pictureInPictureEnabled);
-            const getStageVideo = () => (DOM.playerStage ? DOM.playerStage.querySelector('video') : null);
-            const hasWebKitPiP = () => {
-                const v = getStageVideo();
-                return Boolean(v && typeof v.webkitSetPresentationMode === 'function');
-            };
-
-            if (!isStandardPiPSupported && !hasWebKitPiP()) {
-                pipButtons.forEach(btn => {
-                    btn.hidden = true;
-                    btn.style.display = 'none';
-                });
+        const shareActiveTrack = async () => {
+            const track = STATE.activeTrack;
+            const vid = (track && track.videoId) || STATE.activeVideoId;
+            if (!vid) {
+                showToast('Play a song first to share its link 🎵');
                 return;
             }
+            const basePath = window.location.pathname.endsWith('sonora.html') ? '/sonora.html' : '/sonora';
+            const shareUrl = `${window.location.origin}${basePath}?v=${encodeURIComponent(vid)}`;
+            const title = (track && track.title) ? track.title : 'Sonora Track';
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-            let pipCanvas = null;
-            let pipVideo = null;
-            let pipRenderTimer = null;
-
-            const setPipButtonsActive = (active) => {
-                pipButtons.forEach(btn => btn.classList.toggle('active', Boolean(active)));
-            };
-
-            const drawPipCanvasFrame = () => {
-                if (!pipCanvas) return;
-                const ctx = pipCanvas.getContext('2d');
-                if (!ctx) return;
-                const w = pipCanvas.width;
-                const h = pipCanvas.height;
-
-                const grad = ctx.createLinearGradient(0, 0, w, h);
-                grad.addColorStop(0, '#0f0c1d');
-                grad.addColorStop(1, '#1e163b');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
-
-                ctx.fillStyle = '#00f5a0';
-                ctx.font = '700 13px sans-serif';
-                ctx.fillText('SONORA PLAYER · LIVE', 16, 30);
-
-                const title = (STATE.activeTrack && STATE.activeTrack.title) || 'Sonora Music';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '700 16px sans-serif';
-                ctx.fillText(title.slice(0, 34), 16, 78);
-                if (title.length > 34) {
-                    ctx.fillStyle = '#cbd5e1';
-                    ctx.font = '600 14px sans-serif';
-                    ctx.fillText(title.slice(34, 68), 16, 102);
-                }
-
-                ctx.fillStyle = STATE.isPlaying ? '#00f5a0' : '#f59e0b';
-                ctx.font = '600 13px sans-serif';
-                ctx.fillText(STATE.isPlaying ? '▶ Playing in Picture-in-Picture' : '⏸ Paused', 16, 148);
-            };
-
-            const getOrCreatePipVideo = () => {
-                if (pipVideo) return pipVideo;
-                pipCanvas = document.createElement('canvas');
-                pipCanvas.width = 320;
-                pipCanvas.height = 180;
-                drawPipCanvasFrame();
-
-                pipVideo = document.createElement('video');
-                pipVideo.muted = true;
-                pipVideo.playsInline = true;
-                pipVideo.setAttribute('playsinline', '');
-                pipVideo.setAttribute('webkit-playsinline', '');
-                pipVideo.style.position = 'fixed';
-                pipVideo.style.width = '1px';
-                pipVideo.style.height = '1px';
-                pipVideo.style.opacity = '0';
-                pipVideo.style.pointerEvents = 'none';
-                document.body.appendChild(pipVideo);
-
-                if (typeof pipCanvas.captureStream === 'function') {
-                    pipVideo.srcObject = pipCanvas.captureStream(1);
-                }
-
-                pipVideo.addEventListener('enterpictureinpicture', () => {
-                    setPipButtonsActive(true);
-                    clearInterval(pipRenderTimer);
-                    pipRenderTimer = setInterval(drawPipCanvasFrame, 1000);
-                });
-                pipVideo.addEventListener('leavepictureinpicture', () => {
-                    setPipButtonsActive(false);
-                    clearInterval(pipRenderTimer);
-                });
-                return pipVideo;
-            };
-
-            const togglePictureInPicture = async () => {
+            if (isMobile && navigator.share) {
                 try {
-                    if (document.pictureInPictureElement) {
-                        await document.exitPictureInPicture();
-                        setPipButtonsActive(false);
-                        return;
-                    }
-
-                    const nativeVideo = getStageVideo();
-                    if (nativeVideo) {
-                        nativeVideo.playsInline = true;
-                        nativeVideo.setAttribute('playsinline', '');
-                        nativeVideo.setAttribute('webkit-playsinline', '');
-                        if (document.pictureInPictureEnabled && typeof nativeVideo.requestPictureInPicture === 'function') {
-                            await nativeVideo.requestPictureInPicture();
-                            setPipButtonsActive(true);
-                            return;
-                        }
-                        if (typeof nativeVideo.webkitSetPresentationMode === 'function') {
-                            const nextMode = nativeVideo.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture';
-                            nativeVideo.webkitSetPresentationMode(nextMode);
-                            setPipButtonsActive(nextMode === 'picture-in-picture');
-                            return;
-                        }
-                    }
-
-                    if (!document.pictureInPictureEnabled) {
-                        showToast('Picture-in-Picture is not supported on this browser');
-                        return;
-                    }
-
-                    const bridgeVideo = getOrCreatePipVideo();
-                    drawPipCanvasFrame();
-                    await bridgeVideo.play();
-                    await bridgeVideo.requestPictureInPicture();
+                    await navigator.share({
+                        title: `${title} — Sonora`,
+                        text: `Listen to "${title}" ad-free on Sonora 🎧`,
+                        url: shareUrl
+                    });
+                    return;
                 } catch (err) {
-                    console.warn('[Sonora] Picture-in-Picture failed:', err);
-                    showToast('Start playing a track first to open Picture-in-Picture');
+                    if (err && err.name === 'AbortError') return;
                 }
-            };
+            }
 
-            pipButtons.forEach(btn => btn.addEventListener('click', togglePictureInPicture));
-        })();
+            const copied = await copyTextFallback(shareUrl);
+            if (copied) {
+                showToast(`Song link copied! 🔗`);
+            } else {
+                window.prompt('Copy Sonora song link:', shareUrl);
+            }
+        };
+        if (DOM.shareTrackBtn) DOM.shareTrackBtn.addEventListener('click', shareActiveTrack);
+        if (DOM.audioShareBtn) DOM.audioShareBtn.addEventListener('click', shareActiveTrack);
 
         // Background play helper (silent WAV audio keeps WebAudio / MediaSession alive on mobile)
         if (DOM.bgPlayBtn) {
@@ -3615,6 +3535,44 @@
                 };
                 reader.readAsText(file);
             });
+        }
+    }
+
+    // Handle direct video deep-link (?v=VIDEO_ID or ?video=VIDEO_ID or ?id=VIDEO_ID)
+    async function handleDeepLinkVideoParam() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const rawParam = params.get('v') || params.get('video') || params.get('id') || '';
+            if (!rawParam) return false;
+
+            const videoId = getVideoId(rawParam);
+            if (!videoId) return false;
+
+            const allKnown = [...STATE.items, ...STATE.history];
+            getAllLibraries().forEach(l => { if (l.videos) allKnown.push(...l.videos); });
+            let track = allKnown.find(t => t && t.videoId === videoId);
+
+            if (!track) {
+                let title = `YouTube Track (${videoId})`;
+                try {
+                    const meta = await fetchVideoMeta(videoId);
+                    if (meta && meta.title) title = meta.title;
+                } catch {}
+                track = {
+                    id: `deeplink_${videoId}_${Date.now()}`,
+                    videoId,
+                    title,
+                    artist: 'Shared via Sonora',
+                    thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/hqdefault.jpg`
+                };
+            }
+
+            playTrack(track);
+            showToast(`Playing shared track: "${track.title}" 🎧`);
+            return true;
+        } catch (err) {
+            console.warn('[Sonora] Error handling deep-link video param:', err);
+            return false;
         }
     }
 
@@ -3796,6 +3754,9 @@
                     initSonoraRegionalSpotlight();
                 }
             } catch (e) {}
+
+            const wasDeepLinked = await handleDeepLinkVideoParam();
+            if (wasDeepLinked) return;
 
             const wasHandled = await handleIncomingSharedTarget();
             if (wasHandled) return;
