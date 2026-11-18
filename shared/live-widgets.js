@@ -254,18 +254,6 @@
         if (moodEl) moodEl.textContent = `🎧 ${data.mood}`;
 
         card.classList.add('loaded');
-
-        // Clickable card: opens Sonora with recommended weather vibe
-        if (!card._hasClickListener && data.sonoraLib) {
-            card._hasClickListener = true;
-            if (card.style) card.style.cursor = 'pointer';
-            card.title = `Weather Mood: Click to stream ${data.condition} soundscapes on Sonora!`;
-            if (card.addEventListener) {
-                card.addEventListener('click', () => {
-                    navigateToSonora(`sonora?lib=${encodeURIComponent(data.sonoraLib)}`);
-                });
-            }
-        }
     }
 
     // -------------------------------------------------------------------------
