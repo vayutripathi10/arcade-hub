@@ -117,37 +117,70 @@
 
         <!-- SCREEN 1: TARGET SELECTION -->
         <section class="screen" id="screen-target-select">
-            <div class="brand-logo">
+            <div class="brand-logo compact-target-logo">
                 <h1 class="glow-title">NEON DICE<br><span class="highlight">DESTINY</span></h1>
-                <p class="subtitle">Set your target. Roll your fate.</p>
+                <p class="subtitle">Choose throws &amp; target sum (2 Dice per throw)</p>
             </div>
 
             <div class="target-picker-card">
+                <!-- 1. THROW COUNT SELECTOR -->
+                <div class="throws-selector-box">
+                    <div class="throws-header-row">
+                        <span class="throws-label">🎲 NUMBER OF THROWS (2 DICE):</span>
+                        <div class="throws-stepper">
+                            <button type="button" class="throws-step-btn" id="throws-minus" aria-label="Decrease Throws">−</button>
+                            <strong class="throws-count-badge" id="throws-count-val">5 Throws</strong>
+                            <button type="button" class="throws-step-btn" id="throws-plus" aria-label="Increase Throws">+</button>
+                        </div>
+                    </div>
+                    <div class="throws-preset-row" id="throws-preset-row">
+                        <button type="button" class="throw-pill" data-throws="1">1x</button>
+                        <button type="button" class="throw-pill" data-throws="2">2x</button>
+                        <button type="button" class="throw-pill" data-throws="3">3x</button>
+                        <button type="button" class="throw-pill active" data-throws="5">5x</button>
+                        <button type="button" class="throw-pill" data-throws="7">7x</button>
+                        <button type="button" class="throw-pill" data-throws="10">10x</button>
+                    </div>
+                </div>
+
+                <!-- 2. DYNAMIC MIN / SWEET SPOT / MAX INFO STRIP -->
+                <div class="target-bounds-strip">
+                    <span class="bound-item">MIN SUM: <strong id="ui-min-target">10</strong></span>
+                    <span class="bound-item sweet">AVG: <strong id="ui-avg-target">35</strong></span>
+                    <span class="bound-item">MAX SUM: <strong id="ui-max-target">60</strong></span>
+                </div>
+
+                <!-- 3. TARGET SUM PICKER -->
                 <div class="picker-controls">
                     <button class="picker-btn" id="picker-minus" aria-label="Decrease Target">−</button>
                     <div class="target-display-wrapper">
-                        <span class="target-digits" id="target-digits-val">30</span>
+                        <span class="target-digits" id="target-digits-val">35</span>
                         <div class="padlock-icon" id="target-padlock">🔒</div>
                     </div>
                     <button class="picker-btn" id="picker-plus" aria-label="Increase Target">+</button>
                 </div>
 
                 <div class="slider-wrapper">
-                    <input type="range" min="2" max="60" value="30" class="neon-slider" id="target-slider">
+                    <input type="range" min="10" max="60" value="35" class="neon-slider" id="target-slider">
+                    <div class="slider-minmax-labels">
+                        <span id="slider-min-label">Min: 10</span>
+                        <span id="slider-target-range-note">2 Dice × 5 Throws</span>
+                        <span id="slider-max-label">Max: 60</span>
+                    </div>
                 </div>
 
                 <div class="probability-hint" id="prob-hint">
-                    Probability: <span id="prob-text" class="moderate">Moderate 🟢</span>
+                    Probability: <span id="prob-text" class="moderate">High (Sweet Spot) 🟢</span>
                 </div>
             </div>
 
             <div class="action-wrapper">
-                <button class="btn-main pulse" id="btn-lock-target">LOCK IN TARGET</button>
+                <button class="btn-main pulse" id="btn-lock-target">LOCK IN TARGET &amp; THROWS</button>
             </div>
 
             <div class="how-to-play-hint">
                 <h3>💡 How to Play</h3>
-                <p>Set a target between 2 and 60. Lock it in, then roll two 3D dice across 5 rounds. Try to match your target total exactly!</p>
+                <p id="htp-dynamic-desc">Each throw rolls 2 dice (sum 2–12). With 5 throws, your total will be between 10 and 60. Match your Target total as closely as possible!</p>
             </div>
 
             <div class="best-score-display" id="best-score-container">
@@ -237,8 +270,8 @@
                 </div>
                 <div class="progress-labels">
                     <span>0</span>
-                    <span id="progress-target-label">Target: 30</span>
-                    <span>60</span>
+                    <span id="progress-target-label">Target: 35</span>
+                    <span id="progress-max-label">60</span>
                 </div>
             </div>
 
@@ -368,7 +401,7 @@
 
     <!-- Scripts Loading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js?v=155"></script>
+    <script src="script.js?v=156"></script>
     <script>
         (function() {
             const gameId = 'neon-dice-destiny';
