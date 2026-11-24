@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="../favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description" content="Play Premium Tic Tac Toe at Arcade Hub! Test your strategy against our unbeatable AI or play with a friend.">
+    <meta name="description" content="Play Premium Neon Tic Tac Toe at Arcade Hub! Test your strategy against our unbeatable AI or play with a friend.">
     <meta name="keywords" content="tic tac toe, classic game, strategy game, noughts and crosses, arcade hub">
     <link rel="canonical" href="https://arcadehubplay.com/tictactoe-frontend/index.html">
-    <meta property="og:title" content="Premium Tic Tac Toe | Arcade Hub">
-    <meta property="og:description" content="Play Premium Tic Tac Toe at Arcade Hub! Test your strategy against our unbeatable AI or play with a friend.">
+    <meta property="og:title" content="Neon Tic Tac Toe | Arcade Hub">
+    <meta property="og:description" content="Play Premium Neon Tic Tac Toe at Arcade Hub! Test your strategy against our unbeatable AI or play with a friend.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://arcadehubplay.com/tictactoe-frontend/index.html">
     <meta property="og:image" content="https://arcadehubplay.com/favicon.png">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Premium Tic Tac Toe | Arcade Hub">
-    <meta name="twitter:description" content="Play Premium Tic Tac Toe at Arcade Hub! Test your strategy against our unbeatable AI or play with a friend.">
+    <meta name="twitter:title" content="Neon Tic Tac Toe | Arcade Hub">
+    <meta name="twitter:description" content="Play Premium Neon Tic Tac Toe at Arcade Hub! Test your strategy against our unbeatable AI or play with a friend.">
     <meta name="twitter:image" content="https://arcadehubplay.com/favicon.png">
-    <title>Premium Tic Tac Toe | Arcade Hub</title>
+    <title>Neon Tic Tac Toe | Arcade Hub</title>
 
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-B8XQ759LPH"></script>
     <script>
@@ -25,55 +25,17 @@
       gtag('js', new Date());
       gtag('config', 'G-B8XQ759LPH');
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <!-- Google AdSense -->
-    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=ArcadeHub_TTT_JuicedV2">
 
 <style id="adsense-compliance-styles">
-    /* === PRE-GAME OVERLAY SYSTEM === */
     body.show-info-overlay {
         overflow: hidden !important;
         height: 100dvh !important;
     }
-    
-    /* Bulletproof parent-level hide for everything that is NOT the compliance overlay */
     body.show-info-overlay > *:not(.game-info-overlay):not(script):not(style):not(link):not(ins):not(iframe) {
         display: none !important;
     }
-
-    /* Double protection explicit list of selectors */
-    body.show-info-overlay .game-root,
-    body.show-info-overlay #game-root,
-    body.show-info-overlay .game-wrapper,
-    body.show-info-overlay #gameWrapper,
-    body.show-info-overlay #game-wrapper,
-    body.show-info-overlay canvas,
-    body.show-info-overlay #gameCanvas,
-    body.show-info-overlay .header,
-    body.show-info-overlay header,
-    body.show-info-overlay .footer,
-    body.show-info-overlay footer,
-    body.show-info-overlay #hud,
-    body.show-info-overlay .hud-header,
-    body.show-info-overlay .overlay,
-    body.show-info-overlay .go-overlay,
-    body.show-info-overlay .htp-overlay,
-    body.show-info-overlay .transition-overlay,
-    body.show-info-overlay #mainMenu,
-    body.show-info-overlay #screen-start,
-    body.show-info-overlay #screen-gameover,
-    body.show-info-overlay #screen-pause,
-    body.show-info-overlay #how-to-play,
-    body.show-info-overlay #howToPlayModal,
-    body.show-info-overlay #mainMenuContainer,
-    body.show-info-overlay .menu-overlay,
-    body.show-info-overlay .modal,
-    body.show-info-overlay .ad-container,
-    body.show-info-overlay #ad-box {
-        display: none !important;
-    }
-
     .game-info-overlay {
         display: none;
         background: #0a0b0d;
@@ -144,184 +106,110 @@
         box-shadow: 0 0 40px rgba(255,255,255,0.65);
         transform: scale(1.04);
     }
-    .continue-game-btn:active { transform: scale(0.97); }
-    .game-info-container h2 {
-        color: #fff;
-        font-size: 1.9rem;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 14px;
-    }
-    .game-info-container h3 {
-        color: #00ffcc;
-        font-size: 1.15rem;
-        font-weight: 600;
-        margin-top: 28px;
-        margin-bottom: 10px;
-    }
+    .game-info-container h2 { color: #fff; font-size: 1.9rem; font-weight: 700; text-align: center; margin-bottom: 14px; }
+    .game-info-container h3 { color: #00ffcc; font-size: 1.15rem; font-weight: 600; margin-top: 28px; margin-bottom: 10px; }
     .game-info-container p  { margin-bottom: 14px; font-size: 0.93rem; }
     .game-info-container ul { padding-left: 20px; margin-bottom: 14px; }
     .game-info-container li { margin-bottom: 8px; font-size: 0.93rem; }
-    .info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin: 24px 0;
-    }
-    .info-card {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 14px;
-        padding: 20px;
-    }
-    .faq-item {
-        margin-bottom: 18px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-    .faq-question { color: #fff; font-weight: 700; margin-bottom: 6px; font-size: 0.95rem; }
-    .faq-answer   { color: rgba(255,255,255,0.55); font-size: 0.88rem; margin: 0; }
-    .page-footer-note {
-        text-align: center;
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,0.05);
-        font-size: 0.78rem;
-        color: rgba(255,255,255,0.25);
-    }
-    .page-footer-note a { color: #00ffcc; text-decoration: none; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 24px 0; }
+    .info-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; }
     @media (max-width: 768px) {
         .info-grid { grid-template-columns: 1fr; }
         .continue-game-btn { width: 100%; padding: 15px 24px; }
-        .game-info-container h2 { font-size: 1.5rem; }
     }
 </style>
-
 </head>
 <body class="show-info-overlay">
 
 <!-- PRE-GAME INFO OVERLAY -->
 <div class="game-info-overlay" id="game-info-overlay">
     <div class="game-info-container">
-
         <div class="brand-header">
             <p class="brand-title">&#x1F579;&#xFE0F; Arcade Hub</p>
             <p class="brand-sub">Free Browser Games &mdash; No Download Required</p>
         </div>
-
         <div class="continue-btn-wrapper">
             <button class="continue-game-btn" onclick="continueToGame()">PLAY NOW &#x2794;</button>
         </div>
-
-        <h2>Zen Tic-Tac-Toe</h2>
-        <p>Zen Tic-Tac-Toe is a sleek, neon-styled take on the timeless strategy classic. Play against a smart AI opponent or challenge a friend in local two-player mode. The AI uses a neural decision tree to adapt its strategy &mdash; it blocks your winning moves, sets up traps, and forces you to think multiple moves ahead. Clean animations, satisfying win effects, and infinite replayability make this the most polished Tic-Tac-Toe available in a browser.</p>
-
-        <h3>&#x1F3AE; How to Play</h3>
-        <p>Take turns placing your symbol (X or O) on the 3x3 grid. The first player to get three of their symbols in a row &mdash; horizontally, vertically, or diagonally &mdash; wins the round.</p>
-        <ul>
-            <li><strong>Desktop:</strong> Click any empty grid cell to place your symbol</li>
-            <li><strong>Mobile:</strong> Tap any empty grid cell to place your symbol</li>
-            <li><strong>vs AI:</strong> You play as X; the AI plays as O automatically after your move</li>
-            <li><strong>2 Player:</strong> Players alternate tapping/clicking on the same device</li>
-        </ul>
-
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>&#x26A1; Game Features</h3>
-                <ul>
-                    <li>Adaptive AI that blocks your wins and sets up its own traps</li>
-                    <li>Local 2-player mode on the same device</li>
-                    <li>Win streak tracking across multiple rounds</li>
-                    <li>Neon glow highlight on the winning three-in-a-row combination</li>
-                </ul>
-            </div>
-            <div class="info-card">
-                <h3>&#x1F3C6; Pro Tips</h3>
-                <ul>
-                    <li>Always take the center square on your first move if available</li>
-                    <li>Corner openings are stronger than edge openings against the AI</li>
-                    <li>Create a fork: set up two winning lines simultaneously to force a win</li>
-                    <li>Watch the AI's second move &mdash; it reveals its intended trap direction</li>
-                </ul>
-            </div>
-        </div>
-
-        <h3>&#x2753; Frequently Asked Questions</h3>
-        <div class="faq-item">
-            <p class="faq-question">Is Zen Tic-Tac-Toe free to play?</p>
-            <p class="faq-answer">Yes, completely free in your browser. No download or account required.</p>
-        </div>
-        <div class="faq-item">
-            <p class="faq-question">Can I play against a friend?</p>
-            <p class="faq-answer">Yes! Local 2-player mode lets two people play on the same device, taking turns.</p>
-        </div>
-        <div class="faq-item">
-            <p class="faq-question">Can I beat the AI?</p>
-            <p class="faq-answer">Yes &mdash; the AI is smart but not perfect. A fork strategy (creating two simultaneous winning threats) can defeat it reliably.</p>
-        </div>
-        <div class="faq-item">
-            <p class="faq-question">Where can I find more free games?</p>
-            <p class="faq-answer">Visit <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> for 24+ free browser games.</p>
-        </div>
-
-        <div class="page-footer-note">
-            Part of <a href="https://arcadehubplay.com">ArcadeHubPlay.com</a> &mdash; Free Browser Arcade Games
-        </div>
-
+        <h2>Neon Tic-Tac-Toe</h2>
+        <p>Neon Tic-Tac-Toe is a high-juice cyberpunk edition of the timeless strategy classic. Play against an adaptive AI across 3 difficulty tiers or challenge a friend in local 2-player mode with animated plasma marks, laser win beams, and particle bursts.</p>
     </div>
 </div>
-<!-- END PRE-GAME INFO OVERLAY -->
 
     <div class="game-root">
+        <canvas id="juiceCanvas"></canvas>
+
         <header class="header">
             <div class="nav-left">
                 <button class="home-btn" id="hub-btn">← Arcade Hub</button>
             </div>
             <div class="header-center">
                 <div class="title-group">
-                    <h1 class="hud-title">TIC TAC TOE</h1>
-                    <div class="hud-subtitle x-turn" id="status">Player 1's Turn</div>
+                    <h1 class="hud-title">⚡ NEON TIC TAC TOE</h1>
+                    <div class="hud-subtitle x-turn" id="status">Player 1's Turn (X)</div>
                 </div>
             </div>
             <div class="header-right">
                 <button id="btn-mute" class="icon-btn" title="Toggle Sound">🔊</button>
-                <button id="pauseBtn" class="icon-btn hidden" title="Pause Game">⏸</button>
+                <button id="btn-fs" class="icon-btn" title="Toggle Fullscreen">⛶</button>
             </div>
         </header>
 
         <main class="game-shell">
+            <!-- 3-Pod Cyber Scoreboard -->
             <div class="score-row">
-                <div class="score-item p1">
-                    <span class="score-label" id="p1Label">Player 1</span>
+                <div class="score-item p1 active-turn" id="podP1">
+                    <div class="score-meta">
+                        <span class="score-label" id="p1Label">Player 1 (X)</span>
+                        <span class="score-badge" id="streakBadge">🔥 Streak: 0</span>
+                    </div>
                     <span class="score-val" id="p1ScoreDisplay">0</span>
                 </div>
-                <div class="score-vs">VS</div>
-                <div class="score-item p2">
+
+                <div class="score-vs">
+                    <span>DRAWS</span>
+                    <strong id="drawScoreDisplay">0</strong>
+                </div>
+
+                <div class="score-item p2" id="podP2">
                     <span class="score-val" id="p2ScoreDisplay">0</span>
-                    <span class="score-label" id="p2Label">AI</span>
+                    <div class="score-meta">
+                        <span class="score-label" id="p2Label">Cyber AI (O)</span>
+                        <span class="score-badge" id="aiDiffBadge">🤖 Hard</span>
+                    </div>
                 </div>
             </div>
 
+            <!-- Holographic 3x3 Arena -->
             <div class="grid-container">
-                <div class="board" id="board">
-                    <div class="cell" data-index="0"></div>
-                    <div class="cell" data-index="1"></div>
-                    <div class="cell" data-index="2"></div>
-                    <div class="cell" data-index="3"></div>
-                    <div class="cell" data-index="4"></div>
-                    <div class="cell" data-index="5"></div>
-                    <div class="cell" data-index="6"></div>
-                    <div class="cell" data-index="7"></div>
-                    <div class="cell" data-index="8"></div>
+                <div class="board-stage" id="boardStage">
+                    <div class="board" id="board">
+                        <div class="cell" data-index="0"></div>
+                        <div class="cell" data-index="1"></div>
+                        <div class="cell" data-index="2"></div>
+                        <div class="cell" data-index="3"></div>
+                        <div class="cell" data-index="4"></div>
+                        <div class="cell" data-index="5"></div>
+                        <div class="cell" data-index="6"></div>
+                        <div class="cell" data-index="7"></div>
+                        <div class="cell" data-index="8"></div>
+                    </div>
+                    <svg class="win-laser-svg" id="winLaserSvg" viewBox="0 0 300 300"></svg>
+                    <div class="round-banner" id="roundBanner">🏆 PLAYER 1 WINS!</div>
                 </div>
             </div>
 
             <div class="controls-row">
-                <button class="btn primary" id="resetBtn">Restart</button>
-                <button class="btn active-mode" id="toggleAIBtn">Vs AI: ON</button>
+                <button class="btn primary" id="resetBtn">↻ New Round</button>
+                <button class="btn active-mode" id="toggleAIBtn">🤖 Vs AI: ON</button>
             </div>
 
             <div class="difficulty-row" id="difficultyContainer">
+                <div class="diff-pills" id="diffPills">
+                    <button type="button" class="diff-pill-btn" data-diff="easy">Easy</button>
+                    <button type="button" class="diff-pill-btn" data-diff="medium">Medium</button>
+                    <button type="button" class="diff-pill-btn active" data-diff="hard">Hard 🔥</button>
+                </div>
                 <div class="select-wrapper">
                     <select id="difficultySelect">
                         <option value="easy">Easy</option>
@@ -329,37 +217,288 @@
                         <option value="hard" selected>Hard (Unbeatable)</option>
                     </select>
                 </div>
-                <button class="htp-trigger" id="htp-btn">How to Play</button>
+                <button class="htp-trigger" id="htp-btn">? Rules</button>
             </div>
         </main>
 
-        <div class="ad-container" id="ad-box">
-            <ins class="adsbygoogle"
-                 style="display:inline-block;width:320px;height:50px"
-                 data-ad-client="ca-pub-68ced95a589a3c37a8f41a8fff267340">
-                <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </ins>
-        </div>
+        <div class="ad-container" id="ad-box"></div>
     </div>
 
     <!-- How to Play Overlay -->
     <div class="htp-overlay" id="htpOverlay">
         <div class="htp-card">
-            <div class="htp-title">📖 How to Play</div>
-            <div class="htp-row"><span class="htp-row-icon">🕹️</span><span><b>Controls:</b> <b>Tap</b> or <b>Click</b> any empty square to place your mark.</span></div>
-            <div class="htp-row"><span class="htp-row-icon">❌</span><span><b>Player 1:</b> Always plays as X (neon green).</span></div>
-            <div class="htp-row"><span class="htp-row-icon">⭕</span><span><b>Player 2 / AI:</b> Plays as O (neon pink).</span></div>
-            <div class="htp-row"><span class="htp-row-icon">🤖</span><span><b>AI Mode:</b> Toggle AI on/off. Choose Easy, Medium, or Hard (Unbeatable).</span></div>
-            <div class="htp-row"><span class="htp-row-icon">🏆</span><span><b>Goal:</b> Connect 3 marks in a row — horizontal, vertical, or diagonal!</span></div>
-            <button class="htp-back" id="htp-close">← Got it!</button>
+            <div class="htp-title">⚡ Neon Tic-Tac-Toe</div>
+            <div class="htp-row"><span>🕹️</span><span><b>Controls:</b> Tap or click any square (or press keys <b>1–9</b>) to place your neon mark.</span></div>
+            <div class="htp-row"><span>❌</span><span><b>Player 1 (Cyan X):</b> Strikes first in each round and builds Win Streaks.</span></div>
+            <div class="htp-row"><span>⭕</span><span><b>Cyber AI / Player 2 (Magenta O):</b> Switch between Vs AI (Easy / Medium / Hard) or 2-Player pass &amp; play.</span></div>
+            <div class="htp-row"><span>🏆</span><span><b>Victory:</b> Connect 3 marks horizontally, vertically, or diagonally to fire the winning laser beam!</span></div>
+            <button class="htp-back" id="htp-close">Got It!</button>
         </div>
     </div>
 
     <script src="../shared/audio-fx.js?v=ArcadeHub_GlobalUI"></script>
     <script src="../shared/achievements.js"></script>
     <script>
+        // ====================================================================
+        // 1. PROCEDURAL JUICE SYNTHESIZER (Crisp Neon Slashes, Chimes, Fanfare)
+        // ====================================================================
+        class TicTacJuiceAudio {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => {});
+                }
+            }
+            isMuted() {
+                return this.muted || (window.audioFX && window.audioFX.isMuted);
+            }
+            playHover() {
+                if (this.isMuted()) return;
+                this.init();
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(920, t);
+                g.gain.setValueAtTime(0.025, t);
+                g.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+                osc.connect(g);
+                g.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.04);
+            }
+            playPlaceX() {
+                if (this.isMuted()) return;
+                this.init();
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                [330, 659.25].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, t + i * 0.04);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 1.35, t + i * 0.04 + 0.11);
+                    g.gain.setValueAtTime(0.14, t + i * 0.04);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.04 + 0.12);
+                    osc.connect(g);
+                    g.connect(this.ctx.destination);
+                    osc.start(t + i * 0.04);
+                    osc.stop(t + i * 0.04 + 0.13);
+                });
+            }
+            playPlaceO() {
+                if (this.isMuted()) return;
+                this.init();
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                [440, 554.37].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, t + i * 0.045);
+                    g.gain.setValueAtTime(0.14, t + i * 0.045);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.045 + 0.14);
+                    osc.connect(g);
+                    g.connect(this.ctx.destination);
+                    osc.start(t + i * 0.045);
+                    osc.stop(t + i * 0.045 + 0.15);
+                });
+            }
+            playWin(isPlayer1) {
+                if (this.isMuted()) return;
+                this.init();
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                const notes = isPlayer1
+                    ? [523.25, 659.25, 783.99, 1046.5, 1318.5]
+                    : [440, 523.25, 659.25, 880];
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, t + i * 0.065);
+                    g.gain.setValueAtTime(0.15, t + i * 0.065);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.065 + 0.28);
+                    osc.connect(g);
+                    g.connect(this.ctx.destination);
+                    osc.start(t + i * 0.065);
+                    osc.stop(t + i * 0.065 + 0.3);
+                });
+            }
+            playDraw() {
+                if (this.isMuted()) return;
+                this.init();
+                if (!this.ctx) return;
+                const t = this.ctx.currentTime;
+                [392, 349.23].forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, t + i * 0.12);
+                    g.gain.setValueAtTime(0.08, t + i * 0.12);
+                    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.22);
+                    osc.connect(g);
+                    g.connect(this.ctx.destination);
+                    osc.start(t + i * 0.12);
+                    osc.stop(t + i * 0.12 + 0.24);
+                });
+            }
+        }
+        const juiceAudio = new TicTacJuiceAudio();
+
+        // ====================================================================
+        // 2. PARTICLE & SHOCKWAVE JUICE ENGINE (#juiceCanvas)
+        // ====================================================================
+        const jCanvas = document.getElementById('juiceCanvas');
+        const jCtx = jCanvas.getContext('2d');
+        let particles = [];
+        let shockwaves = [];
+
+        function resizeJuiceCanvas() {
+            jCanvas.width = window.innerWidth;
+            jCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeJuiceCanvas);
+        resizeJuiceCanvas();
+
+        function spawnCellBurst(cellEl, color) {
+            const rect = cellEl.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+
+            shockwaves.push({ x: cx, y: cy, r: 10, maxR: rect.width * 0.85, color, alpha: 0.9 });
+
+            for (let i = 0; i < 20; i++) {
+                const angle = (Math.PI * 2 * i) / 20 + (Math.random() - 0.5) * 0.3;
+                const speed = 2.5 + Math.random() * 5.5;
+                particles.push({
+                    x: cx,
+                    y: cy,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: Math.random() * 4 + 2,
+                    color: Math.random() > 0.25 ? color : '#ffffff',
+                    alpha: 1,
+                    gravity: 0.06
+                });
+            }
+        }
+
+        function spawnVictoryFireworks(color) {
+            for (let b = 0; b < 3; b++) {
+                setTimeout(() => {
+                    const bx = jCanvas.width * (0.25 + Math.random() * 0.5);
+                    const by = jCanvas.height * (0.25 + Math.random() * 0.45);
+                    shockwaves.push({ x: bx, y: by, r: 8, maxR: 130, color: '#ffd700', alpha: 0.85 });
+                    for (let i = 0; i < 32; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = 2 + Math.random() * 7;
+                        const cols = [color, '#ffd700', '#ffffff', '#00ff9d'];
+                        particles.push({
+                            x: bx,
+                            y: by,
+                            vx: Math.cos(angle) * speed,
+                            vy: Math.sin(angle) * speed - 1.5,
+                            size: Math.random() * 4.5 + 2,
+                            color: cols[Math.floor(Math.random() * cols.length)],
+                            alpha: 1,
+                            gravity: 0.1
+                        });
+                    }
+                }, b * 180);
+            }
+        }
+
+        function animateJuice() {
+            jCtx.clearRect(0, 0, jCanvas.width, jCanvas.height);
+
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                const sw = shockwaves[i];
+                sw.r += (sw.maxR - sw.r) * 0.18;
+                sw.alpha -= 0.045;
+                if (sw.alpha <= 0) {
+                    shockwaves.splice(i, 1);
+                    continue;
+                }
+                jCtx.save();
+                jCtx.globalAlpha = sw.alpha;
+                jCtx.strokeStyle = sw.color;
+                jCtx.lineWidth = 3;
+                jCtx.shadowBlur = 12;
+                jCtx.shadowColor = sw.color;
+                jCtx.beginPath();
+                jCtx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+                jCtx.stroke();
+                jCtx.restore();
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.gravity || 0.05;
+                p.alpha -= 0.024;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+                jCtx.save();
+                jCtx.globalAlpha = p.alpha;
+                jCtx.fillStyle = p.color;
+                jCtx.shadowBlur = 8;
+                jCtx.shadowColor = p.color;
+                jCtx.beginPath();
+                jCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                jCtx.fill();
+                jCtx.restore();
+            }
+
+            requestAnimationFrame(animateJuice);
+        }
+        requestAnimationFrame(animateJuice);
+
+        // ====================================================================
+        // 3. SVG NEON MARK GENERATORS & WINNING LASER COORDINATES
+        // ====================================================================
+        function getMarkSvg(mark, isGhost = false) {
+            if (mark === 'X') {
+                return `<svg class="${isGhost ? 'ghost-mark' : 'mark-svg'}" viewBox="0 0 100 100">
+                    <line class="mark-x-line line-1" x1="20" y1="20" x2="80" y2="80" />
+                    <line class="mark-x-line line-2" x1="80" y1="20" x2="20" y2="80" />
+                </svg>`;
+            }
+            return `<svg class="${isGhost ? 'ghost-mark' : 'mark-svg'}" viewBox="0 0 100 100">
+                <circle class="mark-o-circle" cx="50" cy="50" r="32" />
+            </svg>`;
+        }
+
+        function drawWinningLaser(winArr) {
+            const svg = document.getElementById('winLaserSvg');
+            if (!svg) return;
+            const coords = [
+                [50, 50],  [150, 50],  [250, 50],
+                [50, 150], [150, 150], [250, 150],
+                [50, 250], [150, 250], [250, 250]
+            ];
+            const [x1, y1] = coords[winArr[0]];
+            const [x2, y2] = coords[winArr[2]];
+            svg.innerHTML = `
+                <line class="laser-beam-glow" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />
+                <line class="laser-beam-core" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />
+            `;
+        }
+
+        // ====================================================================
+        // 4. CORE GAME LOGIC & AI
+        // ====================================================================
         const cells = document.querySelectorAll('.cell');
         const statusText = document.getElementById('status');
         const resetBtn = document.getElementById('resetBtn');
@@ -368,9 +507,16 @@
         const difficultyContainer = document.getElementById('difficultyContainer');
         const p1ScoreDisplay = document.getElementById('p1ScoreDisplay');
         const p2ScoreDisplay = document.getElementById('p2ScoreDisplay');
+        const drawScoreDisplay = document.getElementById('drawScoreDisplay');
+        const streakBadge = document.getElementById('streakBadge');
+        const aiDiffBadge = document.getElementById('aiDiffBadge');
+        const podP1 = document.getElementById('podP1');
+        const podP2 = document.getElementById('podP2');
+        const boardStage = document.getElementById('boardStage');
+        const roundBanner = document.getElementById('roundBanner');
         const btnMute = document.getElementById('btn-mute');
         const hubBtn = document.getElementById('hub-btn');
-        
+
         let board = ["", "", "", "", "", "", "", "", ""];
         let currentPlayer = "X";
         let running = false;
@@ -379,6 +525,8 @@
         let aiDifficulty = "hard";
         let p1Score = 0;
         let p2Score = 0;
+        let drawScore = 0;
+        let p1Streak = 0;
 
         const winConditions = [
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -386,18 +534,88 @@
             [0, 4, 8], [2, 4, 6]
         ];
 
+        function refreshGhostPreviews() {
+            cells.forEach((cell, idx) => {
+                if (board[idx] === "") {
+                    cell.innerHTML = getMarkSvg(currentPlayer, true);
+                }
+            });
+        }
+
+        function triggerBoardShake() {
+            boardStage.classList.remove('board-shake');
+            void boardStage.offsetWidth;
+            boardStage.classList.add('board-shake');
+        }
+
+        function showRoundBanner(text, color = '#ffd700') {
+            if (!roundBanner) return;
+            roundBanner.textContent = text;
+            roundBanner.style.borderColor = color;
+            roundBanner.style.color = color;
+            roundBanner.classList.add('show');
+        }
+
+        function returnToArcadeHub() {
+            try {
+                if (window.top && window.top !== window && window.top.document && window.top.document.getElementById('sonora-hub-frame')) {
+                    window.top.document.getElementById('sonora-hub-frame').src = 'index.html';
+                    return;
+                }
+            } catch (e) {}
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.location.href = '../index.html';
+                    return;
+                }
+            } catch (e) {}
+            window.location.href = '../index.html';
+        }
+
         function initializeGame() {
-            // Hub Button
-            hubBtn?.addEventListener('click', () => {
-                console.log('hub clicked');
-                window.top.location.href = '../index.html';
+            hubBtn?.addEventListener('click', returnToArcadeHub);
+
+            cells.forEach(cell => {
+                cell.addEventListener('click', cellClicked);
+                cell.addEventListener('mouseenter', () => {
+                    const idx = cell.getAttribute('data-index');
+                    if (running && !isThinking && board[idx] === "") {
+                        juiceAudio.playHover();
+                    }
+                });
             });
 
-            cells.forEach(cell => cell.addEventListener('click', cellClicked));
+            // Numpad / 1-9 Keyboard Support
+            window.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key, 10) - 1;
+                    if (cells[idx]) cells[idx].click();
+                } else if (e.code === 'KeyR' || (e.code === 'Space' && !running)) {
+                    resetGame();
+                }
+            });
+
             resetBtn.addEventListener('click', resetGame);
             toggleAIBtn.addEventListener('click', toggleAI);
+
+            // Sync Difficulty Pill Buttons & Select
+            document.querySelectorAll('.diff-pill-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    aiDifficulty = btn.getAttribute('data-diff');
+                    difficultySelect.value = aiDifficulty;
+                    document.querySelectorAll('.diff-pill-btn').forEach(b => b.classList.toggle('active', b === btn));
+                    const labels = { easy: '🤖 Easy', medium: '🤖 Medium', hard: '🤖 Hard' };
+                    if (aiDiffBadge) aiDiffBadge.textContent = labels[aiDifficulty] || '🤖 Hard';
+                    juiceAudio.playHover();
+                    resetGame();
+                });
+            });
+
             difficultySelect.addEventListener('change', (e) => {
                 aiDifficulty = e.target.value;
+                document.querySelectorAll('.diff-pill-btn').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-diff') === aiDifficulty);
+                });
                 resetGame();
             });
 
@@ -407,44 +625,57 @@
             document.getElementById('htp-close')?.addEventListener('click', () => {
                 document.getElementById('htpOverlay').classList.remove('active');
             });
-            
+
             btnMute.addEventListener('click', (e) => {
                 e.stopPropagation();
+                juiceAudio.muted = !juiceAudio.muted;
                 if (window.audioFX) {
-                    window.audioFX.toggleMute();
-                    btnMute.innerHTML = window.audioFX.isMuted ? '🔇' : '🔊';
+                    window.audioFX.isMuted = juiceAudio.muted;
+                }
+                btnMute.innerHTML = juiceAudio.muted ? '🔇' : '🔊';
+            });
+
+            // Fullscreen Toggle
+            const btnFs = document.getElementById('btn-fs');
+            btnFs?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                try {
+                    if (window.parent && window.parent !== window && typeof window.parent.toggleFullscreen === 'function') {
+                        window.parent.toggleFullscreen();
+                        return;
+                    }
+                } catch (err) {}
+                try {
+                    window.parent.postMessage({ type: 'TOGGLE_FULLSCREEN' }, '*');
+                } catch (err) {}
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen?.().catch(() => {});
+                } else {
+                    document.exitFullscreen?.().catch(() => {});
                 }
             });
 
-            // Ad Observer
-            const adBox = document.getElementById('ad-box');
-            if (adBox) {
-                const observer = new MutationObserver(() => {
-                    if (adBox.innerHTML.trim() !== '') {
-                        adBox.classList.add('ad-loaded');
-                    }
-                });
-                observer.observe(adBox, { childList: true, subtree: true });
-            }
-            
             running = true;
+            refreshGhostPreviews();
             updateStatusText();
         }
 
         function toggleAI() {
             isVsAI = !isVsAI;
             if (isVsAI) {
-                toggleAIBtn.textContent = "Vs AI: ON";
+                toggleAIBtn.textContent = "🤖 Vs AI: ON";
                 toggleAIBtn.classList.add('active-mode');
                 difficultyContainer.style.visibility = "visible";
-                document.getElementById('p2Label').textContent = "AI";
+                document.getElementById('p2Label').textContent = "Cyber AI (O)";
+                if (aiDiffBadge) aiDiffBadge.textContent = `🤖 ${aiDifficulty.charAt(0).toUpperCase() + aiDifficulty.slice(1)}`;
             } else {
-                toggleAIBtn.textContent = "Vs AI: OFF";
+                toggleAIBtn.textContent = "👥 2 Players";
                 toggleAIBtn.classList.remove('active-mode');
                 difficultyContainer.style.visibility = "hidden";
-                document.getElementById('p2Label').textContent = "Player 2";
+                document.getElementById('p2Label').textContent = "Player 2 (O)";
+                if (aiDiffBadge) aiDiffBadge.textContent = "⚡ Local PvP";
             }
-            p1Score = 0; p2Score = 0;
+            p1Score = 0; p2Score = 0; drawScore = 0; p1Streak = 0;
             updateScoreDisplay();
             resetGame();
         }
@@ -453,7 +684,6 @@
             const cellIndex = this.getAttribute('data-index');
             if (board[cellIndex] !== "" || !running || isThinking) return;
             if (isVsAI && currentPlayer === "O") return;
-            if (window.audioFX) window.audioFX.init();
 
             updateCell(this, cellIndex);
             checkWinner();
@@ -461,20 +691,36 @@
 
         function updateCell(cell, index) {
             board[index] = currentPlayer;
-            cell.textContent = currentPlayer;
+            cell.innerHTML = getMarkSvg(currentPlayer, false);
             cell.classList.add(currentPlayer.toLowerCase(), 'occupied');
+
+            if (currentPlayer === 'X') {
+                juiceAudio.playPlaceX();
+                spawnCellBurst(cell, '#00f3ff');
+            } else {
+                juiceAudio.playPlaceO();
+                spawnCellBurst(cell, '#ff007f');
+            }
+            triggerBoardShake();
         }
 
         function updateStatusText() {
             if (!running && board.some(c => c !== "")) return;
-            const pName = (currentPlayer === "X") ? "Player 1" : (isVsAI ? "AI" : "Player 2");
+            const pName = (currentPlayer === "X") ? "Player 1 (X)" : (isVsAI ? "Cyber AI (O)" : "Player 2 (O)");
             statusText.textContent = `${pName}'s Turn`;
             statusText.className = `hud-subtitle ${currentPlayer.toLowerCase()}-turn`;
+
+            podP1?.classList.toggle('active-turn', currentPlayer === 'X');
+            podP2?.classList.toggle('active-turn', currentPlayer === 'O');
+            boardStage?.classList.toggle('o-turn-glow', currentPlayer === 'O');
+            refreshGhostPreviews();
         }
 
         function updateScoreDisplay() {
             p1ScoreDisplay.textContent = p1Score;
             p2ScoreDisplay.textContent = p2Score;
+            if (drawScoreDisplay) drawScoreDisplay.textContent = drawScore;
+            if (streakBadge) streakBadge.textContent = `🔥 Streak: ${p1Streak}`;
         }
 
         function checkWinner() {
@@ -484,21 +730,45 @@
             for (let condition of winConditions) {
                 const cellA = board[condition[0]], cellB = board[condition[1]], cellC = board[condition[2]];
                 if (cellA !== "" && cellA === cellB && cellB === cellC) {
-                    roundWon = true; winningCells = condition; break;
+                    roundWon = true;
+                    winningCells = condition;
+                    break;
                 }
             }
 
             if (roundWon) {
-                const winner = (currentPlayer === "X") ? "Player 1" : (isVsAI ? "AI" : "Player 2");
-                statusText.textContent = `${winner} Wins!`;
-                if (currentPlayer === "X") p1Score++; else p2Score++;
+                const isX = (currentPlayer === "X");
+                const winner = isX ? "Player 1" : (isVsAI ? "Cyber AI" : "Player 2");
+                statusText.textContent = `🏆 ${winner} Wins!`;
+                statusText.className = "hud-subtitle win-banner";
+
+                if (isX) {
+                    p1Score++;
+                    p1Streak++;
+                    if (window.achievements) window.achievements.unlock('tictactoe', 'win', 'Tactician');
+                } else {
+                    p2Score++;
+                    p1Streak = 0;
+                }
                 updateScoreDisplay();
-                if (window.achievements) window.achievements.unlock('tictactoe', 'win', 'Tactician');
+
                 winningCells.forEach(i => cells[i].classList.add('winning-cell'));
+                boardStage?.classList.add('board-win-glow');
+                drawWinningLaser(winningCells);
+                juiceAudio.playWin(isX);
+                spawnVictoryFireworks(isX ? '#00f3ff' : '#ff007f');
+                showRoundBanner(
+                    isX && p1Streak >= 2 ? `🔥 ${winner} WINS! (${p1Streak}x STREAK!)` : `🏆 ${winner.toUpperCase()} WINS!`,
+                    isX ? '#00f3ff' : '#ff007f'
+                );
                 running = false;
             } else if (!board.includes("")) {
-                statusText.textContent = "It's a Draw!";
-                statusText.className = "hud-subtitle";
+                drawScore++;
+                updateScoreDisplay();
+                statusText.textContent = "⚡ Tactical Draw!";
+                statusText.className = "hud-subtitle win-banner";
+                juiceAudio.playDraw();
+                showRoundBanner("⚡ TACTICAL DRAW — REMATCH!", "#ffd700");
                 running = false;
             } else {
                 currentPlayer = (currentPlayer === "X") ? "O" : "X";
@@ -509,24 +779,30 @@
 
         function makeAIMove() {
             isThinking = true;
-            statusText.textContent = "AI Thinking...";
+            statusText.textContent = "🤖 AI Scanning Grid...";
             setTimeout(() => {
                 let move;
-                if (aiDifficulty === "easy" || (aiDifficulty === "medium" && Math.random() > 0.5)) {
-                    let av = []; board.forEach((c,i) => { if(c==="") av.push(i); });
-                    move = av[Math.floor(Math.random()*av.length)];
+                if (aiDifficulty === "easy" || (aiDifficulty === "medium" && Math.random() > 0.55)) {
+                    let av = [];
+                    board.forEach((c, i) => { if (c === "") av.push(i); });
+                    move = av[Math.floor(Math.random() * av.length)];
                 } else {
                     let best = -Infinity;
-                    board.forEach((c,i) => {
+                    board.forEach((c, i) => {
                         if (c === "") {
-                            board[i] = "O"; let s = minimax(board, 0, false); board[i] = "";
+                            board[i] = "O";
+                            let s = minimax(board, 0, false);
+                            board[i] = "";
                             if (s > best) { best = s; move = i; }
                         }
                     });
                 }
-                if (move !== undefined) { updateCell(cells[move], move); checkWinner(); }
+                if (move !== undefined && running) {
+                    updateCell(cells[move], move);
+                    checkWinner();
+                }
                 isThinking = false;
-            }, 600);
+            }, 460);
         }
 
         function minimax(b, d, m) {
@@ -535,29 +811,39 @@
             if (!b.includes("")) return 0;
             if (m) {
                 let best = -Infinity;
-                b.forEach((c,i) => { if(c==="") { b[i]="O"; best=Math.max(best, minimax(b, d+1, false)); b[i]=""; }});
+                b.forEach((c, i) => {
+                    if (c === "") { b[i] = "O"; best = Math.max(best, minimax(b, d + 1, false)); b[i] = ""; }
+                });
                 return best;
             } else {
                 let best = Infinity;
-                b.forEach((c,i) => { if(c==="") { b[i]="X"; best=Math.min(best, minimax(b, d+1, true)); b[i]=""; }});
+                b.forEach((c, i) => {
+                    if (c === "") { b[i] = "X"; best = Math.min(best, minimax(b, d + 1, true)); b[i] = ""; }
+                });
                 return best;
             }
         }
 
         function checkWinRes(b, p) {
-            return winConditions.some(c => b[c[0]]===p && b[c[1]]===p && b[c[2]]===p);
+            return winConditions.some(c => b[c[0]] === p && b[c[1]] === p && b[c[2]] === p);
         }
 
         function resetGame() {
             board = ["", "", "", "", "", "", "", "", ""];
             currentPlayer = "X";
-            cells.forEach(c => { c.textContent = ""; c.className = "cell"; });
-            running = true; updateStatusText();
+            isThinking = false;
+            cells.forEach(c => { c.innerHTML = ""; c.className = "cell"; });
+            const laserSvg = document.getElementById('winLaserSvg');
+            if (laserSvg) laserSvg.innerHTML = "";
+            boardStage?.classList.remove('board-win-glow', 'o-turn-glow');
+            roundBanner?.classList.remove('show');
+            running = true;
+            updateStatusText();
         }
 
         initializeGame();
     </script>
-    
+
     <script>
     (function() {
         var gameId = 'tictactoe';
@@ -569,13 +855,10 @@
         var gameId = 'tictactoe';
         localStorage.setItem('arcade_seen_' + gameId, '1');
         document.body.classList.remove('show-info-overlay');
-        // Trigger a window resize event to force canvas and layout recalculation now that display is visible
         window.dispatchEvent(new Event('resize'));
         var overlay = document.getElementById('game-info-overlay');
         if (overlay) overlay.style.display = 'none';
-        if (typeof initGame === 'function') { initGame(); }
     }
     </script>
-
 </body>
 </html>

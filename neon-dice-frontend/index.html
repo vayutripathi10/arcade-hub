@@ -7,9 +7,101 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=155">
+    <link rel="stylesheet" href="style.css?v=160">
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5174002360692771" crossorigin="anonymous"></script>
+<style id="zero-scroll-compact-screens">
+/* === BULLETPROOF SMALL-SCREEN & LAPTOP ZERO-SCROLL FIT FOR ALL SCREENS === */
+.screen {
+    padding: clamp(8px, 1.6vh, 16px) 14px !important;
+    overflow: hidden !important;
+    justify-content: center !important;
+}
+#screen-game {
+    padding-top: clamp(46px, 7.5vh, 60px) !important;
+}
+.score-title {
+    font-size: clamp(1.1rem, 2.5vh, 1.5rem) !important;
+    margin-bottom: clamp(4px, 1vh, 10px) !important;
+}
+.comparison-card {
+    padding: clamp(8px, 1.5vh, 14px) 16px !important;
+    margin-bottom: clamp(6px, 1.2vh, 12px) !important;
+    border-radius: 16px !important;
+    max-width: 420px !important;
+}
+.digit-col .val {
+    font-size: clamp(1.8rem, 4.2vh, 2.5rem) !important;
+}
+.diff-display {
+    margin-top: clamp(4px, 0.9vh, 8px) !important;
+    padding-top: clamp(4px, 0.9vh, 8px) !important;
+    font-size: 0.82rem !important;
+}
+.score-reveal-box {
+    margin-bottom: clamp(6px, 1.2vh, 12px) !important;
+    width: 100% !important;
+    max-width: 420px !important;
+}
+.score-out-of-ten {
+    font-size: clamp(1.05rem, 2.2vh, 1.35rem) !important;
+    margin-bottom: 2px !important;
+}
+.score-val {
+    font-size: clamp(1.4rem, 2.8vh, 1.8rem) !important;
+}
+.star-rating {
+    font-size: clamp(1.15rem, 2.4vh, 1.5rem) !important;
+    margin-bottom: clamp(4px, 1vh, 8px) !important;
+}
+.quotation-card {
+    padding: clamp(7px, 1.3vh, 12px) 16px !important;
+    min-height: 40px !important;
+    border-radius: 14px !important;
+    max-width: 420px !important;
+}
+.quote-text {
+    font-size: clamp(0.78rem, 1.6vh, 0.92rem) !important;
+    line-height: 1.32 !important;
+}
+.score-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 420px !important;
+    margin-top: clamp(2px, 0.8vh, 6px) !important;
+}
+.score-actions .btn-main,
+.score-actions .btn-outline {
+    flex: 1 !important;
+    margin: 0 !important;
+    padding: clamp(8px, 1.4vh, 11px) 14px !important;
+    font-size: clamp(0.78rem, 1.6vh, 0.9rem) !important;
+    height: auto !important;
+    white-space: nowrap !important;
+}
+.share-section {
+    margin-top: clamp(6px, 1.2vh, 12px) !important;
+    padding-top: clamp(6px, 1.1vh, 10px) !important;
+    max-width: 420px !important;
+}
+.share-title {
+    margin-bottom: clamp(4px, 0.8vh, 8px) !important;
+    font-size: 0.64rem !important;
+}
+.share-buttons {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+.share-btn {
+    padding: clamp(6px, 1.1vh, 9px) 8px !important;
+    font-size: 0.74rem !important;
+}
+</style>
 </head>
 <body class="show-info-overlay">
 
@@ -117,37 +209,70 @@
 
         <!-- SCREEN 1: TARGET SELECTION -->
         <section class="screen" id="screen-target-select">
-            <div class="brand-logo">
+            <div class="brand-logo compact-target-logo">
                 <h1 class="glow-title">NEON DICE<br><span class="highlight">DESTINY</span></h1>
-                <p class="subtitle">Set your target. Roll your fate.</p>
+                <p class="subtitle">Choose throws &amp; target sum (2 Dice per throw)</p>
             </div>
 
             <div class="target-picker-card">
+                <!-- 1. THROW COUNT SELECTOR -->
+                <div class="throws-selector-box">
+                    <div class="throws-header-row">
+                        <span class="throws-label">🎲 NUMBER OF THROWS (2 DICE):</span>
+                        <div class="throws-stepper">
+                            <button type="button" class="throws-step-btn" id="throws-minus" aria-label="Decrease Throws">−</button>
+                            <strong class="throws-count-badge" id="throws-count-val">5 Throws</strong>
+                            <button type="button" class="throws-step-btn" id="throws-plus" aria-label="Increase Throws">+</button>
+                        </div>
+                    </div>
+                    <div class="throws-preset-row" id="throws-preset-row">
+                        <button type="button" class="throw-pill" data-throws="1">1x</button>
+                        <button type="button" class="throw-pill" data-throws="2">2x</button>
+                        <button type="button" class="throw-pill" data-throws="3">3x</button>
+                        <button type="button" class="throw-pill active" data-throws="5">5x</button>
+                        <button type="button" class="throw-pill" data-throws="7">7x</button>
+                        <button type="button" class="throw-pill" data-throws="10">10x</button>
+                    </div>
+                </div>
+
+                <!-- 2. DYNAMIC MIN / SWEET SPOT / MAX INFO STRIP -->
+                <div class="target-bounds-strip">
+                    <span class="bound-item">MIN SUM: <strong id="ui-min-target">10</strong></span>
+                    <span class="bound-item sweet">AVG: <strong id="ui-avg-target">35</strong></span>
+                    <span class="bound-item">MAX SUM: <strong id="ui-max-target">60</strong></span>
+                </div>
+
+                <!-- 3. TARGET SUM PICKER -->
                 <div class="picker-controls">
                     <button class="picker-btn" id="picker-minus" aria-label="Decrease Target">−</button>
                     <div class="target-display-wrapper">
-                        <span class="target-digits" id="target-digits-val">30</span>
+                        <span class="target-digits" id="target-digits-val">35</span>
                         <div class="padlock-icon" id="target-padlock">🔒</div>
                     </div>
                     <button class="picker-btn" id="picker-plus" aria-label="Increase Target">+</button>
                 </div>
 
                 <div class="slider-wrapper">
-                    <input type="range" min="2" max="60" value="30" class="neon-slider" id="target-slider">
+                    <input type="range" min="10" max="60" value="35" class="neon-slider" id="target-slider">
+                    <div class="slider-minmax-labels">
+                        <span id="slider-min-label">Min: 10</span>
+                        <span id="slider-target-range-note">2 Dice × 5 Throws</span>
+                        <span id="slider-max-label">Max: 60</span>
+                    </div>
                 </div>
 
                 <div class="probability-hint" id="prob-hint">
-                    Probability: <span id="prob-text" class="moderate">Moderate 🟢</span>
+                    Probability: <span id="prob-text" class="moderate">High (Sweet Spot) 🟢</span>
                 </div>
             </div>
 
             <div class="action-wrapper">
-                <button class="btn-main pulse" id="btn-lock-target">LOCK IN TARGET</button>
+                <button class="btn-main pulse" id="btn-lock-target">LOCK IN TARGET &amp; THROWS</button>
             </div>
 
             <div class="how-to-play-hint">
                 <h3>💡 How to Play</h3>
-                <p>Set a target between 2 and 60. Lock it in, then roll two 3D dice across 5 rounds. Try to match your target total exactly!</p>
+                <p id="htp-dynamic-desc">Each throw rolls 2 dice (sum 2–12). With 5 throws, your total will be between 10 and 60. Match your Target total as closely as possible!</p>
             </div>
 
             <div class="best-score-display" id="best-score-container">
@@ -237,8 +362,8 @@
                 </div>
                 <div class="progress-labels">
                     <span>0</span>
-                    <span id="progress-target-label">Target: 30</span>
-                    <span>60</span>
+                    <span id="progress-target-label">Target: 35</span>
+                    <span id="progress-max-label">60</span>
                 </div>
             </div>
 
@@ -368,7 +493,7 @@
 
     <!-- Scripts Loading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js?v=155"></script>
+    <script src="script.js?v=160"></script>
     <script>
         (function() {
             const gameId = 'neon-dice-destiny';

@@ -4,7 +4,8 @@
 
 // --- Global State ---
 let gameState = {
-    target: 30,
+    maxRounds: 5,
+    target: 35,
     total: 0,
     round: 1,
     rolls: [],
@@ -1034,37 +1035,128 @@ function initGame() {
     bindActions();
 }
 
+function getMinTargetForThrows(n) {
+    return 2 * n;
+}
+function getMaxTargetForThrows(n) {
+    return 12 * n;
+}
+function getAvgTargetForThrows(n) {
+    return 7 * n;
+}
+
 function bindTargetPicker() {
     const slider = document.getElementById('target-slider');
     const digits = document.getElementById('target-digits-val');
     const btnMinus = document.getElementById('picker-minus');
     const btnPlus = document.getElementById('picker-plus');
+    const throwsMinus = document.getElementById('throws-minus');
+    const throwsPlus = document.getElementById('throws-plus');
+    const throwsCountVal = document.getElementById('throws-count-val');
+    const throwPills = document.querySelectorAll('.throw-pill');
 
     const updateDisplay = (val) => {
         if (gameState.gameActive) return;
-        gameState.target = parseInt(val, 10);
-        digits.textContent = gameState.target;
-        slider.value = gameState.target;
-        
-        // Probability hint check
+        const n = gameState.maxRounds || 5;
+        const minSum = getMinTargetForThrows(n);
+        const maxSum = getMaxTargetForThrows(n);
+        const avgSum = getAvgTargetForThrows(n);
+
+        // Strictly clamp target within [2 * N, 12 * N] so impossible targets (like 1 or 2 for 5 throws) can never be chosen
+        let clamped = parseInt(val, 10);
+        if (isNaN(clamped)) clamped = avgSum;
+        clamped = Math.max(minSum, Math.min(maxSum, clamped));
+
+        gameState.target = clamped;
+        slider.min = minSum;
+        slider.max = maxSum;
+        slider.value = clamped;
+        digits.textContent = clamped;
+
+        // Update Min / Sweet Spot / Max display labels
+        const minEl = document.getElementById('ui-min-target');
+        const avgEl = document.getElementById('ui-avg-target');
+        const maxEl = document.getElementById('ui-max-target');
+        const sMinEl = document.getElementById('slider-min-label');
+        const sMaxEl = document.getElementById('slider-max-label');
+        const sNoteEl = document.getElementById('slider-target-range-note');
+        const htpDesc = document.getElementById('htp-dynamic-desc');
+
+        if (minEl) minEl.textContent = minSum;
+        if (avgEl) avgEl.textContent = avgSum;
+        if (maxEl) maxEl.textContent = maxSum;
+        if (sMinEl) sMinEl.textContent = `Min: ${minSum}`;
+        if (sMaxEl) sMaxEl.textContent = `Max: ${maxSum}`;
+        if (sNoteEl) sNoteEl.textContent = `2 Dice × ${n} ${n === 1 ? 'Throw' : 'Throws'}`;
+        if (htpDesc) {
+            htpDesc.textContent = `Each throw rolls 2 dice (sum 2–12). With ${n} ${n === 1 ? 'throw' : 'throws'}, your total is always between ${minSum} (Min) and ${maxSum} (Max). Match your Target (${clamped})!`;
+        }
+
+        // True bell-curve probability calculation around avgSum (7 * N)
+        const halfSpan = Math.max(1, 5 * n);
+        const distRatio = Math.abs(clamped - avgSum) / halfSpan; // 0 at center 7N, 1 at edges 2N or 12N
         const hint = document.getElementById('prob-text');
-        if (gameState.target <= 10) {
-            hint.className = 'very-easy';
-            hint.textContent = 'Very Easy 🟢';
-        } else if (gameState.target <= 25) {
-            hint.className = 'moderate';
-            hint.textContent = 'Moderate 🟢';
-        } else if (gameState.target <= 40) {
-            hint.className = 'achievable';
-            hint.textContent = 'Achievable 🟡';
-        } else if (gameState.target <= 55) {
-            hint.className = 'ambitious';
-            hint.textContent = 'Ambitious 🔴';
-        } else {
-            hint.className = 'legendary';
-            hint.textContent = 'Legendary Challenge 💀';
+        if (hint) {
+            if (distRatio <= 0.22) {
+                hint.className = 'very-easy';
+                hint.textContent = 'High (Sweet Spot) 🟢';
+            } else if (distRatio <= 0.48) {
+                hint.className = 'moderate';
+                hint.textContent = 'Moderate 🟢';
+            } else if (distRatio <= 0.72) {
+                hint.className = 'achievable';
+                hint.textContent = 'Challenging 🟡';
+            } else if (distRatio <= 0.90) {
+                hint.className = 'ambitious';
+                hint.textContent = 'Rare / Ambitious 🔴';
+            } else {
+                hint.className = 'legendary';
+                hint.textContent = 'Legendary Extreme 💀';
+            }
         }
     };
+
+    const updateThrowsCount = (newThrows) => {
+        if (gameState.gameActive) return;
+        const clampedThrows = Math.max(1, Math.min(10, parseInt(newThrows, 10) || 5));
+        const prevThrows = gameState.maxRounds || 5;
+        gameState.maxRounds = clampedThrows;
+
+        if (throwsCountVal) {
+            throwsCountVal.textContent = `${clampedThrows} ${clampedThrows === 1 ? 'Throw' : 'Throws'}`;
+        }
+        throwPills.forEach(p => {
+            p.classList.toggle('active', parseInt(p.getAttribute('data-throws'), 10) === clampedThrows);
+        });
+
+        // Scale target proportionally to the new throw count (or snap to sweet spot if previously at sweet spot)
+        const scaledTarget = Math.round((gameState.target / prevThrows) * clampedThrows);
+        updateDisplay(scaledTarget);
+    };
+
+    if (throwsMinus) {
+        throwsMinus.addEventListener('click', () => {
+            if (gameState.maxRounds > 1) {
+                updateThrowsCount(gameState.maxRounds - 1);
+                sfx.playClick();
+            }
+        });
+    }
+    if (throwsPlus) {
+        throwsPlus.addEventListener('click', () => {
+            if (gameState.maxRounds < 10) {
+                updateThrowsCount(gameState.maxRounds + 1);
+                sfx.playClick();
+            }
+        });
+    }
+    throwPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            const t = parseInt(pill.getAttribute('data-throws'), 10);
+            updateThrowsCount(t);
+            sfx.playClick();
+        });
+    });
 
     slider.addEventListener('input', (e) => {
         updateDisplay(e.target.value);
@@ -1072,18 +1164,23 @@ function bindTargetPicker() {
     });
 
     btnMinus.addEventListener('click', () => {
-        if (gameState.target > 2) {
+        const minSum = getMinTargetForThrows(gameState.maxRounds);
+        if (gameState.target > minSum) {
             updateDisplay(gameState.target - 1);
             sfx.playClick();
         }
     });
 
     btnPlus.addEventListener('click', () => {
-        if (gameState.target < 60) {
+        const maxSum = getMaxTargetForThrows(gameState.maxRounds);
+        if (gameState.target < maxSum) {
             updateDisplay(gameState.target + 1);
             sfx.playClick();
         }
     });
+
+    // Initialize default 5 throws (Min 10, Avg 35, Max 60)
+    updateThrowsCount(gameState.maxRounds || 5);
 }
 
 function bindActions() {
@@ -1260,9 +1357,16 @@ function lockTarget() {
     document.getElementById('picker-minus').disabled = true;
     document.getElementById('picker-plus').disabled = true;
     document.getElementById('btn-lock-target').disabled = true;
+    const tm = document.getElementById('throws-minus');
+    const tp = document.getElementById('throws-plus');
+    if (tm) tm.disabled = true;
+    if (tp) tp.disabled = true;
+    document.querySelectorAll('.throw-pill').forEach(p => { p.disabled = true; });
 
     // Slam animation & transition
     setTimeout(() => {
+        const maxR = gameState.maxRounds || 5;
+        const maxSum = getMaxTargetForThrows(maxR);
         gameState.gameActive = true;
         gameState.total = 0;
         gameState.round = 1;
@@ -1271,17 +1375,19 @@ function lockTarget() {
         // Update HUD
         document.getElementById('hud-target-val').textContent = gameState.target;
         document.getElementById('hud-total-val').textContent = "0";
-        document.getElementById('hud-round-pill').textContent = "ROUND 1/5";
+        document.getElementById('hud-round-pill').textContent = `THROW 1/${maxR}`;
         clearHUDDiceBadges();
         
         // Update Game screen stats
         document.getElementById('stat-gap').textContent = `NEED ${gameState.target} MORE`;
-        document.getElementById('stat-commentary').textContent = "Ready for Roll 1";
-        document.getElementById('progress-target-label').textContent = `Target: ${gameState.target}`;
+        document.getElementById('stat-commentary').textContent = `Ready for Throw 1 of ${maxR}`;
+        document.getElementById('progress-target-label').textContent = `Target: ${gameState.target} (Min ${2 * maxR})`;
+        const pMaxEl = document.getElementById('progress-max-label');
+        if (pMaxEl) pMaxEl.textContent = maxSum;
         
         // Position progress marker
         const marker = document.getElementById('target-marker');
-        marker.style.left = `${(gameState.target / 60) * 100}%`;
+        marker.style.left = `${(gameState.target / maxSum) * 100}%`;
         
         // Progress Fill resets
         const fill = document.getElementById('progress-fill');
@@ -1310,8 +1416,9 @@ function triggerRoll() {
     rollBtn.classList.add('pressed');
     setTimeout(() => rollBtn.classList.remove('pressed'), 100);
 
-    // Final countdown transition overlay for round 5
-    if (gameState.round === 5) {
+    const maxR = gameState.maxRounds || 5;
+    // Final countdown transition overlay for the final throw (when playing 2+ throws)
+    if (maxR > 1 && gameState.round === maxR) {
         const overlay = document.getElementById('countdown-overlay');
         overlay.classList.add('visible');
         overlay.textContent = "3";
@@ -1348,6 +1455,8 @@ function executeRoll() {
 
 function onRollSettled() {
     const currentRoll = gameState.rolls[gameState.round - 1];
+    const maxR = gameState.maxRounds || 5;
+    const maxSum = getMaxTargetForThrows(maxR);
     
     // Accumulate total
     gameState.total += currentRoll.sum;
@@ -1376,7 +1485,7 @@ function onRollSettled() {
 
     // Update Progress bar width
     const fill = document.getElementById('progress-fill');
-    const pct = Math.min(100, (gameState.total / 60) * 100);
+    const pct = Math.min(100, (gameState.total / maxSum) * 100);
     fill.style.width = `${pct}%`;
     if (gameState.total > gameState.target) {
         fill.classList.add('overflow');
@@ -1397,14 +1506,13 @@ function onRollSettled() {
     updateTensionHUD(gap);
 
     // Round progression check
-    if (gameState.round < 5) {
+    if (gameState.round < maxR) {
         gameState.round++;
         setTimeout(() => {
-            document.getElementById('hud-round-pill').textContent = `ROUND ${gameState.round}/5`;
-            // Keep the dice constant on the table - do not reset to the top!
+            document.getElementById('hud-round-pill').textContent = `THROW ${gameState.round}/${maxR}`;
         }, 1500);
     } else {
-        // Round 5 finished - Go to Score reveal
+        // Final throw finished - Go to Score reveal
         gameState.gameActive = false;
         setTimeout(() => {
             revealFinalScore();
@@ -1415,54 +1523,37 @@ function onRollSettled() {
 function updateTensionHUD(gap) {
     const commentary = document.getElementById('stat-commentary');
     const status = document.getElementById('stat-status');
-    const roundsLeft = 5 - gameState.round;
+    const maxR = gameState.maxRounds || 5;
+    const roundsLeft = maxR - gameState.round;
 
-    // Commentary tags
-    if (gameState.round === 1) {
-        if (gap < gameState.target - 7) {
-            commentary.textContent = "Good start!";
-        } else {
-            commentary.textContent = "Slow beginning...";
-        }
-    } else if (gameState.round === 2) {
-        if (gap < (gameState.target * 0.6)) {
-            commentary.textContent = "Keep going!";
-        } else {
-            commentary.textContent = "You're behind pace";
-        }
-    } else if (gameState.round === 3) {
-        if (gap < (gameState.target * 0.4)) {
-            commentary.textContent = "Halfway there!";
-        } else {
-            commentary.textContent = "Need big numbers!";
-        }
-    } else if (gameState.round === 4) {
-        if (gap <= 12) {
-            commentary.textContent = "One roll left!";
-        } else {
-            commentary.textContent = "Need a miracle!";
-        }
-    }
-
-    // Probability signals
-    // Average remaining needed per roll
     if (roundsLeft > 0) {
+        const minRem = 2 * roundsLeft;
+        const maxRem = 12 * roundsLeft;
         const avgNeeded = gap / roundsLeft;
-        if (avgNeeded >= 2 && avgNeeded <= 12) {
+
+        if (gap < minRem) {
+            commentary.textContent = `Already ${minRem - gap}+ over min (${minRem})!`;
+            status.innerHTML = `<span class="indicator-dot red"></span>Bust / Overflow 🔴`;
+        } else if (gap > maxRem) {
+            commentary.textContent = `Max left is ${maxRem} (Need ${gap})!`;
+            status.innerHTML = `<span class="indicator-dot red"></span>Out of reach 🔴`;
+        } else {
+            commentary.textContent = `${roundsLeft} ${roundsLeft === 1 ? 'throw' : 'throws'} left (Avg ${avgNeeded.toFixed(1)}/throw)`;
             if (avgNeeded >= 5 && avgNeeded <= 9) {
                 status.innerHTML = `<span class="indicator-dot green"></span>On track 🟢`;
             } else {
                 status.innerHTML = `<span class="indicator-dot yellow"></span>Getting tight 🟡`;
             }
-        } else {
-            status.innerHTML = `<span class="indicator-dot red"></span>Long shot 🔴`;
         }
     } else {
         if (gap === 0) {
+            commentary.textContent = "Exact Destiny Match!";
             status.innerHTML = `<span class="indicator-dot green"></span>PERFECT 🟢`;
         } else if (Math.abs(gap) <= 3) {
+            commentary.textContent = "Razor close finish!";
             status.innerHTML = `<span class="indicator-dot yellow"></span>Close match 🟡`;
         } else {
+            commentary.textContent = "Missed by " + Math.abs(gap);
             status.innerHTML = `<span class="indicator-dot red"></span>Off target 🔴`;
         }
     }
@@ -1680,6 +1771,11 @@ function resetToTargetSelect() {
     document.getElementById('picker-minus').disabled = false;
     document.getElementById('picker-plus').disabled = false;
     document.getElementById('btn-lock-target').disabled = false;
+    const tm = document.getElementById('throws-minus');
+    const tp = document.getElementById('throws-plus');
+    if (tm) tm.disabled = false;
+    if (tp) tp.disabled = false;
+    document.querySelectorAll('.throw-pill').forEach(p => { p.disabled = false; });
     
     document.getElementById('game-hud').classList.add('hidden');
     showScreen('screen-target-select');
@@ -1690,6 +1786,7 @@ function resetToTargetSelect() {
 }
 
 function restartGameWithSameTarget() {
+    const maxR = gameState.maxRounds || 5;
     gameState.gameActive = true;
     gameState.total = 0;
     gameState.round = 1;
@@ -1697,17 +1794,17 @@ function restartGameWithSameTarget() {
 
     // Increment roll statistics tracker
     let totalRolls = parseInt(localStorage.getItem('neonDiceTotalRolls') || '0', 10);
-    totalRolls += 5;
+    totalRolls += maxR;
     localStorage.setItem('neonDiceTotalRolls', totalRolls);
 
     // Reset HUD
     document.getElementById('hud-total-val').textContent = "0";
-    document.getElementById('hud-round-pill').textContent = "ROUND 1/5";
+    document.getElementById('hud-round-pill').textContent = `THROW 1/${maxR}`;
     clearHUDDiceBadges();
     
     // Reset Game Stats
     document.getElementById('stat-gap').textContent = `NEED ${gameState.target} MORE`;
-    document.getElementById('stat-commentary').textContent = "Ready for Roll 1";
+    document.getElementById('stat-commentary').textContent = `Ready for Throw 1 of ${maxR}`;
     
     const fill = document.getElementById('progress-fill');
     fill.style.width = '0%';
