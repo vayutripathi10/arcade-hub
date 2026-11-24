@@ -2414,6 +2414,9 @@
         renderFavorites();
         renderHistory();
         renderSuggestions();
+        if (typeof window._syncYouTubeMobileUI === 'function') {
+            window._syncYouTubeMobileUI();
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -3371,6 +3374,408 @@
         };
         if (DOM.shareTrackBtn) DOM.shareTrackBtn.addEventListener('click', shareActiveTrack);
         if (DOM.audioShareBtn) DOM.audioShareBtn.addEventListener('click', shareActiveTrack);
+
+        // Mobile-only YouTube "Premium" App UI Controller
+        (function initYouTubeMobileUI() {
+            const triggerBtn = document.getElementById('yt-premium-toggle-btn');
+            const shell = document.getElementById('ytm-shell');
+            const exitBtn = document.getElementById('ytm-exit-btn');
+            const exitBrandBtn = document.getElementById('ytm-exit-brand-btn');
+            const playerWrap = document.getElementById('ytm-player-wrap');
+            const playerSlot = document.getElementById('ytm-player-slot');
+            const feedEl = document.getElementById('ytm-feed');
+            const libChipsEl = document.getElementById('ytm-lib-chips');
+            const topTabsEl = document.getElementById('ytm-top-tabs');
+            const bottomNavEl = document.getElementById('ytm-bottom-nav');
+            const drawer = document.getElementById('ytm-drawer');
+            const drawerForm = document.getElementById('ytm-drawer-form');
+            const drawerInput = document.getElementById('ytm-drawer-input');
+            const drawerClose = document.getElementById('ytm-drawer-close');
+            const searchToggleBtn = document.getElementById('ytm-search-toggle-btn');
+            const pasteToggleBtn = document.getElementById('ytm-paste-toggle-btn');
+            const npTitle = document.getElementById('ytm-np-title');
+            const npSub = document.getElementById('ytm-np-sub');
+            const npLikeBtn = document.getElementById('ytm-np-like');
+            const npSaveBtn = document.getElementById('ytm-np-save');
+            const npShareBtn = document.getElementById('ytm-np-share');
+            const npNextBtn = document.getElementById('ytm-np-next');
+            const npFullBtn = document.getElementById('ytm-np-full');
+
+            if (!triggerBtn || !shell || !feedEl) return;
+
+            let isYtmActive = false;
+            let currentSection = 'home'; // 'home' | 'music' | 'queue' | 'history' | 'more' | 'liked' | 'saved' | 'library'
+            let ytmSearchQuery = '';
+            let drawerMode = 'search'; // 'search' | 'add'
+
+            const restorePlayerToPane = () => {
+                if (DOM.playerContainer && DOM.playerPane && DOM.playerContainer.parentElement !== DOM.playerPane) {
+                    const deck = DOM.audioDeck;
+                    if (deck && deck.parentElement === DOM.playerPane) {
+                        DOM.playerPane.insertBefore(DOM.playerContainer, deck);
+                    } else {
+                        DOM.playerPane.appendChild(DOM.playerContainer);
+                    }
+                }
+            };
+
+            const mountPlayerToYtm = () => {
+                if (!DOM.playerContainer || !playerSlot || !playerWrap) return;
+                const hasVideo = Boolean(STATE.activeVideoId || STATE.activeTrack);
+                if (hasVideo) {
+                    if (DOM.playerContainer.parentElement !== playerSlot) {
+                        playerSlot.appendChild(DOM.playerContainer);
+                    }
+                    playerWrap.removeAttribute('hidden');
+                } else {
+                    playerWrap.setAttribute('hidden', '');
+                }
+            };
+
+            const updateNowPlayingBar = () => {
+                const track = STATE.activeTrack;
+                const vid = (track && track.videoId) || STATE.activeVideoId;
+                if (npTitle) npTitle.textContent = (track && track.title) ? track.title : 'Select a video to play';
+                if (npSub) npSub.textContent = (track && track.category) ? `${track.category} · Ad-Free` : 'Sonora Ad-Free Player';
+                if (npLikeBtn && vid) {
+                    const isFav = STATE.favorites.includes(vid);
+                    npLikeBtn.textContent = isFav ? '❤️' : '🤍';
+                }
+                if (npSaveBtn && vid) {
+                    const isSaved = STATE.items.some(i => i.videoId === vid);
+                    npSaveBtn.textContent = isSaved ? '✅' : '🔖';
+                }
+            };
+
+            const setSection = (sec) => {
+                currentSection = sec;
+                if (topTabsEl) {
+                    topTabsEl.querySelectorAll('.ytm-top-tab').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.ytmTab === sec);
+                    });
+                }
+                if (bottomNavEl) {
+                    bottomNavEl.querySelectorAll('.ytm-nav-item').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.ytmNav === sec);
+                    });
+                }
+                renderYtmView();
+            };
+
+            const createYtmVideoCard = (track) => {
+                const card = document.createElement('article');
+                const isPlaying = STATE.activeVideoId === track.videoId;
+                card.className = `ytm-video-card${isPlaying ? ' is-playing' : ''}`;
+
+                const thumbUrl = getPrimaryThumbnail(track);
+                const catLabel = track.category || track._libName || 'Sonora';
+                const initial = (catLabel.replace(/[^\w\u0900-\u097F]/g, '').charAt(0) || 'S').toUpperCase();
+                const isFav = STATE.favorites.includes(track.videoId);
+                const isSaved = STATE.items.some(i => i.videoId === track.videoId);
+
+                card.innerHTML = `
+                    <div class="ytm-thumb-box">
+                        <img class="ytm-thumb-img" src="${escapeHtml(thumbUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer">
+                        <span class="ytm-duration-badge">${isPlaying ? '▶ Playing' : '▶ Watch'}</span>
+                    </div>
+                    <div class="ytm-card-info">
+                        <span class="ytm-avatar">${escapeHtml(initial)}</span>
+                        <div class="ytm-card-meta">
+                            <div class="ytm-card-title">${escapeHtml(track.title || 'Untitled Video')}</div>
+                            <div class="ytm-card-sub">${escapeHtml(catLabel)} · Ad-Free</div>
+                        </div>
+                        <div class="ytm-card-actions">
+                            <button type="button" class="ytm-card-act-btn ytm-act-like" title="Like">${isFav ? '❤️' : '🤍'}</button>
+                            <button type="button" class="ytm-card-act-btn ytm-act-save" title="Save">${isSaved ? '✅' : '🔖'}</button>
+                            <button type="button" class="ytm-card-act-btn ytm-act-share" title="Copy Link">🔗</button>
+                        </div>
+                    </div>
+                `;
+
+                const imgEl = card.querySelector('.ytm-thumb-img');
+                attachThumbnailFallback(imgEl, track.videoId);
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.ytm-card-actions')) return;
+                    if (STATE.experienceMode === 'audio') {
+                        STATE.experienceMode = 'video';
+                    }
+                    playTrack(track);
+                    mountPlayerToYtm();
+                    updateNowPlayingBar();
+                    renderYtmView();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                card.querySelector('.ytm-act-like').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleFavorite(track);
+                });
+
+                card.querySelector('.ytm-act-save').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!STATE.items.some(i => i.videoId === track.videoId)) {
+                        STATE.items.unshift(track);
+                        saveState();
+                        renderAll();
+                        showToast('Saved to library 🔖');
+                    } else {
+                        showToast('Already in Saved ✅');
+                    }
+                });
+
+                card.querySelector('.ytm-act-share').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const basePath = window.location.pathname.endsWith('sonora.html') ? '/sonora.html' : '/sonora';
+                    const link = `${window.location.origin}${basePath}?v=${encodeURIComponent(track.videoId)}`;
+                    const ok = await copyTextFallback(link);
+                    showToast(ok ? 'Video link copied! 🔗' : link);
+                });
+
+                return card;
+            };
+
+            const renderMoreSection = () => {
+                if (libChipsEl) libChipsEl.setAttribute('hidden', '');
+                feedEl.innerHTML = '';
+                const list = document.createElement('div');
+                list.className = 'ytm-more-list';
+
+                const items = [
+                    { icon: '🔗', label: 'Copy Current Video Link', action: () => shareActiveTrack() },
+                    { icon: '📋', label: 'Paste YouTube Link', action: () => openDrawer('add') },
+                    { icon: '📁', label: 'All Libraries', action: () => setSection('library') },
+                    { icon: '🏋️', label: 'Workout / Gym Playlist', action: () => { STATE.activeLibraryId = 'default-workout-gym'; setSection('library'); } },
+                    { icon: '💃', label: 'Zumba Playlist', action: () => { STATE.activeLibraryId = 'default-zumba'; setSection('library'); } },
+                    { icon: '⚡', label: 'Phonk Music Playlist', action: () => { STATE.activeLibraryId = 'default-phonk'; setSection('library'); } },
+                    { icon: '🕒', label: 'Queue', action: () => setSection('queue') },
+                    { icon: '📜', label: 'Watch History', action: () => setSection('history') },
+                    { divider: true },
+                    { icon: '🎧', label: 'Switch to Audio Only Mode', action: () => { exitYtm(); if (DOM.expModeAudioBtn) DOM.expModeAudioBtn.click(); } },
+                    { icon: '🎵', label: 'Exit Premium (Standard Sonora UI)', action: () => exitYtm() }
+                ];
+
+                items.forEach(item => {
+                    if (item.divider) {
+                        const hr = document.createElement('div');
+                        hr.className = 'ytm-more-divider';
+                        list.appendChild(hr);
+                        return;
+                    }
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'ytm-more-item';
+                    btn.innerHTML = `<span class="ytm-more-icon">${item.icon}</span><span>${escapeHtml(item.label)}</span>`;
+                    btn.addEventListener('click', item.action);
+                    list.appendChild(btn);
+                });
+
+                feedEl.appendChild(list);
+            };
+
+            const renderLibChips = () => {
+                if (!libChipsEl) return;
+                const showChips = currentSection === 'music' || currentSection === 'library';
+                if (!showChips) {
+                    libChipsEl.setAttribute('hidden', '');
+                    return;
+                }
+                libChipsEl.removeAttribute('hidden');
+                libChipsEl.innerHTML = '';
+                getAllLibraries().forEach(lib => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = `ytm-lib-chip${lib.id === STATE.activeLibraryId ? ' active' : ''}`;
+                    chip.textContent = lib.name;
+                    chip.addEventListener('click', () => {
+                        STATE.activeLibraryId = lib.id;
+                        renderYtmView();
+                    });
+                    libChipsEl.appendChild(chip);
+                });
+            };
+
+            const renderYtmView = () => {
+                if (!isYtmActive) return;
+                mountPlayerToYtm();
+                updateNowPlayingBar();
+
+                if (currentSection === 'more') {
+                    renderMoreSection();
+                    return;
+                }
+
+                renderLibChips();
+                feedEl.innerHTML = '';
+
+                let tracks = [];
+                if (currentSection === 'home') {
+                    tracks = getAllSongsList();
+                } else if (currentSection === 'music' || currentSection === 'library') {
+                    const activeLib = getActiveLibrary();
+                    tracks = (activeLib && activeLib.videos) || [];
+                } else if (currentSection === 'liked') {
+                    const knownPool = [...getAllSongsList(), ...(STATE.history || [])];
+                    tracks = (STATE.favorites || []).map(fav => {
+                        const vid = typeof fav === 'string' ? fav : (fav && fav.videoId);
+                        if (!vid) return null;
+                        return knownPool.find(t => t && t.videoId === vid) || {
+                            videoId: vid,
+                            title: `YouTube Video · ${vid}`,
+                            category: 'Liked',
+                            thumbnail: `https://i.ytimg.com/vi/${encodeURIComponent(vid)}/hqdefault.jpg`
+                        };
+                    }).filter(Boolean);
+                } else if (currentSection === 'saved') {
+                    tracks = STATE.items || [];
+                } else if (currentSection === 'queue') {
+                    tracks = STATE.queue || [];
+                } else if (currentSection === 'history') {
+                    tracks = STATE.history || [];
+                }
+
+                if (ytmSearchQuery) {
+                    const q = ytmSearchQuery.toLowerCase();
+                    tracks = getAllSongsList().filter(t => matchesSearch(t, q));
+                }
+
+                // When a video is playing, show other videos below it (active one stays in top player)
+                const listTracks = STATE.activeVideoId
+                    ? tracks.filter(t => t && t.videoId !== STATE.activeVideoId)
+                    : tracks;
+
+                if (!listTracks.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'ytm-empty-state';
+                    empty.textContent = currentSection === 'liked'
+                        ? 'No liked videos yet. Tap 🤍 on any video!'
+                        : (currentSection === 'saved' ? 'No saved videos yet. Tap 🔖 on any video!' : 'No videos found in this section.');
+                    feedEl.appendChild(empty);
+                    return;
+                }
+
+                listTracks.forEach(t => feedEl.appendChild(createYtmVideoCard(t)));
+            };
+
+            const openDrawer = (mode) => {
+                if (!drawer || !drawerInput) return;
+                drawerMode = mode;
+                drawer.removeAttribute('hidden');
+                drawerInput.value = mode === 'search' ? ytmSearchQuery : '';
+                drawerInput.placeholder = mode === 'add'
+                    ? 'Paste YouTube video link (watch, Shorts, youtu.be)…'
+                    : 'Search videos in libraries…';
+                drawerInput.focus();
+            };
+
+            const enterYtm = () => {
+                isYtmActive = true;
+                document.documentElement.classList.add('is-yt-mobile-ui');
+                document.body.classList.add('is-yt-mobile-ui');
+                shell.removeAttribute('hidden');
+                renderYtmView();
+            };
+
+            const exitYtm = () => {
+                isYtmActive = false;
+                document.documentElement.classList.remove('is-yt-mobile-ui');
+                document.body.classList.remove('is-yt-mobile-ui');
+                shell.setAttribute('hidden', '');
+                restorePlayerToPane();
+                renderAll();
+            };
+
+            triggerBtn.addEventListener('click', enterYtm);
+            if (exitBtn) exitBtn.addEventListener('click', exitYtm);
+            if (exitBrandBtn) exitBrandBtn.addEventListener('click', exitYtm);
+
+            if (topTabsEl) {
+                topTabsEl.querySelectorAll('.ytm-top-tab').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        ytmSearchQuery = '';
+                        setSection(btn.dataset.ytmTab);
+                    });
+                });
+            }
+
+            if (bottomNavEl) {
+                bottomNavEl.querySelectorAll('.ytm-nav-item').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const nav = btn.dataset.ytmNav;
+                        if (nav === 'add') {
+                            openDrawer('add');
+                            return;
+                        }
+                        ytmSearchQuery = '';
+                        setSection(nav);
+                    });
+                });
+            }
+
+            if (searchToggleBtn) searchToggleBtn.addEventListener('click', () => openDrawer('search'));
+            if (pasteToggleBtn) pasteToggleBtn.addEventListener('click', () => openDrawer('add'));
+            if (drawerClose && drawer) {
+                drawerClose.addEventListener('click', () => {
+                    drawer.setAttribute('hidden', '');
+                    if (ytmSearchQuery) {
+                        ytmSearchQuery = '';
+                        renderYtmView();
+                    }
+                });
+            }
+
+            if (drawerForm && drawerInput) {
+                drawerForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const val = drawerInput.value.trim();
+                    if (!val) return;
+                    if (drawerMode === 'add' || getVideoId(val)) {
+                        if (addSongsToLibrary(val, STATE.activeLibraryId, true)) {
+                            drawerInput.value = '';
+                            if (drawer) drawer.setAttribute('hidden', '');
+                            mountPlayerToYtm();
+                            updateNowPlayingBar();
+                            renderYtmView();
+                        }
+                    } else {
+                        ytmSearchQuery = val;
+                        renderYtmView();
+                    }
+                });
+            }
+
+            if (npLikeBtn) {
+                npLikeBtn.addEventListener('click', () => {
+                    if (STATE.activeTrack) toggleFavorite(STATE.activeTrack);
+                });
+            }
+            if (npSaveBtn) {
+                npSaveBtn.addEventListener('click', () => {
+                    if (!STATE.activeTrack) return;
+                    if (!STATE.items.some(i => i.videoId === STATE.activeTrack.videoId)) {
+                        STATE.items.unshift(STATE.activeTrack);
+                        saveState();
+                        renderAll();
+                        showToast('Saved 🔖');
+                    }
+                });
+            }
+            if (npShareBtn) npShareBtn.addEventListener('click', shareActiveTrack);
+            if (npNextBtn) npNextBtn.addEventListener('click', () => playNext());
+            if (npFullBtn) {
+                npFullBtn.addEventListener('click', () => {
+                    if (DOM.fullscreenBtn) DOM.fullscreenBtn.click();
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                if (isYtmActive && window.innerWidth > 900) {
+                    exitYtm();
+                }
+            });
+
+            window._syncYouTubeMobileUI = renderYtmView;
+        })();
 
         // Background play helper (silent WAV audio keeps WebAudio / MediaSession alive on mobile)
         if (DOM.bgPlayBtn) {

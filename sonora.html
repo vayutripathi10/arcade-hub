@@ -115,7 +115,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=41">
+    <link rel="stylesheet" href="sonora-frontend/sonora.css?v=47">
 
     <!-- Open Graph & Twitter -->
     <meta property="og:title" content="Sonora — Ad-Free YouTube Music Streaming & Background Audio Player | Arcade Hub">
@@ -209,6 +209,10 @@
                         <span class="exp-mode-icon">🎧</span>
                         <span class="exp-mode-label">Audio Only</span>
                         <span class="exp-mode-pill">MUSIC</span>
+                    </button>
+                    <button type="button" class="exp-mode-btn exp-mode-premium-btn" id="yt-premium-toggle-btn" data-exp-mode="premium" role="tab" aria-selected="false" title="Switch to YouTube Mobile App UI">
+                        <span class="yt-prem-play-badge" aria-hidden="true">▶</span>
+                        <span class="exp-mode-label">Premium</span>
                     </button>
                 </div>
 
@@ -572,6 +576,87 @@
             </section>
         </main>
 
+        <!-- MOBILE YOUTUBE PREMIUM APP SHELL (Mobile-only when Premium button is active) -->
+        <div class="ytm-shell" id="ytm-shell" aria-label="YouTube Mobile UI" hidden>
+            <!-- YT Top Header -->
+            <header class="ytm-header">
+                <button type="button" class="ytm-brand-btn" id="ytm-exit-brand-btn" title="Tap to return to Sonora UI">
+                    <span class="ytm-red-play" aria-hidden="true">▶</span>
+                    <span class="ytm-brand-text">Premium</span>
+                </button>
+                <div class="ytm-header-actions">
+                    <button type="button" class="ytm-hdr-icon-btn" id="ytm-search-toggle-btn" title="Search videos" aria-label="Search">🔍</button>
+                    <button type="button" class="ytm-hdr-icon-btn" id="ytm-paste-toggle-btn" title="Paste YouTube link" aria-label="Add link">➕</button>
+                    <button type="button" class="ytm-exit-pill" id="ytm-exit-btn" title="Back to Sonora UI">🎵 Sonora</button>
+                </div>
+            </header>
+
+            <!-- Collapsible Search / Add Link Drawer -->
+            <div class="ytm-drawer" id="ytm-drawer" hidden>
+                <form class="ytm-drawer-form" id="ytm-drawer-form">
+                    <input type="text" id="ytm-drawer-input" class="ytm-drawer-input" placeholder="Search library or paste YouTube URL…" autocomplete="off">
+                    <button type="submit" class="ytm-drawer-submit" id="ytm-drawer-submit">Go</button>
+                    <button type="button" class="ytm-drawer-close" id="ytm-drawer-close" aria-label="Close">✕</button>
+                </form>
+            </div>
+
+            <!-- YT Top Sub-Tabs (Home, Music, Queue, History, More) -->
+            <nav class="ytm-top-tabs" id="ytm-top-tabs" aria-label="YouTube Sections">
+                <button type="button" class="ytm-top-tab active" data-ytm-tab="home">Home</button>
+                <button type="button" class="ytm-top-tab" data-ytm-tab="music">Music</button>
+                <button type="button" class="ytm-top-tab" data-ytm-tab="queue">Queue</button>
+                <button type="button" class="ytm-top-tab" data-ytm-tab="history">History</button>
+                <button type="button" class="ytm-top-tab" data-ytm-tab="more">More</button>
+            </nav>
+
+            <!-- Sticky Video Player Slot (moves #player-container here when playing) -->
+            <div class="ytm-player-wrap" id="ytm-player-wrap" hidden>
+                <div id="ytm-player-slot"></div>
+                <div class="ytm-now-playing-bar" id="ytm-now-playing-bar">
+                    <div class="ytm-np-meta">
+                        <div class="ytm-np-title" id="ytm-np-title">Select a video to play</div>
+                        <div class="ytm-np-sub" id="ytm-np-sub">Sonora Ad-Free Player</div>
+                    </div>
+                    <div class="ytm-np-actions">
+                        <button type="button" class="ytm-np-btn" id="ytm-np-like" title="Like">🤍</button>
+                        <button type="button" class="ytm-np-btn" id="ytm-np-save" title="Save">🔖</button>
+                        <button type="button" class="ytm-np-btn" id="ytm-np-share" title="Copy Share Link">🔗</button>
+                        <button type="button" class="ytm-np-btn" id="ytm-np-next" title="Next">⏭</button>
+                        <button type="button" class="ytm-np-btn" id="ytm-np-full" title="Fullscreen">⛶</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Library Filter Chips (shown in Music / Library) -->
+            <div class="ytm-lib-chips" id="ytm-lib-chips" hidden></div>
+
+            <!-- Main Scrollable Video Feed / More Menu -->
+            <div class="ytm-feed" id="ytm-feed"></div>
+
+            <!-- Fixed YT Bottom Navigation Bar (Home, Liked, +, Saved, Library) -->
+            <nav class="ytm-bottom-nav" id="ytm-bottom-nav" aria-label="Bottom Navigation">
+                <button type="button" class="ytm-nav-item active" data-ytm-nav="home">
+                    <span class="ytm-nav-icon">🏠</span>
+                    <span class="ytm-nav-label">Home</span>
+                </button>
+                <button type="button" class="ytm-nav-item" data-ytm-nav="liked">
+                    <span class="ytm-nav-icon">❤️</span>
+                    <span class="ytm-nav-label">Liked</span>
+                </button>
+                <button type="button" class="ytm-nav-item ytm-nav-add" data-ytm-nav="add" aria-label="Add YouTube Link">
+                    <span class="ytm-nav-plus">＋</span>
+                </button>
+                <button type="button" class="ytm-nav-item" data-ytm-nav="saved">
+                    <span class="ytm-nav-icon">🔖</span>
+                    <span class="ytm-nav-label">Saved</span>
+                </button>
+                <button type="button" class="ytm-nav-item" data-ytm-nav="library">
+                    <span class="ytm-nav-icon">📁</span>
+                    <span class="ytm-nav-label">Library</span>
+                </button>
+            </nav>
+        </div>
+
         
         
 
@@ -613,7 +698,7 @@
     <!-- Scripts -->
     <script src="shared/ambient-geo.js?v=3"></script>
     <script src="shared/device-experience.js?v=2" defer></script>
-    <script src="sonora-frontend/sonora.js?v=49"></script>
+    <script src="sonora-frontend/sonora.js?v=52"></script>
     <script src="shared/pwa-setup.js?v=326"></script>
 </body>
 </html>
